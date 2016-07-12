@@ -1988,5 +1988,3 @@ downscale_event:
 
 
 
-
-
