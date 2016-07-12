@@ -51,7 +51,7 @@ void RAW_EVENT_USER_FUNCTION(unpack_event *event,
 void CAL_EVENT_USER_FUNCTION(unpack_event *event,
 			     raw_event    *raw_event,
 			     cal_event    *cal_event
-#ifdef USER_STRUCT 
+#ifdef USER_STRUCT
 			     ,USER_STRUCT *user_event
 #endif
 			     MAP_MEMBERS_PARAM);

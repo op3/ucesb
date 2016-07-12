@@ -91,7 +91,7 @@ public:
   int    _fd_mem;
   char  *_ptr; // shm
   size_t _len;
-  
+
   external_writer_shm_control *_ctrl;
 
 public:
@@ -242,10 +242,10 @@ inline uint32_t external_write_float_as_uint32(float src)
  *                 defined in staged_ntuple.hh  (except for this, that
  *                 header file is not needed.)  Basically, one of the
  *                 NTUPLE_TYPE_... values, and on of NTUPLE_CASE_...
- *                 should be or|ed together.  The NTUPLE_WRITER_... are 
+ *                 should be or|ed together.  The NTUPLE_WRITER_... are
  *                 not used by the external_writer.
  *
- *   @no_shm       Set to true to disable the shared memory communication, 
+ *   @no_shm       Set to true to disable the shared memory communication,
  *                 should not be needed.
  *
  *   @filename     Name of the output file.  (Not used for NTUPLE_TYPE_STRUCT)
@@ -281,18 +281,18 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @max_raw_words  Maximum size of raw data.
  *                   (Only for ntuple_index = 0).
  *
- * - Call send_alloc_array() to allocate the staging array.  
+ * - Call send_alloc_array() to allocate the staging array.
  *
- *   @size       This should have the length of the structure that 
- *               you want to dump.  NOTE: it can (currently) only 
- *               contain 32-bit entries, i.e.  basically 32-bit int, 
- *		 uint, and floats.  int32_t and uint32_t are 
+ *   @size       This should have the length of the structure that
+ *               you want to dump.  NOTE: it can (currently) only
+ *               contain 32-bit entries, i.e.  basically 32-bit int,
+ *		 uint, and floats.  int32_t and uint32_t are
  *		 recommended.  It may be arrays whose length are
  *		 controlled by some earlier integer.
  *
  * - For each member of the ntuple/tree, call send_hbname_branch().
  *
- *   @block        [NTUPLE] Name of the block to put the variable in.  
+ *   @block        [NTUPLE] Name of the block to put the variable in.
  *
  *   @offset       Offset of the item in the staging structure (bytes).
  *
@@ -314,12 +314,12 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @limit_max    [NTUPLE] Maximum value.  Flag needed:
  *                 var_type |= EXTERNAL_WRITER_FLAG_HAS_LIMIT).
  *
- * - Call set_max_message_size() to make the reallocate the 
+ * - Call set_max_message_size() to make the reallocate the
  *   communication shm/pipe with enough space to handle the worst case
- *   message.  
+ *   message.
  *
- *   @size          The maximum message length is protocol dependent 
- *                  (see below), currently 2 32-bit word + 1 32-bit 
+ *   @size          The maximum message length is protocol dependent
+ *                  (see below), currently 2 32-bit word + 1 32-bit
  *                  words per item sent.  Also consider the offset
  *                  message.  Specified in bytes.
  *
@@ -332,7 +332,7 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  *   @size          The length of the offset array.  Equal to the number
  *                  of items.
- *   
+ *
  *   The information consists of, for each data item:
  *
  *   uint32_t       offset   (offset in the staging array of the item)
@@ -340,17 +340,17 @@ inline uint32_t external_write_float_as_uint32(float src)
  *                           In case of zero-suppressed arrays, they
  *                           must be directly preceeded by the
  *                           controlling variable, which offset is to
- *                           be OR marked with 0x80000000.  This is 
+ *                           be OR marked with 0x80000000.  This is
  *                           followed by two values, max_loops and
  *                           loop_size, describing the following arrays.
- *                           The items of the arrays are then to be 
+ *                           The items of the arrays are then to be
  *                           given in round-robin order).
  *
  *                           All @offset are to written with htonl(), to
  *                           avoid endianess issues.
  *
- *                           Items that are to be cleared with 0 (e.g. 
- *                           integers), should have a marker 0x40000000.  
+ *                           Items that are to be cleared with 0 (e.g.
+ *                           integers), should have a marker 0x40000000.
  *                           Otherwise, they are cleared with NaN.
  *
  * - When the information has been filled, call send_offsets_fill() to
@@ -377,7 +377,7 @@ inline uint32_t external_write_float_as_uint32(float src)
  *                  where to write ancillary raw data of size @raw_words.
  *
  *   @raw_words     Size of raw data (bytes).
- *   
+ *
  *   The protocol consists of:
  *
  *   uint32_t       ntuple_index  (usually zero, used with multiple
@@ -393,7 +393,7 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  *   For each data item:
  *
- *   uint32_t       value    (value, see writing_ntuple.hh for 
+ *   uint32_t       value    (value, see writing_ntuple.hh for
  *                           type-punning of floats) Both @offset and
  *                           @value are to be written with htonl(), to
  *                           avoid endianess issues.
@@ -435,14 +435,14 @@ mystruct event;
 void example()
 {
   ew = new external_writer();
-  
+
   ew->init(NTUPLE_TYPE_ROOT | NTUPLE_CASE_KEEP, false,
 	   "monsterfile.root","Title",-1,false,false,false);
-  
+
   ew->send_file_open();
 
   ew->send_book_ntuple(101,"h101","CoolTree");
-  
+
   ew->send_alloc_array(sizeof(mystruct));
 
   ew->send_hbname_branch("DEF",offsetof(mystruct,a),sizeof(event.a),
@@ -455,7 +455,7 @@ void example()
 			 "d",4,"b",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
   ew->send_hbname_branch("DEF",offsetof(mystruct,e),sizeof(event.e),
 			 "e",7,"",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
-  
+
   uint32_t maxmsgsize = (1 + 2 * (1+1+1+4+7)) * sizeof(uint32_t);
 
   ew->set_max_message_size(maxmsgsize);
@@ -486,7 +486,7 @@ void example()
     }
 
   ew->close(); // not required, done in destructor below
-  
+
   delete ew;
 }
 #endif

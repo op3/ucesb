@@ -48,7 +48,7 @@ class raw_array
 {
 public:
   typedef T item_t;
-  
+
 public:
   T _items[n];
 
@@ -84,15 +84,15 @@ public:
   void zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info);
 
 public:
-  void show_members(const signal_id &id,const char* unit) const 
-  { 
+  void show_members(const signal_id &id,const char* unit) const
+  {
     _items[0].show_members(signal_id(id,n,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       _items[0].enumerate_members(signal_id(id,0),info,callback,extra);
     else
@@ -119,11 +119,11 @@ class raw_array_zero_suppress
 {
 public:
   typedef T item_t;
-  
+
 public:
   bitsone<n> _valid;
   T          _items[n];
-  
+
 public:
   void __clean()
   {
@@ -187,7 +187,7 @@ public:
       }
 
     // Now, we can insert our item.  First clean it out
-    
+
     item_t &item = _items[i];
     clean_item(item);
     return item;
@@ -207,7 +207,7 @@ public:
 
 public:
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     _items[0].show_members(signal_id(id,n,SIG_PART_INDEX_LIMIT |
 				     SIG_PART_INDEX_ZZP),unit);
   }
@@ -224,7 +224,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       _items[0].enumerate_members(signal_id(id,0),
 				  enumerate_info(info,id._parts.size()),
@@ -247,7 +247,7 @@ public:
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
 
-// 
+//
 
 template<typename Tsingle,typename T,int n,int n1>
 class raw_array_zero_suppress_1 :
@@ -266,7 +266,7 @@ public:
   }
 
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     // item_t &items = _items;
 
     (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0].
@@ -278,7 +278,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0].
 	enumerate_members(signal_id(signal_id(id,0),0),
@@ -301,7 +301,7 @@ public:
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
 
-// 
+//
 
 template<typename Tsingle,typename T,int n,int n1,int n2>
 class raw_array_zero_suppress_2 :
@@ -321,7 +321,7 @@ public:
   }
 
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0][0].
       show_members(signal_id(signal_id(signal_id(id,n,SIG_PART_INDEX_LIMIT |
 						 SIG_PART_INDEX_ZZP),
@@ -332,7 +332,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0][0].
 	enumerate_members(signal_id(signal_id(signal_id(id,0),0),0),
@@ -373,7 +373,7 @@ public:
   bitsone<n> _valid;
   uint32     _num_entries[n];
   T          _items[n][max_entries];
-  
+
 public:
   void __clean()
   {
@@ -430,7 +430,7 @@ public:
 		  "Attempt to insert to many items "
 		  "in multi-entry list (%d>=%d)",
 		  _num_entries[i],max_entries);
-    
+
     item_t &item = _items[i][_num_entries[i]++];
     clean_item(item);
     return item;
@@ -444,7 +444,7 @@ public:
     if (_num_entries[i] >= max_entries)
       ERROR("Attempt to insert to many items in multi-entry list (%d>=%d)",
 	    _num_entries[i],max_entries);
-    
+
     item_t &item = _items[i][_num_entries[i]++];
     clean_item(item);
 
@@ -459,7 +459,7 @@ public:
 
 public:
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     _items[0][0].show_members(signal_id(signal_id(id,n,
 						  SIG_PART_INDEX_LIMIT |
 						  SIG_PART_INDEX_ZZP),
@@ -481,7 +481,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       _items[0][0].enumerate_members(signal_id(signal_id(id,0),0),
 				     enumerate_info(info,id._parts.size()),
@@ -492,7 +492,7 @@ public:
 	for (int i = 0; i < n; ++i)
 	  {
 	    signal_id id_i = signal_id(id,i);
-	    
+
 	    callback(id_i,enumerate_info(info,&_num_entries[i],
 					 ENUM_TYPE_UINT |
 					 ENUM_IS_LIST_LIMIT |
@@ -542,14 +542,14 @@ public:
   }
 
   void show_members(const signal_id &id,const char* unit) const
-  { 
+  {
     _item.show_members(id,unit);
   }
 
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     // enumerate _index also!
     callback(id,enumerate_info(info,&_index,
 			       ENUM_TYPE_INT | ENUM_IS_LIST_INDEX,1,n),
@@ -643,7 +643,7 @@ public:
     if (!_num_items || _items[_num_items-1]._index < i)
       {
 	// The item is not in the list, we need to add it to the end
-	
+
 	//printf ("%08x Insert %d at end\n",this,i);
 
 	assert (_num_items < n);
@@ -663,53 +663,53 @@ public:
 
     // The entry may be somewhere in the list...
     // Do a binary search...
-    
+
     // We could use bsearch, but even if we do not find the particular
     // item, we would end up knowing where it belongs, so it makes sense
     // to use our own routine.
-    
+
     int first = 0;          // first item that may be candidate
     int last  = _num_items; // last item+1 that may be candidate
-    
+
     while (first < last)
       {
 	int check = (first + last) / 2;
-	
+
 	suppressed_item_t &item = _items[check];
-	
+
 	if (item._index == i)
 	  {
 	    // TODO: check that we did not find it again!!!
 	    // We found our candidate item
 	    return item._item;
 	  }
-	
+
 	if (item._index > i)
 	  last = check;
 	else
 	  first = check+1;
       }
-    
+
     // printf ("%08x Insert at %d [%d]\n",this,i,last);
 
     // So, we've reached the point where we know that entry does
     // not exist yet, but needs to be inserted.  At [last]
-    
+
     assert (last == (int) _num_items || _items[last]._index > i);
     assert (last == 0 || _items[last-1]._index < i);
-    
+
     // So first, we need to move all later items away
-    
+
     memmove(&_items[last+1],
 	    &_items[last],
 	    sizeof (_items[0]) * (_num_items-last));
-    
+
     _num_items++;
 
     // Now, we can insert our item.  First clean it out
-    
+
     suppressed_item_t &item = _items[last];
-    
+
     item.clear_set_index(i);
     return item._item;
   }
@@ -738,7 +738,7 @@ public:
 
 public:
   void show_members(const signal_id &id,const char* unit) const
-  { 
+  {
     _items[0].show_members(signal_id(id,n,
 				     SIG_PART_INDEX_LIMIT |
 				     SIG_PART_INDEX_ZZP),unit);
@@ -756,7 +756,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       _items[0].enumerate_members(signal_id(id,0),
 				  enumerate_info(info,id._parts.size()),
@@ -768,7 +768,7 @@ public:
 	  _items[i].enumerate_members(signal_id(id,i),info,callback,extra);
       }
   }
-  
+
 public:
   //void map_members(const /*raw_array_zero_suppress_map*/raw_array_map<Tsingle,T,n> &map MAP_MEMBERS_PARAM) const;
 
@@ -779,7 +779,7 @@ public:
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
 
-// 
+//
 
 template<typename Tsingle,typename T,int n,int n1>
 class raw_list_zero_suppress_1 :
@@ -794,7 +794,7 @@ public:
   }
 
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     // item_t &items = _items;
 
     (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0].
@@ -807,7 +807,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0].
 	enumerate_members(signal_id(signal_id(id,0),0),
@@ -844,7 +844,7 @@ public:
   }
 
   void show_members(const signal_id &id,const char* unit) const
-  {     
+  {
     // item_t &items = _items;
 
     (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0][0].
@@ -858,7 +858,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0][0].
 	enumerate_members(signal_id(signal_id(signal_id(id,0),0),0),
@@ -951,13 +951,13 @@ public:
   item_t &append_item()
   {
     // The item is to be added to the end of the list
-    
+
     //printf ("%08x Insert at end\n",this);
-    
+
     if (_num_items >= n)
       ERROR("Attempt to append too many items (%d>=%d)",_num_items,n);
     item_t &item = _items[_num_items++];
-    
+
     item.__clean();
     return item;
   }
@@ -987,7 +987,7 @@ public:
 
 public:
   void show_members(const signal_id &id,const char* unit) const
-  { 
+  {
     _items[0].show_members(signal_id(id,n,
 				     SIG_PART_INDEX_LIMIT |
 				     SIG_PART_MULTI_ENTRY),unit);
@@ -996,7 +996,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     if (info._only_index0)
       _items[0].enumerate_members(signal_id(id,0),
 				  enumerate_info(info,id._parts.size()),

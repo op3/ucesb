@@ -45,7 +45,7 @@ public:
 
 // The event data structure!
 
-// This should not be used by any user code!  
+// This should not be used by any user code!
 // Use CURRENT_EVENT instead!!
 // Otherwise multi-threading/merging will not function properly!!!
 

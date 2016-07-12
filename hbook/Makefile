@@ -56,7 +56,7 @@ CURSES_CFLAGS = $(shell $(FILE_CURSES_CONFIG) --cflags)
 CURSES_LIBS = $(shell $(FILE_CURSES_CONFIG) --libs)
 else
 # Try with some defaults:
-CURSES_CFLAGS = 
+CURSES_CFLAGS =
 CURSES_LIBS = -lcurses
 endif
 
@@ -90,7 +90,7 @@ endif
 ifndef CERN_ROOT
 ifdef USE_CERNLIB
 $(error CERNLIB requested (via USE_CERNLIB), but cannot find 'cernlib' and CERN_ROOT is not set.  Perhaps '. cernlogin pro' or '. cernlogin.bash pro' will help.)
-endif 
+endif
 else # CERN_ROOT is defined!  rules to build hbook_writer
 all: hbook_writer
 
@@ -171,7 +171,7 @@ endif
 
 AUTO_DEPS += ext_hbook_writer.d
 
-ext_hbook_writer.d: ext_file_writer.cc 
+ext_hbook_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
 	@$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
@@ -244,7 +244,7 @@ ROOT_CXXFLAGS += -DUSING_ROOT=1
 
 AUTO_DEPS += ext_root_writer.d
 
-ext_root_writer.d: ext_file_writer.cc 
+ext_root_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
 	@$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
@@ -285,13 +285,13 @@ ifneq (,$(filter struct_writer,$(MAKECMDGOALS)))
 all: struct_writer
 
 STRUCT_CXXFLAGS += -DSTRUCT_WRITER=1
-STRUCT_CXXFLAGS += 
-STRUCT_CXXLINKFLAGS += 
-STRUCT_CXXLIBS      += 
+STRUCT_CXXFLAGS +=
+STRUCT_CXXLINKFLAGS +=
+STRUCT_CXXLIBS      +=
 
 AUTO_DEPS += ext_struct_writer.d ext_struct_net_io.d
 
-ext_struct_writer.d: ext_file_writer.cc 
+ext_struct_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
 	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
@@ -301,7 +301,7 @@ ext_struct_writer.o: ext_file_writer.cc ext_struct_writer.d
 	@echo "   CXX   $@"
 	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
 
-ext_struct_net_io.d: ext_file_net_io.cc 
+ext_struct_net_io.d: ext_file_net_io.cc
 	@echo "  DEPS   $@"
 	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
@@ -316,7 +316,7 @@ struct_writer: ext_struct_writer.o ext_struct_net_io.o struct_writer.base.dep
 	@$(CXX) $(LDFLAGS) $(STRUCT_CXXLINKFLAGS) -o $@ \
 	  ext_struct_writer.o ext_struct_net_io.o $(STRUCT_CXXLIBS) $(CXXLIBS)
 
-struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d 
+struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d
 	@echo " FULLDEP $@"
 	@echo "$@ struct_writer: \\" > $@
 	@cat ext_struct_writer.d ext_struct_net_io.d ext_data_client.d | \
@@ -390,9 +390,9 @@ clean:
 	rm -f root_reader.base.dep
 	rm -f root_reader.dep
 	rm -f root_reader
-	rm -f ext_data_clnt*_dict.cc ext_data_clnt*_dict.h 
+	rm -f ext_data_clnt*_dict.cc ext_data_clnt*_dict.h
 	rm -f online_chain_dict.cc online_chain_dict.h
-	rm -f libext_data_clnt.so 
+	rm -f libext_data_clnt.so
 
 ifneq (clean,$(MAKECMDGOALS))
 -include $(AUTO_DEPS) # dependency files (.d)

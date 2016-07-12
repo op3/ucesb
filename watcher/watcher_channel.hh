@@ -120,13 +120,13 @@ public:
     _min = 0;
     _max = 4096;
   }
-  
+
   void clear()
   {
     clear_data();
     memset(&_stat_range,0,sizeof(_stat_range));
   }
-  
+
   virtual void clear_data()
   {
     memset(_data,0,sizeof(_data));
@@ -144,7 +144,7 @@ public:
   // we do not switch low-auto-high range too often (just due to a few
   // counts
 
-  char _range_hit[2];  
+  char _range_hit[2];
 
   std::string _name;
 
@@ -180,12 +180,12 @@ public:
   }
 
   virtual ~watcher_present_channel() { }
-  
+
   void clear()
   {
     clear_data();
   }
-  
+
   virtual void clear_data()
   {
     memset(_data,0,sizeof(_data));
@@ -227,14 +227,14 @@ public:
   {
     clear_data();
   }
-  
+
   virtual void clear_data();
 
   void event_summary();
 
 public:
   watcher_present_channel *_channels[NUM_WATCH_PRESENT_CHANNELS];
-  
+
 public:
   bool _has[NUM_WATCH_TYPES];
   uint _data[NUM_WATCH_TYPES];

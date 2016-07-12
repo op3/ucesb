@@ -244,7 +244,7 @@ void insert_signal(event_signal &top,
 	      if (part == id._parts.end())
 		{
 		  signal_info *s_info = dynamic_cast<signal_info *>(s);
-		  
+
 		  if (s_info)
 		    {
 		      // We have some information for this entry!
@@ -252,7 +252,7 @@ void insert_signal(event_signal &top,
 		      if (s_info->_info & SIGNAL_INFO_ZERO_SUPPRESS_MULTI)
 			{
 			  assert (s_info->_multi_size != -1);
-			  
+
 			  if (!node->_children.empty() ||
 			      i != indices.end())
 			    ERROR_LOC(s_info->_loc,"Multi-entry can only be leaf node.");
@@ -303,7 +303,7 @@ void insert_signal(event_signal &top,
 	  else if (part == id._parts.end())
 	    {
 	      // We want no further indices, were there further?
-	      
+
 	      if (i != indices.end())
 		{
 		  WARNING_DECL_SIGNAL(node->_decl);
@@ -321,16 +321,16 @@ void insert_signal(event_signal &top,
 		}
 
 	      signal_info *s_info = dynamic_cast<signal_info *>(s);
-		  
+
 	      if (s_info)
 		{
 		  if (s_info->_info & SIGNAL_INFO_ZERO_SUPPRESS_MULTI)
 		    {
 		      assert (s_info->_multi_size != -1);
-		      
+
 		      if (!node->_children.empty())
 			ERROR_LOC(s_info->_loc,"Multi-entry can only be leaf node.");
-		      
+
 		      if (node->_multi_size != -1 &&
 			  node->_multi_size != s_info->_multi_size)
 			{
@@ -339,7 +339,7 @@ void insert_signal(event_signal &top,
 			}
 		      node->_multi_size = s_info->_multi_size;
 		      node->_multi_loc  = s_info->_loc;
-		      
+
 		    }
 		  else
 		    {
@@ -371,7 +371,7 @@ void insert_signal(event_signal &top,
 			    s->_name);
 		}
 	    }
-	}      
+	}
     }
 
   signal_spec *s_spec = dynamic_cast<signal_spec *>(s);
@@ -381,7 +381,7 @@ void insert_signal(event_signal &top,
       /* Now node, is the leaf node (possibly with indices)
        * Set the type of the leaf node!
        */
-      
+
       if (node->_type)
 	{
 	  if (node->_type != s_spec->_types->_tu[type_no]->_type)
@@ -393,7 +393,7 @@ void insert_signal(event_signal &top,
 	}
       else
 	node->_type = s_spec->_types->_tu[type_no]->_type;
-      
+
       if (s_spec->_types->_tu[type_no]->_unit)
 	{
 	  if (node->_unit)
@@ -411,16 +411,16 @@ void insert_signal(event_signal &top,
 	      node->_decl_unit = s;
 	    }
 	}
-      
+
       /* Check that the node (leaf node) does not yet have
        * anyone reaching here with the same index structure.
        */
-      
+
       if (s_spec->_ident)
 	{
-	  std::pair<event_index_item::iterator,bool> known = 
+	  std::pair<event_index_item::iterator,bool> known =
 	    node->_items.insert(event_index_item::value_type(all_indices,s_spec));
-	  
+
 	  if (known.second == false)
 	    {
 	      /*
@@ -449,7 +449,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       event_signal_map::const_iterator c;
 
       ordered_event_signal_map dump_map;
-      
+
       for (c = _children.begin(); c != _children.end(); ++c)
 	{
 	  if (!c->second->_children.empty())
@@ -462,7 +462,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 
       for (di = dump_map.begin(); di != dump_map.end(); ++di)
 	{
-	  di->second->dump(d,0,zero_suppress_type,prefix+_name+"_",NULL);     
+	  di->second->dump(d,0,zero_suppress_type,prefix+_name+"_",NULL);
 	  d.nl();
 	}
     }
@@ -473,7 +473,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
   for (index_info_vector::const_iterator i = _indices.begin(); i != _indices.end(); ++i)
     {
       const index_info *ii = *i;
-      
+
       if (ii->_info & (SIGNAL_INFO_ZERO_SUPPRESS |
 		       SIGNAL_INFO_NO_INDEX_LIST |
 		       SIGNAL_INFO_ZERO_SUPPRESS_MULTI))
@@ -528,7 +528,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       assert(false); // nowadays, those leaves are not even created
       return;
     }
-  
+
   /*
   if (level != 0 && !zero_suppress_index && _children.empty())
     {
@@ -575,7 +575,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       else
 	{
 	  d.text_fmt("%s%s",prefix.c_str(),_name);
-	  
+
 	  if (base_suffix)
 	    d.text_fmt(" : public %s%s%s",prefix.c_str(),_name,base_suffix);
 	}
@@ -612,7 +612,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	  event_signal_map::const_iterator c;
 
 	  ordered_event_signal_map dump_map;
-	  
+
 	  for (c = _children.begin(); c != _children.end(); ++c)
 	    {
 	      // sd.text_fmt("/*%s:%d*/",
@@ -627,9 +627,9 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	    {
 	      // sd.text_fmt("/*%d*/",di->first);
 	      di->second->dump(sd,level+1,zero_suppress_type,
-			       prefix+_name+"_",NULL);     
+			       prefix+_name+"_",NULL);
 	    }
-	  
+
 	  if (level == 0)
 	    {
 	      d.nl();
@@ -638,7 +638,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	      d.text_fmt("  STRUCT_FCNS_DECL(%s%s);\n",prefix.c_str(),_name);
 	      d.col0_text("#endif//!__PSDC__\n");
 	    }
-	  
+
 	  d.text_fmt("}%s",level == 1 ? " */" : "");
 	}
       d.text_fmt(" %s",level != 0 ? _name : "");
@@ -648,16 +648,16 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
   if (level != 0)
     {
       index_info_vector::const_iterator end_index;
-      
+
       if (zero_suppress_index)
 	end_index = zero_suppress_i;
       else
 	end_index = _indices.end();
-      
+
       for (index_info_vector::const_iterator i = _indices.begin(); i != end_index; ++i)
 	{
 	  const index_info *ii = *i;
-	  
+
 	  d.text_fmt("[%d]",ii->_size);
 	  //if (i->_info)
 	  //  d.text_fmt("/*%d*/",i->_info);
@@ -689,13 +689,13 @@ void generate_signals()
 
   {
     signal_map::iterator i;
-    
+
     for (i = all_signals.begin(); i != all_signals.end(); ++i)
       {
 	signal_spec *s = i->second;
-	
+
 	dissect_name(s->_loc,s->_name,s->_id);
-		
+
 	for (int type_no = 0; type_no < 2; type_no++)
 	  if (s->_types->_tu[type_no])
 	    insert_signal(*signal_head[type_no],s,s->_id,type_no,true);
@@ -703,13 +703,13 @@ void generate_signals()
   }
   {
     signal_multimap::iterator i;
-    
+
     for (i = all_signals_no_ident.begin(); i != all_signals_no_ident.end(); ++i)
       {
 	signal_spec *s = i->second;
-	
+
 	dissect_name(s->_loc,s->_name,s->_id);
-		
+
 	for (int type_no = 0; type_no < 2; type_no++)
 	  if (s->_types->_tu[type_no])
 	    insert_signal(*signal_head[type_no],s,s->_id,type_no,true);
@@ -717,13 +717,13 @@ void generate_signals()
   }
   {
     signal_info_map::iterator i;
-    
+
     for (i = all_signal_infos.begin(); i != all_signal_infos.end(); ++i)
       {
 	signal_info *s = i->second;
-	
+
 	dissect_name(s->_loc,s->_name,s->_id);
-	
+
 	for (int type_no = 0; type_no < 2; type_no++)
 	  insert_signal(*signal_head[type_no],s,s->_id,type_no,false);
       }
@@ -739,12 +739,12 @@ void generate_signals()
 	}
 
       print_header(header_name,"Event data structure.");
-      
+
       dumper_dest_file d_dest(stdout);
       dumper d(&d_dest);
-      
+
       signal_head[type_no]->dump(d,0,type_no == 0 ? "array" : "list","","_base");
-      
+
       print_footer(header_name);
     }
   {
@@ -758,11 +758,11 @@ void generate_signals()
     dumper d(&d_dest);
 
     signal_map::iterator i;
-    
+
     for (i = all_signals.begin(); i != all_signals.end(); ++i)
       {
 	signal_spec *s = i->second;
-	
+
 	d.text("SIGNAL_MAPPING(");
 	d.text(s->_types->_tu[0]->_type);
 	d.text(",");
@@ -795,15 +795,15 @@ void generate_signals()
 		  // zero-suppressed destinations.
 		  d.text_fmt("/*multi:*/[0]");
 		}
-	    }	    
+	    }
 	}
 	d.text(");");
 	for (int zzp = 0; zzp < num_zero_suppress; zzp++)
 	  {
 	    d.text("/*,ZERO_SUPPRESS_ITEM(");
-	    
+
 	    int zzp_seen = 0;
-	    
+
 	    sig_part_vector::iterator part = s->_id._parts.begin();
 	    for (part = s->_id._parts.begin(); part != s->_id._parts.end(); ++part)
 	      {
@@ -827,11 +827,11 @@ void generate_signals()
 		  {
 		    d.text_fmt("[%d]",part->_id._index);
 		  }
-	      }	    
+	      }
 	  }
 	d.text("\n");
       }
-  
+
     print_footer("EVENT_DATA_MAPPING");
   }
 
@@ -857,7 +857,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
 
   int name_diff_index;
   int name_diff_length;
-  
+
   if (!id_first.difference(id_last,
 			   name_diff_index,
 			   name_diff_length))
@@ -889,7 +889,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
     {
       int i1 = (name_diff_length  >= 0 ? i : -i);
       int i2 = (ident_diff_length >= 0 ? i : -i);
-      
+
       // generate the signal_spec
 
       char *name;

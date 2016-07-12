@@ -56,7 +56,7 @@ lmd_output_state::lmd_output_state()
   _stream_last = 0;
 
   _num_streams = 0;
-  _max_streams = LMD_OUTPUT_DEFAULT_MAX_BUF / 
+  _max_streams = LMD_OUTPUT_DEFAULT_MAX_BUF /
     (LMD_OUTPUT_DEFAULT_BUFFER_SIZE * LMD_OUTPUT_DEFAULT_BUF_PER_STREAM);
   _buf_size = LMD_OUTPUT_DEFAULT_BUFFER_SIZE;
   _stream_bufs = LMD_OUTPUT_DEFAULT_BUF_PER_STREAM;
@@ -115,9 +115,9 @@ lmd_output_stream *lmd_output_state::get_free_stream()
   if (filled <= 0)
     return NULL; // no free stream available
 
-  lmd_output_stream *stream = 
+  lmd_output_stream *stream =
     _free_streams[_free_streams_used % LMD_OUTPUT_FREE_STREAMS];
-   MFENCE; // make sure we do not reorder 
+   MFENCE; // make sure we do not reorder
   _free_streams_used++;
 
   // DBGprintf ("get_free_stream: give %2d\n",stream->_alloc_stream_no);
@@ -203,7 +203,7 @@ void lmd_output_state::unlink_stream(lmd_output_stream *stream)
     stream->_next->_prev = stream->_prev;
   else
     _stream_last = stream->_prev;
-  
+
   stream->_next = NULL;
   stream->_prev = NULL;
 }
@@ -234,9 +234,9 @@ void lmd_output_state::add_client_stream(lmd_output_stream *stream)
 void lmd_output_state::free_oldest_unused()
 {
   // find the oldest stream that noone is sending from
-  
+
   lmd_output_stream *stream = _stream_first;
-  
+
   while (stream)
     {
       if (!stream->_clients)
@@ -248,13 +248,13 @@ void lmd_output_state::free_oldest_unused()
     return;
 
   // We must unlink the stream from the list...
-  
+
   unlink_stream(stream);
-  
+
   add_free_stream(stream);
 }
-  
-  
+
+
 void lmd_output_state::free_client_stream(lmd_output_stream *stream)
 {
   stream->_clients--;
@@ -278,7 +278,7 @@ void lmd_output_state::free_client_stream(lmd_output_stream *stream)
   while (force_free ||
 	 (!stream->_clients &&
 	  !stream->_prev))
-    {     
+    {
       // No-one will ever need us again
 
       lmd_output_stream *next_stream = stream->_next;
@@ -291,7 +291,7 @@ void lmd_output_state::free_client_stream(lmd_output_stream *stream)
 
       stream = next_stream;
       force_free = false;
- 
+
       if (!stream)
 	break;
    }
@@ -340,7 +340,7 @@ lmd_output_stream *lmd_output_state::deque_filled_stream()
 {
   lmd_output_stream *stream =
     _filled_streams[_filled_streams_used % LMD_OUTPUT_FILLED_STREAMS];
-  MFENCE; // make sure we do not reorder                                       
+  MFENCE; // make sure we do not reorder
   _filled_streams_used++;
 
   return stream;
@@ -369,7 +369,7 @@ void lmd_output_state::dump_state()
   for (lmd_output_stream *s = _stream_first; s; s = s->_next)
     {
       printf ("%2d(clients:%d)",s->_alloc_stream_no,s->_clients);
-      
+
     }
   printf ("\n");
 
@@ -512,7 +512,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       {
 	size_t max_send = sizeof (ltcp_stream_trans_open_info) - _offset;
-	
+
 	n = write(_fd,&info,max_send);
       }
 
@@ -540,7 +540,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       _offset += (size_t) n;
 
-      if (_offset >= sizeof (ltcp_stream_trans_open_info)) 
+      if (_offset >= sizeof (ltcp_stream_trans_open_info))
 	{
 	  // We've sent the info, go into next state...
 	  _offset = 0;
@@ -556,7 +556,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 		}
 	      else
 		_current = _data->get_next_client_stream(_current);
-	      
+
 	      if (_current)
 		_state = LOCC_STATE_SEND_WAIT;
 	      else
@@ -574,25 +574,25 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       if (!FD_ISSET(_fd,readfds))
 	return true;
-      
+
       n = read(_fd,_request._msg+_request._got,12-_request._got);
-      
+
       if (n == 0)
 	return false; // other end closed...
-      
+
       if (n < 0)
 	{
 	  if (errno == EINTR ||
 	      errno == EAGAIN)
 	    return true; // try again next time
-	  
+
 	  // all other errors are fatal
 	  WARNING("Error while reading request from client.");
 	  return false;
 	}
-      
+
       _request._got += (size_t) n;
-      
+
       if (_request._got == 12)
 	{
 	  _request._got = 0; // for next time
@@ -608,7 +608,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
 	  // Data wanted...
 	  // See if we can get ourselves a buffer...
-	  
+
 	  if (_pending)
 	    {
 	      _current = _pending;
@@ -618,7 +618,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	    _current = _data->get_next_client_stream(_current);
 	  _offset = 0; // in any case
 
-	  if (!_current)	  
+	  if (!_current)
 	    {
 	      tcp_server->_tell_fill_stream = 1;
 	      _state = LOCC_STATE_STREAM_WAIT;
@@ -636,7 +636,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       {
 	size_t max_send = _current->_filled - _offset;
-	
+
 	n = write(_fd,_current->_bufs + _offset,max_send);
       }
 
@@ -683,7 +683,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
 		  // This stream will never get more data, find ourselves
 		  // a new one...
-		  
+
 		  if (_pending)
 		    {
 		      _current = _pending;
@@ -721,7 +721,7 @@ void lmd_output_client_con::close()
     {
       if (errno == EINTR)
 	continue;
-      
+
       WARNING("Failure closing client socket.");
 
       break;
@@ -799,7 +799,7 @@ void lmd_output_server_con::close()
     {
       if (errno == EINTR)
 	continue;
-      
+
       WARNING("Failure closing server socket.");
 
       break;
@@ -825,7 +825,7 @@ bool lmd_output_server_con::after_select(fd_set *readfds,fd_set *writefds,
     return false;
 
   int client_fd;
-  
+
   struct sockaddr_in cliAddr;
   socklen_t cliLen;
 
@@ -860,12 +860,12 @@ bool lmd_output_server_con::after_select(fd_set *readfds,fd_set *writefds,
 
   // ok, so we got a connection...
 
-  lmd_output_client_con *client = 
+  lmd_output_client_con *client =
     new lmd_output_client_con(client_fd,_mode,&tcp_server->_state);
 
   if (!client)
     ERROR("Memory allocation failure, could not allocate client control.");
-  
+
   tcp_server->_clients.push_back(client);
   // make it send the first info
   client->_state = LOCC_STATE_SEND_INFO;
@@ -925,7 +925,7 @@ void *lmd_output_tcp::server()
 	nfd = (*server)->setup_select(nfd,&readfds,&writefds);
 
       // Loop over the clients, see if we can write to any of them
-      
+
       for (lmd_output_client_con_vect::iterator client = _clients.begin();
 	   client != _clients.end(); ++client)
 	nfd = (*client)->setup_select(nfd,&readfds,&writefds);
@@ -951,7 +951,7 @@ void *lmd_output_tcp::server()
 	}
 
       int ret = select(nfd+1,&readfds,&writefds,NULL,
-		       (_shutdown_streams_to_send || 
+		       (_shutdown_streams_to_send ||
 			timeout.tv_sec == 0) ? &timeout : NULL);
 
       if (ret == -1)
@@ -1053,7 +1053,7 @@ void *lmd_output_tcp::server()
 	  if (!client->after_select(&readfds,&writefds,this))
 	    {
 	      // This client is over with.  Disconnect it
-	      
+
 	      INFO(0,"client close...");
 	      client->close();
 	      client_iter = _clients.erase(client_iter);
@@ -1098,7 +1098,7 @@ void *lmd_output_tcp::server()
 	      */
 	      // We'd now be left only with clients that should be
 	      // making some progress...  This will be checked...
-	      
+
 	      _shutdown_streams_to_send = _state.streams_to_send() + 1;
 	      gettimeofday(&_shutdown_lasttime,NULL);
 	    }
@@ -1111,13 +1111,13 @@ void *lmd_output_tcp::server()
 	  // perhaps our clients are to slow reading, so we'll be
 	  // forced to steal a stream form the list of streams
 	  // available
-	  
+
 	  if (_state._num_streams < _state._max_streams)
 	    {
 	      // DGBprintf ("create free streams...\n");
-	      
+
 	      // we allocate a new one...
-	      
+
 	      while (_state._num_streams < _state._max_streams &&
 		     _state.create_free_stream())
 		;
@@ -1229,12 +1229,12 @@ void lmd_output_tcp::close()
 
       if (_cur_buf_start)
 	{
-	  while (_state._fill_stream->_filled + _state._buf_size < 
+	  while (_state._fill_stream->_filled + _state._buf_size <
 		 _state._fill_stream->_max_fill)
 	    new_buffer();
 
 	  // make sure the last buffer gets sent...
-	  
+
 	  send_buffer();
 	}
 
@@ -1243,7 +1243,7 @@ void lmd_output_tcp::close()
       // It will itself then enable timeouts in the processing.  If
       // some clients do not progress quickly enough, they will be
       // disconnected...
-      
+
       _block_server.wakeup(LOT_TOKEN_SHUTDOWN);
 
       // pthread_cancel(_thread);
@@ -1304,7 +1304,7 @@ void lmd_output_tcp::write_buffer(size_t count)
 	  for ( ; ; )
 	    {
 	      int token = _block_producer.get_token();
-	      
+
 	      if (token == LOT_TOKEN_FILLED_STREAM_QUEUE_SLOT_FREE)
 		break;
 	    }
@@ -1321,7 +1321,7 @@ void lmd_output_tcp::write_buffer(size_t count)
 
       _state._filled_streams[_state._filled_streams_avail % LMD_OUTPUT_FILLED_STREAMS] = _state._fill_stream;
       MFENCE;
-      _state._filled_streams_avail++;      
+      _state._filled_streams_avail++;
       _state._fill_stream = NULL;
 
       if (_tell_fill_stream)
@@ -1347,17 +1347,17 @@ void lmd_output_tcp::get_buffer()
   if (_state._fill_stream)
     {
       assert (_state._fill_stream->_filled < _state._fill_stream->_max_fill);
-      
+
       // At least one buffer left.  Get that one
 
-      _cur_buf_start = 
+      _cur_buf_start =
 	((uint8 *) _state._fill_stream->_bufs) + _state._fill_stream->_filled;
       _cur_buf_length = _state._buf_size;
 
       // Calculate the maximum payload data that can be stored into
       // what's left of this stream
 
-      _stream_left = _state._fill_stream->_max_fill - 
+      _stream_left = _state._fill_stream->_max_fill -
 	_state._fill_stream->_filled;
 
       size_t streams = _stream_left / _state._buf_size;
@@ -1375,7 +1375,7 @@ void lmd_output_tcp::get_buffer()
   if (_state._free_streams_avail - _state._free_streams_used <= 0)
     {
       // There is no free stream in the circular buffer for free
-      // streams...  
+      // streams...
 
       // Write a token to the server thread that we have a trouble
       // with that... :-)
@@ -1388,14 +1388,14 @@ void lmd_output_tcp::get_buffer()
       for ( ; ; )
 	{
 	  int token = _block_producer.get_token();
-	  
+
 	  if (token == LOT_TOKEN_HAVE_FREE_STREAM)
 	    break;
 	}
 
       // Since the server only sends this token in return for our
       // request, we need not do a while loop.  just check...
-      
+
       assert (_state._free_streams_avail - _state._free_streams_used > 0);
     }
 
@@ -1407,7 +1407,7 @@ void lmd_output_tcp::get_buffer()
   // DGB	  _state._fill_stream->_alloc_stream_no);
 
   _state._fill_stream->_filled = 0;
-  _state._fill_stream->_max_fill = 
+  _state._fill_stream->_max_fill =
     _state._stream_bufs * _state._buf_size;
 
   _cur_buf_start = (uint8 *) _state._fill_stream->_bufs;
@@ -1419,8 +1419,8 @@ void lmd_output_tcp::get_buffer()
   // Each extra buffer that an event uses, loses 8 bytes due to the
   // fragmentation...
 
-  _stream_left = _stream_left_max = 
-    _state._stream_bufs * 
+  _stream_left = _stream_left_max =
+    _state._stream_bufs *
     (_state._buf_size - sizeof(s_bufhe_host)) -
     (_state._stream_bufs - 1) * sizeof (lmd_event_header_host);
 }
@@ -1447,7 +1447,7 @@ bool lmd_output_tcp::flush_buffer()
 
   gettimeofday(&now,NULL);
 
-  int elapsed = 
+  int elapsed =
     (int) (now.tv_sec - _last_stream_enqueued.tv_sec +
 	   (now.tv_usec - _last_stream_enqueued.tv_usec) / 1000000);
 
@@ -1464,7 +1464,7 @@ bool lmd_output_tcp::flush_buffer()
       */
       return true;
     }
-  
+
   return false;
 }
 
@@ -1491,16 +1491,16 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 
   if (!out_tcp)
     ERROR("Memory allocation failure, could not allocate tcp output control.");
-  
+
   // chop off any options of the filename
   // native, net, big, little
   // compact
 
   int stream_port = -1;
   int trans_port = -1;
-  
+
   uint64 max_size = LMD_OUTPUT_DEFAULT_MAX_BUF;
-  
+
   const char *req_end;
   const char *next_cmd;
 
@@ -1520,9 +1520,9 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 
 #define MATCH_C_PREFIX(prefix,post) (strncmp(request,prefix,strlen(prefix)) == 0 && *(post = request + strlen(prefix)) != '\0')
 #define MATCH_C_ARG(name) (strcmp(request,name) == 0)
-      
+
       if (parse_lmd_out_common(request, true, false, out_tcp))
-	;            
+	;
       else if (MATCH_C_ARG("help"))
 	{
 	  lmd_server_usage();
@@ -1534,7 +1534,7 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 	out_tcp->_state._sendonce = true;
       else if (MATCH_C_PREFIX("bufsize=",post))
 	{
-	  out_tcp->_state._buf_size = 
+	  out_tcp->_state._buf_size =
 	    (uint32) parse_size_postfix(post,"kMG","BufSize",true);
 	  if (out_tcp->_state._buf_size % 1024)
 	    ERROR("Buffer size (%d) must be a multuple of 1024.",
@@ -1561,8 +1561,8 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
       command = next_cmd;
     }
 
-  out_tcp->_state._max_streams = 
-    (int) (max_size / 
+  out_tcp->_state._max_streams =
+    (int) (max_size /
 	   (out_tcp->_state._buf_size * out_tcp->_state._stream_bufs));
 
   if (out_tcp->_state._max_streams <= 0)

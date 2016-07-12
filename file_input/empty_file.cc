@@ -95,7 +95,7 @@ void usage(char *cmdname)
 #define WRITE_FORMAT_LMD   1
 #define WRITE_FORMAT_EBYE  2
 #define WRITE_FORMAT_PAX   3
-#define WRITE_FORMAT_HLD   4 
+#define WRITE_FORMAT_HLD   4
 
 struct config
 {
@@ -141,65 +141,65 @@ int main(int argc,char *argv[])
 
 #define MATCH_PREFIX(prefix,post) (strncmp(argv[i],prefix,strlen(prefix)) == 0 && *(post = argv[i] + strlen(prefix)) != '\0')
 #define MATCH_ARG(name) (strcmp(argv[i],name) == 0)
-      
+
       if (MATCH_ARG("--help")) {
 	usage(argv[0]);
 	exit(0);
       }
       else if (MATCH_PREFIX("--buffer-size=",post)) {
 	_conf._buffer_size = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--buffers=",post)) {
 	_conf._max_buffers = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--event-size=",post)) {
 	_conf._event_size = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--subevent-size=",post)) {
 	_conf._subevent_size = atol(post);
-      }	      
+      }
       else if (MATCH_ARG("--random-size")) {
 	_conf._random_size = 1;
-      }	      
+      }
       else if (MATCH_ARG("--random-trig")) {
 	_conf._random_trig = 1;
-      }	      
+      }
       else if (MATCH_PREFIX("--titris-stamp=",post)) {
 	_conf._titris_stamp = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--wr-stamp=",post)) {
 	_conf._wr_stamp = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--bad-stamp=",post)) {
 	_conf._bad_stamp = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--caen-v775=",post)) {
       _conf._caen_v775 = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--caen-v1290=",post)) {
       _conf._caen_v1290 = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--events=",post)) {
 	_conf._max_events = atol(post);
-      }	      
+      }
       else if (MATCH_PREFIX("--rate=",post)) {
 	_conf._max_rate = atol(post);
-      }	      
+      }
       else if (MATCH_ARG("--empty-buffers")) {
 	_conf._empty_buffers = 1;
-      }	      
+      }
       else if (MATCH_ARG("--lmd")) {
 	_conf._format = WRITE_FORMAT_LMD;
-      }	      
+      }
       else if (MATCH_ARG("--ebye")) {
 	_conf._format = WRITE_FORMAT_EBYE;
-      }	      
+      }
       else if (MATCH_ARG("--pax")) {
 	_conf._format = WRITE_FORMAT_PAX;
-      }	      
+      }
       else if (MATCH_ARG("--hld")) {
 	_conf._format = WRITE_FORMAT_HLD;
-      }	      
+      }
       else {
 	fprintf (stderr,"Unrecognized or invalid option: %s\n",argv[i]);
 	exit(1);
@@ -219,7 +219,7 @@ int main(int argc,char *argv[])
   if (_conf._max_events == 0)
     _conf._max_events = (sint64) -1;
 
-     
+
   switch (_conf._format)
     {
     case WRITE_FORMAT_LMD:
@@ -249,7 +249,7 @@ char *_buffer_end = NULL;
 void alloc_buffer()
 {
   _buffer = (char*) malloc(_conf._buffer_size);
-  
+
   if (!_buffer)
     {
       fprintf (stderr,
@@ -265,7 +265,7 @@ void alloc_buffer()
 size_t full_write(int fd,const void *buf,size_t count)
 {
   size_t total = 0;
-  
+
   for ( ; ; )
     {
       int nwrite = write(fd,buf,count);
@@ -275,7 +275,7 @@ size_t full_write(int fd,const void *buf,size_t count)
 	  fprintf(stderr,"Reached unexpected end of file while writing.");
 	  exit(1);
 	}
- 
+
       if (nwrite == -1)
 	{
 	  if (errno == EINTR)
@@ -307,7 +307,7 @@ void write_buffer()
 void sleep_timeslot(struct timeval *timeslot_start)
 {
   struct timeval now;
-  
+
   gettimeofday(&now, NULL);
 
   timeslot_start->tv_sec++; /* Time of next timeslot start. */
@@ -333,7 +333,7 @@ void sleep_timeslot(struct timeval *timeslot_start)
       *timeslot_start = now;
       return;
     }
-  
+
   usleep(remain.tv_usec);
 }
 
@@ -422,7 +422,7 @@ void write_data_lmd()
 
   uint64_t timeslot_nev = 0;
   struct timeval timeslot_start;
-  
+
   // round the buffer size up to next multiple of 1024 bytes.
   // default size is 32k
 
@@ -433,7 +433,7 @@ void write_data_lmd()
 
   alloc_buffer();
 
-  gettimeofday(&timeslot_start,NULL);  
+  gettimeofday(&timeslot_start,NULL);
 
   for (uint64 nb = 0, nev = 0; (nb < _conf._max_buffers &&
 		       nev < _conf._max_events); nb++)
@@ -452,7 +452,7 @@ void write_data_lmd()
 
       bufhe->l_time[0] = tv.tv_sec;
       bufhe->l_time[1] = tv.tv_usec / 1000;
-      
+
       bufhe->i_type    = LMD_BUF_HEADER_10_1_TYPE;
       bufhe->i_subtype = LMD_BUF_HEADER_10_1_SUBTYPE;
 
@@ -496,13 +496,13 @@ void write_data_lmd()
 
 	      lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
 
-	      ev->_header.l_dlen    = 
+	      ev->_header.l_dlen    =
 		DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
 	      ev->_header.i_type    = LMD_EVENT_10_1_TYPE;
 	      ev->_header.i_subtype = LMD_EVENT_10_1_SUBTYPE;
-	      ev->_info.i_trigger   = 
+	      ev->_info.i_trigger   =
 		_conf._random_trig ? rxs64s(&rstate_trig) % 15 + 1 : 1;
-	      ev->_info.l_count     = nev;	      
+	      ev->_info.l_count     = nev;
 
 	      bufhe->l_evt++;
 
@@ -539,7 +539,7 @@ void write_data_lmd()
 		      data_end - (char*) ev < event_size) &&
 		     _buffer_end - data_end >= min_subevent_total_size)
 		{
-		  lmd_subevent_10_1_host *sev = 
+		  lmd_subevent_10_1_host *sev =
 		    (lmd_subevent_10_1_host *) data_end;
 
 		  uint data_len =
@@ -559,7 +559,7 @@ void write_data_lmd()
 		    data_len = min_subevent_data_size;
 
 		  data_len &= ~0x03; // align to 32-bit words
-		  
+
 		  sev->_header.i_type    = 1234; // dummy (I refuse 10/1: nuts)
 		  sev->_header.i_subtype = 5678;
 		  sev->h_control  = 0;
@@ -641,7 +641,7 @@ void write_data_lmd()
 		      data_len = data_cut - data_start;
 		    }
 
-		  sev->_header.l_dlen    = 
+		  sev->_header.l_dlen    =
 		    SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
 		  ev->_header.l_dlen +=
 		    (sizeof(lmd_subevent_10_1_host) + data_len) / 2;
@@ -661,7 +661,7 @@ void write_data_lmd()
 	}
 
       bufhe->l_free[2] = IUSED_FROM_BUFFER_USED(data_end - data_start);
-      
+
       if (bufhe->l_dlen <= LMD_BUF_HEADER_MAX_IUSED_DLEN)
 	bufhe->i_used = bufhe->l_free[2];
 
@@ -692,7 +692,7 @@ void write_data_ebye()
       ebye_record_header *rh = (ebye_record_header *) _buffer;
 
       memcpy(rh->_id,EBYE_RECORD_ID,8);
-      
+
       rh->_sequence = nb;
       rh->_tape     = 1;
       rh->_stream   = 1;
@@ -711,7 +711,7 @@ void write_data_ebye()
 
 	      ebye_event_header *eh = (ebye_event_header *) data_end;
 
-	      eh->_start_end_token_length = 
+	      eh->_start_end_token_length =
 		htonl(0xffff0000 | sizeof(ebye_event_header));
 
 	      data_end = (char*) (eh + 1);
@@ -719,11 +719,11 @@ void write_data_ebye()
 	}
 
       // write an end token
-      
+
       ebye_event_header *eh = (ebye_event_header *) data_end;
-      
+
       eh->_start_end_token_length = htonl(0xffff0000);
-      
+
       data_end = (char*) (eh + 1);
 
       rh->_data_length = data_end - data_start;
@@ -775,12 +775,12 @@ void write_data_pax()
 	}
 
       // write an end token
-      
+
       pax_event_header *eh = (pax_event_header *) data_end;
-      
+
       eh->_length = 0;
       eh->_type   = 0;
-      
+
       data_end = (char*) (eh + 1);
 
       write_buffer();

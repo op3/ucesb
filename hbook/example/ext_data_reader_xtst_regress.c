@@ -85,7 +85,7 @@ int main(int argc,char *argv[])
     }
 
   /* Connect. */
-  
+
   client = ext_data_connect_stderr(argv[1]);
 
   if (client == NULL)
@@ -101,7 +101,7 @@ int main(int argc,char *argv[])
 			    sizeof(event)))
     {
       /* Handle events. */
-      
+
       for ( ; ; )
 	{
 	  /*uint32_t i;*/
@@ -127,12 +127,12 @@ int main(int argc,char *argv[])
 	   */
 
 	  ext_data_rand_fill(&event,sizeof(event));
-	  
+
 	  /* Fetch the event. */
-	  
+
 	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event)))
 	    break;
-	  
+
 	  /* Do whatever is wanted with the data. */
 
 	  /*
@@ -157,7 +157,7 @@ int main(int argc,char *argv[])
 		      event.regress_v1290mod1data[i]);
 	    }
 	  */
-	  
+
 	  ok = 1;
 
 	  /* */
@@ -167,7 +167,7 @@ int main(int argc,char *argv[])
 				    event.regress_v775mod1nI,
 				    event.regress_v775mod1data,
 				    event.regress_v775mod1eob);
-	  
+
 	  ok &= fill_caen_v775_data(&v775b,
 				    event.regress_v775mod2n,
 				    event.regress_v775mod2nI,
@@ -197,7 +197,7 @@ int main(int argc,char *argv[])
 				     event.regress_v1290mod1data,
 				     event.regress_v1290mod1header,
 				     event.regress_v1290mod1trigger);
-	  
+
 	  ok &= fill_caen_v1290_data(&v1290b,
 				     event.regress_v1290mod2nM,
 				     event.regress_v1290mod2nMI,
@@ -206,7 +206,7 @@ int main(int argc,char *argv[])
 				     event.regress_v1290mod2data,
 				     event.regress_v1290mod2header,
 				     event.regress_v1290mod2trigger);
-	  
+
 	  create_caen_v1290_event(&v1290a_good,
 				  1,
 				  event.EVENTNO + 0xdef,
@@ -234,9 +234,9 @@ int main(int argc,char *argv[])
 	    {
 	      printf ("Error was in event %d.\n",event.EVENTNO);
 	    }
-	  
+
 	  /* ... */
-	}  
+	}
     }
 
   printf ("%" PRIu64 " events passed test (%" PRIu64 " words).\n",

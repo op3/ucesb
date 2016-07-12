@@ -53,7 +53,7 @@ regex_t *markconvbold_compile()
 #define REGEXP_NOBOLD_CONVERSION_MATCH_LEADHEX  2
 #define REGEXP_NOBOLD_CONVERSION_MATCH_PERCENT  3
 #define REGEXP_NOBOLD_CONVERSION_NUM_MATCH      4
-  
+
   int ret = regcomp(regex,
 		    REGEXP_NOBOLD_CONVERSION,
 		    REG_EXTENDED);
@@ -63,13 +63,13 @@ regex_t *markconvbold_compile()
       size_t len = regerror(ret,regex,NULL,0);
       char errstr[len];
       regerror(ret,regex,errstr,sizeof(errstr));
-      
+
       delete regex;
 
       fprintf(stderr,"Regex compilation failure!  (Error: %s)",errstr);
-      exit (1);      
+      exit (1);
     }
- 
+
   return regex;
 }
 
@@ -87,7 +87,7 @@ char *markconvbold(const char *fmt)
 
   if (ret == REG_NOMATCH)
     return NULL;
-   
+
   // We need to allocate a temporary buffer.  We will not add more
   // than at most 4 characters per % found, so do a counting
 
@@ -126,7 +126,7 @@ char *markconvbold(const char *fmt)
       */
 
       // if the match is just a percent?
-      // (we must handle them, so that the matcher does not do a false 
+      // (we must handle them, so that the matcher does not do a false
       // start after a %%)
 
       bool dobold = true;
@@ -164,7 +164,7 @@ char *markconvbold(const char *fmt)
 	  memcpy(endfmt,ERR_ENDBOLD,strlen(ERR_ENDBOLD));
 	  endfmt += strlen(ERR_ENDBOLD);
 	}
-      
+
       ret = regexec(_markconvbold_regex,curfmt,
 		    REGEXP_NOBOLD_CONVERSION_NUM_MATCH,pmatch,
 		    0);
@@ -192,30 +192,30 @@ void markconvbold_output(const char *buf,int linemarkup)
     }
   else
     assert (linemarkup == CTR_NONE);
-  
+
   const char *escape = strchr(buf,'\033');
-  
+
   if (!escape)
     fprintf (stderr,"%s%s%s\n",ctext,buf,ctextback);
   else
     {
       fprintf (stderr,"%s",ctext);
-      
+
       const char *curbuf = buf;
-      
+
       do
 	{
 	  const char *ctext_esc = "";
 	  const char *ctext_repeat = "";
 	  size_t eat = 2;
-	  
+
 	  switch (escape[1])
 	    {
 	    case 'A':
-	      ctext_esc = CT_ERR(BOLD); 
+	      ctext_esc = CT_ERR(BOLD);
 	      break;
 	    case 'B':
-	      ctext_esc = CT_ERR(NORM); 
+	      ctext_esc = CT_ERR(NORM);
 	      ctext_repeat = ctext; // in case NORM switches colours off
 	      break;
 	    case 'C':
@@ -253,17 +253,17 @@ void markconvbold_output(const char *buf,int linemarkup)
 	      eat = 1;
 	      break;
 	    }
-	  
+
 	  fprintf (stderr,"%.*s%s%s",
 		   (int) (escape - curbuf),curbuf,
 		   ctext_esc,ctext_repeat);
-	  
+
 	  curbuf = escape + eat;
-	  
+
 	  escape = strchr(curbuf,'\033');
 	}
       while (escape);
-      
+
       fprintf (stderr,"%s%s\n",curbuf,ctextback);
     }
 }

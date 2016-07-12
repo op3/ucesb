@@ -63,12 +63,12 @@ size_t colourtext_init()
   */
 
   for (int i = 0; i < CTR_MAX_PART; i++)
-    _colourtext_escape_part[i] = NULL;  
+    _colourtext_escape_part[i] = NULL;
 
   int errret, ret;
 
   ret = setupterm(NULL, 1, &errret);
-  
+
   if (ret == ERR)
     {
       return colourtext_prepare();
@@ -185,13 +185,13 @@ size_t colourtext_prepare()
 
       const char _colourtext_item_parts[CTR_NUM_REQUEST][MAX_PARTS] = {
 	{ 0, },                                 // CTR_NONE
-	{ CTR_PART_FGCOL(COLOR_WHITE), 
+	{ CTR_PART_FGCOL(COLOR_WHITE),
 	  CTR_PART_BGCOL(COLOR_RED), 0 },       // CTR_WHITE_BG_RED
-	{ CTR_PART_FGCOL(COLOR_BLACK), 
+	{ CTR_PART_FGCOL(COLOR_BLACK),
 	  CTR_PART_BGCOL(COLOR_YELLOW), 0, 0 }, // CTR_BLACK_BG_YELLOW
-	{ CTR_PART_FGCOL(COLOR_YELLOW), 
+	{ CTR_PART_FGCOL(COLOR_YELLOW),
 	  CTR_PART_BGCOL(COLOR_BLUE), 0, 0 },   // CTR_YELLOW_BG_BLUE
-	{ CTR_PART_FGCOL(COLOR_BLUE), 
+	{ CTR_PART_FGCOL(COLOR_BLUE),
 	  CTR_PART_BGCOL(COLOR_YELLOW), 0, 0 },   // CTR_BLUE_BG_YELLOW
  	{ CTR_PART_SGR0, CTR_PART_OP, 0, 0 },   // CTR_NORM_DEF_COL
 	{ CTR_PART_OP, 0, 0, 0 },               // CTR_DEF_COL
@@ -203,25 +203,25 @@ size_t colourtext_prepare()
 	{ CTR_PART_FGCOL(COLOR_BLUE),    0, 0, 0 }, // CTR_BLUE
 	{ CTR_PART_FGCOL(COLOR_MAGENTA), 0, 0, 0 }, // CTR_MAGENTA
 	{ CTR_PART_FGCOL(COLOR_CYAN),    0, 0, 0 }, // CTR_CYAN
-	{ CTR_PART_BOLD, 
+	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_RED),     0, 0 }, // CTR_BOLD_RED
-	{ CTR_PART_BOLD, 
+	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_GREEN),   0, 0 }, // CTR_BOLD_GREEN
-	{ CTR_PART_BOLD, 
+	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_BLUE),    0, 0 }, // CTR_BOLD_BLUE
-	{ CTR_PART_BOLD, 
+	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_MAGENTA), 0, 0 }, // CTR_BOLD_MAGENTA
-	{ CTR_PART_BOLD, 
+	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_CYAN),    0, 0 }, // CTR_BOLD_CYAN
-	{ CTR_PART_UNDERLINE, 
+	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_RED),     0, 0 }, // CTR_UL_RED
-	{ CTR_PART_UNDERLINE, 
+	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_GREEN),   0, 0 }, // CTR_UL_GREEN
-	{ CTR_PART_UNDERLINE, 
+	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_BLUE),    0, 0 }, // CTR_UL_BLUE
-	{ CTR_PART_UNDERLINE, 
+	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_MAGENTA), 0, 0 }, // CTR_UL_MAGENTA
-	{ CTR_PART_UNDERLINE, 
+	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_CYAN),    0, 0 }, // CTR_UL_CYAN
 	{ CTR_PART_FGCOL(COLOR_WHITE),   0, 0, 0 }, // CTR_WHITE
 	{ CTR_PART_FGCOL(COLOR_BLACK),   0, 0, 0 }, // CTR_BLACK
@@ -242,7 +242,7 @@ size_t colourtext_prepare()
 	  _colourtext_prepared[i][j]._len = strlen(prepare);
 
 	  if (_colourtext_prepared[i][j]._len > maxlen)
-	    maxlen = _colourtext_prepared[i][j]._len;	    
+	    maxlen = _colourtext_prepared[i][j]._len;
 	  /*
 	  printf ("prepare %d/%d: %d \"%s\"\n",i,j,
 	  	  strlen(_colourtext_prepared[i][j]),

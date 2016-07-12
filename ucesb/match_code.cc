@@ -28,19 +28,19 @@
 bool struct_unpack_code::get_match_bits(const struct_item* item,dumper &d,const arguments *args,
 					match_info &bits)
 {
-  const struct_data*    data;       
-  //const struct_decl*    decl;  
-  //const struct_list*    list;  
+  const struct_data*    data;
+  //const struct_decl*    decl;
+  //const struct_list*    list;
   //const struct_select*  select;
   //const struct_several* several;
-  //const struct_cond*    cond;  
+  //const struct_cond*    cond;
 
   if ((data    = dynamic_cast<const struct_data*   >(item))) return get_match_bits(data   ,d,args,bits);
   //if ((decl    = dynamic_cast<const struct_decl*   >(item))) return get_match_bits(decl   ,d,args,bits);
   //if ((list    = dynamic_cast<const struct_list*   >(item))) return get_match_bits(list   ,d,args,bits);
   //if ((select  = dynamic_cast<const struct_select* >(item))) return get_match_bits(select ,d,args,bits);
   //if ((cond    = dynamic_cast<const struct_cond*   >(item))) return get_match_bits(cond   ,d,args,bits);
-  
+
   return false;
 }
 
@@ -51,16 +51,16 @@ bool struct_unpack_code::get_match_bits(const struct_decl*    decl,dumper &d,
   struct_definition *str_decl;
 
   str_decl = find_named_structure(decl->_ident);
-  
+
   if (!str_decl)
     ERROR_LOC(decl->_loc,"Structure %s not defined.",decl->_ident);
 
   if (str_decl->_opts & STRUCT_DEF_EXTERNAL)
     return false; // cannot calculate match bits for external unpacker
- 
+
   // get match bits from structure body
 
-  const struct_header_named *named_header = 
+  const struct_header_named *named_header =
     dynamic_cast<const struct_header_named *>(str_decl->_header);
 
   arguments args(decl->_args,
@@ -95,7 +95,7 @@ bool struct_unpack_code::get_match_bits(const struct_item_list *list,dumper &d,c
 
       return get_match_bits(item,d,args,bits);
     }
-  
+
   return false;
 }
 
@@ -142,11 +142,11 @@ bool struct_unpack_code::get_match_bits(const struct_data *data,dumper &d,const 
   for (i = data->_bits->begin(); i != data->_bits->end(); ++i)
     {
       bits_spec *b = *i;
-      
+
 #define NUM_BITS_MASK(bits) ((bits) == 32 ? 0xffffffff : ((1 << (bits)) - 1))
-      
+
       unnamed_bits &= ~( NUM_BITS_MASK(b->_max+1) ^ NUM_BITS_MASK(b->_min));
-      
+
       if (b->_cond)
 	{
 	  /*
@@ -157,12 +157,12 @@ bool struct_unpack_code::get_match_bits(const struct_data *data,dumper &d,const 
 	  uint32 fixed_value = 0;
 	  /*
 	  char name[512];
-	  
-	  if (b->_name)          
-	    sprintf(name,"%s%s.%s",prefix,data->_ident,b->_name); 
-	  else                   
-	    sprintf(name,"%s%s.unnamed_%d_%d",prefix,data->_ident,b->_min,b->_max); 
-	  
+
+	  if (b->_name)
+	    sprintf(name,"%s%s.%s",prefix,data->_ident,b->_name);
+	  else
+	    sprintf(name,"%s%s.unnamed_%d_%d",prefix,data->_ident,b->_min,b->_max);
+
 	  b->_cond->check(d,check_prefix,name);
 	  */
 
@@ -189,7 +189,7 @@ bool struct_unpack_code::get_match_bits(const struct_data *data,dumper &d,const 
 	  */
 	}
     }
-  /*  
+  /*
   if (unnamed_bits)
     d.text_fmt("// unnamed_zero(0x%0*x)",
 	       data->_size/4,unnamed_bits);
@@ -200,7 +200,7 @@ bool struct_unpack_code::get_match_bits(const struct_data *data,dumper &d,const 
   d.text_fmt(" => (0x%0*x,0x%0*x)",
 	     data->_size/4,bits._mask,
 	     data->_size/4,bits._value);
-  
+
   return true;
 }
 
@@ -278,7 +278,7 @@ void struct_unpack_code::gen_match_decl_quick(const std::vector<match_info> &inf
 	// guaranteed by the >, and init of select_bit_min_discard to 0
 
 	if (min_discard > select_bit_min_discard ||
-	    (min_discard == select_bit_min_discard && 
+	    (min_discard == select_bit_min_discard &&
 	     total_discard > select_bit_total_discard))
 	  {
 	    select_bit = b;
@@ -301,13 +301,13 @@ void struct_unpack_code::gen_match_decl_quick(const std::vector<match_info> &inf
       for (unsigned int i = 0; i < infos.size(); i++)
 	{
 	  const match_info &info = infos[i];
-	  
+
 	  if (!(info._mask & info._value & (1 << select_bit)))
 	    sel_infos[0].push_back(info);
 	  if (!(info._mask & ~info._value & (1 << select_bit)))
 	    sel_infos[1].push_back(info);
 	}
-      
+
       d.text_fmt("if (__match_peek & 0x%0*x) {\n",size/4,1 << select_bit);
       {
 	dumper sd(d,2);
@@ -338,11 +338,11 @@ void struct_unpack_code::gen_match_decl_quick(const std::vector<match_info> &inf
 	{
 	  const match_info &info1 = infos[i];
 
-	  for (unsigned int j = i+1; j < infos.size(); j++)      
+	  for (unsigned int j = i+1; j < infos.size(); j++)
 	    {
 	      const match_info &info2 = infos[j];
 
-	      if (!((info1._mask  & info2._mask) & 
+	      if (!((info1._mask  & info2._mask) &
 		    (info1._value ^ info2._value)))
 		{
 		  // items i and j not distinguishable...
@@ -351,18 +351,18 @@ void struct_unpack_code::gen_match_decl_quick(const std::vector<match_info> &inf
 
 		  ambigous[i] = true;
 		  ambigous[j] = true;
-		}	      
+		}
 	    }
 	}
-      
+
 
       for (unsigned int i = 0; i < infos.size(); i++)
 	{
-	  const match_info &info = infos[i];  
+	  const match_info &info = infos[i];
 	  const struct_decl *decl = info._decl;
 
 	  if (ambigous[i])
-	    d.text("VERIFY_");	  
+	    d.text("VERIFY_");
 	  d.text_fmt("MATCH_DECL_QUICK(%d,__match_no,%d,",
 		     decl->_loc._internal,info._index);
 	  decl->_name->dump(d);
@@ -392,7 +392,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 					     bool last_subevent_item)
 {
   // We only handle a certain (but common) subset of matching possibilites.
-  // 
+  //
   // The candidates must all want to read the same kind of data word
   // (uint8/uint16/uint32)
   //
@@ -414,9 +414,9 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
     for (i = items->begin(); i != items->end(); ++i, ++index)
       {
 	struct_decl *decl = *i;
-	
+
 	// const struct_header_named *named_header = find_decl(decl,false);
-	
+
 	d.text_fmt("// optimized match %zd: %s ",
 		   index+1,decl->_ident);
 	decl->_name->dump(d);
@@ -425,7 +425,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 	infos[index]._size = 0;
 	infos[index]._decl = decl;
 	infos[index]._index = (int) index+1;
-	
+
 	if (!get_match_bits(decl,d,infos[index]))
 	  {
 	    d.text(" could not get bits\n");
@@ -466,7 +466,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 
   // Now, an even better way of doing the matching is if we can do an
   // binary search through the fixed bits, such that the number of tests
-  // to find out who is our candidate 
+  // to find out who is our candidate
 
   // Figure out what bits are actually different between our candidates
 
@@ -482,8 +482,8 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 	d.text_fmt(" %d",i);
 	bits_differ.push_back(i);
       }
-  d.text_fmt("\n");   
-  
+  d.text_fmt("\n");
+
   if ((((unsigned int) 1) << bits_differ.size()) <= items->size() * (1 << 5))
     {
       // We at most make an array that has 2^5 times the number of elements
@@ -501,7 +501,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 
 	  int start_i = (int) i;
 
-	  while (i+1 < bits_differ.size() && 
+	  while (i+1 < bits_differ.size() &&
 		 bits_differ[i+1] == max_bit+1)
 	    {
 	      i++;
@@ -537,19 +537,19 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 	  for (unsigned int i = 0; i < infos.size(); i++)
 	    {
 	      match_info &info = infos[i];
-	      
+
 	      //d.text_fmt("\n(%d)",i);
 
 	      for (unsigned int bi = 0; bi < bits_differ.size(); bi++)
 		{
 		  int bit = bits_differ[bi];
-		  
+
 		  // d.text_fmt("[%d,%d]",bi,bits_differ[bi]);
 
 		  if (info._mask & (1 << bit))
 		    {
 		      // The bit does matter
-		      if (((info._value >> bit) & 1) != 
+		      if (((info._value >> bit) & 1) !=
 			  (unsigned int) ((index >> bi) & 1))
 			{
 			  // The bit would not match, so we're not an candidate
@@ -572,10 +572,10 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 		    }
 		  d.text_fmt("/*%d*/",i+1);
 		  this_ambigous.push_back((int) i+1);
-		  match_no = -1; // we had several matches!	      
+		  match_no = -1; // we had several matches!
 		}
 	    cannot_match:
-	      ;	      
+	      ;
 	    }
 	  if (this_ambigous.size())
 	    {
@@ -612,7 +612,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
       // altough the bits are not.
 
       // d.text_fmt("fprintf(stderr,\" 0x%%08x %%d\\n\",__match_peek,__match_index);\n");
-      
+
       d.text("__match_no = __match_index_array[__match_index];\n");
 
       // If we had a ambigous match, then we've gotten a negative
@@ -626,7 +626,7 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 	  sd.text("switch (__match_no)\n");
 	  sd.text("{\n");
 	  dumper ssd(sd,2);
-	  
+
 	  for (size_t i = 0; i < ambigous.size(); i++)
 	    {
 	      std::vector<int> &a = ambigous[i];
@@ -636,11 +636,11 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 	      sssd.text("__match_no = 0;\n");
 
 	      for (size_t j = 0; j < a.size(); j++)
-		{  
-		  const match_info &info = infos[(size_t) a[j]-1];  
+		{
+		  const match_info &info = infos[(size_t) a[j]-1];
 		  const struct_decl *decl = info._decl;
 		  const struct_header_named *named_header = find_decl(decl,false);
-		  
+
 		  sssd.text_fmt("MATCH_DECL(%d,__match_no,%d,",
 				decl->_loc._internal,a[j]);
 		  sssd.text(decl->_ident);
@@ -651,13 +651,13 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
 		}
 
 	      sssd.text("break;\n");
-	    }	  
-	  
+	    }
+
 	  sd.text("}\n");
 	  d.text("}\n");
 	}
-      
-      
+
+
       //d.text_fmt("MATCH_DECL_ARRAY(%d,__match_no,__match_index,__match_index_array);\n",
       //loc._internal);
     }
@@ -675,16 +675,16 @@ bool struct_unpack_code::gen_optimized_match(const file_line &loc,
   // select several statement instead, (without issuing an error)
 
   // This problem is not inherent to the array method of selecting
-  // matches.  
+  // matches.
 
   // The only thing we can do is to run the real matcher (but only for
   // the already found item) again, in order to verify the match.
 
   // We can only have one match!
- 
+
   d.text_fmt("// last_subevent_item = %d\n",last_subevent_item);
 
-  d.text("}\n");  
+  d.text("}\n");
 
   return true;
 }

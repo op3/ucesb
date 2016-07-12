@@ -20,7 +20,7 @@
 # MA  02110-1301  USA
 
 # $(UNPACKER) is the name of the unpacker.
-# 
+#
 # $(UCESB_BASE_DIR) is the path to the parent directory
 # of ucesb  i.e. the program ucesb would be found as
 # $(UCESB_BASE_DIR)/ucesb/ucesb
@@ -152,8 +152,8 @@ OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	map_info.o calib_info.o mc_def.o \
 	mille_output.o \
 	set_thread_name.o \
-	$(MC_GENDIR)/mc_parser.o $(MC_GENDIR)/mc_lexer.o 
-GENOBJS = 
+	$(MC_GENDIR)/mc_parser.o $(MC_GENDIR)/mc_lexer.o
+GENOBJS =
 
 all: gen/$(UNPACKER).uce gen/$(UNPACKER).pre \
 	$(UNPACKER) gen/$(UNPACKER).runstamps \
@@ -286,7 +286,7 @@ CURSES_CFLAGS = $(shell $(FILE_CURSES_CONFIG) --cflags)
 CURSES_LIBS = $(shell $(FILE_CURSES_CONFIG) --libs)
 else
 # Try with some defaults:
-CURSES_CFLAGS = 
+CURSES_CFLAGS =
 CURSES_LIBS = -lcurses
 endif
 
@@ -309,8 +309,8 @@ ifdef USE_CURSES
 OBJS         += colourtext.o
 
 ifndef USE_MERGING # disabled for the time being (to be fixed...)
-OBJS         += watcher_window.o watcher_channel.o 
-OBJS         += watcher.o 
+OBJS         += watcher_window.o watcher_channel.o
+OBJS         += watcher.o
 endif
 endif # USE_CURSES
 
@@ -362,7 +362,7 @@ OBJS         += reclaim.o \
 		open_retire.o event_reader.o event_processor.o data_queues.o
 ifdef USE_CURSES
 CXXFLAGS     += -DUSE_PROGRESS=1
-OBJS         += thread_info_window.o 
+OBJS         += thread_info_window.o
 endif # USE_CURSES
 endif # USE_THREADING
 
@@ -389,7 +389,7 @@ ifdef USE_PTHREAD
 CXXFLAGS     += -pthread -DUSE_PTHREAD=$(USE_PTHREAD) -DHAVE_PTHREAD
 CXXLIBS      += -lpthread
 
-OBJS         += 
+OBJS         +=
 
 # TODO: Warnings have been made common.  For some while, we wont
 # make them fatal by default.  But that will come!
@@ -525,7 +525,7 @@ $(foreach dir,$(INCLUDE_DIRS),$(eval $(call CHECK_DIRECTORY_EXIST,$(dir))))
 
 #########################################################
 
-$(UNPACKER).spec.d: 
+$(UNPACKER).spec.d:
 	@echo "  DEPS   $@"
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -MM -MG $(UNPACKER).spec | \
 	  sed -e 's,$(UNPACKER).spec.o[ :]*,gen/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' | \
@@ -923,7 +923,7 @@ ifeq (,$(HAS_UNXZ))
 TESTFILES:=$(filter-out %.xz,$(TESTFILES))
 endif
 
-gen/$(UNPACKER).runfilestamp.%: $(UNPACKER) 
+gen/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "  TEST   $@"
 	@./$< ../testfiles/$* > $@.out 2> $@.err || \
 	  ( echo "Failure while running: './$< ../testfiles/$*':" ; \

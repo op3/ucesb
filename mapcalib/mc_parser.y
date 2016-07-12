@@ -135,7 +135,7 @@ struct md_ident_fl
 
 %type <iValue>     data_type
 %type <iValue>     calib_type
- 
+
 %type <var>        var_or_name
 %type <var>        data_name
 
@@ -176,9 +176,9 @@ stmt_list:
 /* Each statement is either an range specification or a parameter specification. */
 stmt:
           ';'                                      { $$ = NULL; }
-        | signal_mapping                           { $$ = $1; } 
-        | calib_param                              { $$ = $1; } 
-        | user_calib_param                         { $$ = $1; } 
+        | signal_mapping                           { $$ = $1; }
+        | calib_param                              { $$ = $1; }
+        | user_calib_param                         { $$ = $1; }
 /*        | '{' stmt_list '}'                        { $$ = node_list_pack($2); }*/
 /*        | hardware_definition                      { append_hardware($1); $$ = NULL; } */
 /*        | module_definition                        { $$ = $1; } */
@@ -186,8 +186,8 @@ stmt:
         ;
 
 signal_mapping:
-	  SIGNAL_MAPPING '(' data_type ',' data_name ',' var_or_name ',' var_or_name ')' ';' 
-          { 
+	  SIGNAL_MAPPING '(' data_type ',' data_name ',' var_or_name ',' var_or_name ')' ';'
+          {
 	    const signal_id_info *src_info  = get_signal_id_info($7,SID_MAP_UNPACK | SID_MAP_MIRROR_MAP);
 	    const signal_id_info *dest_info = get_signal_id_info($9,SID_MAP_RAW);
 	    /*const signal_id_info *rev_src_info  = get_signal_id_info($9,SID_MAP_RAW | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE);*/
@@ -201,7 +201,7 @@ signal_mapping:
 
 calib_param:
 	  CALIB_PARAM '(' IDENTIFIER ',' calib_type ',' value_vector_np ')' ';'
-          { 
+          {
 	    signal_id id;
 	    dissect_name(CURR_FILE_LINE,$3,id);
 	    const signal_id_info *src_info  = get_signal_id_info(&id,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
@@ -209,14 +209,14 @@ calib_param:
 	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
           }
 	| CALIB_PARAM_C '(' var_or_name ',' calib_type ',' value_vector_np ')' ';'
-          { 
+          {
 	    const signal_id_info *src_info  = get_signal_id_info($3,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
 	    const signal_id_info *dest_info = get_signal_id_info($3,SID_MAP_CAL);
 	    delete $3;
 	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
           }
         | var_or_name '=' calib_type '(' value_vector_np ')' ';'
-          { 
+          {
 	    const signal_id_info *src_info  = get_signal_id_info($1,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
 	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CAL);
 	    delete $1;
@@ -226,26 +226,26 @@ calib_param:
 
 user_calib_param:
 	  CALIB_PARAM '(' IDENTIFIER ',' value_vector_np ')' ';'
-          { 
+          {
 	    signal_id id;
 	    dissect_name(CURR_FILE_LINE,$3,id);
 	    const signal_id_info *dest_info = get_signal_id_info(&id,SID_MAP_CALIB);
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$5);
           }
 	| CALIB_PARAM_C '(' var_or_name ',' value_vector_np ')' ';'
-          { 
+          {
 	    const signal_id_info *dest_info = get_signal_id_info($3,SID_MAP_CALIB);
 	    delete $3;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$5);
           }
         | var_or_name '=' value_vector_np_single ';'
-          { 
+          {
 	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CALIB);
 	    delete $1;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$3);
           }
         | var_or_name '=' '{' value_vector_np '}' ';'
-          { 
+          {
 	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CALIB);
 	    delete $1;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$4);
@@ -284,26 +284,26 @@ var_ident_rec:
 	;
 
 var_ident:
-	  IDENTIFIER array_spec_list_null 
+	  IDENTIFIER array_spec_list_null
           {
 	    $$ = new sig_part_ptr_vector;
-	    $$->push_back(new sig_part($1)); 
-	    if ($2) 
+	    $$->push_back(new sig_part($1));
+	    if ($2)
 	      {
 		$$->insert($$->end(),$2->begin(),$2->end());
 		delete $2;
 	      }
 	  }
 	;
-  
+
 array_spec_list_null:
                                        { $$ = NULL; }
         | array_spec_list              { $$ = $1; }
-        ; 
+        ;
 
 array_spec_list:
 	  array_spec                   { $$ = new sig_part_ptr_vector; $$->push_back($1); }
-	| array_spec_list array_spec   { $1->push_back($2); $$ = $1; }  
+	| array_spec_list array_spec   { $1->push_back($2); $$ = $1; }
 	;
 
 array_spec:
@@ -341,11 +341,11 @@ value:
         | value '+' value         { $$ = $1 + $3; }
         | value '-' value         { $$ = $1 - $3; }
         | value '*' value         { $$ = $1 * $3; }
-        | value '/' value         
-          { 
+        | value '/' value
+          {
 	    if ($3 != 0.0)
 	      yyerror("Warning: Division by zero.");
-	    $$ = $1 / $3; 
+	    $$ = $1 / $3;
 	  }
         | '(' value ')'           { $$ = $2; }
         ;
@@ -382,9 +382,9 @@ void yyerror(const char *s) {
   print_lineno(stderr,yylineno);
   fprintf(stderr," %s\n", s);
 /*
-  Current.first_line   = Rhs[1].first_line;      
-  Current.first_column = Rhs[1].first_column;    
-  Current.last_line    = Rhs[N].last_line;       
+  Current.first_line   = Rhs[1].first_line;
+  Current.first_column = Rhs[1].first_column;
+  Current.last_line    = Rhs[N].last_line;
   Current.last_column  = Rhs[N].last_column;
 */
   throw error();

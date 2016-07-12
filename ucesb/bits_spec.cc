@@ -45,7 +45,7 @@ void bits_cond_check::get_match(dumper &/*d*/,const arguments *args,
   //d.text_fmt("EQUAL(");
   //_check->dump(d);
   //d.text_fmt(")");
-  
+
   // now, if we manage to evaluate the variable, then we know something
 
   uint32 val;
@@ -109,7 +109,7 @@ void bits_cond_range::get_match(dumper &d,const arguments *args,
   //d.text(",");
   //_max->dump(d);
   //d.text_fmt(")");
-  
+
   // now, if we manage to evaluate the variable, then we know something
 
   uint32 min, max;
@@ -120,7 +120,7 @@ void bits_cond_range::get_match(dumper &d,const arguments *args,
       // d.text_fmt("[%d,%d]",min,max);
 
       // ok, so figure out what bits are fixed while taking all values
-      // in the range [min,max] .. 
+      // in the range [min,max] ..
       // hmm, actually quite easy, since adding 1 will touch the least
       // significant bit, all bits up to the most significant bit of max
       // will be touched, except for the highest bits where max and min
@@ -196,7 +196,7 @@ void bits_cond_check_count::get_match(dumper &d,const arguments *args,
 void bits_spec::dump(dumper &d) const
 {
   char buf[64];
-  
+
   if (_min == _max)
     sprintf (buf,"   %2d: ",_min);
   else

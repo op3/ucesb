@@ -109,7 +109,7 @@ struct send_item_chunk
 {
   struct send_item_chunk *_next;
   struct send_item_chunk *_prev;
-  
+
   size_t _alloc;
   size_t _length;    // of data
   int    _consumers; // active consumers (cannot reclaim if > 0)
@@ -139,7 +139,7 @@ struct send_client
   size_t           _offset;
 };
 
-send_client _ext_net_clients = 
+send_client _ext_net_clients =
   { &_ext_net_clients, &_ext_net_clients, -1, NULL, 0 };
 
 struct portmap_client
@@ -156,7 +156,7 @@ struct portmap_client
   size_t           _offset;
 };
 
-portmap_client _ext_net_portmaps = 
+portmap_client _ext_net_portmaps =
   { &_ext_net_portmaps, &_ext_net_portmaps, -1, 0 };
 
 void check_list_integrity()
@@ -212,7 +212,7 @@ char *ext_net_io_reserve_chunk(size_t length,bool init_chunk,
   if (init_chunk)
     chunk_list = &_init_chunks;
   else
-    chunk_list = &_event_chunks;   
+    chunk_list = &_event_chunks;
 
   // See if there is room left in the last chunk of the appropriate
   // list
@@ -241,7 +241,7 @@ char *ext_net_io_reserve_chunk(size_t length,bool init_chunk,
   send_item_chunk *iter = _event_chunks._next;
 
   while (_init_chunks._length + _event_chunks._length +
-	 alloc_size > MAX_BUFFER_MEMORY && 
+	 alloc_size > MAX_BUFFER_MEMORY &&
 	 iter != &_event_chunks)
     {
       send_item_chunk *try_free = iter;
@@ -252,10 +252,10 @@ char *ext_net_io_reserve_chunk(size_t length,bool init_chunk,
 	{
 	  try_free->_prev->_next = try_free->_next;
 	  try_free->_next->_prev = try_free->_prev;
-	  _event_chunks._length -= 
+	  _event_chunks._length -=
 	    (sizeof(send_item_chunk) + try_free->_length);
 
-	  if (!*chunk && 
+	  if (!*chunk &&
 	      try_free->_alloc + sizeof(send_item_chunk) >= alloc_size)
 	    *chunk = try_free; // steal this chunk!
 	  else
@@ -472,7 +472,7 @@ void ext_net_io_server_bind(int port)
 void ext_net_io_server_accept()
 {
   int client_fd;
-  
+
   struct sockaddr_in cli_addr;
   socklen_t cli_len;
 
@@ -500,7 +500,7 @@ void ext_net_io_server_accept()
 
   // make the socket non-blocking, such that we're not hit by false
   // selects (see Linux man page bug notes)
-  
+
   // make it asynchronous (deliver SIGIO when I/O possible) to prevent
   // possible infinte loop handling events without being sent in the
   // 'main' routine
@@ -543,7 +543,7 @@ void ext_net_io_server_accept()
 void ext_net_io_data_serv_accept()
 {
   int client_fd;
-  
+
   struct sockaddr_in cli_addr;
   socklen_t cli_len;
 
@@ -882,7 +882,7 @@ bool ext_net_io_select_clients(int read_fd,int write_fd,
 	{
 	  if (errno == EINTR)
 	    continue;
-	  
+
 	  perror("close");
 	  ERR_MSG("Failure closing client socket.");
 	  break;
@@ -892,11 +892,11 @@ bool ext_net_io_select_clients(int read_fd,int write_fd,
 
       client->_prev->_next = client->_next;
       client->_next->_prev = client->_prev;
-      
+
       free(client);
 
       _cur_clients--;
-      
+
       CHECK_LIST_INTEGRITY;
     }
 
@@ -959,14 +959,14 @@ bool ext_net_io_select_clients(int read_fd,int write_fd,
 	{
 	  if (errno == EINTR)
 	    continue;
-	  
+
 	  perror("close");
 	  ERR_MSG("Failure closing port request socket.");
 	  break;
 	}
       portmap->_prev->_next = portmap->_next;
       portmap->_next->_prev = portmap->_prev;
-      
+
       free(portmap);
 
       CHECK_LIST_INTEGRITY;
@@ -1004,7 +1004,7 @@ void ext_net_io_server_close()
 
   if (_ext_net_clients._next != &_ext_net_clients)
     MSG("Shutdown.  Waiting for clients to finish...");
-  
+
   // No further connections, please!
 
   if (_ext_net_server_fd != -1)
@@ -1025,7 +1025,7 @@ void ext_net_io_server_close()
   // that they will honour it, so in shutdown mode, any client which
   // tells it's ready for writing with no more data to write, will be
   // closed as well.
-  
+
   while (_ext_net_clients._next != &_ext_net_clients)
     {
       if (ext_net_io_select_clients(-1,-1,true,false))

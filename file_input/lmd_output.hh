@@ -61,7 +61,7 @@ public:
   // lmd_event_info_host
 
   buf_chunk_swap *_chunk_start;
-  buf_chunk_swap *_chunk_end; 
+  buf_chunk_swap *_chunk_end;
   buf_chunk_swap *_chunk_alloc;
 
   char *_buf_start;
@@ -126,7 +126,7 @@ protected:
 
 protected:
   s_bufhe_host       _buffer_header;
-  
+
   uint8*             _cur_buf_start;
   size_t             _cur_buf_length;
 

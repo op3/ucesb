@@ -45,7 +45,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).set_dest(do_set_dest<T>),extra);
   }
 
@@ -87,20 +87,20 @@ public:
   T_map _items[n];
 
 public:
-  T_map &operator[](size_t i) 
-  { 
+  T_map &operator[](size_t i)
+  {
     // This function is used by the setting up of the arrays, i.e. we
     // can have checks here
-    if (i < 0 || i >= n) 
-      ERROR("Mapping index outside bounds (%d >= %d)",i,n); 
-    return _items[i]; 
+    if (i < 0 || i >= n)
+      ERROR("Mapping index outside bounds (%d >= %d)",i,n);
+    return _items[i];
   }
-  const T_map &operator[](size_t i) const 
+  const T_map &operator[](size_t i) const
   {
     // This function is used by the mapping operations (since that one
     // needs a const function), no checks here (expensive, since
     // called often)
-    return _items[i]; 
+    return _items[i];
   }
 
 public:
@@ -113,7 +113,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     for (int i = 0; i < n; ++i)
       _items[i].enumerate_map_members(signal_id(id,i),info,callback,extra);
   }
@@ -127,20 +127,20 @@ public:
   raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> _items[n];
 
 public:
-  raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) 
-  { 
+  raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i)
+  {
     // This function is used by the setting up of the arrays, i.e. we
     // can have checks here
-    if (i < 0 || i >= n) 
-      ERROR("Mapping index outside bounds (%d >= %d)",i,n); 
-    return _items[i]; 
+    if (i < 0 || i >= n)
+      ERROR("Mapping index outside bounds (%d >= %d)",i,n);
+    return _items[i];
   }
-  const raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) const 
+  const raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) const
   {
     // This function is used by the mapping operations (since that one
     // needs a const function), no checks here (expensive, since
     // called often)
-    return _items[i]; 
+    return _items[i];
   }
 
 public:
@@ -150,7 +150,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     for (int i = 0; i < n; ++i)
       for (int i1 = 0; i1 < n1; ++i1)
 	_items[i][i1].enumerate_map_members(signal_id(signal_id(id,i),i1),info,callback,extra);
@@ -170,7 +170,7 @@ public:
 // parameters
 
 template<typename Tsingle_map,typename Tsingle,typename T_map,typename T,int n>
-class raw_list_ii_map 
+class raw_list_ii_map
   : public T_map
 {
 public:

@@ -37,17 +37,17 @@ void show_members(const signal_id &id,const char *unit)
   printf ("%-30s %-30s %s\n",buf_paw,buf,unit ? unit : "");
 }
 
-void rawdata64::show_members(const signal_id &id,const char *unit) const 
+void rawdata64::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata64>(id,unit); }
-void rawdata32::show_members(const signal_id &id,const char *unit) const 
+void rawdata32::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata32>(id,unit); }
-void rawdata24::show_members(const signal_id &id,const char *unit) const 
+void rawdata24::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata24>(id,unit); }
-void rawdata16::show_members(const signal_id &id,const char *unit) const 
+void rawdata16::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata16>(id,unit); }
-void rawdata12::show_members(const signal_id &id,const char *unit) const 
+void rawdata12::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata12>(id,unit); }
-void rawdata8::show_members(const signal_id &id,const char *unit) const 
+void rawdata8::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata8>(id,unit); }
 
 void enumerate_members_double(const double *ptr,const signal_id &id,
@@ -228,8 +228,8 @@ void __clean_double(double &item) { item = NAN; }
 #define FCNCALL_CALL(member) __clean()
 #define FCNCALL_CALL_TYPE(type,member) ::__clean_##type(member);
 #define FCNCALL_FOR(index,size) for (int index = 0; index < size; ++index)
-#define FCNCALL_SUBINDEX(index) 
-#define FCNCALL_SUBNAME(name)   
+#define FCNCALL_SUBINDEX(index)
+#define FCNCALL_SUBNAME(name)
 #define FCNCALL_MULTI_MEMBER(name) multi_##name
 #define FCNCALL_MULTI_ARG(name) name
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
@@ -306,7 +306,7 @@ void rawdata12::dump(const signal_id &id,pretty_dump_info &pdi) const
 	  range ? 'R'    : ' ');
   pretty_dump(id,buf,pdi);
 }
- 
+
 void rawdata8::dump(const signal_id &id,pretty_dump_info &pdi) const
 {
   char buf[32];
@@ -315,23 +315,23 @@ void rawdata8::dump(const signal_id &id,pretty_dump_info &pdi) const
 }
 
 void dump_uint8 (const uint8  item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   char buf[32]; sprintf(buf,"0x%02x=%d",item,item); pretty_dump(id,buf,pdi);}
 void dump_uint16(const uint16 item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   char buf[32]; sprintf(buf,"0x%04x=%d",item,item); pretty_dump(id,buf,pdi);}
 void dump_uint32(const uint32 item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   char buf[32]; sprintf(buf,"0x%08x=%d",item,item); pretty_dump(id,buf,pdi);}
 void dump_uint64(const uint64 item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   char buf[64]; sprintf(buf,"0x%016llx=%lld",item,item); pretty_dump(id,buf,pdi);}
 void dump_float (const float  item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   if (!pdi._dump_nan && isnan(item)) return;
   char buf[32]; sprintf(buf,"%.7g",item);   pretty_dump(id,buf,pdi);}
 void dump_double(const double item,const signal_id &id,
-		 pretty_dump_info &pdi) { 
+		 pretty_dump_info &pdi) {
   if (!pdi._dump_nan && isnan(item)) return;
   char buf[32]; sprintf(buf,"%.13g",item);   pretty_dump(id,buf,pdi);}
 

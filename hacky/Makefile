@@ -76,7 +76,7 @@ DEPENDENCIES=$(UCESB) $(PSDC)
 
 .PHONY: hacky
 hacky: $(DEPENDENCIES)
-	@$(MAKE) -f $(UCESB_BASE_DIR)/makefile_unpacker.inc UNPACKER=$@ 
+	@$(MAKE) -f $(UCESB_BASE_DIR)/makefile_unpacker.inc UNPACKER=$@
 
 #########################################################
 

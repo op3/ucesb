@@ -40,7 +40,7 @@ external EXTERNAL_DATA_SKIP();
 SUBEVENT(ANY_SUBEVENT)
 {
   // We'll skip the entire subevent...
-  
+
   external skip = EXTERNAL_DATA_SKIP();
 }
 

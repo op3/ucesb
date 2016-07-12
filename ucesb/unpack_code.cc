@@ -46,10 +46,10 @@ has_match_end(const struct_item_list *_items,
     {
       struct_item *item = *i;
 
-      const struct_data      *data;       
-      const struct_list      *list;  
-      const struct_cond      *cond;  
-      const struct_match_end *match_end;  
+      const struct_data      *data;
+      const struct_list      *list;
+      const struct_cond      *cond;
+      const struct_match_end *match_end;
 
       if ((match_end = dynamic_cast<const struct_match_end* >(item)))
 	{
@@ -90,7 +90,7 @@ has_match_end(const struct_item_list *_items,
 		prev_match_end = end2;
 	    }
 	}
-      if ((data    = dynamic_cast<const struct_data*   >(item))) 
+      if ((data    = dynamic_cast<const struct_data*   >(item)))
 	{
 	  // We inspect that no data item after a match end is called
 	  // MATCH...  Hmm, that's for later...
@@ -265,7 +265,7 @@ void struct_unpack_code::gen(const struct_definition *str,
 			     match_end_info *mei)
 {
   COMMENT_DUMP_ORIG(d,str);
-      
+
   const struct_header_subevent *subevent_header = dynamic_cast<const struct_header_subevent *>(str->_header);
 
   if (type & UCT_HEADER)
@@ -331,7 +331,7 @@ void struct_unpack_code::gen(const struct_definition *str,
     }
 
   gen(str->_body,d,type,mei,!!subevent_header,true);
-    
+
   if (type & UCT_HEADER)
     {
       d.nl();
@@ -370,7 +370,7 @@ void struct_unpack_code::gen(const struct_definition *str,
 		 args ? "_ARG" : "",
 		 type & UCT_MATCH ? "bool" : "void",
 		 str->_header->_name,
-		 type & UCT_MATCH ? "__match" : 
+		 type & UCT_MATCH ? "__match" :
 		 (type & UCT_UNPACK ? "__unpack" : "__packer"));
       if (named_header)
 	gen_params(named_header->_params,d,type,!!(type & UCT_UNPACK),false);
@@ -381,7 +381,7 @@ void struct_unpack_code::gen(const struct_definition *str,
 
 void gen_indexed_decl(indexed_decl_map &indexed_decl,dumper &d)
 {
-  for (indexed_decl_map::iterator array = indexed_decl.begin(); 
+  for (indexed_decl_map::iterator array = indexed_decl.begin();
        array != indexed_decl.end(); array++)
     {
       d.text_fmt("%s(",(array->second._opts & STRUCT_DECL_MULTI) ? "MULTI" : "SINGLE");
@@ -479,7 +479,7 @@ void insert_indexed_decl(indexed_decl_map &indexed_decl,
 			 int opts)
 {
   // const char *name = vi->_name;
-  
+
   std::pair<indexed_decl_map::iterator,bool> exist;
 
   exist = indexed_decl.insert(
@@ -505,12 +505,12 @@ void insert_indexed_decl(indexed_decl_map &indexed_decl,
 	  (vi->_index == -1))
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different array [] / not array",
 		  name);
-      
+
       if ((info._max_items2 == 0) !=
 	  (vi->_index2 == -1))
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different array [] depths",
 		  name);
-      
+
       if (info._max_items < vi->_index+1)
 	info._max_items = vi->_index+1;
       if (info._max_items2 < vi->_index2+1)
@@ -524,17 +524,17 @@ void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
 			     match_end_info *mei,
 			     bool last_subevent_item)
 {
-  const struct_data      *data;       
-  const struct_decl      *decl;  
-  const struct_list      *list;  
+  const struct_data      *data;
+  const struct_decl      *decl;
+  const struct_list      *list;
   const struct_select    *select;
   //const struct_several* several;
-  const struct_cond      *cond;  
-  const struct_member    *member;  
-  const struct_mark      *mark;  
-  const struct_check_count *check;  
-  const struct_encode    *encode;  
-  const struct_match_end *match_end;  
+  const struct_cond      *cond;
+  const struct_member    *member;
+  const struct_mark      *mark;
+  const struct_check_count *check;
+  const struct_encode    *encode;
+  const struct_match_end *match_end;
 
   if ((data    = dynamic_cast<const struct_data*   >(item))) gen(data   ,d,type,mei);
   if ((decl    = dynamic_cast<const struct_decl*   >(item))) gen(indexed_decl,
@@ -558,14 +558,14 @@ void struct_unpack_code::gen(const encode_spec *encode,dumper &d,uint32 type,
     {
       // Now we need to recode the data into an member item
       // i.e. first get a pointer to the item
-      
+
       d.text("{\n");
       dumper sd(d,2);
-      
+
       const char *item = NULL;
-            
+
       const var_indexed *vi = dynamic_cast<const var_indexed *>(encode->_name);
-      
+
       if (vi || (encode->_flags & ES_APPEND_LIST))
 	{
 	  item = "__item";
@@ -601,12 +601,12 @@ void struct_unpack_code::gen(const encode_spec *encode,dumper &d,uint32 type,
 	}
       else
 	item = encode->_name->_name;
-      
+
       // Then fill in the data members
-      
+
       argument_list::const_iterator al;
       const argument_list *args = encode->_args;
-      
+
       for (al = args->begin(); al != args->end(); ++al)
 	{
 	  const argument *arg = *al;
@@ -622,7 +622,7 @@ void struct_unpack_code::gen(const encode_spec *encode,dumper &d,uint32 type,
 	  arg->_var->dump(sd,prefix);
 	  sd.text(";\n");
 	}
-      
+
       d.text("}\n");
     }
 }
@@ -662,7 +662,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	ERROR_LOC(data->_loc,
 		  "Item marked several without marked NOENCODE, "
 		  "cannot store multiple items...");
-      
+
       if (type & (UCT_HEADER | UCT_MATCH))
 	do_declare = true;
       if (type & UCT_MATCH)
@@ -674,7 +674,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 
       if (type & (UCT_UNPACK | UCT_MATCH))
 	do_declare = true;
-      
+
       // prefix = "__"; // TODO: remove comment, implement variable tracker
     }
 
@@ -687,14 +687,14 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
   if (!data->_bits)
     {
       // Simple case of no bit-fields
-      
+
       if (do_declare)
 	d.text_fmt("%s %s%s;",data_type,prefix,data->_ident);
       if (type & UCT_MATCH)
 	d.nl();
-      
+
       // Unpack the data from the buffer
-      
+
       if (type & (UCT_UNPACK | UCT_MATCH))
 	{
 	  if (data->_flags & (SD_OPTIONAL | SD_SEVERAL))
@@ -705,14 +705,14 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	      // at not being able to read the entire item.  Normal
 	      // behaviour of a select statement would be to say that
 	      // we do not fit...
-	      
+
 	      char label[128];
 	      sprintf (label,"data_done_%d",data_done_counter++);
 	      data_done_label = strdup(label);
 
 	      d.text_fmt("if (__buffer.empty()) goto %s;\n",data_done_label);
 	    }
-	  
+
 	  d.text_fmt("READ_FROM_BUFFER(%d,%s,%s%s);\n",
 		     data->_loc._internal,
 		     data_type,prefix,data->_ident);
@@ -761,7 +761,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
       dumper ssd(sd,2);
       // We need to eject the bitfield in two directions, for little and
       // big endian machines...
-      
+
 #define BITFIELD_DUMMY(d,data_type,first,last) { \
   (d).text(data_type);    \
   if ((first) == (last))  \
@@ -790,7 +790,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	    bits_spec *b = *i;
 	    if (b->_min > next_bit)
 	      BITFIELD_DUMMY(ssd,data_type,next_bit,b->_min-1);
-	    
+
 	    BITFIELD_NAMED(ssd,data_type,b);
 	    next_bit = b->_max+1;
 	  }
@@ -807,7 +807,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	    bits_spec *b = *ri;
 	    if (b->_max < last_bit)
 	      BITFIELD_DUMMY(ssd,data_type,b->_max+1,last_bit);
-	    
+
 	    BITFIELD_NAMED(ssd,data_type,b);
 	    last_bit = b->_min-1;
 	  }
@@ -839,12 +839,12 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 
 
       // First we need to get the data from the buffer
-      
+
       d.text_fmt("%s_FROM_BUFFER_FULL(%d,%s,%s,%s%s.%s);\n",
 		 read_prefix,
 		 data->_loc._internal,
 		 data_type,data->_ident,prefix,data->_ident,full_name);
-      
+
       // Then we need to check it...
 
       const char *check_prefix = type & UCT_MATCH ? "MATCH" : "CHECK";
@@ -866,28 +866,28 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	for (i = data->_bits->begin(); i != data->_bits->end(); ++i)
 	  {
 	    bits_spec *b = *i;
-	    
+
 	    unnamed_bits &= ~( NUM_BITS_MASK(b->_max+1) ^ NUM_BITS_MASK(b->_min));
-	    
+
 	    //if (b->_min > next_bit)
 	    //BITFIELD_DUMMY(sshd,data_type,next_bit,b->_min-1);
-	    
+
 	    //BITFIELD_NAMED(sshd,data_type,b);
 	    //next_bit = b->_max+1;
-	    
+
 	    if (b->_cond)
 	      {
 		char name[512];
-		
-		if (b->_name)          
-		  sprintf(name,"%s%s.%s",prefix,data->_ident,b->_name); 
-		else                   
-		  sprintf(name,"%s%s.unnamed_%d_%d",prefix,data->_ident,b->_min,b->_max); 
-		
+
+		if (b->_name)
+		  sprintf(name,"%s%s.%s",prefix,data->_ident,b->_name);
+		else
+		  sprintf(name,"%s%s.unnamed_%d_%d",prefix,data->_ident,b->_min,b->_max);
+
 		b->_cond->check(d,check_prefix,name,check_data_done_label);
 	      }
 	  }
-	
+
 	if (unnamed_bits)
 	  {
 	    d.text_fmt("%s_UNNAMED_BITS_ZERO(%d,%s%s.%s,0x%0*llx%s",
@@ -904,7 +904,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	  d.text_fmt("%s.%s = %s%s.%s;\n",
 		     data->_ident,full_name,
 		     prefix,data->_ident,full_name);
-	  
+
 	if (data->_flags & (SD_OPTIONAL | SD_SEVERAL))
 	  {
 	    // Data item has been declared to match, so copy it from
@@ -919,17 +919,17 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	if (data->_encode)
 	  {
 	    char name_prefix_str[512];
-	    
-	    sprintf(name_prefix_str,"%s.",data->_ident);
-	    
-	    prefix_ident name_prefix;
-	    
-	    name_prefix._list = data->_bits;
-	    name_prefix._prefix = name_prefix_str;	    
-   
-	    encode_spec_list::const_iterator encode; 
 
-	    for (encode = data->_encode->begin(); 
+	    sprintf(name_prefix_str,"%s.",data->_ident);
+
+	    prefix_ident name_prefix;
+
+	    name_prefix._list = data->_bits;
+	    name_prefix._prefix = name_prefix_str;
+
+	    encode_spec_list::const_iterator encode;
+
+	    for (encode = data->_encode->begin();
 		 encode != data->_encode->end(); ++encode)
 	      gen(*encode,d,type,&name_prefix);
 	  }
@@ -948,10 +948,10 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
       if ((type & UCT_UNPACK) &&
 	  (data->_flags & SD_SEVERAL))
 	d.text("}\n");
-      
+
       if (data_done_label)
 	d.text_fmt("%s:;\n",data_done_label);
-      free(data_done_label);      
+      free(data_done_label);
     }
 }
 
@@ -966,7 +966,7 @@ const struct_header_named *find_decl(const struct_decl* decl,bool subevent)
 
   if (!str_decl)
     ERROR_LOC(decl->_loc,"%s %s not defined.",subevent ? "Subevent":"Structure",decl->_ident);
-  const struct_header_named *named_header = 
+  const struct_header_named *named_header =
     dynamic_cast<const struct_header_named *>(str_decl->_header);
   if (!named_header && !subevent)
     ERROR_LOC(decl->_loc,"Structure %s defintion does not have a parameter list (even empty).",
@@ -989,30 +989,30 @@ void gen_decl(indexed_decl_map &indexed_decl,
 	      const struct_decl* decl,dumper &d,bool subevent)
 {
   // Make sure the structure exists!
-  
+
   find_decl(decl,subevent);
-  
+
   // Sanity check.  We can only declare items that have a
   // name, and possibly an index.  If they have an index,
   // we must find all members, and only declare once, with
   // size one larger than largest index
-  
+
   const var_name  *vn = dynamic_cast<const var_name*>(decl->_name);
   const var_index *vi = dynamic_cast<const var_index*>(decl->_name);
-  
+
   if (vi && vi->_index != -1)
     {
       // We cannot declare indexed items until we have seen
       // all, such that they get declared with the maximum
       // index+1
-      
+
       // If the type names are different, it is also
       // impossible
-      
+
       insert_indexed_decl(indexed_decl,decl,decl->_ident,vi->_name,vi,decl->_opts);
     }
   else if (vn)
-    {	  
+    {
       var_index var_index_non_array(file_line(-1), NULL,-1);
 
       // We insert also non-array members in the list.  Thus
@@ -1043,7 +1043,7 @@ void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
   if (type & (UCT_UNPACK | UCT_MATCH | UCT_PACKER))
     {
       // before we can unpack, we need to find the associated structure
-      
+
       const char *func_decl = NULL;
 
       if (type & UCT_UNPACK) func_decl = "UNPACK_DECL";
@@ -1131,7 +1131,7 @@ void struct_unpack_code::gen_unpack_decl(const struct_decl *decl,
 					 const char *func_decl,
 					 dumper &d,
 					 bool dump_member_args)
-{  
+{
   const struct_header_named *named_header = find_decl(decl,false);
 
   d.text_fmt("%s(%d,",
@@ -1176,9 +1176,9 @@ void struct_unpack_code::gen_match(const file_line &loc,
       for (i = items->begin(); i != items->end(); ++i)
 	{
 	  struct_decl *decl = *i;
-	  
+
 	  int event_opt = decl->is_event_opt();
-	  
+
 	  if (event_opt)
 	    {
 	      event_opts |= event_opt;
@@ -1189,7 +1189,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	}
       // Now dump any array items
       gen_indexed_decl(indexed_decl,d);
-      
+
       // An bitsone array to keep track of who has been visited
       if (subevent)
 	{
@@ -1216,7 +1216,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
       //
       // We try to match items, and continue as long as we find matches.
       // In case there is no match, we return
-      
+
       if (flags & SS_SEVERAL)
 	{
 	  int num_check_visit = 0;
@@ -1277,7 +1277,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	WARNING_LOC(loc,"select statement with no entries (will give run-time error)\n");
 
       int normal_match = true;
-      
+
       if (!subevent && !(type & UCT_MATCH))
 	{
 	  if (!last_subevent_item)
@@ -1288,8 +1288,8 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	      sprintf (label,"spurious_match_abort_loop_%d",
 		       spurious_label_counter++);
 	      abort_spurious_label = strdup(label);
-	    }	    
-	  
+	    }
+
 	  if (gen_optimized_match(loc,items,sd,
 				  abort_spurious_label,last_subevent_item))
 	    normal_match = false;
@@ -1308,12 +1308,12 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	for (i = items->begin(); i != items->end(); ++i, ++index)
 	  {
 	    struct_decl *decl = *i;
-	    
+
 	    if (decl->is_event_opt())
 	      continue;
 
 	    const struct_header_named *named_header = find_decl(decl,subevent);
-	    
+
 	    if (subevent)
 	      {
 		sd.text_fmt("MATCH_SUBEVENT_DECL(%d,__match_no,%d,(",
@@ -1369,13 +1369,13 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	    for (i = items->begin(); i != items->end(); ++i, ++index)
 	      {
 		struct_decl *decl = *i;
-		
+
 		if (decl->is_event_opt())
 		  continue;
 
 		// TODO: is the function call needed?
 		/*const struct_header_named *named_header =*/ find_decl(decl,subevent);
-		
+
 		ssd.text_fmt("case %d:\n",index);
 		dumper sssd(ssd,2);
 		if (subevent)
@@ -1416,7 +1416,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 			sssd.text_fmt(",__visited%d,%d);\n",
 				      check_visit_counter,index_check_visit++);
 		      }
-  
+
 		    gen_unpack_decl(decl,"UNPACK_DECL",sssd,true);
 		  }
 		sssd.text("break;\n");
@@ -1427,7 +1427,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	    sd.text("}\n");
 	  }
       }
-      
+
       if (subevent)
 	sd.text("return 0;\n");
       d.text("}\n");
@@ -1439,7 +1439,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	  free(abort_spurious_label);
 	}
       if (!subevent && (flags & SS_OPTIONAL))
-	sd.text_fmt("no_match_%d:;\n",no_match_counter);     
+	sd.text_fmt("no_match_%d:;\n",no_match_counter);
     }
   if (type & UCT_PACKER)
     {
@@ -1450,12 +1450,12 @@ void struct_unpack_code::gen_match(const file_line &loc,
       for (i = items->begin(); i != items->end(); ++i)
 	{
 	  struct_decl *decl = *i;
-	  
+
 	  if (decl->is_event_opt())
 	    continue;
 
 	  const struct_header_named *named_header = find_decl(decl,subevent);
-	  
+
 	  if (subevent)
 	    {
 	      /*
@@ -1489,7 +1489,7 @@ void struct_unpack_code::gen(const struct_cond *cond,dumper &d,uint32 type,
 			     bool last_subevent_item)
 {
   const var_external *external;
-  
+
   external = gen_external_header(cond->_expr,d,type);
 
   if (type & (UCT_UNPACK | UCT_MATCH | UCT_PACKER))
@@ -1546,13 +1546,13 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 
       const var_index *vi = dynamic_cast<const var_index *>(member->_ident);
 
-      if (vi) 
+      if (vi)
 	{
 	  length  = vi->_index;
 	  length2 = vi->_index2;
 	}
 
-      if ((member->_flags._flags & SM_IS_ARGUMENT) && 
+      if ((member->_flags._flags & SM_IS_ARGUMENT) &&
 	  !(type & UCT_MEMBER_ARG))
 	{
 	  // The member is to be an argument, so do not declare it in
@@ -1564,12 +1564,12 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
       if (length)
 	{
 	  const char *array_type = "raw_array";
-	  
+
 	  if (member->_flags._flags & SM_ZERO_SUPPRESS)
 	    {
 	      if (member->_flags._flags & SM_LIST)
 		array_type = "raw_list_zero_suppress";
-	      else 
+	      else
 		array_type = "raw_array_zero_suppress";
 	    }
 	  if (member->_flags._flags & SM_NO_INDEX)
@@ -1579,11 +1579,11 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	      else
 		ERROR("NO_INDEX must be with LIST");
 	    }
-	  
+
 	  if (member->_flags._flags & SM_MULTI)
 	    {
 	      const char *array_type = "raw_array_multi_zero_suppress";
-	      
+
 	      assert(member->_flags._multi_size != -1);
 	      d.text_fmt("%s<%s,%s,%d,%d>",
 			 array_type,name,name,length,
@@ -1592,9 +1592,9 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	  else
 	    d.text_fmt("%s<%s,%s,%d>",
 		       array_type,name,name,length);
-	  
+
 	  d.text_fmt(" %s%s",ref,ident);
-	  
+
 	  if (length2 != -1)
 	    d.text_fmt("[%d]",length2);
 	}
@@ -1609,7 +1609,7 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	d.text(";\n");
       /*
       d.text();
-      
+
       const char             *_name;
       const variable         *_ident;
       */
@@ -1675,7 +1675,7 @@ void struct_unpack_code::gen(const event_definition *evt,
   COMMENT_DUMP_ORIG(d,evt);
 
   const char *event_class = "unpack_event";
-  
+
   if (type & UCT_HEADER)
     {
       d.text_fmt("class %s",event_class);
@@ -1716,7 +1716,7 @@ void struct_unpack_code::gen(const event_definition *evt,
     }
 
   gen_match(evt->_loc,evt->_items,d,type,NULL,true,false,0);
-    
+
   if (type & UCT_HEADER)
     {
       d.nl();
@@ -1748,7 +1748,7 @@ void struct_unpack_code::gen_params(const param_list *params,
   const char *default_type = "uint32";
 
   dumper sd(d);
-  
+
   param_list::const_iterator pl;
 
   for (pl = params->begin(); pl != params->end(); ++pl)
@@ -1767,7 +1767,7 @@ void struct_unpack_code::gen_params(const param_list *params,
       else
 	{
 	  sd.text(",",true);
-	  sd.text_fmt("%s ",default_type);		      
+	  sd.text_fmt("%s ",default_type);
 	  sd.text(p->_name);
 	  if (p->_def && dump_default_args)
 	    {
@@ -1800,7 +1800,7 @@ void gen_subevent_names(const event_definition *evt,
 
 	  argument_list::const_iterator ai;
 	  bool had_item = false;
- 
+
 	  for (ai = item->_args->begin(); ai != item->_args->end(); ++ai)
 	    {
 	      argument *a = *ai;
@@ -1810,8 +1810,8 @@ void gen_subevent_names(const event_definition *evt,
 		had_item = true;
 	      }
 	    }
-	  
-	  d.text("\" },\n");     
+
+	  d.text("\" },\n");
 	}
     }
 }

@@ -134,7 +134,7 @@ void usage()
   // printf ("  --thresholds      Calculate thresholds.\n");
 
 #if defined(USE_LMD_INPUT)
-  printf ("  --output=OPT,FILE  Save events in LMD file (native/net/big/little,size=nM).\n");  
+  printf ("  --output=OPT,FILE  Save events in LMD file (native/net/big/little,size=nM).\n");
   printf ("  --bad-events=FILE  Save events with unpack errors in LMD file.\n");
 # if defined(USE_LMD_OUTPUT_TCP)
   printf ("  --server=OPT      Data server (stream:port,trans:port,size=nM,hold).\n");
@@ -280,7 +280,7 @@ bool add_input_try_follow_link(const char *path,
     {
       input._type = INPUT_TYPE_RFIO;
       input._name = strdup(path);
-      return true;  
+      return true;
     }
 #endif
   if ((match_opt_dashes &&
@@ -333,7 +333,7 @@ bool add_input_try_follow_link(const char *path,
 
   char *dest = NULL;
   ssize_t n;
-      
+
   // printf ("Follow: %s\n", path);
 
   if (lstat(path, &buf) == -1)
@@ -400,9 +400,9 @@ void parse_time_stitch_options(const char *command)
       }
 
       free(request);
-      cmd = req_end+1;      
+      cmd = req_end+1;
     }
-  
+
   // and handle the remainder
 
   _conf._event_stitch_value = atoi(cmd);
@@ -452,9 +452,9 @@ void parse_merge_options(const char *command)
       }
 
       free(request);
-      cmd = req_end+1;      
+      cmd = req_end+1;
     }
-  
+
   // and handle the remainder
 
   _conf._merge_concurrent_files = atoi(cmd);
@@ -632,7 +632,7 @@ int main(int argc, char **argv)
 
 	colourtext_setforce(force);
 #else
-	ERROR("No colour support since ncurses not compiled in.  Compile using 'make USE_CURSES=1'");	
+	ERROR("No colour support since ncurses not compiled in.  Compile using 'make USE_CURSES=1'");
 #endif
       }
       else if (MATCH_ARG("--watcher")) {
@@ -833,7 +833,7 @@ int main(int argc, char **argv)
   // file open)
   _ti_info.init(tasks,
 		threads+2/*workers+extract+retire*/,
-		threads);  
+		threads);
 
   if (_conf._files_open_ahead < 1)
     _conf._files_open_ahead = 1;
@@ -854,7 +854,7 @@ int main(int argc, char **argv)
 #endif
 
   // Get the UI going (if wanted)
-  
+
 #ifdef USE_THREADING
   _ti_info.set_task(0,"PreUnpack",
 		    TI_TASK_SERIAL   | TI_TASK_QUEUE_SINGLE,
@@ -914,7 +914,7 @@ int main(int argc, char **argv)
 
   {
     ucesb_event_loop loop;
-    
+
 #ifndef USE_THREADING
 
     uint64_t   events = 0;
@@ -935,23 +935,23 @@ int main(int argc, char **argv)
     last_show_time.tv_sec--;
 
     try {
-   
+
       loop.preprocess();
 
-    } catch (error &e) { 
+    } catch (error &e) {
       WARNING("Error while starting up...");
       return 1;
     }
-   
+
 
 
     // Fire up the worker threads
-    
+
 #ifdef USE_THREADING
     {
       cpu_set_t orig_affinity;
       int use_cpu = 0;
-      
+
       sched_getaffinity(0,sizeof(orig_affinity),&orig_affinity);
 
       for (int i = 0; i < threads; i++)
@@ -968,7 +968,7 @@ int main(int argc, char **argv)
 		  WARNING("Could only find %d CPUs to run worker threads on.",
 			  i);
 		  goto no_more_worker_cpus;
-		}		
+		}
 	      use_cpu++;
 	    }
 	  CPU_SET(use_cpu,&thread_affinity);
@@ -982,16 +982,16 @@ int main(int argc, char **argv)
       sched_setaffinity(0,sizeof(orig_affinity),&orig_affinity);
     }
 #endif
- 
+
 #ifndef USE_THREADING
 
     /****************************************************************/
     // Open output
-    
+
 #ifdef USE_LMD_INPUT
     if (_conf._file_output_bad._name)
       {
-	loop._file_output_bad = 
+	loop._file_output_bad =
 	  parse_open_lmd_file(_conf._file_output_bad._name,false);
 
 	char msg[81];
@@ -1046,7 +1046,7 @@ int main(int argc, char **argv)
 
 	if (_conf._broken_files)
 	  errors = 0;
-	
+
 #ifdef USE_MERGING
 	while (input != _inputs.end() &&
 	       (int) loop._sources.size() < _conf._merge_concurrent_files)
@@ -1058,7 +1058,7 @@ int main(int argc, char **argv)
 	    // close previous file?
 	    try {
 	      loop.close_source();
-	    } catch (error &e) { 
+	    } catch (error &e) {
 	      if (_conf._io_error_fatal)
 		goto no_more_files;
 	      WARNING("Close reported errors, skipping this file...");
@@ -1079,21 +1079,21 @@ int main(int argc, char **argv)
 	      loop.open_source(this_input,
 			       &_ti_info._file_input
 			       PTHREAD_ARG(&_block_main));
-	      
+
 #ifdef USE_MERGING
 	      _ti_info._file_input = NULL; /* got troubles when src object deleted.. */
 #endif
-	    } catch (error &e) { 
+	    } catch (error &e) {
 	      if (_conf._io_error_fatal)
 		goto no_more_files;
 	      WARNING("Open reported errors, skipping this file...");
 	      goto no_more_events;
 	    }
 	  }
-	
+
 	/************************************************************/
 	// Event loop
-	
+
 	for( ; ; )
 	  {
 downscale_event:
@@ -1107,7 +1107,7 @@ downscale_event:
 	      {
 		source_event_base *seb = loop._sources_need_event.back();
 		loop._sources_need_event.pop_back();
-		
+
 		typedef __typeof__(*seb->_src) source_type;
 		source_type *source = seb->_src;
 
@@ -1163,7 +1163,7 @@ downscale_event:
 		    goto no_more_events;
 		  }
 		}
-	    } catch (error &e) { 
+	    } catch (error &e) {
 #ifdef USE_MERGING
 	      loop.close_source(seb);
 	      _current_event = NULL;
@@ -1189,7 +1189,7 @@ downscale_event:
 	    /* note that ps_bufhe and ps_filhe might be NULL */
 
 	    bool printed_data = false;
-	    
+
 	    if (_conf._print
 #if defined(USE_EXT_WRITER)
 		&& !loop._ext_source
@@ -1204,7 +1204,7 @@ downscale_event:
 		printed_data = _conf._data;
 #endif
 	      }
-	    
+
 	    bool had_error = false;
 
 	    try {
@@ -1236,7 +1236,7 @@ downscale_event:
 	      if (_conf._event_stitch_mode)
 		loop.stitch_event(*event,&stitch);
 #endif
-	      
+
 	      loop.unpack_event(*event);
 		}
 
@@ -1253,7 +1253,7 @@ downscale_event:
 	      do_merge_prepare_event_info(seb);
 	      loop._sources_next_event.push(seb);
 #endif
-	    } catch (error &e) { 
+	    } catch (error &e) {
 	      had_error = true;
 	      errors++;
 	      total_errors++;
@@ -1298,10 +1298,10 @@ downscale_event:
 	      // list.  So from this file we need a new event.
 	      loop._sources_need_event.push_back(seb);
 #endif
-	    } 
+	    }
 
 #if defined(USE_LMD_INPUT)
-	    if (had_error && 
+	    if (had_error &&
 		loop._file_output_bad
 #if defined(USE_EXT_WRITER)
 		&& !loop._ext_source
@@ -1343,10 +1343,10 @@ downscale_event:
 
 	      typedef __typeof__(*seb->_src) source_type;
 	      source_type *source = seb->_src;
-	      
+
 	      typedef __typeof__(*seb->_event) event_type;
 	      event_type *event = seb->_event;
-	      
+
 	      typedef __typeof__(seb->_src->_file_event) file_event_type;
 	      file_event_type *file_event = &source->_file_event;
 
@@ -1374,7 +1374,7 @@ downscale_event:
 		  goto no_more_files;
 		}
 	      // and record info for this event to check next one
-	      prev_event_merge_order = 
+	      prev_event_merge_order =
 		do_record_merge_event_info(prev_event_merge_order,seb);
 
 	      // This is gonna need a new event...
@@ -1385,7 +1385,7 @@ downscale_event:
 
 	      unpack_event *unpack_event = &_static_event._unpack;
 #endif
-	      
+
 #if defined(USE_LMD_INPUT)
 	      try {
 	      if (check_new_file_header)
@@ -1404,7 +1404,7 @@ downscale_event:
 		  for (unsigned int i = 0; i < loop._sources.size(); i++)
 		    {
 		      source_event_base *seb = loop._sources[i];
-		      
+
 		      typedef __typeof__(*seb->_src) source_type;
 		      source_type *source = seb->_src;
 
@@ -1421,7 +1421,7 @@ downscale_event:
 		  char msg[81];
 		  snprintf (msg,sizeof(msg),
 			    "Processed by UCESB/unpacker: %s",argv[0]);
-		  
+
 		  for (unsigned int i = 0; i < loop._output.size(); i++)
 		    {
 		      output_info &output = loop._output[i];
@@ -1442,7 +1442,7 @@ downscale_event:
 		      // Do not dump if there was nothing...
 
 		      if (output._dest->_select.accept_final_event(&output._event))
-			{		      
+			{
 			  output._dest->event_no_seen(output._event._info.l_count);
 			  output._dest->write_event(&output._event);
 			}
@@ -1514,7 +1514,7 @@ downscale_event:
 		       iter != loop._sources_need_event.end(); ++iter)
 		    {
 		      source_event_base *seb = (*iter);
-		      
+
 		      typedef __typeof__(*seb->_src) source_type;
 		      source_type *source = seb->_src;
 #else
@@ -1537,11 +1537,11 @@ downscale_event:
 #endif
 	    }
 	    events++;
-	    
-	    if (_conf._max_events && 
+
+	    if (_conf._max_events &&
 		events >= _conf._max_events)
 	      goto no_more_files;
-	    
+
 #ifndef USE_MERGING
 #ifdef USE_CURSES
 	    if (_conf._watcher._command)
@@ -1553,7 +1553,7 @@ downscale_event:
 		if (events >= next_show)
 		  {
 		    timeval now;
-		    
+
 		    gettimeofday(&now,NULL);
 
 		    _ti_info.update();
@@ -1566,9 +1566,9 @@ downscale_event:
 		      }
 		    else if (!_conf._quiet)
 		      {
-			double elapsed = (double) (now.tv_sec - last_show_time.tv_sec) + 
+			double elapsed = (double) (now.tv_sec - last_show_time.tv_sec) +
 			  1.0e-6 * (double) (now.tv_usec - last_show_time.tv_usec);
-			
+
 			if (elapsed > 0.2)
 			  {
 			    /* Do not update the time for the first events,
@@ -1578,13 +1578,13 @@ downscale_event:
 
 			    double event_rate =
 			      (double) (events-last_show)*0.001/elapsed;
-			    
+
 #ifdef USE_MERGING
 			    if (_conf._merge_concurrent_files > 1)
 			      {
 				for (vect_source_event_base::iterator iter =
 				       loop._sources.begin();
-				     iter != loop._sources.end(); 
+				     iter != loop._sources.end();
 				     ++iter)
 				  {
 				    source_event_base *seb = (*iter);
@@ -1629,7 +1629,7 @@ downscale_event:
 				  print_current_merge_order(prev_event_merge_order);
 
 				fprintf(stderr,"   \r");
-			      } 
+			      }
 			    else
 #endif
 			      {
@@ -1660,11 +1660,11 @@ downscale_event:
 			    last_show_multi = total_multi;
 			  }
 		      }
-			    
+
 		    if (events >=
 			show_events * (show_events <= 200 ? 20 : 2000))
 		      show_events *= 10;
-		    
+
 		    next_show += show_events;
 		  }
 	      }
@@ -1695,20 +1695,20 @@ downscale_event:
     if (_conf._event_stitch_mode)
       {
 	// Dump last event!  Already formatted.
-	
+
 	for (unsigned int i = 0; i < loop._output.size(); i++)
 	  {
 	    output_info &output = loop._output[i];
-	    
+
 	    // Do not dump if there was nothing...
-	    
+
 	    if (output._dest->_select.accept_final_event(&output._event))
-	      {		      
+	      {
 		output._dest->event_no_seen(output._event._info.l_count);
 		output._dest->write_event(&output._event);
 	      }
 	  }
-      }   
+      }
 #endif
     try {
       loop.close_output();
@@ -1743,7 +1743,7 @@ downscale_event:
     timeval show_interval;
     timeval wait_show;
     timeval next_show_time;
-    
+
     show_interval.tv_sec  = 0;
     show_interval.tv_usec = 200000; // 200 ms, 5 Hz
 
@@ -1773,7 +1773,7 @@ downscale_event:
 
 	    int info = item._info;
 
-	    if (UNLIKELY(info & (EQ_INFO_FILE_CLOSE | 
+	    if (UNLIKELY(info & (EQ_INFO_FILE_CLOSE |
 				 EQ_INFO_FLUSH |
 				 EQ_INFO_PRINT_EVENT)))
 	      {
@@ -1782,10 +1782,10 @@ downscale_event:
 		if (info & EQ_INFO_FILE_CLOSE)
 		  {
 		    // It contains a file item to close.
-		    
-		    data_input_source *source = 
+
+		    data_input_source *source =
 		      (data_input_source *) item._event;
-		    
+
 		    _open_retire_thread.close_file(source);
 		  }
 		else
@@ -1801,10 +1801,10 @@ downscale_event:
 		    if (info & EQ_INFO_PRINT_BUFFER_HEADERS)
 		      {
 			// print_format_reclaim_items(item._reclaim);
-			
 
 
-		      }		    
+
+		      }
 
 		    if (info & EQ_INFO_PRINT_EVENT)
 		      {
@@ -1817,21 +1817,21 @@ downscale_event:
 			_wt._last_reclaim       = item._last_reclaim;
 
 			event_base *eb = (event_base *) item._event;
-			  
+
 			try {
 			  // we must setup the reclaim pointers, since
 			  // we may need to allocate memory to hold
 			  // (info about subevents, but also subevent
 			  // data itself, if it was fragmented for some
 			  // reason
-			  
+
 			  // src_event->get_10_1_info();    // this may throw up (also)...
 			  // src_event->locate_subevents(); // this may throw up...
-			  
+
 			  ucesb_event_loop::force_event_data(*eb);
 
-			} catch (error &e) { 
-			  
+			} catch (error &e) {
+
 			}
 			// Quit delivering error messages here
 			item._last_reclaim = _wt._last_reclaim;
@@ -1841,7 +1841,7 @@ downscale_event:
 			// And it will be printed directly
 
 			((FILE_INPUT_EVENT *) eb->_file_event)->print_event(!!(info & EQ_INFO_PRINT_EVENT_DATA));
-		      }	    
+		      }
 		  }
 	      }
 
@@ -1904,7 +1904,7 @@ downscale_event:
 	// Monitoring
 
        	timeval now;
-	
+
 	gettimeofday(&now,NULL);
 
 	if (timercmp(&now,&last_show_time,<) ||
@@ -1969,7 +1969,7 @@ downscale_event:
 	if (token & TOKEN_OPEN_FILE)
 	  {
 	    int to_open = token & TOKEN_FILES_TO_OPEN_MASK;
-	    
+
 	    // fprintf (stderr,"to_open: %d\n",to_open);
 
 	    if (to_open > files_to_open)
@@ -1979,10 +1979,10 @@ downscale_event:
 
  no_more_files:
     ;
-    
+
 #endif
   }
-  
+
   return 0;
 }
 

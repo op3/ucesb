@@ -97,20 +97,20 @@ int _signal_spec_order_index = 0;
   def_node       *node;
   def_node_list  *nodes;
 
-  struct_cond    *str_cond;    
-  //struct_several *str_several; 
-  struct_select  *str_select;  
-  struct_member  *str_member;    
-  struct_mark    *str_mark;    
-  struct_check_count *str_check;    
-  struct_decl    *str_decl;    
+  struct_cond    *str_cond;
+  //struct_several *str_several;
+  struct_select  *str_select;
+  struct_member  *str_member;
+  struct_mark    *str_mark;
+  struct_check_count *str_check;
+  struct_decl    *str_decl;
   struct_decl_list *str_decl_list;
-  struct_list    *str_list;    
+  struct_list    *str_list;
 
-  struct_item    *str_item;    
+  struct_item    *str_item;
 
-  struct_item_list *str_body;    
-  struct_header    *str_header;  
+  struct_item_list *str_body;
+  struct_header    *str_header;
 
   struct_definition *str_def;
   event_definition *ev_def;
@@ -120,16 +120,16 @@ int _signal_spec_order_index = 0;
 
   sm_flags       *sm_flag;
 
-  bits_spec_list *bits_list;   
-  bits_spec      *bits_item;   
+  bits_spec_list *bits_list;
+  bits_spec      *bits_item;
 
   encode_spec    *encode;
   encode_spec_list *encode_list;
 
-  param_list *par_list;    
-  param      *par_item;    
-  argument_list   *arg_list;    
-  argument        *arg_item;    
+  param_list *par_list;
+  param      *par_item;
+  argument_list   *arg_list;
+  argument        *arg_item;
 
   bits_condition  *bits_cond;
 
@@ -329,10 +329,10 @@ stmt_list:
 /* Each statement is either an range specification or a parameter specification. */
 stmt:
           ';'                                      { $$ = NULL; }
-        | event_definition                         { $$ = $1; } 
-        | structure_definition                     { $$ = $1; } 
-        | signal ';'                               { $$ = $1; } 
-        | signal_info ';'                          { $$ = $1; } 
+        | event_definition                         { $$ = $1; }
+        | structure_definition                     { $$ = $1; }
+        | signal ';'                               { $$ = $1; }
+        | signal_info ';'                          { $$ = $1; }
 /*        | '{' stmt_list '}'                        { $$ = node_list_pack($2); }*/
 /*        | hardware_definition                      { append_hardware($1); $$ = NULL; } */
 /*        | module_definition                        { $$ = $1; } */
@@ -357,12 +357,12 @@ structure_header:
 structure_body_null:
                          { null_list(&$$); }
         | structure_body { $$ = $1; }
-        ; 
+        ;
 
 structure_body:
           structure_item                { $$ = create_list($1); }
         | structure_body structure_item { $$ = append_list($1,$2); }
-        ; 
+        ;
 
 structure_item:
           ';'       { $$ = NULL; }
@@ -395,22 +395,22 @@ check_count_item:
 event_declared_item_list:
           event_declared_item              { $$ = create_list($1); }
         | event_declared_item_list event_declared_item { $$ = append_list($1,$2); }
-        ; 
+        ;
 
 event_declared_item:
           T_IGNORE_UNKNOWN_SUBEVENT ';'    { struct_decl *decl = new struct_decl(CURR_FILE_LINE,NULL,NULL,NULL,EVENT_IGNORE_UNKNOWN_SUBEVENT); $$ = decl; }
         | declared_item                    { $$ = $1; }
-        ; 
+        ;
 
 declared_item_list_null:
                              { null_list(&$$); }
         | declared_item_list { $$ = $1; }
-        ; 
+        ;
 
 declared_item_list:
           declared_item                    { $$ = create_list($1); }
         | declared_item_list declared_item { $$ = append_list($1,$2); }
-        ; 
+        ;
 
 declared_item:
           declared_item_multi_ext var_named_single '=' IDENTIFIER '(' arg_list_null ')' ';' { struct_decl *decl = new struct_decl(CURR_FILE_LINE,$2,$4,$6,$1); $$ = decl; }
@@ -424,7 +424,7 @@ declared_item_multi_ext:
 declared_item_multi_ext_list:
           declared_item_multi_ext_item                              { $$ = $1; }
         | declared_item_multi_ext_list declared_item_multi_ext_item { $$ = $1 | $2; }
-        ; 
+        ;
 
 declared_item_multi_ext_item:
           T_MULTI     { $$ = STRUCT_DECL_MULTI; }
@@ -435,7 +435,7 @@ declared_item_multi_ext_item:
 
 list_item:
 	  T_LIST '(' var_or_const T_LE var_named '<' var_expr ')' '{' structure_body '}' { struct_list *list = new struct_list(CURR_FILE_LINE,$5,$3,$7,$10); $$ = list; }
-        ; 
+        ;
 
 select_item:
 	  T_SELECT select_flag '{' declared_item_list_null '}' { struct_select *select = new struct_select(CURR_FILE_LINE,$4,$2); check_valid_opts($4,STRUCT_DECL_MULTI | STRUCT_DECL_EXTERNAL | STRUCT_DECL_NO_REVISIT); $$ = select; }
@@ -443,9 +443,9 @@ select_item:
         ;
 
 select_flag:
-	              { $$ = 0; } 
-	| T_SEVERAL   { $$ = SS_SEVERAL; } 
-	| T_OPTIONAL  { $$ = SS_OPTIONAL; } 
+	              { $$ = 0; }
+	| T_SEVERAL   { $$ = SS_SEVERAL; }
+	| T_OPTIONAL  { $$ = SS_OPTIONAL; }
         ;
 
 
@@ -455,7 +455,7 @@ select_flag:
 
 conditional_item:
 	  T_IF '(' var_expr ')' '{' structure_body '}' conditional_else_item { struct_cond *cond = new struct_cond(CURR_FILE_LINE,$3,$6,$8); $$ = cond; }
-        ; 
+        ;
 
 conditional_else_item:
 	  T_ELSE '{' structure_body '}'  { $$ = $3; }
@@ -489,12 +489,12 @@ var_named_single_indexed:
 
 var_named_single:
 	  IDENTIFIER               { var_name* var = new var_name(CURR_FILE_LINE,$1); $$ = var; }
-	| IDENTIFIER '[' var_eval_int_const ']' { CHECK_INDEX($3,0x1000000); 
-                                       var_index* var = new var_index(CURR_FILE_LINE,$1,$3); $$ = var; 
+	| IDENTIFIER '[' var_eval_int_const ']' { CHECK_INDEX($3,0x1000000);
+                                       var_index* var = new var_index(CURR_FILE_LINE,$1,$3); $$ = var;
                                      }
-        | IDENTIFIER '[' var_eval_int_const ']' '[' var_eval_int_const ']' { CHECK_INDEX($6,0x1000000); 
-	                               CHECK_INDEX($3,0x1000); 
-                                       var_index* var = new var_index(CURR_FILE_LINE,$1,$6,$3); $$ = var; 
+        | IDENTIFIER '[' var_eval_int_const ']' '[' var_eval_int_const ']' { CHECK_INDEX($6,0x1000000);
+	                               CHECK_INDEX($3,0x1000);
+                                       var_index* var = new var_index(CURR_FILE_LINE,$1,$6,$3); $$ = var;
                                      }
 	;
 
@@ -504,7 +504,7 @@ var_expr:
         | '+' var_expr %prec UMINUS  { $$ = $2; }
         | '~' var_expr %prec ULNOT  { var_expr* var = new var_expr(CURR_FILE_LINE,NULL,$2,VAR_OP_NOT); $$ = var; }
         | '!' var_expr %prec ULNOT  { var_expr* var = new var_expr(CURR_FILE_LINE,NULL,$2,VAR_OP_LNOT); $$ = var; }
-        | '(' var_expr ')' { $$ = $2; }				       
+        | '(' var_expr ')' { $$ = $2; }
         | var_expr T_LOR var_expr  { var_expr* var = new var_expr(CURR_FILE_LINE,$1,$3,VAR_OP_LOR ); $$ = var; }
         | var_expr T_LAND var_expr { var_expr* var = new var_expr(CURR_FILE_LINE,$1,$3,VAR_OP_LAND); $$ = var; }
         | var_expr '+' var_expr   { var_expr* var = new var_expr(CURR_FILE_LINE,$1,$3,VAR_OP_ADD); $$ = var; }
@@ -542,7 +542,7 @@ var_eval_int_const:
 param_list_null:
                          { null_list(&$$); }
         | param_list     { $$ = $1; }
-        ; 
+        ;
 
 param_list:
           param_item                { $$ = create_list($1); }
@@ -559,7 +559,7 @@ param_item:
 arg_list_null:
                          { null_list(&$$); }
         | arg_list       { $$ = $1; }
-        ; 
+        ;
 
 arg_list:
           arg_item                    { $$ = create_list($1); }
@@ -582,36 +582,36 @@ data_item:
 	;
 
 data_item_flag:
-	             { $$ = 0; } 
-	| T_OPTIONAL { $$ = SD_OPTIONAL; } 
-	| T_SEVERAL  { $$ = SD_SEVERAL; } 
+	             { $$ = 0; }
+	| T_OPTIONAL { $$ = SD_OPTIONAL; }
+	| T_SEVERAL  { $$ = SD_SEVERAL; }
         ;
 
 noencode:
-	           { $$ = 0; } 
-	| NOENCODE { $$ = SD_NOENCODE; } 
+	           { $$ = 0; }
+	| NOENCODE { $$ = SD_NOENCODE; }
         ;
 
 zero_suppress:
-	                { $$ = new sm_flags(0); } 
-	| ZERO_SUPPRESS { $$ = new sm_flags(SM_ZERO_SUPPRESS); } 
-	| ZERO_SUPPRESS_LIST { $$ = new sm_flags(SM_ZERO_SUPPRESS_LIST); } 
+	                { $$ = new sm_flags(0); }
+	| ZERO_SUPPRESS { $$ = new sm_flags(SM_ZERO_SUPPRESS); }
+	| ZERO_SUPPRESS_LIST { $$ = new sm_flags(SM_ZERO_SUPPRESS_LIST); }
         | ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' { CHECK_ARRAY_SIZE($3,0x10000); $$ = new sm_flags(SM_ZERO_SUPPRESS_MULTI,$3); }
-	| NO_INDEX_LIST { $$ = new sm_flags(SM_NO_INDEX_LIST); } 
+	| NO_INDEX_LIST { $$ = new sm_flags(SM_NO_INDEX_LIST); }
         ;
 
 encode_item_list:
           encode_item                  { $$ = create_list($1); }
         | encode_item_list encode_item { $$ = append_list($1,$2); }
-        ; 
+        ;
 
 encode_item:
 	  ENCODE '(' var_named_single_indexed encode_flags ',' '(' arg_list ')' ')' ';' { encode_spec *encode = new encode_spec(CURR_FILE_LINE,$3,$7,$4); $$ = encode; }
 	;
 
 encode_flags:
-	              { $$ = 0; } 
-	| APPEND_LIST { $$ = ES_APPEND_LIST; } 
+	              { $$ = 0; }
+	| APPEND_LIST { $$ = ES_APPEND_LIST; }
         ;
 
 data_item_size:
@@ -649,34 +649,34 @@ bits_condition:
 /*******************************************************/
 
 signal:
-	  SIGNAL '(' signal_ident_var ',' signal_types ')' { signal_spec* signal = 
+	  SIGNAL '(' signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                              $3->_name,$3->_ident,$5,0); 
+                                                                              $3->_name,$3->_ident,$5,0);
                                                              delete $3; $$ = signal; }
-        | SIGNAL '(' signal_ident_var ',' 
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal = 
+        | SIGNAL '(' signal_ident_var ','
+                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
                                                                                      $3->_name,$3->_ident,
-                                                                                     $5->_name,$5->_ident,$7,0); 
+                                                                                     $5->_name,$5->_ident,$7,0);
                                                              delete $3; delete $5; $$ = signal; }
-	| SIGNAL '(' signal_tag 
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal = 
+	| SIGNAL '(' signal_tag
+                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                               $4->_name,$4->_ident,$6,$3); 
+                                                                               $4->_name,$4->_ident,$6,$3);
                                                              delete $4; $$ = signal; }
-        | SIGNAL '(' signal_tag 
-                     signal_ident_var ',' 
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal = 
+        | SIGNAL '(' signal_tag
+                     signal_ident_var ','
+                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
                                                                                      $4->_name,$4->_ident,
-                                                                                     $6->_name,$6->_ident,$8,$3); 
+                                                                                     $6->_name,$6->_ident,$8,$3);
                                                              delete $4; delete $6; $$ = signal; }
 	;
 
 signal:
-	  SIGNAL '(' IDENTIFIER ',' ',' signal_types ')'   { signal_spec* signal = 
+	  SIGNAL '(' IDENTIFIER ',' ',' signal_types ')'   { signal_spec* signal =
                                                                new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                               $3,NULL,$6,0); 
+                                                                               $3,NULL,$6,0);
                                                              $$ = signal; }
 	;
 
@@ -736,15 +736,15 @@ value:
         | value '+' value         { $$ = $1 + $3; }
         | value '-' value         { $$ = $1 - $3; }
         | value '*' value         { $$ = $1 * $3; }
-        | value '/' value         
-          { 
+        | value '/' value
+          {
 	    if (!$3)
 #ifdef YYBISON
 	      fprintf(stderr,"Warning: Division by zero, l%d,c%d-l%d,c%d",
 		      @3.first_line, @3.first_column,
 		      @3.last_line,  @3.last_column);
 #endif
-	    $$ = $1 / $3; 
+	    $$ = $1 / $3;
 	  }
         | '(' value ')'           { $$ = $2; }
         ;
@@ -755,9 +755,9 @@ void yyerror(const char *s) {
   print_lineno(stderr,yylineno);
   fprintf(stderr," %s\n", s);
 /*
-  Current.first_line   = Rhs[1].first_line;      
-  Current.first_column = Rhs[1].first_column;    
-  Current.last_line    = Rhs[N].last_line;       
+  Current.first_line   = Rhs[1].first_line;
+  Current.first_column = Rhs[1].first_column;
+  Current.last_line    = Rhs[N].last_line;
   Current.last_column  = Rhs[N].last_column;
 */
 }

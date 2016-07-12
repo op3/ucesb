@@ -47,7 +47,7 @@
 
 // item is (non-first) part of indexed list, may not be used as mapping
 // destination
-#define ENUM_NO_INDEX_DEST  0x0200 
+#define ENUM_NO_INDEX_DEST  0x0200
 
 #define ENUM_HAS_PTR_OFFSET 0x0400
 
@@ -66,7 +66,7 @@ public:
     _only_index0 = false;
     _signal_id_zzp_part = (size_t) -1;
   }
- 
+
 public:
   enumerate_info(const enumerate_info &src,const void *addr,int type)
   {
@@ -79,16 +79,16 @@ public:
 
     _addr = addr;
     _type = src._type | type;
-    
+
     _min = _max = 0;
-    
+
     _ptr_offset = src._ptr_offset;
     _unit = src._unit;
 
     _only_index0 = src._only_index0;
     _signal_id_zzp_part = src._signal_id_zzp_part;
   }
-  
+
   enumerate_info(const enumerate_info &src,const void *addr,int type,
 		 unsigned int min,unsigned int max)
   {

@@ -45,7 +45,7 @@ public:
 #endif
 #endif
   mix_rnd_seed(const mix_rnd_seed &src) { assert(false); }
- 
+
  public:
   mix_rnd_seed(uint64 A,uint64 B);
   // mix_rnd_seed(const mix_rnd_seed &src);
@@ -88,11 +88,11 @@ public:
   // const zero_suppress_info *_zzp_info;
   /*
 public:
-  void set_dest(T *dest,const zero_suppress_info &zzp_info) 
-  { 
+  void set_dest(T *dest,const zero_suppress_info &zzp_info)
+  {
     printf ("Set dest: %p\n",dest);
 
-    _dest     = dest; 
+    _dest     = dest;
     _zzp_info = zzp_info;
   }
   */
@@ -106,7 +106,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).set_dest(set_raw_to_tcal<T>),extra);
   }
 
@@ -117,9 +117,9 @@ public:
   void show(const signal_id &id);
 
 public:
-  void set_rnd_seed(const mix_rnd_seed &rnd_seed) 
+  void set_rnd_seed(const mix_rnd_seed &rnd_seed)
   {
-    _rnd_seed = rnd_seed.get(); 
+    _rnd_seed = rnd_seed.get();
   }
 
 public:
@@ -154,20 +154,20 @@ public:
   T_map _items[n];
 
 public:
-  T_map &operator[](size_t i) 
-  { 
+  T_map &operator[](size_t i)
+  {
     // This function is used by the setting up of the arrays, i.e. we
     // can have checks here
-    if (i >= n) 
-      ERROR("Mapping index outside bounds (%d >= %d)",(int) i,n); 
-    return _items[i]; 
+    if (i >= n)
+      ERROR("Mapping index outside bounds (%d >= %d)",(int) i,n);
+    return _items[i];
   }
-  const T_map &operator[](size_t i) const 
+  const T_map &operator[](size_t i) const
   {
     // This function is used by the mapping operations (since that one
     // needs a const function), no checks here (expensive, since
     // called often)
-    return _items[i]; 
+    return _items[i];
   }
 
 public:
@@ -186,7 +186,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     for (int i = 0; i < n; ++i)
       _items[i].enumerate_map_members(signal_id(id,i),info,callback,extra);
   }
@@ -199,20 +199,20 @@ public:
   raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> _items[n];
 
 public:
-  raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) 
-  { 
+  raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i)
+  {
     // This function is used by the setting up of the arrays, i.e. we
     // can have checks here
-    if (i >= n) 
-      ERROR("Mapping index outside bounds (%d >= %d)",(int) i,n); 
-    return _items[i]; 
+    if (i >= n)
+      ERROR("Mapping index outside bounds (%d >= %d)",(int) i,n);
+    return _items[i];
   }
-  const raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) const 
+  const raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &operator[](size_t i) const
   {
     // This function is used by the mapping operations (since that one
     // needs a const function), no checks here (expensive, since
     // called often)
-    return _items[i]; 
+    return _items[i];
   }
 
 public:
@@ -227,7 +227,7 @@ public:
   void enumerate_map_members(const signal_id &id,
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
-  { 
+  {
     for (int i = 0; i < n; ++i)
       for (int i1 = 0; i1 < n1; ++i1)
 	_items[i][i1].enumerate_map_members(signal_id(signal_id(id,i),i1),info,callback,extra);

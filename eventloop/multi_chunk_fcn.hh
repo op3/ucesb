@@ -61,7 +61,7 @@ inline void multi_chunks<T,T_map>::assign_events(uint32 events)
       if (event < 0 || (unsigned int) event >= events)
 	ERROR("Invalid event number (%d >= %d) for item (%d).",
 	      event,events,item);
-      
+
       if (_event_index[event] != -1)
 	{
 	  // One could think about implementing merge functions to fix this!
@@ -120,7 +120,7 @@ void map_continuous_multi_events(multi_chunks<T,T_map> &module,
     ERROR("Cannot map - number of items (%d) "
 	  "different from number of events (%d).",
 	  module._num_items,events);
-  
+
   for (unsigned int i = 0; i < module._num_items; i++)
     {
       T &item = module._items[i];
@@ -128,7 +128,7 @@ void map_continuous_multi_events(multi_chunks<T,T_map> &module,
       if (!item.good_event_counter_offset(counter_start + i))
 	ERROR("Local event counter (0x%08x) "
 	      "gives bad offset (expect 0x%08x (masked)).",
-	      item.get_event_counter(),counter_start + i);	
+	      item.get_event_counter(),counter_start + i);
 
       module._item_event[i] = i;
     }

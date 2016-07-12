@@ -44,7 +44,7 @@ void ts_a_hist::add(int i,uint64_t val)
   if (val < (((uint64_t) 1) << 32))
     {
       unsigned int bin = ilog2((unsigned int) val);
-  
+
       _bins[i][bin]++;
     }
 }
@@ -121,7 +121,7 @@ void tstamp_alignment::account(size_t index, uint64_t stamp)
   size_t ids = _vect_histo.size();
 
   uint64_t prev_us = _vect_histo[index]->_prev_stamp;
-  
+
   for (size_t other = 0; other < ids; other++)
     if (other != (size_t) index)
       {
@@ -161,7 +161,7 @@ void tstamp_alignment::show()
 		  CT_OUT(BOLD),ident_j._info._subev.i_procid,CT_OUT(NORM),
 		  CT_OUT(BOLD),ident_j._info._subev.h_subcrate,CT_OUT(NORM),
 		  CT_OUT(BOLD),ident_j._info._subev.h_control,CT_OUT(NORM));
-	    
+
 	  if (iter_j == iter_i)
 	    {
 	      printf ("%*s%s*%s\n",
@@ -175,7 +175,7 @@ void tstamp_alignment::show()
 
 	      for (int k = 0; k < 32; k += 2)
 		{
-		  uint sum = 
+		  uint sum =
 		    hist._bins[0][31-k] + hist._bins[0][31-(k+1)];
 		  uint scaled = sum / (1 << (31-k));
 		  if (!scaled && sum)
@@ -183,7 +183,7 @@ void tstamp_alignment::show()
 
 		  printf ("%c", hexilog2b1(scaled));
 		}
-	    
+
 	      printf ("-");
 
 	      for (int k = 0; k < 32; k += 2)

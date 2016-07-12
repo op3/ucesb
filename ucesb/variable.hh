@@ -166,7 +166,7 @@ public:
   virtual bool eval(/*dumper &d,*/const arguments *args,uint32 *val) const;
 };
 
-class var_const 
+class var_const
   : public variable
 {
 public:
@@ -234,7 +234,7 @@ public:
 
 extern const char *var_expr_op_str[];
 
-class var_expr 
+class var_expr
   : public variable
 {
 public:
@@ -242,7 +242,7 @@ public:
 
 public:
   var_expr(const file_line &loc,
-	   variable *lhs,variable *rhs,int op) 
+	   variable *lhs,variable *rhs,int op)
     : variable(loc)
   {
     _lhs = lhs;
@@ -254,7 +254,7 @@ public:
   int       _op;
   variable *_lhs;
   variable *_rhs;
-  
+
 public:
   virtual void dump(dumper &d,const prefix_ident* prefix = NULL) const;
   virtual bool eval(/*dumper &d,*/const arguments *args,uint32 *val) const;
@@ -268,7 +268,7 @@ public:
 
 public:
   var_cast(const file_line &loc,
-	   const char *type,variable *rhs) 
+	   const char *type,variable *rhs)
     : variable(loc)
   {
     _type = type;
@@ -278,7 +278,7 @@ public:
 public:
   const char *_type;
   variable   *_rhs;
-  
+
 public:
   virtual void dump(dumper &d,const prefix_ident* prefix = NULL) const;
   virtual bool eval(/*dumper &d,*/const arguments *args,uint32 *val) const;

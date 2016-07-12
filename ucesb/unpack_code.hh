@@ -76,7 +76,7 @@ public:
   {
     _done = false;
   }
-  
+
 
 
 public:
@@ -157,7 +157,7 @@ protected:
 		       dumper &d,bool dump_member_args);
   void gen_check_spurios_match(const struct_decl *decl,dumper &d,
 			       const char *abort_spurious_label);
- 
+
 };
 
 const struct_header_named *find_decl(const struct_decl* decl,bool subevent);

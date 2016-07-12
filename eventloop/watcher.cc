@@ -225,7 +225,7 @@ void watch_members(const T &src,const data_watcher<T,Twatcher_channel> &watch,wa
 	{
 	case ZZP_INFO_NONE: // no zero supress item
 	case ZZP_INFO_FIXED_LIST: // part of fixed list
-	  break; 
+	  break;
 	case ZZP_INFO_CALL_ARRAY_INDEX:
 	  (*watch._zzp_info->_array._call)(watch._zzp_info->_array._item,
 					 watch._zzp_info->_array._index);
@@ -249,12 +249,12 @@ void data_watcher<T,Twatcher_channel>::watch_members(const T &src,watcher_event_
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_item(const T &src,const T_watcher &watch,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_item(const T &src,const T_watcher &watch,watcher_event_info *watch_info
 									  WATCH_MEMBERS_PARAM)
 {
   const Tsingle *p_src     = (Tsingle *) &src;
   const Tsingle_watcher *p = (Tsingle_watcher *) &watch;
-  
+
   for (size_t i = sizeof(T)/sizeof(Tsingle); i; --i, ++p_src, ++p)
     {
       // ::watch_members(*p_src,*p WATCH_MEMBERS_ARG);
@@ -263,7 +263,7 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array<Tsingle,T,n> &src,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array<Tsingle,T,n> &src,watcher_event_info *watch_info
 									     WATCH_MEMBERS_PARAM) const
 {
   for (int i = 0; i < n; i++)
@@ -274,12 +274,12 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info
 									     WATCH_MEMBERS_PARAM) const
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       // ::watch_members(src._items[i],_items[i] WATCH_MEMBERS_ARG);
@@ -289,12 +289,12 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
 template<int max_entries>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array_multi_zero_suppress<Tsingle,T,n,max_entries> &src,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_array_multi_zero_suppress<Tsingle,T,n,max_entries> &src,watcher_event_info *watch_info
 									     WATCH_MEMBERS_PARAM) const
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       // ::watch_members(src._items[i],_items[i] WATCH_MEMBERS_ARG);
@@ -304,7 +304,7 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_list_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_list_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info
 									     WATCH_MEMBERS_PARAM) const
 {
   for (unsigned int i = 0; i < src._num_items; i++)
@@ -315,7 +315,7 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
-void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_list_ii_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info 
+void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::watch_members(const raw_list_ii_zero_suppress<Tsingle,T,n> &src,watcher_event_info *watch_info
 									     WATCH_MEMBERS_PARAM) const
 {
   for (unsigned int i = 0; i < src._num_items; i++)
@@ -373,8 +373,8 @@ void watcher_one_event(WATCH_MEMBERS_SINGLE_PARAM)
   //_event_info._time     = ;
   _event_info._event_no = _static_event._unpack.event_no;
 
-  _event_info._info |= 
-    //WATCHER_DISPLAY_INFO_TIME | 
+  _event_info._info |=
+    //WATCHER_DISPLAY_INFO_TIME |
     WATCHER_DISPLAY_INFO_EVENT_NO;
 #endif
 
@@ -383,7 +383,7 @@ void watcher_one_event(WATCH_MEMBERS_SINGLE_PARAM)
   WATCHER_EVENT_INFO_USER_FUNCTION(&_event_info,
 				   &_static_event._unpack);
 #endif
-  
+
   the_unpack_event_watcher.watch_members(_static_event._unpack,&_event_info
 					 WATCH_MEMBERS_ARG);
   the_raw_event_watcher   .watch_members(_static_event._raw,&_event_info
@@ -418,17 +418,17 @@ bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,const signal_id
   if (!info->_requests->is_channel_requested(id,false,0,false) ||
       watcher._watch)
     return watcher._watch != NULL; // already seen before?
-  
+
   char name[256];
   {
     signal_id id_fmt(id);
     id_fmt.format_paw(name,sizeof(name));
   }
-  
+
   // fprintf (stderr,"Enum: %s\n",name);
 
   // We'd like to add this item!!!
-  
+
   watcher._watch = new watcher_channel_wrap<T,watcher_channel>;
   // watcher._watch = new __typeof__(*watcher._watch);
 
@@ -503,9 +503,9 @@ bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const s
     info->_id_present_channels.find(parent_id);
 
   if (parent_item == info->_id_present_channels.end())
-    { 
+    {
       // We need to create the parent item
- 
+
       char name[256];
       {
 	signal_id id_fmt(parent_id);
@@ -528,9 +528,9 @@ bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const s
     }
   else
     parent = parent_item->second;
-  
+
   // We'd like to add this item!!!
-  
+
   watcher._watch = new watcher_channel_wrap<T,watcher_present_channel>;
 
   parent->_channels[our_index] = &watcher._watch->_data;
@@ -671,16 +671,16 @@ void watcher_init(const char *command)
 
   info._watcher  = &_watcher;
 
-  if (*command) 
+  if (*command)
     {
-      for ( ; ; ) 
+      for ( ; ; )
 	{
 	  detector_requests requests;
-	  
+
 	  const char *req_end;
 
 	  bool show_present = false;
-	  
+
 	  for ( ; ; )
 	    {
 	      req_end = strpbrk(command,",:");
@@ -689,12 +689,12 @@ void watcher_init(const char *command)
 		request = strndup(command,(size_t) (req_end-command));
 	      else
 		request = strdup(command);
-	      
+
 	      char *post;
-	      
+
 #define MATCH_C_PREFIX(prefix,post) (strncmp(request,prefix,strlen(prefix)) == 0 && *(post = request + strlen(prefix)) != '\0')
 #define MATCH_ARG(name) (strcmp(request,name) == 0)
-	      
+
 	      // printf ("Request: %s\n",request);
 	      /*
 		if (MATCH_ARG("UNPACK"))
@@ -720,24 +720,24 @@ void watcher_init(const char *command)
 	      else if (MATCH_C_PREFIX("MAX=",post))
 		info._rescale_max = (uint) atoi(post);
 	      else if (MATCH_ARG("SPILL"))
-		info._watcher->_display_at_mask = 
-		  WATCHER_DISPLAY_SPILL_BOS | 
+		info._watcher->_display_at_mask =
+		  WATCHER_DISPLAY_SPILL_BOS |
 		  WATCHER_DISPLAY_SPILL_EOS;
 	      else if (MATCH_ARG("BOS"))
 		info._watcher->_display_at_mask =
 		  WATCHER_DISPLAY_SPILL_BOS;
 	      else if (MATCH_ARG("EOS"))
-		info._watcher->_display_at_mask = 
+		info._watcher->_display_at_mask =
 		  WATCHER_DISPLAY_SPILL_EOS;
 	      else if (MATCH_C_PREFIX("COUNT=",post))
 		{
-		  info._watcher->_display_at_mask = 
+		  info._watcher->_display_at_mask =
 		    WATCHER_DISPLAY_COUNT;
 		  info._watcher->_display_counts = (uint) atoi(post);
 		}
 	      else if (MATCH_C_PREFIX("TIMEOUT=",post))
 		{
-		  info._watcher->_display_at_mask = 
+		  info._watcher->_display_at_mask =
 		    WATCHER_DISPLAY_TIMEOUT;
 		  info._watcher->_display_timeout = (uint) atoi(post);
 		}
@@ -745,21 +745,21 @@ void watcher_init(const char *command)
 		{
 		  requests.add_detector_request(request,0);
 		}
-	      
+
 	      free(request);
 	      if (!req_end)
 		break;
-	      command = req_end+1;      
+	      command = req_end+1;
 	      if (*req_end == ':')
 		break;
 	    }
-	  
+
 	  requests.prepare();
 
 	  info._requests = &requests;
 
 	  if (!show_present)
-	    {	  
+	    {
 	      info._map_no = SID_MAP_UNPACK;
 	      the_unpack_event_watcher.enumerate_watchers(signal_id(),&info);
 	      info._map_no = SID_MAP_RAW;
@@ -773,14 +773,14 @@ void watcher_init(const char *command)
 	    }
 	  else
 	    {
-	      
+
 	      info._map_no = SID_MAP_UNPACK;
 	      the_unpack_event_watcher_present.enumerate_watchers(signal_id(),
 								  &info);
 	      info._map_no = SID_MAP_RAW;
 	      the_raw_event_watcher_present   .enumerate_watchers(signal_id(),
 								  &info);
-	      
+
 	      //info._map_no = SID_MAP_CAL;
 	      //the_cal_event_watcher .enumerate_present_watchers(signal_id(),
 	      //                                                  &info);
@@ -789,13 +789,13 @@ void watcher_init(const char *command)
 	      //the_user_event_watcher.watch_present_members(_event._user WATCHER_MEMBERS_ARG);
 #endif
 	    }
-	  
+
 	  for (uint i = 0; i < requests._requests.size(); i++)
 	    if (!requests._requests[i]._checked)
 	      ERROR("Watcher request for item %s was not considered.  "
 		    "Does that detector exist?",
 		    requests._requests[i]._str);
-	  
+
 	  if (!req_end)
 	    break;
 	}
@@ -806,15 +806,15 @@ void watcher_init(const char *command)
       detector_requests requests;
 
       requests.prepare();
-      
+
       info._requests = &requests;
-      
+
       info._map_no = SID_MAP_UNPACK;
       the_unpack_event_watcher.enumerate_watchers(signal_id(),&info);
       info._map_no = SID_MAP_RAW;
       the_raw_event_watcher   .enumerate_watchers(signal_id(),&info);
     }
-  
+
   _watcher.init();
 }
 

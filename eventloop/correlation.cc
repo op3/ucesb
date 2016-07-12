@@ -62,7 +62,7 @@ public:
   void init(int n)
   {
     int *np = (int *) realloc(_buffer,sizeof(int) * (size_t) n);
-    
+
     if (!np)
       ERROR("Memory allocation error.");
 
@@ -196,7 +196,7 @@ void raw_array_correlation<Tsingle_correlation,Tsingle,T_correlation,T,n>::add_c
 {
   const Tsingle *p_src     = (const Tsingle *) &src;
   const Tsingle_correlation *p = (const Tsingle_correlation *) &corr;
-  
+
   for (size_t i = sizeof(T)/sizeof(Tsingle); i; --i, ++p_src, ++p)
     {
       // ::watch_members(*p_src,*p WATCH_MEMBERS_ARG);
@@ -219,7 +219,7 @@ void raw_array_correlation<Tsingle_correlation,Tsingle,T_correlation,T,n>::add_c
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       // ::watch_members(src._items[i],_items[i] WATCH_MEMBERS_ARG);
@@ -233,7 +233,7 @@ void raw_array_correlation<Tsingle_correlation,Tsingle,T_correlation,T,n>::add_c
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       // ::watch_members(src._items[i],_items[i] WATCH_MEMBERS_ARG);
@@ -340,7 +340,7 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   //printf ("c1 %x %x\n",
   //	  (int) (size_t) plot->_unpack_event_correlation,
   //	  (int) (size_t) plot->_raw_event_correlation);
-  
+
   if (plot->_unpack_event_correlation)
     plot->_unpack_event_correlation->add_corr_members(_static_event._unpack,plot->_list WATCH_MEMBERS_ARG);
   if (plot->_raw_event_correlation)
@@ -358,7 +358,7 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   if (plot->_need_sort)
     {
       // TODO: consider using radix sort
-      // (most useful events for plot have a small number of 
+      // (most useful events for plot have a small number of
       // correlations however)
       // printf ("%d ",plot->_list->_cur - plot->_list->_buffer);
       qsort(plot->_list->_buffer,
@@ -389,7 +389,7 @@ bool enumerate_correlations(data_correlation<T> &correlation,const signal_id &id
   if (!info->_requests->is_channel_requested(id,false,0,false) ||
       correlation._index != -1)
     return correlation._index != -1; // we were perhaps selected before?
-  
+
   correlation._index = info->_next_index;
   info->_next_index++;
   /*
@@ -519,21 +519,21 @@ correlation_plot *correlation_init(const char *command)
   cp->_raw_event_correlation = NULL;
 
   enumerate_correlations_info info;
-  
+
   info._next_index = 0;
-  
+
   for ( ; ; )
     {
       detector_requests requests;
-      
+
       const char *req_end;
-      
+
       while ((req_end = strpbrk(command,",:")) != NULL)
 	{
 	  char *request = strndup(command,(size_t) (req_end-command));
-	  
+
 #define MATCH_ARG(name) (strcmp(request,name) == 0)
-	  
+
 	  // printf ("Request: %s\n",request);
 	  /*
 	    if (MATCH_ARG("UNPACK"))
@@ -551,9 +551,9 @@ correlation_plot *correlation_init(const char *command)
 	    else
 	  */
 	  requests.add_detector_request(request,0);
-	  
+
 	  free(request);
-	  command = req_end+1;      
+	  command = req_end+1;
 
 	  if (*req_end == ':')
 	    {
@@ -586,7 +586,7 @@ correlation_plot *correlation_init(const char *command)
 #ifdef USER_STRUCT
       //the_user_event_correlation  .watch_members(_event._user   CORRELATION_MEMBERS_ARG);
 #endif
-      
+
       for (uint i = 0; i < requests._requests.size(); i++)
 	if (!requests._requests[i]._checked)
 	  ERROR("Correlation request for item %s was not considered.  "
@@ -622,7 +622,7 @@ void correlation_init(const config_command_vect &commands)
 
       correlation_plot *cp = correlation_init(command);
 
-      _correlation_plots.push_back(cp);      
+      _correlation_plots.push_back(cp);
     }
 }
 

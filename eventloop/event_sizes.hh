@@ -69,7 +69,7 @@ class event_sizes
 
 
 public:
-  set_subevent_size _subev_size[17]; // 0-15, others               
+  set_subevent_size _subev_size[17]; // 0-15, others
 
   event_size ev_size[17];
 

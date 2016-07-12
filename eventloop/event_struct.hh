@@ -146,7 +146,7 @@ public:
 
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
-			 enumerate_fcn callback,void *extra) const 
+			 enumerate_fcn callback,void *extra) const
   {
 #if USING_MULTI_EVENTS
     callback(signal_id(id,"TRIGGER"),enumerate_info(info,&trigger,ENUM_TYPE_USHORT,0,15),extra);

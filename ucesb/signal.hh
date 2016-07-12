@@ -182,7 +182,7 @@ public:
 class signal_spec_types
 {
 public:
-  virtual ~signal_spec_types() { }  
+  virtual ~signal_spec_types() { }
 
 public:
   signal_spec_types(const signal_spec_type_unit *tu_raw,
@@ -192,7 +192,7 @@ public:
     _tu[1] = tu_cal;
   }
 
-public:  
+public:
   const signal_spec_type_unit *_tu[2];
 
 public:

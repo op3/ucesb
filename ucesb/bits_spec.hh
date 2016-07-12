@@ -80,7 +80,7 @@ public:
   {
     _check = chk;
   }
-  
+
 public:
   const variable *_check;
 
@@ -103,9 +103,9 @@ public:
 
   }
 
-  
+
 public:
-  virtual void dump(dumper &d) const;  
+  virtual void dump(dumper &d) const;
 };
 
 class bits_cond_range
@@ -120,12 +120,12 @@ public:
     _min = min;
     _max = max;
   }
-  
+
 public:
   const variable *_min;
   const variable *_max;
 
-  
+
 public:
   virtual void dump(dumper &d) const;
   virtual void check(dumper &d,const char *prefix,const char *name,
@@ -151,7 +151,7 @@ public:
     _offset     = offset;
     _multiplier = multiplier;
   }
-  
+
 public:
   const char     *_start;
   const char     *_stop;

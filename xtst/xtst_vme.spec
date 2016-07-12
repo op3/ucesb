@@ -38,15 +38,15 @@ XTST_STD_VME()
       30: has_multi_event;
       31: has_time_stamp;
     }
-  
+
   if (failure.has_time_stamp) {
     UINT32 time_stamp;
   }
-  
+
   if (failure.has_multi_event) {
     UINT32 multi_events;
   }
-  
+
   if (failure.has_multi_scaler_counter0) {
     UINT32 multi_scaler_counter0;
   }
@@ -54,7 +54,7 @@ XTST_STD_VME()
   if (failure.has_multi_adctdc_counter0) {
     UINT32 multi_adctdc_counter0;
   }
-  
+
 }
 
 

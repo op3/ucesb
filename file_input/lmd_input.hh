@@ -111,7 +111,7 @@ struct lmd_event
   /* Since lmd events may be spanning many buffers (for us, have
    * multiple chunks, we must allow for that.
    */
-  
+
   buf_chunk *_chunk_end;   // the current end of chunks
   buf_chunk *_chunk_alloc; // how many are allocated?
 

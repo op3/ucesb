@@ -108,7 +108,7 @@ void struct_member::dump(dumper &d,bool /*recursive*/) const
   if (flags_left & SM_NO_INDEX)
     d.text(" NO_INDEX");
   if (flags_left & SM_LIST)
-    d.text(" LIST"); 
+    d.text(" LIST");
   d.text(");");
 }
 
@@ -289,7 +289,7 @@ typedef std::map<const char *,struct_member*> member_map;
 
 void struct_definition::find_member_args()
 {
-  const struct_header_named *named_header = 
+  const struct_header_named *named_header =
     dynamic_cast<const struct_header_named *>(_header);
 
   if (!named_header || !_body)
@@ -302,12 +302,12 @@ void struct_definition::find_member_args()
   member_map members;
 
   struct_item_list::const_iterator i;
-  
+
   for (i = _body->begin(); i < _body->end(); ++i)
     {
       struct_item*    item = *i;
-      struct_member*  member = dynamic_cast<struct_member* >(item);  
-      
+      struct_member*  member = dynamic_cast<struct_member* >(item);
+
       if (member)
 	{
 	  const char *ident = member->_ident->_name;
@@ -315,7 +315,7 @@ void struct_definition::find_member_args()
 	  // printf ("member: %s [%08x]\n",ident,(int) ident);
 
 	  member_map::iterator mi;
-	  
+
 	  mi = members.find(ident);
 
 	  if (mi != members.end())

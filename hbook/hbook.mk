@@ -19,7 +19,7 @@
 
 MOD_NAME = hbook
 MOD_DIR  = util/hbook
-MOD_DEP  = 
+MOD_DEP  =
 MOD_SRCS = hbook.cc
 MOD_CSRCS =
 
@@ -32,7 +32,7 @@ NTUPLE_STAGING = 1
 endif
 
 ifdef NTUPLE_STAGING
-MOD_SRCS += staged_ntuple.cc staging_ntuple.cc writing_ntuple.cc 
+MOD_SRCS += staged_ntuple.cc staging_ntuple.cc writing_ntuple.cc
 ifdef USING_EXT_WRITER
 MOD_SRCS += external_writer.cc
 endif

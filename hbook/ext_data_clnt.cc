@@ -176,6 +176,6 @@ void dummy_test_get_ptr()
   ext_data_struct_info wrapped;
   ext_data_structure_info *ptr;
 
-  ptr = wrapped;  
+  ptr = wrapped;
 }
 #endif

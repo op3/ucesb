@@ -40,7 +40,7 @@ bool parse_definitions();
 void read_map_calib_info_file(const char *filename,bool must_exist)
 {
   struct stat buf;
-  
+
   if (stat(filename,&buf) == -1)
     {
       if (must_exist)
@@ -57,15 +57,15 @@ void read_map_calib_info_file(const char *filename,bool must_exist)
   INFO("Reading mapping/calibration file '%s'...",filename);
 
   forked_child fork;
-    
-  const char *argv[] = { 
+
+  const char *argv[] = {
 #if ((defined(__APPLE__) && defined(__MACH__)) || defined(__OpenBSD__))
 	"g++", "-E", "-x", "c",
 #else
-	"cpp", 
+	"cpp",
 #endif
 	/*arg,*/ filename, NULL };
- 
+
   fork.fork(argv[0],argv,&lexer_read_fd,NULL);
 
   // read the information!
@@ -91,7 +91,7 @@ void read_map_calib_info()
   // probably not _the_ way to do it, but to get it running
 
   char *filename;
-  
+
   filename = argv0_replace("gen/data_mapping.hh");
   read_map_calib_info_file(filename,true);
   free (filename);
@@ -139,7 +139,7 @@ void verify_units_match(const prefix_units_exponent *dest,
 
 void apply_map_item(const map_info *item)
 {
-  /*  
+  /*
   char str_src[64];
   char str_dest[64];
 
@@ -155,7 +155,7 @@ void apply_map_item(const map_info *item)
   assert(item->_src->_addr);
   assert(item->_dest->_addr);
 
-  if ((item->_src->_type & ENUM_TYPE_MASK) != 
+  if ((item->_src->_type & ENUM_TYPE_MASK) !=
       (item->_dest->_type & ENUM_TYPE_MASK))
     ERROR_LOC(item->_loc,"Mapping between incompatible types!");
 
@@ -225,8 +225,8 @@ void process_map_calib_info()
   for (i = all_mc_defs->begin(); i != all_mc_defs->end(); ++i)
     {
       def_node *info = *i;
- 
-      calib_param *calib_item = 
+
+      calib_param *calib_item =
 	dynamic_cast<calib_param *>(info);
 
       if (calib_item)
@@ -235,7 +235,7 @@ void process_map_calib_info()
 	  continue; // not to also get caught as a map_item
 	}
 
-      user_calib_param *user_calib_item = 
+      user_calib_param *user_calib_item =
 	dynamic_cast<user_calib_param *>(info);
 
       if (user_calib_item)
@@ -245,7 +245,7 @@ void process_map_calib_info()
 	}
 
       // Has to be last as it as base class for the above
-      map_info *map_item = 
+      map_info *map_item =
 	dynamic_cast<map_info *>(info);
 
       if (map_item)
@@ -253,7 +253,7 @@ void process_map_calib_info()
 	  apply_map_item(map_item);
 	  continue;
 	}
- 
+
     }
 }
 
@@ -297,9 +297,9 @@ const signal_id_info *get_signal_id_info(signal_id *id,int map_no)
 	}
 
       print_lineno(stderr,yylineno);
-      ERROR("Cannot find signal %s in map %s",str,map_str);      
+      ERROR("Cannot find signal %s in map %s",str,map_str);
     }
-        
+
   return info;
 }
 

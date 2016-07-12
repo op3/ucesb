@@ -150,7 +150,7 @@ struct lmd_output_state
 
   // Each buffer (stream) is only sent to one receiver, useful for
   // fanout to multiple processing instances.
-  bool _sendonce; 
+  bool _sendonce;
 
 public:
   uint32 _buf_size;
@@ -196,7 +196,7 @@ public:
 #define LOCC_STATE_REQUEST_WAIT   2  // waiting for request
 #define LOCC_STATE_STREAM_WAIT    3  // waiting for data in a stream
 #define LOCC_STATE_BUFFER_WAIT    4  // waiting for data in a buffer
-#define LOCC_STATE_SEND_WAIT      5  
+#define LOCC_STATE_SEND_WAIT      5
 
 
 
@@ -220,7 +220,7 @@ public:
     size_t _got;
     char   _msg[12+1]; // +1 for 0 termination
   } _request;
-  
+
 public:
   lmd_output_stream *_current; // current stream we send from
   size_t             _offset;  // how much has been sent
@@ -296,8 +296,8 @@ class lmd_output_tcp :
   public lmd_output_buffered
 {
 public:
-  lmd_output_tcp() 
-  { 
+  lmd_output_tcp()
+  {
     _active = false;
 
     _tell_fill_stream = 0;

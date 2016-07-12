@@ -41,7 +41,7 @@ typedef std::vector<double_unit> vect_double_unit;
 #define CALIB_TYPE_OFFSET_SLOPE       4
 #define CALIB_TYPE_CUT_BELOW_OR_EQUAL 5
 
-struct calib_param 
+struct calib_param
   : public map_info
 {
 public:
@@ -63,7 +63,7 @@ public:
 
 };
 
-struct user_calib_param 
+struct user_calib_param
   : public map_info // src not USED
 {
 public:

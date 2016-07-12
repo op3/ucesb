@@ -25,7 +25,7 @@
 
 /*  ================= GSI VME Subevent header =======================  */
 
-typedef struct 
+typedef struct
 {
   lmd_event_header_little_endian _header;
 
@@ -34,7 +34,7 @@ typedef struct
   sint8   h_control;    /*  Processor type code */
 } lmd_subevent_10_1_little_endian;
 
-typedef struct 
+typedef struct
 {
   lmd_event_header_big_endian _header;
 
@@ -48,7 +48,7 @@ typedef lmd_subevent_10_1_big_endian        lmd_subevent_10_1_network_order;
 
 /* ------------------------------------------------------------------ */
 
-typedef struct 
+typedef struct
 {
   lmd_event_header_network_order _header;
 

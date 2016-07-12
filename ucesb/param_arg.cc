@@ -48,7 +48,7 @@ arguments::arguments(const argument_list* src_arg,
   if (src_arg)
     {
       argument_list::const_iterator al;
-      
+
       for (al = src_arg->begin(); al != src_arg->end(); ++al)
 	{
 	  const argument *arg = *al;
@@ -58,7 +58,7 @@ arguments::arguments(const argument_list* src_arg,
   if (src_param)
     {
       param_list::const_iterator pl;
-      
+
       for (pl = src_param->begin(); pl != src_param->end(); ++pl)
 	{
 	  const param *param = *pl;
@@ -100,7 +100,7 @@ void dump_param_args(const file_line &loc,
 	{
 	  if (i != a._arg_map.end())
 	    a._arg_map.erase(i);
-	  
+
 	  d.text_fmt("/*,%s:member*/",p->_name);
 	  continue;
 	}

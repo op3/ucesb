@@ -139,37 +139,37 @@ public:
   T_watcher _items[n];
 
 public:
-  T_watcher &operator[](size_t i) 
-  { 
+  T_watcher &operator[](size_t i)
+  {
     // This function is used by the setting up of the arrays, i.e. we
     // can have checks here
-    if (i < 0 || i >= n) 
-      ERROR("Watcher index outside bounds (%d >= %d)",i,n); 
-    return _items[i]; 
+    if (i < 0 || i >= n)
+      ERROR("Watcher index outside bounds (%d >= %d)",i,n);
+    return _items[i];
   }
-  const T_watcher &operator[](size_t i) const 
+  const T_watcher &operator[](size_t i) const
   {
     // This function is used by the mapping operations (since that one
     // needs a const function), no checks here (expensive, since
     // called often)
-    return _items[i]; 
+    return _items[i];
   }
 
 public:
   static void watch_item(const T &src,const T_watcher &watch,
-			 watcher_event_info *watch_info  
+			 watcher_event_info *watch_info
 			 WATCH_MEMBERS_PARAM);
 
 public:
   void watch_members(const raw_array<Tsingle,T,n> &src,
-		     watcher_event_info *watch_info 
+		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const;
   void watch_members(const raw_array_zero_suppress<Tsingle,T,n> &src,
-		     watcher_event_info *watch_info 
+		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const;
   template<int max_entries>
   void watch_members(const raw_array_multi_zero_suppress<Tsingle,T,n,max_entries> &src,
-		     watcher_event_info *watch_info 
+		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const;
   void watch_members(const raw_list_zero_suppress<Tsingle,T,n> &src,
 		     watcher_event_info *watch_info

@@ -52,13 +52,13 @@ unpack_event_map the_unpack_event_map;
 raw_event_map the_raw_event_reverse_map;
 
 template<typename T>
-bool data_map<T>::set_dest(T *dest) 
-{ 
+bool data_map<T>::set_dest(T *dest)
+{
   if (_dest)
     return false;
 
   // printf ("Set dest: %p\n",dest);
-  
+
   const zero_suppress_info *info;
 
   info = get_ptr_zero_suppress_info(dest,NULL,false);
@@ -69,7 +69,7 @@ bool data_map<T>::set_dest(T *dest)
       info->_type == ZZP_INFO_CALL_LIST_II_INDEX)
     _dest = (T *) (((char*) _dest) - info->_list._dest_offset);
 
-  _dest     = dest; 
+  _dest     = dest;
   _zzp_info = info;
 
   return true;
@@ -117,7 +117,7 @@ void setup_unpack_map()
 template<typename T>
 void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 {
-  /*  
+  /*
   printf("type: %d (call %p  item %p  index %d  dest %p)\n",
 	 map._zzp_info._type,
 	 map._zzp_info._call,
@@ -135,7 +135,7 @@ void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 	{
 	case ZZP_INFO_NONE: // no zero supress item
 	  // case ZZP_INFO_FIXED_LIST: // part of fixed list
-	  break; 
+	  break;
 	case ZZP_INFO_CALL_ARRAY_INDEX:
 	  (*map._zzp_info->_array._call)(map._zzp_info->_array._item,
 					 map._zzp_info->_array._index);
@@ -145,7 +145,7 @@ void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 	    size_t offset = (*map._zzp_info->_array._call_multi)(map._zzp_info->_array._item,
 								 map._zzp_info->_array._index);
 	    dest = (T *) (((char *) dest) + offset);
-	    // printf ("%d - %d\n",zzp_info->_array._index,offset);                 
+	    // printf ("%d - %d\n",zzp_info->_array._index,offset);
 	    break;
 	  }
 	case ZZP_INFO_CALL_LIST_INDEX:
@@ -153,7 +153,7 @@ void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 	    size_t offset = (*map._zzp_info->_list._call)(map._zzp_info->_list._item,
 							  map._zzp_info->_list._index);
 	    dest = (T *) (((char *) dest) + offset);
-	    // printf ("%d - %d\n",zzp_info->_array._index,offset);                 
+	    // printf ("%d - %d\n",zzp_info->_array._index,offset);
 	    break;
 	  }
 	case ZZP_INFO_CALL_ARRAY_LIST_II_INDEX:
@@ -207,7 +207,7 @@ void raw_array_map<Tsingle_map,Tsingle,T_map,T,n>::map_members(const raw_array_z
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       _items[i].map_members(src[i] MAP_MEMBERS_ARG);
@@ -220,7 +220,7 @@ void raw_array_map<Tsingle_map,Tsingle,T_map,T,n>::map_members(const raw_array_m
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       for (uint j = 0; j < src._num_entries[i]; j++)
@@ -242,7 +242,7 @@ void raw_array_1_map<Tsingle_map,Tsingle,T_map,T,n,n1>::map_members(const raw_ar
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       const raw_array_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &map_list = _items[i];
@@ -378,11 +378,11 @@ void enumerate_member_signal_id_map_unpack(const signal_id &id,
   assert (sid_info);
 
   sid_info->_addr = info._addr;
-  sid_info->_type = info._type; 
+  sid_info->_type = info._type;
 
   sid_info->_set_dest = info._set_dest;
 
-  // leaf->_info->_addr = info._addr; 
+  // leaf->_info->_addr = info._addr;
 }
 
 void setup_signal_id_map_unpack_map(void *extra)

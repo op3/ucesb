@@ -85,11 +85,11 @@ void print_current_merge_order(const merge_event_order *prev);
 
 typedef std::vector<source_event_base*> vect_source_event_base;
 
-struct less_source_event_no //: 
-//  public binary_function<source_event_base*, source_event_base*, bool> 
+struct less_source_event_no //:
+//  public binary_function<source_event_base*, source_event_base*, bool>
 {
-  bool operator()(source_event_base* x, source_event_base* y) 
-  { 
+  bool operator()(source_event_base* x, source_event_base* y)
+  {
     return do_merge_compare_events_after(x,y);
   }
 };

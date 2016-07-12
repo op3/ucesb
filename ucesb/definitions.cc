@@ -45,7 +45,7 @@ struct_definition *find_named_structure(const char *name)
   if (i == all_named_structures.end())
     return NULL;
 
-  return i->second; 
+  return i->second;
 }
 
 struct_definition *find_subevent_structure(const char *name)
@@ -57,7 +57,7 @@ struct_definition *find_subevent_structure(const char *name)
   if (i == all_subevent_structures.end())
     return NULL;
 
-  return i->second; 
+  return i->second;
 }
 
 void insert_signal_to_all(signal_spec *signal)
@@ -68,7 +68,7 @@ void insert_signal_to_all(signal_spec *signal)
 		   all_signals.find(signal->_name)->second->_loc,
 		   "Several signals with name: %s\n",
 		   signal->_name);
-  
+
   all_signals.insert(signal_map::value_type(signal->_name,
 					    signal));
 }
@@ -96,12 +96,12 @@ void map_definitions()
     {
       def_node* node = *i;
 
-      struct_definition *structure = 
+      struct_definition *structure =
 	dynamic_cast<struct_definition *>(node);
 
       if (structure)
 	{
-	  const struct_header_subevent *subevent = 
+	  const struct_header_subevent *subevent =
 	    dynamic_cast<const struct_header_subevent *>(structure->_header);
 
 	  if (subevent)
@@ -112,15 +112,15 @@ void map_definitions()
 			       all_subevent_structures.find(subevent->_name)->second->_loc,
 			       "Several subevent structures with name: %s\n",
 			       subevent->_name);
-	      
+
 	      all_subevent_structures.insert(named_structure_map::value_type(subevent->_name,
 									     structure));
 	    }
 	  else
 	    {
-	      const struct_header_named *named = 
+	      const struct_header_named *named =
 		dynamic_cast<const struct_header_named *>(structure->_header);
-	      
+
 	      if (named)
 		{
 		  if (all_named_structures.find(named->_name) !=
@@ -129,30 +129,30 @@ void map_definitions()
 				   all_named_structures.find(named->_name)->second->_loc,
 				   "Several structures with name: %s\n",
 				   named->_name);
-		  
+
 		  all_named_structures.insert(named_structure_map::value_type(named->_name,
 									      structure));
 		}
 	    }
 	}
 
-      signal_spec *signal = 
+      signal_spec *signal =
 	dynamic_cast<signal_spec *>(node);
 
       if (signal)
 	{
-	  signal_spec_range *signal_range = 
+	  signal_spec_range *signal_range =
 	    dynamic_cast<signal_spec_range *>(signal);
 
 	  if (signal_range)
 	    expand_insert_signal_to_all(signal_range);
-	  else if (signal->_ident)	    
+	  else if (signal->_ident)
 	    insert_signal_to_all(signal);
 	  else
 	    insert_signal_to_no_ident(signal);
 	}
 
-      signal_info *sig_info = 
+      signal_info *sig_info =
 	dynamic_cast<signal_info *>(node);
 
       if (sig_info)
@@ -170,11 +170,11 @@ void map_definitions()
 	  the_event = event;
 	}
     }
-  
+
   if (!the_event)
     {
       // please add an EVENT to your .spec file!
-      ERROR_LOC(file_line(_first_lineno_map ? _first_lineno_map->_internal : 0),"There is no event defintion (EVENT { }) in the specification."); 
+      ERROR_LOC(file_line(_first_lineno_map ? _first_lineno_map->_internal : 0),"There is no event defintion (EVENT { }) in the specification.");
     }
 }
 
@@ -218,13 +218,13 @@ void dump_definitions()
 
   {
     named_structure_map::iterator i;
-    
+
     for (i = all_named_structures.begin(); i != all_named_structures.end(); ++i)
       {
 	i->second->dump(d);
 	d.nl();
       }
-    
+
     for (i = all_subevent_structures.begin(); i != all_subevent_structures.end(); ++i)
       {
 	i->second->dump(d);

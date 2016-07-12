@@ -77,8 +77,8 @@ void raw_array_1_calib_map<Tsingle_map,Tsingle,T_map,T,n,n1>::show(const signal_
 #define FCNCALL_FOR(index,size) for (int index = 0; index < size; ++index)
 #define FCNCALL_SUBINDEX(index) const signal_id &__shadow_id = __id; signal_id __id(__shadow_id,index);
 #define FCNCALL_SUBNAME(name)   const signal_id &__shadow_id = __id; signal_id __id(__shadow_id,name);
-#define FCNCALL_MULTI_MEMBER(name) 
-#define FCNCALL_MULTI_ARG(name) 
+#define FCNCALL_MULTI_MEMBER(name)
+#define FCNCALL_MULTI_ARG(name)
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/raw_struct_fcncall.hh"
@@ -155,7 +155,7 @@ mix_rnd_seed::mix_rnd_seed(const mix_rnd_seed &src,const char *name)
     {
       _state_A = _state_A + ((uint8) *name);
       _state_A = _state_A * LCG_A3 + LCG_C3;
-      
+
       _state_B = _state_B - (((uint64) ((uint8) *name)) << 32);
       XOR_SHIFT(_state_B);
     }
@@ -196,8 +196,8 @@ void raw_array_1_calib_map<Tsingle_map,Tsingle,T_map,T,n,n1>::set_rnd_seed(const
 #define FCNCALL_FOR(index,size) for (int index = 0; index < size; ++index)
 #define FCNCALL_SUBINDEX(index) const mix_rnd_seed &__shadow_rnd_seed = rnd_seed; mix_rnd_seed rnd_seed(__shadow_rnd_seed,index);
 #define FCNCALL_SUBNAME(name)   const mix_rnd_seed &__shadow_rnd_seed = rnd_seed; mix_rnd_seed rnd_seed(__shadow_rnd_seed,name);
-#define FCNCALL_MULTI_MEMBER(name) 
-#define FCNCALL_MULTI_ARG(name) 
+#define FCNCALL_MULTI_MEMBER(name)
+#define FCNCALL_MULTI_ARG(name)
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/raw_struct_fcncall.hh"
@@ -217,7 +217,7 @@ void raw_array_1_calib_map<Tsingle_map,Tsingle,T_map,T,n,n1>::set_rnd_seed(const
 void set_rnd_seed_calib_map()
 {
   mix_rnd_seed rnd_seed(0x0123456789abcdefLL,0xf0e1d2c3b4a59687LL);
-  
+
   the_raw_event_calib_map.set_rnd_seed(mix_rnd_seed(rnd_seed,"RAW_CALIB"));
 }
 
@@ -248,8 +248,8 @@ void raw_array_1_calib_map<Tsingle_map,Tsingle,T_map,T,n,n1>::clear()
 #define FCNCALL_FOR(index,size) for (int index = 0; index < size; ++index)
 #define FCNCALL_SUBINDEX(index) ;
 #define FCNCALL_SUBNAME(name)   ;
-#define FCNCALL_MULTI_MEMBER(name) 
-#define FCNCALL_MULTI_ARG(name) 
+#define FCNCALL_MULTI_MEMBER(name)
+#define FCNCALL_MULTI_ARG(name)
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/raw_struct_fcncall.hh"
@@ -316,7 +316,7 @@ void raw_array_calib_map<Tsingle_map,Tsingle,T_map,T,n>::map_members(const raw_a
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       _items[i].map_members(src[i]);
@@ -329,7 +329,7 @@ void raw_array_calib_map<Tsingle_map,Tsingle,T_map,T,n>::map_members(const raw_a
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       for (uint j = 0; j < src._num_entries[i]; j++)
@@ -342,7 +342,7 @@ void raw_array_1_calib_map<Tsingle_map,Tsingle,T_map,T,n,n1>::map_members(const 
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = src._valid.next(iter)) >= 0)
     {
       const raw_array_calib_map<Tsingle_map,Tsingle,Tsingle_map,Tsingle,n1> &map_list = _items[i];
@@ -379,7 +379,7 @@ void raw_array_zero_suppress<Tsingle,T,n>::map_members(const raw_array_calib_map
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = _valid.next(iter)) >= 0)
     {
       _items[i].map_members(map[i]);
@@ -391,7 +391,7 @@ void raw_array_zero_suppress_1<Tsingle,T,n,n1>::map_members(const raw_array_1_ca
 {
   bitsone_iterator iter;
   ssize_t i;
-  
+
   while ((i = _valid.next(iter)) >= 0)
     {
       (raw_array_zero_suppress<Tsingle,T,n>::_items[i])[0].map_members(map[i][0]);
@@ -502,12 +502,12 @@ void enumerate_member_signal_id_map_raw(const signal_id &id,
   assert (sid_info);
 
   sid_info->_addr = info._addr;
-  sid_info->_type = info._type; 
-  sid_info->_unit = info._unit; 
+  sid_info->_type = info._type;
+  sid_info->_unit = info._unit;
 
   sid_info->_set_dest = info._set_dest;
 
-  // leaf->_info->_addr = info._addr; 
+  // leaf->_info->_addr = info._addr;
 }
 
 void setup_signal_id_map_raw_map(void *extra)
@@ -534,7 +534,7 @@ raw_to_tcal_base *new_raw_to_tcal(const calib_param *param)
       verify_units_match(divide_units(param->_dest->_unit,param->_src->_unit),
 			 param->_param[0][0]._unit,
 			 param->_loc,"slope",factor_slope);
-      
+
       verify_units_match(param->_dest->_unit,
 			 param->_param[0][1]._unit,
 			 param->_loc,"offset",factor_offset);
@@ -558,7 +558,7 @@ raw_to_tcal_base *new_raw_to_tcal(const calib_param *param)
       verify_units_match(divide_units(param->_dest->_unit,param->_src->_unit),
 			 param->_param[0][1]._unit,
 			 param->_loc,"slope",factor_slope);
-      
+
       return new_offset_slope((const T_src *) NULL,
 			      (T_dest *) (void*) param->_dest->_addr,
 			      param->_param[0][0]._value * factor_offset,
@@ -589,7 +589,7 @@ raw_to_tcal_base *new_raw_to_tcal(const calib_param *param)
   ERROR_LOC(param->_loc,"Internal error: unhandled parameter type: %d",
 	    param->_type);
 
-  return NULL;  
+  return NULL;
 }
 
 template<typename T>
@@ -599,10 +599,10 @@ bool set_raw_to_tcal(void *info,
   // We know the source type (via T)
 
   // We need to create casts for the destination type
-  // We need to select on the 
+  // We need to select on the
 
   const calib_param *param = (const calib_param *) info;
-    
+
   calib_map<T>* src = (calib_map<T>*) (void*) param->_src->_addr;
 
   if (src->_calib)
@@ -643,15 +643,15 @@ bool set_raw_to_tcal(void *info,
 
       get_enum_type_name(param->_src->_type,src_type,sizeof(src_type));
       get_enum_type_name(param->_dest->_type,dest_type,sizeof(dest_type));
-      
+
       ERROR_LOC(param->_loc,"Unhandled type (pair of?) for calibration parameters (src and/or dest) (%s -> %s) (0x%x -> 0x%x).",
 		src_type,dest_type,
 		param->_src->_type,
 		param->_dest->_type);
       return false;
     }
-  
+
   src->_calib = r2c;
-  
+
   return true;
 }

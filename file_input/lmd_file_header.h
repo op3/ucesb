@@ -29,25 +29,25 @@
 
 /* ------------------------------------------------------------------ */
 
-template<int maxlen> 
+template<int maxlen>
 struct s_l_string
 {
   uint16 len;            /* Length of string */
   sint8  string[maxlen]; /* String data      */
 };
 
-template<int len> 
+template<int len>
 struct s_string
 {
   char   string[len];    /* String data      */
 };
 
-typedef struct 
+typedef struct
 {
   s_l_string<30> filhe_label;    	/* tape label */
   s_l_string<86> filhe_file;		/* file name */
   s_l_string<30> filhe_user;		/* user name */
-  s_string<24>   filhe_time;		/* date and time string (no length specifier) */ 
+  s_string<24>   filhe_time;		/* date and time string (no length specifier) */
   s_l_string<66> filhe_run;		/* run id */
   s_l_string<66> filhe_exp;		/* explanation */
   uint32         filhe_lines;           /* # of comment lines */
@@ -58,13 +58,13 @@ typedef struct
 
 /* ------------------------------------------------------------------ */
 
-typedef struct 
+typedef struct
 {
   s_bufhe_little_endian            _buf_header;
   s_filhe_extra_network_order      _file_extra;
 } s_filhe_little_endian;
 
-typedef struct 
+typedef struct
 {
   s_bufhe_big_endian               _buf_header;
   s_filhe_extra_network_order      _file_extra;

@@ -53,7 +53,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA64),extra);
   }
 
@@ -96,7 +96,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA32),extra);
   }
 
@@ -146,7 +146,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA24,0,0x00ffffff),extra);
   }
 
@@ -186,7 +186,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA16,0,0x0000ffff),extra);
   }
 
@@ -239,7 +239,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     // We claim to be 12 bits, but actually have 16, due to
     // overrange and range bits... :-(
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA12,0,0x0000ffff),extra);
@@ -284,7 +284,7 @@ public:
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
-  { 
+  {
     callback(id,enumerate_info(info,this,ENUM_TYPE_DATA8,0,0x000000ff),extra);
   }
 

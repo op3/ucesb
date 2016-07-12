@@ -66,9 +66,9 @@ public:
     int           _entries_index2; // cwn*/
   array2_item  *_array2_item;    // cwn
   uint32_t      _entries_array2; // cwn
-  
+
   size_t        _array_entries;
-  
+
   uint _ntuple_type;
 
   char   *_id;     // of ntuple (root: name)

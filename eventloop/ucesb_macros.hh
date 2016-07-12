@@ -289,24 +289,24 @@
 #ifdef USE_LMD_INPUT
 #define VES10_1_ITEM(x) (((lmd_subevent_10_1_host *) __header)->x)
 
-#define VES10_1_type     VES10_1_ITEM(_header.i_type) 
-#define VES10_1_subtype  VES10_1_ITEM(_header.i_subtype) 
-#define VES10_1_control  VES10_1_ITEM(h_control) 
-#define VES10_1_subcrate VES10_1_ITEM(h_subcrate) 
-#define VES10_1_procid   VES10_1_ITEM(i_procid) 
+#define VES10_1_type     VES10_1_ITEM(_header.i_type)
+#define VES10_1_subtype  VES10_1_ITEM(_header.i_subtype)
+#define VES10_1_control  VES10_1_ITEM(h_control)
+#define VES10_1_subcrate VES10_1_ITEM(h_subcrate)
+#define VES10_1_procid   VES10_1_ITEM(i_procid)
 #endif//USE_LMD_INPUT
 
 #ifdef USE_HLD_INPUT
 #define VES10_1_ITEM(x) (((hld_subevent_header *) __header)->x)
 
-#define VES10_1_decode_type  VES10_1_ITEM(_deconde._type) 
-#define VES10_1_id           VES10_1_ITEM(_id) 
+#define VES10_1_decode_type  VES10_1_ITEM(_deconde._type)
+#define VES10_1_id           VES10_1_ITEM(_id)
 #endif//USE_HLD_INPUT
 
 #ifdef USE_PAX_INPUT
 #define PAX_EV_HEADER_ITEM(x) (((pax_event_header *) __header)->x)
 
-#define VES10_1_type     PAX_EV_HEADER_ITEM(_type) 
+#define VES10_1_type     PAX_EV_HEADER_ITEM(_type)
 #endif//USE_PAX_INPUT
 
 #ifdef USE_RIDF_INPUT

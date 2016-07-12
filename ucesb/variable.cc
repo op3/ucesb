@@ -58,7 +58,7 @@ bool var_name::eval(/*dumper &d,*/const arguments *args,uint32 *val) const
   // try to find a mapping in our arguments
 
   arguments_map::const_iterator i;
-  
+
   i = args->_arg_map.find(_name);
 
   if (i != args->_arg_map.end())
@@ -79,7 +79,7 @@ bool var_name::eval(/*dumper &d,*/const arguments *args,uint32 *val) const
       *val = j->second->_value;
       return true;
     }
-  
+
   /*
   d.text_fmt("var_const(%08x)",_value._value);
   *val = _value._value;
@@ -197,23 +197,23 @@ bool var_expr::eval(/*dumper &d,*/const arguments *args,uint32 *val) const
     case VAR_OP_ADD: *val = lhs + rhs;  break;
     case VAR_OP_SUB: *val = lhs - rhs;  break;
     case VAR_OP_MUL: *val = lhs * rhs;  break;
-    case VAR_OP_DIV: 
+    case VAR_OP_DIV:
       if (rhs == 0)
 	{
 	  // Sorry, have no location information.
 	  ERROR_LOC(_loc,
 		    "Division by zero when evaluating constant expression.");
 	}
-      *val = lhs / rhs;  
+      *val = lhs / rhs;
       break;
-    case VAR_OP_REM: 
+    case VAR_OP_REM:
       if (rhs == 0)
 	{
 	  // Sorry, have no location information.
 	  ERROR_LOC(_loc,
 		    "Remainder (division) by zero when evaluating constant expression.");
 	}
-      *val = lhs % rhs;  
+      *val = lhs % rhs;
       break;
     case VAR_OP_AND: *val = lhs & rhs;  break;
     case VAR_OP_OR : *val = lhs | rhs;  break;
@@ -226,7 +226,7 @@ bool var_expr::eval(/*dumper &d,*/const arguments *args,uint32 *val) const
     case VAR_OP_GE: *val = lhs >= rhs; break;
     case VAR_OP_EQ: *val = lhs == rhs; break;
     case VAR_OP_NEQ: *val = lhs != rhs; break;
-    default: 
+    default:
       assert(false); // internal error
       return false;
     }
@@ -268,7 +268,7 @@ bool difference(const var_name *first,
       if (first->_name != last->_name)
 	return false;
 
-      // it is either a 
+      // it is either a
       // var_sub   (which can continue)
       // var_name  (is terminal)
       // var_index (is terminal)
@@ -315,7 +315,7 @@ bool difference(const var_name *first,
 	    {
 	      if (diff_index != -1)
 		return false;
-	      
+
 	      diff_index = index + 1;
 	      diff_length = vi2->_index2 - vi1->_index2;
 	    }
@@ -337,7 +337,7 @@ const var_name *generate_indexed(const var_name *first,
   const var_name *result;
   const var_name **assign = &result;
   int index = 0;
-  
+
   for ( ; ; )
     {
       const var_sub *vs = dynamic_cast<const var_sub*>(first);
@@ -367,7 +367,7 @@ const var_name *generate_indexed(const var_name *first,
 					    vi->_index2);
 
 	  // fprintf (stderr,"%d %d  \n",vi->_index,vi->_index2);
-	  
+
 	  *assign = vi_new;
 
 	  if (diff_index == index+0)

@@ -46,7 +46,7 @@ struct external_writer_shm_control
   };
   union // written by consumer
   {
-    struct 
+    struct
     {
       volatile size_t _done;
       volatile size_t _need_consumer_wakeup;
@@ -69,7 +69,7 @@ struct ext_write_config_comm
   int         _server_fd;
 
   shared_mem_circular *_shmc;    // The associated memory
-  
+
   ext_write_config_comm *_next;
 
   uint32_t   *_sort_u32_raw; // For next event in buffer

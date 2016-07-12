@@ -63,9 +63,9 @@ void sig_unregister_mmap(sig_mmap_info *info,
 		  "mmap info structure does not match, cannot unregister.");
 
 	  cur->_addr = NULL;
-	  
+
 	  // Remove from the chained list.
-	  
+
 	  *prev = cur->_next;
 
 	  return;

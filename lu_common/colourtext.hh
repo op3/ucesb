@@ -46,12 +46,12 @@
 #define CTR_CYAN               14
 #define CTR_BOLD_RED           15
 #define CTR_BOLD_GREEN         16
-#define CTR_BOLD_BLUE          17 
+#define CTR_BOLD_BLUE          17
 #define CTR_BOLD_MAGENTA       18
 #define CTR_BOLD_CYAN          19
 #define CTR_UL_RED             20
 #define CTR_UL_GREEN           21
-#define CTR_UL_BLUE            22 
+#define CTR_UL_BLUE            22
 #define CTR_UL_MAGENTA         23
 #define CTR_UL_CYAN            24
 #define CTR_WHITE              25 // not for general use!!!

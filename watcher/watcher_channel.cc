@@ -33,31 +33,31 @@ inline void display_bins(watcher_display_info& info,
 {
   char buf[256];
   int bins_per_char = (NUM_WATCH_BINS+width-1) / width;
-  
+
   assert (bins_per_char * width >= NUM_WATCH_BINS);
-  
+
   for (int j = 0; j < width; j++)
     {
       uint sum = 0;
       uint max_part = 0;
       int  max_type = -1;
-      
+
       for (int t = 0; t < NUM_WATCH_TYPES; t++)
 	{
 	  uint d = 0;
-	  
+
 	  for (int k = 0; k < bins_per_char; k++)
 	    d += data[t]._bins[range][bins_per_char*j+k];
-	  
+
 	  sum += d;
-	  
+
 	  if (d > max_part)
 	    {
 	      max_part = d;
 	      max_type = t;
 	    }
 	}
-      
+
       if (max_type != -1)
 	{
 	  wcolor_set(info._w,info._col_data[max_type],NULL);
@@ -79,7 +79,7 @@ inline void display_range_bins(watcher_display_info& info,
 #define DRB_OUTPUT_WIDTH 4
 
   char buf[256];
-  
+
   for (int j = 0; j < width; j += DRB_OUTPUT_WIDTH)
     {
       int    sum   = 0;
@@ -98,7 +98,7 @@ inline void display_range_bins(watcher_display_info& info,
 	  int end = stat._num - start;
 	  if (end > WATCH_STAT_RANGE_HISTORY)
 	    end = WATCH_STAT_RANGE_HISTORY;
-	  
+
 	  for (int i = 0; i < end; i++)
 	    sum_x += stat._history[(i+start) & (WATCH_STAT_RANGE_HISTORY-1)];
 	  sum += end;
@@ -117,7 +117,7 @@ inline void display_range_bins(watcher_display_info& info,
 	  sprintf (buf,"%*s",DRB_OUTPUT_WIDTH,".");
 	}
       waddstr(info._w,buf);
-      
+
 
     }
 }
@@ -146,7 +146,7 @@ void watcher_channel::collect_raw(uint raw,uint type,
       int range = (raw & 0x1000) >> 12;
       int value = (raw & 0x0fff);
       int rescaled = value;
-      
+
       if (_rescale)
 	{
 	  if (value < (int) _min)
@@ -171,7 +171,7 @@ void watcher_channel::collect_raw(uint raw,uint type,
 
 	  watch_stat_range_bin &stat = _stat_range._bins[range][bin];
 
-	  stat._history[stat._num & (WATCH_STAT_RANGE_HISTORY - 1)] = 
+	  stat._history[stat._num & (WATCH_STAT_RANGE_HISTORY - 1)] =
 	    (float) watch_info->_range_loc;
 	  stat._num++;
 	}
@@ -184,12 +184,12 @@ void watcher_channel::display(watcher_display_info& info/*,
 {
   //  if (!info._requests->is_channel_requested(id,te))
   //    return;
-  
+
   if (info._line >= info._max_line)
     return; // or we would overflow
-  
+
   wcolor_set(info._w,info._col_norm,NULL);
-  
+
   wmove(info._w,info._line,0);
 
   waddstr(info._w,_name.c_str());
@@ -197,13 +197,13 @@ void watcher_channel::display(watcher_display_info& info/*,
   //waddstr(info._w,id.to_string().c_str());
   //waddstr(info._w,"_");
   //waddstr(info._w,te);
-  
+
   char buf[256];
-  
+
   for (int i = 0; i < NUM_WATCH_TYPES; i++)
     {
       wcolor_set(info._w,info._col_data[i],NULL);
-      
+
       wmove(info._w,info._line,10+14+i);
       if (_data[i]._zero)
 	{
@@ -213,9 +213,9 @@ void watcher_channel::display(watcher_display_info& info/*,
       else
 	waddstr(info._w,".");
     }
-  
+
   wmove(info._w,info._line,10+20);
-  
+
   if (_range_hit[0] && _range_hit[1])
     {
       display_bins(info,_data,0,NUM_WATCH_BINS/2);
@@ -227,11 +227,11 @@ void watcher_channel::display(watcher_display_info& info/*,
     display_bins(info,_data,0,NUM_WATCH_BINS);
   else if (_range_hit[1])
     display_bins(info,_data,1,NUM_WATCH_BINS);
-  
+
   for (int i = 0; i < NUM_WATCH_TYPES; i++)
     {
       wcolor_set(info._w,info._col_data[i],NULL);
-      
+
       wmove(info._w,info._line,10+20+NUM_WATCH_BINS+1+1+i);
       if (_data[i]._overflow)
 	{
@@ -241,21 +241,21 @@ void watcher_channel::display(watcher_display_info& info/*,
       else
 	waddstr(info._w,".");
     }
-  
+
   wmove(info._w,info._line,10+20+NUM_WATCH_BINS+1+1+4+2);
   wcolor_set(info._w,info._col_norm,NULL);
-  
+
   if (_range_hit[0] && _range_hit[1])
     waddstr(info._w,"a");
   else if (_range_hit[0])
     waddstr(info._w,"l");
   else if (_range_hit[1])
     waddstr(info._w,"h");
-  
+
   for (int r = 0; r < 2; r++)
     if (_range_hit[r])
-      _range_hit[r]--;    
-  
+      _range_hit[r]--;
+
   info._line++;
 
   /* Plotting of where (e.g. TCAL) is within another range.
@@ -284,7 +284,7 @@ void watcher_channel::display(watcher_display_info& info/*,
 	display_range_bins(info,&_stat_range,1,NUM_WATCH_BINS);
 
 
-      
+
       info._line++;
     }
 }
@@ -307,24 +307,24 @@ void watcher_present_channel::collect_raw(uint raw,uint type,
 void watcher_present_channel::display(watcher_display_info& info)
 {
   char buf[256];
-  
+
   uint sum = 0;
   uint max_part = 0;
   int  max_type = -1;
-  
+
   for (int t = 0; t < NUM_WATCH_TYPES; t++)
     {
       uint d = _data[t];
-      
+
       sum += d;
-      
+
       if (d > max_part)
 	{
 	  max_part = d;
 	  max_type = t;
 	}
     }
-  
+
   if (max_type != -1)
     {
       wcolor_set(info._w,info._col_data[max_type],NULL);
@@ -371,22 +371,22 @@ void watcher_present_channels::display(watcher_display_info& info/*,
 {
   //  if (!info._requests->is_channel_requested(id,te))
   //    return;
-  
+
   if (info._line >= info._max_line)
     return; // or we would overflow
-  
+
   wcolor_set(info._w,info._col_norm,NULL);
-  
+
   wmove(info._w,info._line,0);
 
   waddstr(info._w,_name.c_str());
 
   wmove(info._w,info._line,10+20);
-  
+
   for (int i = 0; i < NUM_WATCH_PRESENT_CHANNELS; i++)
     {
       if (_channels[i])
-	{    
+	{
 	  wmove(info._w,info._line,10+20+i+i/4+i/8);
 	  _channels[i]->display(info);
 	}

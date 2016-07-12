@@ -160,7 +160,7 @@ public:
   const struct_item_list *_items;
 
 public:
-  virtual void dump(dumper &d,bool recursive = true) const; 
+  virtual void dump(dumper &d,bool recursive = true) const;
 };
 
 // flags 0 =             // exactly 1 item
@@ -186,7 +186,7 @@ public:
 public:
   const struct_decl_list *_items;
   int                     _flags;
-  
+
 public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
@@ -206,7 +206,7 @@ public:
 
 public:
   const struct_item *_item;
-  
+
 public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
@@ -234,7 +234,7 @@ public:
   const variable         *_expr;
   const struct_item_list *_items;
   const struct_item_list *_items_else;
-  
+
 public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
@@ -457,10 +457,10 @@ public:
   str_ev_definition(const file_line &loc)
   {
     _code = NULL;
-    
+
     _loc = loc;
   }
-  
+
 public:
   struct_unpack_code *_code;
 

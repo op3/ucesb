@@ -34,7 +34,7 @@ struct ltcp_filter_opcode
 {
 #if __BYTE_ORDER == __BIG_ENDIAN
   uint8   length;        // length of filter
-  uint8   next_filter_block; // 
+  uint8   next_filter_block; //
   uint8   filter_spec;
   uint8   link_f2   : 1;
   uint8   link_f1   : 1; // 1=and 0=or
@@ -51,7 +51,7 @@ struct ltcp_filter_opcode
   uint8   link_f1   : 1; // 1=and 0=or
   uint8   link_f2   : 1;
   uint8   filter_spec;
-  uint8   next_filter_block; // 
+  uint8   next_filter_block; //
   uint8   length;        // length of filter
 #endif
 };
@@ -68,7 +68,7 @@ struct ltcp_filter_item
 struct ltcp_base_filter_struct
 {
   uint32  testbit;       // 0x00000001
-  uint32  endian;        // 0x0 for little endian, 
+  uint32  endian;        // 0x0 for little endian,
                          // 0xffffffff for big endian (stupid!!)
   sint32  numev;         // number of events to send (-1 for many...)
   sint32  sample;        // downscale factor
@@ -148,8 +148,8 @@ struct ltcp_event_client_ack_struct
 
 struct ltcp_stream_trans_open_info
 {
-  uint32   testbit;          
-  uint32   bufsize;          
+  uint32   testbit;
+  uint32   bufsize;
   uint32   bufs_per_stream;
   uint32   streams;
 };
@@ -213,7 +213,7 @@ public:
   virtual void close();
 
   virtual size_t get_buffer(void *buf,size_t count);
-  
+
   virtual size_t preferred_min_buffer_size();
 };
 
@@ -225,7 +225,7 @@ public:
   lmd_input_tcp_stream();
   virtual ~lmd_input_tcp_stream() { }
 
-public:  
+public:
   int _buffers_to_read;
 
 public:
@@ -233,7 +233,7 @@ public:
   virtual void close();
 
   virtual size_t get_buffer(void *buf,size_t count);
-  
+
   virtual size_t preferred_min_buffer_size();
 };
 
@@ -264,7 +264,7 @@ public:
   virtual void close();
 
   virtual size_t get_buffer(void *buf,size_t count);
-  
+
   virtual size_t preferred_min_buffer_size();
 };
 

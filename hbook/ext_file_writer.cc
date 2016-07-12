@@ -161,7 +161,7 @@ ext_write_config _config;
 
 const char *get_buf_string(void **msg,uint32_t *left)
 {
-  external_writer_buf_string *str = 
+  external_writer_buf_string *str =
     (external_writer_buf_string *) *msg;
 
   if (sizeof(*str) > *left)
@@ -176,7 +176,7 @@ const char *get_buf_string(void **msg,uint32_t *left)
 
   if (str->_string[length])
     ERR_MSG("SHM message string not zero-terminated.");
- 
+
   *msg   = ((char*) str) + advance;
   *left -= advance;
 
@@ -185,7 +185,7 @@ const char *get_buf_string(void **msg,uint32_t *left)
 
 uint32_t get_buf_uint32(void **msg,uint32_t *left)
 {
-  uint32_t *p = 
+  uint32_t *p =
     (uint32_t *) *msg;
 
   if (sizeof(*p) > *left)
@@ -206,14 +206,14 @@ float get_buf_float(void **msg,uint32_t *left)
     float    _f;
     uint32_t _i;
   } value;
-  
+
   value._i = get_buf_uint32(msg,left);
   return value._f;
 }
 
 uint32_t *get_buf_raw_ptr(void **msg,uint32_t *left,uint32_t u32_words)
 {
-  uint32_t *p = 
+  uint32_t *p =
     (uint32_t *) *msg;
 
   uint32_t advance = u32_words * sizeof(uint32_t);
@@ -309,7 +309,7 @@ struct stage_array
   uint32_t *_offset_value;
 
   int       _rewrite_max_bytes_per_item;
-  
+
   uint32_t *_masks[BUCKET_SORT_LEVELS];
   int       _num_masks[BUCKET_SORT_LEVELS];
 
@@ -344,7 +344,7 @@ int _autosave_lock_do = 1;
 struct timeslice_name
 {
   const char *_dir;  // end with '/'
-  const char *_base; 
+  const char *_base;
   const char *_ext;  // begin with '.'
 
   char *_curname;
@@ -376,12 +376,12 @@ void do_file_open(time_t slicetime)
 
 	  if (!_timeslice_name._curname)
 	    ERR_MSG("Failure allocating string.");
-	  
+
 	  strcpy(_timeslice_name._curname,_timeslice_name._dir);
 
 	  if (_config._timeslice_subdir)
 	    {
-	      time_t dir_time = 
+	      time_t dir_time =
 		slicetime - slicetime % _config._timeslice_subdir;
 
 	      gmtime_r(&dir_time,&tmr);
@@ -481,20 +481,20 @@ void do_book_ntuple(uint32_t ntuple_index)
   if (_config._id)
     {
       char *end;
-      
+
       hid = strtol(_config._id,&end,10);
-      
+
       if (end == _config._id || *end != 0)
 	ERROR("HBOOK ntuple ID (%s) must be numeric.",_config._id);
     }
   if (strlen(title) > 255)
     ERROR("HBOOK ntuple title (%s) too long (max 255 chars).",
 	  title);
-  
+
   _cwn = new hbook_ntuple_cwn();
   _cwn->hbset_bsize(4096);
   _cwn->hbnt(hid,title," ");
-  
+
   MSG("Booked %d : %s",hid,title);
 #endif
 #if USING_ROOT
@@ -504,7 +504,7 @@ void do_book_ntuple(uint32_t ntuple_index)
     {
       if (!_root_file)
 	ERR_MSG("Refusing to book a ntuple(tree) without an open file.");
-      
+
       if (ntuple_index != _root_ntuples.size() &&
 	  !(ntuple_index == (uint32_t) -1 &&
 	    _root_ntuples.size() == 1))
@@ -526,7 +526,7 @@ void do_book_ntuple(uint32_t ntuple_index)
       // SetAutoFlush seems not to be available everywhere.
       // In principle we do not want it, except to work around
       // broken OptimizeBaskets...
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,0) 
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,0)
       root_ntuple->SetAutoFlush(0);
 #endif
 
@@ -546,9 +546,9 @@ void do_book_ntuple(uint32_t ntuple_index)
 	ERR_MSG("Cannot get a ntuple(tree) without an open file.");
 
       TObject *obj_id = _root_file->Get(id);
-      
+
       _root_ntuple = dynamic_cast<TTree*>(obj_id);
-      
+
       if (!_root_ntuple)
 	{
 	  if (obj_id)
@@ -583,7 +583,7 @@ void do_book_ntuple(uint32_t ntuple_index)
 	  if (!_root_ntuple)
 	    {
 	      MSG("Tree with key (%s) not found in file, "
-		  "and no other trees either!", id);  
+		  "and no other trees either!", id);
 	    }
 	}
 
@@ -607,7 +607,7 @@ void request_book_ntuple(void *msg,uint32_t *left)
   uint32_t hid = get_buf_uint32(&msg,left);
   uint32_t sort_u32_words =
     (ntuple_index == 0 ? get_buf_uint32(&msg,left) : 0);
-  uint32_t max_raw_words = 
+  uint32_t max_raw_words =
     (ntuple_index == 0 ? get_buf_uint32(&msg,left) : 0);
   const char *id = get_buf_string(&msg,left);
   const char *title = get_buf_string(&msg,left);
@@ -636,15 +636,15 @@ void request_hist_h1i(void *msg,uint32_t *left)
 
 #ifdef USING_CERNLIB
   hbook_histogram hist;
-	    
+
   hist.hbook1(hid,title,
 	      bins,low,high);
 #endif
 #ifdef USING_ROOT
   TH1I *hist = new TH1I(id,title,
-			bins,low,high);  
+			bins,low,high);
 #endif
-  
+
   for (uint32_t b = 0; b < bins+2; b++)
     {
       uint32_t d = get_buf_uint32(&msg,left);
@@ -661,7 +661,7 @@ void request_hist_h1i(void *msg,uint32_t *left)
 #endif
 #ifdef USING_ROOT
   if (!hist->Write())
-    ERR_MSG("Writing histogram failed.  (disk full?)");  
+    ERR_MSG("Writing histogram failed.  (disk full?)");
   delete hist;
 #endif
 
@@ -684,7 +684,7 @@ void request_named_string(void *msg,uint32_t *left)
 #ifdef USING_ROOT
   TNamed *named = new TNamed(id, str);
   if (!named->Write())
-    ERR_MSG("Writing named string failed.  (disk full?)");  
+    ERR_MSG("Writing named string failed.  (disk full?)");
   delete named;
 #endif
 }
@@ -944,7 +944,7 @@ struct str_var_type
   const char *_root;
 };
 
-str_var_type _str_var_type[] = { 
+str_var_type _str_var_type[] = {
   { NULL,       NULL, NULL },
   { "int32_t ", "I", "I" },
   { "uint32_t", "I", "i" }, // hbook should be U
@@ -987,7 +987,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
     sprintf (branch+strlen(branch),
     "[%d,%d]",item._limit_min,item._limit_max);
   sprintf (branch+strlen(branch),":%s",
-	   _str_var_type[item._var_type & 
+	   _str_var_type[item._var_type &
 			 EXTERNAL_WRITER_FLAG_TYPE_MASK]._hbook);
 
   assert(strlen(branch) < branch_size); // < to include the trail 0
@@ -1009,13 +1009,13 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 	 "[%d,%d]",limit_min,limit_max);
       */
       sprintf (branch+strlen(branch),"/%s",
-	       _str_var_type[item._var_type & 
+	       _str_var_type[item._var_type &
 			     EXTERNAL_WRITER_FLAG_TYPE_MASK]._root);
-      
+
       assert(strlen(branch) < branch_size); // < to include the trail 0
-      
+
       // MSG ("OLD: %s NEW: %s",branch_vars,branch);
-      
+
       for (TTree_vector::iterator iter = _root_ntuples.begin();
 	   iter != _root_ntuples.end(); ++iter)
 	(*iter)->Branch(item._var_name,ptr,branch/*branch_vars*/);
@@ -1023,7 +1023,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
   else
     {
       // We must verify that the branch exists, and have appropriate type!
-      
+
       TBranch *br = _root_ntuple->GetBranch(item._var_name);
 
       if (!br)
@@ -1035,59 +1035,59 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 	   */
 	  return;
 	}
-      
+
       // So the branch is there.  Then, we expect the (only) leaf to be
       // the variable we want to get at!
-      
+
       if (br->GetNleaves() != 1)
 	ERR_MSG("Requsted branch (%s) does not have one leaf (%d).",
 		item._var_name,br->GetNleaves());
-      
+
       TLeaf *lf = br->GetLeaf(item._var_name);
-      
+
       if (!lf)
 	ERR_MSG("Requsted leaf (%s) does not exist in branch.",
 		item._var_name);
-      
+
       // Make sure it is counted only if we are counted
       TLeaf *lfcount = lf->GetLeafCount();
-      
+
       // And, if we are counted, we should check that the count variable
       // has the right name.  (figuring out if it really is the variable
       // that we have in mind is (a lot) more tricky! Well, we just look
       // up the proposed count variable the normal way and check it!
-      
+
       if ((item._var_array_len != (uint32_t) -1))
 	{
 	  if (!lfcount)
 	    ERR_MSG("Requested leaf (%s) variable in tree is not counted, "
 		    "but request is.",item._var_name);
-      
+
 	  TBranch *brc = _root_ntuple->GetBranch(item._var_ctrl_name);
-	  
+
 	  if (!brc)
 	    ERR_MSG("Requested branch (%s) (array control) "
 		    "does not exist in tree.",
 		    item._var_ctrl_name);
-	  
+
 	  if (brc->GetNleaves() != 1)
 	    ERR_MSG("Requested branch (%s) does not have one leaf (%d).",
 		    item._var_ctrl_name,brc->GetNleaves());
-	  
+
 	  TLeaf *lfc = brc->GetLeaf(item._var_ctrl_name);
-	  
+
 	  if (!lfc)
 	    ERR_MSG("Requested leaf (%s) (array control) "
 		    "does not exist in branch.",
 		    item._var_ctrl_name);
-	  
+
 	  // And they better be the same
-	  
+
 	  if (lfc != lfcount)
 	    ERR_MSG("Requested leaf's (%s) array control (%s) found, "
 		    "but mismatches leaf in tree's control variable (%s).",
 		    item._var_name,item._var_ctrl_name,lfcount->GetName());
-	  
+
 	  // Ok, so that matches
 	}
       else
@@ -1099,10 +1099,10 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 	    ERR_MSG("Requested leaf (%s) variable in tree is an array, "
 		    "but request is not.",item._var_name);
 	}
-      
+
       // Now that we found the sought variable, set the address!
-      
-      br->SetAddress(ptr); 
+
+      br->SetAddress(ptr);
     }
 #endif
 
@@ -1123,9 +1123,9 @@ void request_create_branch(void *msg,uint32_t *left)
   const char *block = get_buf_string(&msg,left);
   //const char *branch_block = get_buf_string(&msg,left);
   //const char *hbname_vars = get_buf_string(&msg,left);
-  //const char *branch_vars = get_buf_string(&msg,left);  
-  const char *var_name    = get_buf_string(&msg,left);  
-  const char *var_ctrl_name = get_buf_string(&msg,left);  
+  //const char *branch_vars = get_buf_string(&msg,left);
+  const char *var_name    = get_buf_string(&msg,left);
+  const char *var_ctrl_name = get_buf_string(&msg,left);
 
   stage_array_item item;
 
@@ -1155,7 +1155,7 @@ void request_create_branch(void *msg,uint32_t *left)
 #if STRUCT_WRITER
   if (item._var_array_len != -1)
     {
-      stage_array_name_map::iterator iter = 
+      stage_array_name_map::iterator iter =
 	_stage_array._names.find(item._var_ctrl_name);
 
       if (iter == _stage_array._names.end())
@@ -1167,7 +1167,7 @@ void request_create_branch(void *msg,uint32_t *left)
   else
     item._ctrl_offset   = (uint32_t) -1;
 #endif
-  
+
   do_create_branch(offset,item);
 
 #if STRUCT_WRITER
@@ -1182,20 +1182,20 @@ void request_create_branch(void *msg,uint32_t *left)
 uint32_t calc_structure_xor_sum(stage_array &sa)
 {
   uint32_t xor_sum = 0x5a5a5a5a;
-  
+
   for (stage_array_item_map::iterator iter = sa._items.begin();
        iter != sa._items.end(); ++iter)
     {
       stage_array_item &item = iter->second;
       uint32_t offset = iter->first;
-      
+
       // Simple junk formula to avoid accidental use of non-compatible
       // structures
       int xor_shift = offset % 27;
       xor_sum ^= (item._var_type << xor_shift);
       xor_sum += item._var_array_len - (xor_sum >> 27);
       xor_sum ^= item._limit_min << 4;
-      xor_sum ^= item._limit_max << 8;   
+      xor_sum ^= item._limit_max << 8;
 
       int i = offset % 31;
 
@@ -1217,7 +1217,7 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 	{
 	  stage_array_item &item = iter->second;
 	  uint32_t offset = iter->first;
-	  
+
 	  fprintf (fid,
 		   "/* %04x : %04x : %s[%d:%s]/%d : %s */%s\n",
 		   offset,item._length,
@@ -1226,7 +1226,7 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 		   item._block,
 		   infomacro ? " \\" : "");
 	}
-      
+
       fprintf (fid,
 	       "\n");
     }
@@ -1356,11 +1356,11 @@ void unique_var_name(char *var_name,set_strings &used_names)
       strcat(var_name,"_");
 
       char *add_at = var_name + strlen(var_name);
-      
+
       for (int add = 1; used_names.find(var_name) != used_names.end(); add++)
 	{
 	  sprintf (add_at,"%d",add);
-	}	  
+	}
     }
 
   used_names.insert(var_name);
@@ -1386,7 +1386,7 @@ void generate_structure_item(FILE *fid,
     sprintf (var_name,"%.*s",base_length,base_name);
   else
     var_name[0] = 0;
-  strcat (var_name,*item._var_name ? item._var_name : 
+  strcat (var_name,*item._var_name ? item._var_name :
 	  (base_name && *base_name ? "" : "_"));
 
   unique_var_name(var_name,used_names);
@@ -1394,7 +1394,7 @@ void generate_structure_item(FILE *fid,
   fprintf (fid,"%s",var_name);
 
   if (first_array_len != -1)
-    fprintf (fid,"[%d]",first_array_len);    
+    fprintf (fid,"[%d]",first_array_len);
   if (item._var_array_len != (uint32_t) -1)
     fprintf (fid,"[%d /* %s */]",
 	     item._var_array_len,
@@ -1408,14 +1408,14 @@ bool match_base_index(const char *base_name_start,int base_length,
 {
   if (strncmp(base_name_start,name,base_length) != 0)
     return false;
-  
+
   const char *start_index = name + base_length;
-  
+
   if (!*start_index || !isdigit(*start_index))
     return false;
-  
+
   int index = strtol(start_index,subname_ptr,10);
-  
+
   return index == match_index;
 }
 
@@ -1449,7 +1449,7 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 	  char *end_index;
 
 	  int index = strtol(start_index,&end_index,10);
-	  
+
 	  // So, the name-base is (item._var_name,start_index(
 	  // and the index is (start_index,end_index(
 
@@ -1489,10 +1489,10 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 		  if (!match_base_index(item._var_name,base_length,
 					item2._var_name,1,&end_index2))
 		      break;
-		  
+
 		  // If it has a controlling item, that must also match
 		  char *end_ctrl_index2 = NULL;
-		  if (item1_ctrl) 
+		  if (item1_ctrl)
 		    {
 		      // first item was controlled, all must be the
 		      // same
@@ -1509,13 +1509,13 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 		      if (!match_base_index(item._var_name,base_length,
 					    item2._var_ctrl_name,1,
 					    &end_ctrl_index2))
-			break;  
+			break;
 		    }
 
 		  // It continues the stretch of items...
 
 		  sub_item = item2;
-		  
+
 		  sub_item._var_name = end_index2;
 		  if (end_ctrl_index2)
 		    sub_item._var_ctrl_name = end_ctrl_index2;
@@ -1557,7 +1557,7 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 		      if (iter2 == sa.end())
 			{//fprintf (fid,"f1\n");
 			goto fail_item;} // premature end, not a complete item
-		      
+
 		      stage_array_item &item2 = iter2->second;
 		      uint32_t offset2 = iter2->first;
 
@@ -1585,23 +1585,23 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 			{//fprintf (fid,"f6\n");
 			goto fail_array;}
 
-		      if ((sub_item2._var_type & 
+		      if ((sub_item2._var_type &
 			   EXTERNAL_WRITER_FLAG_HAS_LIMIT) &&
 			  (sub_item2._limit_min != item2._limit_min ||
 			   sub_item2._limit_max != item2._limit_max))
 			{//fprintf (fid,"f6a\n");
 			  goto fail_array;}
 
-			
+
 		      if (sub_item2._var_array_len != item2._var_array_len)
 			{//fprintf (fid,"f7\n");
 			goto fail_array;}
 
-		      if (item1_ctrl) 
+		      if (item1_ctrl)
 			{
 			  // first item was controlled, all must be the
 			  // same
-			  
+
 			  if (item2._var_array_len == (uint32_t) -1)
 			    {//fprintf (fid,"f8a\n");
 			    goto fail_array;}
@@ -1623,8 +1623,8 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 		      if (offset2 != struct_offset + sub_offset)
 			{//fprintf (fid,"f9\n");
 			goto fail_array;}
-		      
-		      // ok, so the item is a match.  accept it	
+
+		      // ok, so the item is a match.  accept it
 		    }
 
 		  // We successfully matched all the items.  Try next index
@@ -1685,7 +1685,7 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 					  item._var_name,base_length,max_index,
 					  indent,used_names);
 		}
-	      
+
 	      iter = iter2;
 	      continue;
 
@@ -1720,21 +1720,21 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
   uint32_t xor_sum = 0; // make compiler happy
 
-  const char *name = 
+  const char *name =
     _config._header_id ? _config._header_id : _msg_config._id;
 
   if (!writer)
     {
       xor_sum = calc_structure_xor_sum(_stage_array);
-      
+
       if (xor_sum_msg && xor_sum_msg != xor_sum)
 	ERR_MSG("Mismatch between received (0x%08x) "
 		"and calculated xor_sum (0x%08x).",
 		xor_sum_msg,xor_sum);
-      
+
       // write the xor_sum into the chunk that goes to the network
       // it's in the first integer after the header
-      
+
       *xor_sum_msg_p = htonl(xor_sum);
     }
 
@@ -1836,9 +1836,9 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
       {
 	set_strings used_names;
-	
+
 	generate_structure_onion(fid,_stage_array._items,2,used_names);
-	
+
 	// This should just delete all the pointers, but as the program
 	// quits after generating the header, we ignore the memory leak :)
 	// kill_strings(used_names);
@@ -1926,7 +1926,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       name,
 	       xor_sum,
 	       name);
-      
+
       fprintf (fid,"  }, \\\n"
 	       "  { \\\n"
 	       "   ");
@@ -1937,7 +1937,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	    fprintf (fid," \\\n   ");
 	  fprintf (fid," 0x%08x,",_offset_array._ptr[i]);
 	}
-	
+
       fprintf (fid," \\\n"
 	       "  } \\\n"
 	       "};\n");
@@ -1948,7 +1948,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       "\n"
 	       "/*******************************************************/\n",
 	       header_guard);
-     
+
       fclose(fid);
 
       free(header_guard);
@@ -2035,11 +2035,11 @@ void dump_array()
 	{
 	  if (item._var_ctrl_name)
 	    {
-	      uint32_t *ctrl_p = 
+	      uint32_t *ctrl_p =
 		(uint32_t *) (_stage_array._ptr + item._ctrl_offset);
 
 	      items = *ctrl_p;
-	      
+
 	      if (items == 0)
 		continue;
 
@@ -2098,7 +2098,7 @@ void dump_array()
 	    }
 	}
 
-      printf ("\n");      
+      printf ("\n");
     }
 }
 #endif
@@ -2172,7 +2172,7 @@ public:
 
     if (!_bits)
       return false;
-    
+
     while (!(_bits & 0x3f))
       {
 	_bits >>= 6;
@@ -2197,7 +2197,7 @@ public:
 //
 // Number of instructions used each round:
 //
-// K is the length of the offset array, generally K=2^k 
+// K is the length of the offset array, generally K=2^k
 // N is the length of the array to be sorted
 // M is the size of each item
 //
@@ -2264,7 +2264,7 @@ public:
 // (parallellised) rounds: K+N+N+K+M*N+M*N+N+N = 3*K+(6+2*M)*N
 
 // Recalculate the SST effort with these numbers (assuming the 7-loops
-// over K are unrolled to only have the 6-loop's overhead): 
+// over K are unrolled to only have the 6-loop's overhead):
 // radix bits 6 and 7 => (9+8)*64 + 5*2^6+3*2^7 = 1792
 // radix bits 5, 4 and 4 => (9+8+8)*64 + 5*2^4+3*(2^4+2^5) = 1824
 // (also in this case, one should run with just two rounds)
@@ -2291,7 +2291,7 @@ void radix_sort(uint32_t *src,
 
       int bucket = (offset >> koff) & RADIX_MASK;
 
-      elements[bucket]++;   
+      elements[bucket]++;
     }
 
   uint32_t *d[RADIX_K];
@@ -2314,7 +2314,7 @@ void radix_sort(uint32_t *src,
       *(d[bucket]++) = *(p++);
       *(d[bucket]++) = *(p++);
     }
-  
+
 
 
 }
@@ -2331,21 +2331,21 @@ void request_keep_alive(ext_write_config_comm *comm,
   comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
-			 
+
 void prehandle_keep_alive(ext_write_config_comm *comm,
 			void *msg,uint32_t *left)
 {
   comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
-			 
+
 void prehandle_ntuple_fill(ext_write_config_comm *comm,
 			   void *msg,uint32_t *left)
 {
   comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
   comm->_keep_alive_event = 0;
 }
-			 
+
 void request_ntuple_fill(ext_write_config_comm *comm,
 			 void *msg,uint32_t *left,
 			 external_writer_buf_header **header
@@ -2381,21 +2381,21 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	{
 	  // Close current file
 	  close_output();
-	  
+
 	  // Open another file
 	  do_file_open(now);
 	  do_book_ntuple(-1);
-	  
+
 	  // Create the items again
-	  for (stage_array_item_vector::iterator iter = 
+	  for (stage_array_item_vector::iterator iter =
 		 _stage_array._items_v.begin();
 	       iter != _stage_array._items_v.end(); ++iter)
 	    {
 	      stage_array_item &item = *iter;
-	      
+
 	      do_create_branch(item._offset,item);
 	    }
-	  
+
 	  // Ready to store data in the new file...
 	}
     }
@@ -2420,7 +2420,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   if (!_stage_array._length)
     ERR_MSG("Cannot fill using unallocated array.");
-   
+
   if (!(marker & 0x80000000))
     {
       // Non-compacted array.
@@ -2439,7 +2439,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  goto statistics;
 	}
 #endif
-      
+
       // The data mst be unpacked using the static information we have
       // about offsets.  Only the values are sent each time.
 
@@ -2477,7 +2477,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  uint32_t value = ntohl(*(p++));
 
 	  // MSG("%08x : %08x : %08x",coffset,offset,value);
-	  
+
 #if STRUCT_WRITER
 	  *(ppp++) = offset;
 	  *(ppp++) = value;
@@ -2493,7 +2493,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	    {
 	      uint32_t max_loops = *(o++);
 	      uint32_t loop_size = *(o++);
-	      
+
 	      // MSG ("               %d * %d",max_loops,loop_size);
 
 	      uint32_t *onext = o + max_loops * loop_size;
@@ -2533,7 +2533,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		  *((uint32_t *) (_stage_array._ptr + offset)) = value;
 #endif
 		}
-	      
+
 	      // And then jump to the end of the loop in the offset array
 
 	      o = onext;
@@ -2556,7 +2556,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // int       _num_masks[BUCKET_SORT_LEVELS];
 
       //struct rusage use1, use2, use3, use4, use5;
-      
+
       //getrusage(RUSAGE_SELF,&use1);
 
       memset(_stage_array._masks[0],0,
@@ -2570,7 +2570,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  if (offset + sizeof(uint32_t) > _stage_array._length)
 	    ERR_MSG("Fill item offset (%" PRIu32 ") outside array (%zd).",
 		    offset,_stage_array._length);
- 
+
 	  *((uint32_t *) (_stage_array._ptr + offset)) = value;
 
 	  uint32_t mask_item = (offset / sizeof(uint32_t));
@@ -2626,29 +2626,29 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       //getrusage(RUSAGE_SELF,&use2);
       // qsort(p,(end-p)/2,2 * sizeof(uint32_t),compare_raw_fill_list);
       //getrusage(RUSAGE_SELF,&use3);
-      
-      // 
+
+      //
 #if 0
       fprintf (stderr,"%4d: ",(end-p)/2);
-      
+
       int prev_offset = -8;
       uint32_t *pp = p;
-      
+
       for (pp ; pp < end; pp += 2)
 	{
 	  char type = '-';
-	  
+
 	  if (ntohl(pp[1]) == 0) type = '0';
 	  else if (ntohl(pp[1]) == 0x7fc00000) type = 'X';
 	  else if (!(ntohl(pp[1]) & 0xffffff00)) type = 'b';
 	  else if (!(ntohl(pp[1]) & 0xffff0000)) type = 's';
-	  
+
 	  int offset = ntohl(pp[0]) & 0x00ffffff;
-	  
+
 	  if (offset != prev_offset + 4)
 	    fprintf (stderr," ");
 	  fprintf (stderr,"%c",type);
-	  
+
 	  prev_offset = offset;
 	}
       fprintf (stderr,"\n");
@@ -2715,7 +2715,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // buffers (which are there even if there are no consumers).
       // That way, we save a memcpy operation.
 
-      size_t max_length = _stage_array._rewrite_max_bytes_per_item * 
+      size_t max_length = _stage_array._rewrite_max_bytes_per_item *
 	((ppp - _stage_array._offset_value) / 2);
 
       max_length = (max_length + 3) & ~3; // 4-byte alignment
@@ -2724,9 +2724,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	(_msg_config._sort_u32_words +
 	 (_msg_config._max_raw_words ? 1 + comm->_raw_words : 0) +
 	 2) * // 2: ntuple_index + mark_dest
-	sizeof (uint32_t); 
-      
-      char *net_io_chunk = 
+	sizeof (uint32_t);
+
+      char *net_io_chunk =
 	ext_net_io_reserve_chunk(max_length,false,chunk);
 
       memcpy(net_io_chunk,*header,sizeof(**header));
@@ -2744,7 +2744,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	sort_u32_dest + _msg_config._sort_u32_words;
 
       *ntuple_index_dest = htonl(ntuple_index);
-      
+
       uint32_t *raw_dest = ntuple_index_dest + 1;
 
       if (_msg_config._max_raw_words)
@@ -2754,42 +2754,42 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		 sizeof(uint32_t) * comm->_raw_words);
 
 	  raw_dest += comm->_raw_words;
-	}      
+	}
 
       uint32_t *mark_dest = raw_dest;
       uint8_t *dest = (uint8_t *) (mark_dest + 1);
 
       uint32_t cur_offset = 0;
-      
+
       for (int i = 0; i < _stage_array._num_masks[0]; i++)
 	{
 	  // fprintf (stderr,"[0:%d]",i);
 
 	  bucket_iter iter0(_stage_array._masks[0][i],
 			       i*BUCKET_SORT_BITS);
-	  
+
 	  while (iter0.get_next())
 	    {
 	      // so, this bit (@index) is (was) set, go into the next bucket
 
 	      // fprintf (stderr,"(1:%d)",iter0._index);
-	      
+
 	      bucket_iter
 		iter1(_stage_array._masks[1][iter0._index],
 		      iter0._index*BUCKET_SORT_BITS);
-	      
+
 	      while (iter1.get_next())
 		{
 		  // fprintf (stderr,"(2:%d)",iter1._index);
-	      
+
 		  bucket_iter
 		    iter2(_stage_array._masks[2][iter1._index],
 			  iter1._index*BUCKET_SORT_BITS);
-		  
+
 		  while (iter2.get_next())
 		    {
 		      // Item at index  iter2._index
-		      
+
 		      //assert(ppp < end);
 
 		      // uint32_t offset = ntohl(ppp[0]);
@@ -2798,7 +2798,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 			       iter2._index * 4,ntohl(ppp[0]));
 		      */
 		      uint32_t offset = iter2._index * sizeof (uint32_t);
-		      uint32_t value  = 
+		      uint32_t value  =
 			*((uint32_t *) (_stage_array._ptr + offset));
 		      /*
 		      if (iter2._index * 4 != ntohl(ppp[0]) ||
@@ -2816,15 +2816,15 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 		      ////////////////////////////////////////////
 		      // Begin encoding this value
-		      
+
 		      // uint8_t *odest = dest;
 
 		      uint32_t store_offset = offset - cur_offset;
 
 		      assert(!(store_offset & 3));
 		      store_offset >>= 2;
-		      
-		      assert(offset + sizeof(uint32_t) <= 
+
+		      assert(offset + sizeof(uint32_t) <=
 			     _stage_array._length);
 			     /*
 		      if (offset + sizeof(uint32_t) > _stage_array._length)
@@ -2832,7 +2832,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 				offset,_stage_array._length);
 			     */
 		      cur_offset = offset + sizeof(uint32_t);
-		      
+
 		      if (value == 0)
 			{
 			  while (store_offset > 0x0f)
@@ -2885,10 +2885,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 			}
 
 		      // fprintf (stderr," %d",dest-odest);
-		      
+
 		      // End encoding this value
 		      ////////////////////////////////////////////
-		    }		  
+		    }
 		}
 	    }
 	}
@@ -2904,31 +2904,31 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // if we employ zero suppression, so it's anyhow not to be
       // used.  We do this such that the unpacking can verify that
       // at least all the offsets worked out together.
-      
+
       if (cur_offset != _stage_array._length)
 	{
 	  uint32_t offset = _stage_array._length - sizeof(uint32_t);
 	  uint32_t store_offset = offset - cur_offset;
-	  
+
 	  assert(!(store_offset & 3));
 	  store_offset >>= 2;
-		      
+
 	  while (store_offset > 0x0f)
 	    {
 	      *(dest++) = 0x80 | (store_offset & 0x7f);
 	      store_offset >>= 7;
 	    }
 	  *(dest++) = (3 << 5) | (1 << 4) | store_offset;
-	}	  
+	}
 
-      *mark_dest = 
+      *mark_dest =
 	htonl(0x80000000 | ((char *) dest - (char *) (mark_dest + 1)));
 
       // Pad with zeros (to make comparisons work)
 
       memset(dest,0,(-((char *) dest - (char *) *header))&3);
 
-      uint32_t new_length = 
+      uint32_t new_length =
 	((((char *) dest - (char *) *header) + 3) & ~3);
       /*
       MSG("rewrite: %d items (%d bpi), %d / nl: %d ml: %d",
@@ -3102,7 +3102,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      /* We got the lock.  Use it */
 
 	      _last_autosave = now;
-	      
+
 	      for (TTree_vector::iterator iter = _root_ntuples.begin();
 		   iter != _root_ntuples.end(); ++iter)
 		(*iter)->AutoSave("saveself,flushbaskets");
@@ -3127,7 +3127,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		      goto unlock;
 		    }
 #endif
-		  
+
 		    perror("fcntl(F_SETLK, F_UNLCK)");
 		    ERR_MSG("Unexpected error unlocking after AutoSave.");
 		  }
@@ -3174,7 +3174,7 @@ bool ntuple_get_event(char *msg,char **end)
 
   if (_num_events >= _num_read_entries)
     goto read_done;
-  
+
   ret = _root_ntuple->GetEntry(_num_events);
 
   if (ret == 0)
@@ -3200,7 +3200,7 @@ bool ntuple_get_event(char *msg,char **end)
 
   struct external_writer_buf_header *header_in;
   uint32_t length_in;
-  
+
   int ret = ext_data_fetch_event(_reader_client,
 				 _stage_array._ptr,_stage_array._length,
 				 &header_in,&length_in);
@@ -3241,38 +3241,38 @@ bool ntuple_get_event(char *msg,char **end)
 #endif
   {
     uint32_t *start = (uint32_t *) (header + 1);
-    
+
     start[0] = htonl(0); // ntuple_index (0, only one when reading)
     start[1] = htonl(0); // marker, non-compacted
-    
+
     uint32_t *cur = start + 2;
-    
+
     // This has filled our staging array.  Now walk our offset pointers
     // and copy the data.
-    
+
     uint32_t *o    = _offset_array._ptr;
     uint32_t *oend = _offset_array._ptr + _offset_array._length;
-    
+
     while (o < oend)
       {
 	uint32_t offset_mark = *(o++);
 	uint32_t offset = offset_mark & 0x3fffffff;
 	uint32_t mark = offset_mark & 0x80000000;
-	
+
 	uint32_t value = *((uint32_t *) (_stage_array._ptr + offset));
-	
+
 	// Even if an error is detected, we'll not write the event
 	// anyhow
 	*(cur++) = htonl(value);
-	
+
 	if (mark)
 	  {
 	    // It's a loop control.  Make sure the value was within
 	    // limits.
-	    
+
 	    uint32_t max_loops = *(o++);
 	    uint32_t loop_size = *(o++);
-	    
+
 	    // This will put an end to things!
 	    if (value > max_loops)
 	      {
@@ -3284,30 +3284,30 @@ bool ntuple_get_event(char *msg,char **end)
 		    offset,value,max_loops);
 		goto read_abort;
 	      }
-	    
+
 	    uint32_t *onext = o + max_loops * loop_size;
 	    uint32_t items = value * loop_size;
-	    
+
 	    for (int i = items; i; i--)
 	      {
 		offset = (*(o++)) & 0x3fffffff;
 		value = *((uint32_t *) (_stage_array._ptr + offset));
-		
+
 		*(cur++) = htonl(value);
 	      }
 	    o = onext;
 	  }
       }
-    
+
     // Done.
-    
+
     header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL);
     header->_length = htonl(((char*) cur) - ((char*) msg));
-    
+
     *end = (char *) cur;
     return true;
   }
-  
+
  read_abort:
   header->_request = htonl(EXTERNAL_WRITER_BUF_ABORT);
   goto read_header_only;
@@ -3329,7 +3329,7 @@ void write_response(ext_write_config_comm *comm, char response)
   for ( ; ; )
     {
       int ret = write(comm->_pipe_out,&response,sizeof(response));
-      
+
       if (ret == -1)
 	{
 	  if (errno == EINTR)
@@ -3351,7 +3351,7 @@ void full_write(int fd,const void *buf,size_t count)
 
       if (!nwrite)
 	ERR_MSG("Reached unexpected end of file while writing.");
- 
+
       if (nwrite == -1)
 	{
 	  if (errno == EINTR)
@@ -3383,7 +3383,7 @@ struct shared_mem_circular
   char  *_end;
   char  *_cur;
   size_t _size;
-  
+
   char  *_mem;
   char  *_read_end;
 };
@@ -3408,19 +3408,19 @@ request_resize_shm(ext_write_config_comm *comm,
   uint32_t magic = get_buf_uint32(&msg,left);
 
   if (magic != EXTERNAL_WRITER_MAGIC)
-    ERR_MSG("Request to resize shared memory has bad magic.");  
+    ERR_MSG("Request to resize shared memory has bad magic.");
 
   if (new_len < shmc->_len)
     ERR_MSG("Request to decrease shared memory not allowed.");
-  
+
   // check that the shared memory has the required size
 
   struct stat st;
-  
+
   /*int r =*/ fstat(comm->_shm_fd, &st);
-  
+
   // MSG("stat shared mem: %d - size: %d",r,st.st_size);
-  
+
   if (st.st_size < new_len)
     ERR_MSG("Size of resized shared memory unexpectedly small %d < %d.",
 	    (int) st.st_size,new_len);
@@ -3438,15 +3438,15 @@ request_resize_shm(ext_write_config_comm *comm,
 
   shmc->_ptr = (char *) mmap(0, shmc->_len, (PROT_READ | PROT_WRITE),
 			     MAP_SHARED, comm->_shm_fd, 0);
-  
+
   if (shmc->_ptr == MAP_FAILED)
     ERR_MSG("Error mapping shared memory segment.");
-  
+
   size_t cur_offset = shmc->_cur - shmc->_begin;
   size_t header_off = ((char*) header) - shmc->_begin;
 
   shmc->_ctrl = (external_writer_shm_control*) shmc->_ptr;
-  
+
   shmc->_begin = (char*) (shmc->_ctrl + 1);
   shmc->_cur  = shmc->_begin + cur_offset;
   shmc->_end  = shmc->_ptr + shmc->_len;
@@ -3460,7 +3460,7 @@ request_resize_shm(ext_write_config_comm *comm,
   // so, we'll now use the newer bigger size
 
   // MSG("Resized SHM -> %d.",new_len);
-  
+
   return header;
 }
 
@@ -3506,16 +3506,16 @@ request_resize_pipe(ext_write_config_comm *comm,
 
   if (new_len < shmc->_len)
     ERR_MSG("Request to decrease shared memory not allowed.");
- 
+
   // We're simply getting a completely new pipe.  All old pointers useless.
-  
+
   header = alloc_pipe(comm,new_len,header);
 
   // Send a message to the other end that we did the resize (may now
   // continue to write, into new buffer :-) ) This game is needed to
   // make the alignment still work, without having to shift pointers
   // at both places.
-  
+
   // No need to send anything!
   // write_response(EXTERNAL_WRITER_RESPONSE_PIPE_RESIZED);
 
@@ -3532,7 +3532,7 @@ void send_abort()
 
   send_item_chunk *chunk;
 
-  char *net_io_chunk = 
+  char *net_io_chunk =
     ext_net_io_reserve_chunk(sizeof(header),false,&chunk);
 
   memcpy(net_io_chunk,&header,sizeof(header));
@@ -3557,7 +3557,7 @@ bool handle_request(ext_write_config_comm *comm,
 
   bool quit = false;
   size_t expand = 0;
-  
+
 #if STRUCT_WRITER
   send_item_chunk *chunk = NULL;
 #endif
@@ -3581,7 +3581,7 @@ bool handle_request(ext_write_config_comm *comm,
     fflush(stderr);
   }
   */
-   
+
   switch (request)
     {
     case EXTERNAL_WRITER_BUF_OPEN_FILE:
@@ -3627,7 +3627,7 @@ bool handle_request(ext_write_config_comm *comm,
     case EXTERNAL_WRITER_BUF_SETUP_DONE:
     case EXTERNAL_WRITER_BUF_SETUP_DONE_RD:
     case EXTERNAL_WRITER_BUF_SETUP_DONE_WR:
-      // May change the message inline      
+      // May change the message inline
       request_setup_done(header+1,&left,
 			 request == EXTERNAL_WRITER_BUF_SETUP_DONE_RD,
 			 request == EXTERNAL_WRITER_BUF_SETUP_DONE_WR);
@@ -3657,7 +3657,7 @@ bool handle_request(ext_write_config_comm *comm,
   printf ("\nRD %d: %d\n",
 	  request, left);
   */
-  
+
   if (left != 0)
     ERR_MSG("Message not completely used (req=%d,left=%d).",
 	    request,left);
@@ -3668,11 +3668,11 @@ bool handle_request(ext_write_config_comm *comm,
 
   if (!chunk)
     {
-      char *net_io_chunk = 
+      char *net_io_chunk =
 	ext_net_io_reserve_chunk(length,
 				 request < EXTERNAL_WRITER_BUF_NTUPLE_FILL,
 				 &chunk);
-      
+
       memcpy(net_io_chunk,header,length);
     }
 
@@ -3692,7 +3692,7 @@ bool handle_request(ext_write_config_comm *comm,
       MFENCE; // don't tell we're done until here
       shmc->_ctrl->_done += expand;
     }
-  
+
   if (!_config._forked && _got_sigint)
     {
       // We got Ctrl+C, and are not in forked mode (where we're
@@ -3716,7 +3716,7 @@ bool check_request(ext_write_config_comm *comm,
   // The header may be unusable after we've remapped the memory
   uint32_t request = ntohl(header->_request);
   uint32_t length  = ntohl(header->_length);
-   
+
   uint32_t left = length - sizeof(*header);
 
   bool quit = false;
@@ -3788,7 +3788,7 @@ bool pre_handle_request(ext_write_config_comm *comm,
 			   header+1,&left);
       break;
     }
-  
+
   return quit;
 }
 
@@ -3807,7 +3807,7 @@ int connect_server(const char *server)
    */
   hostname = strdup(server);
   colon = strchr(hostname,':');
-      
+
   if (colon)
     {
       port = (unsigned short) atoi(colon+1);
@@ -3818,7 +3818,7 @@ int connect_server(const char *server)
   h = gethostbyname(hostname);
   free(hostname);
 
-  if(h == NULL) 
+  if(h == NULL)
     ERR_MSG("Unknown host '%s'.",server);
 
   MSG("Server '%s' known... (IP : %s).", h->h_name,
@@ -3834,11 +3834,11 @@ int connect_server(const char *server)
 
   /* Connect to the port. */
   serv_addr.sin_family = (sa_family_t) h->h_addrtype;
-  memcpy((char *) &serv_addr.sin_addr.s_addr, 
+  memcpy((char *) &serv_addr.sin_addr.s_addr,
 	 h->h_addr_list[0], h->h_length);
   serv_addr.sin_port = htons(port);
 
-  rc = connect(fd_server, 
+  rc = connect(fd_server,
 	       (struct sockaddr *) &serv_addr, sizeof(serv_addr));
   if (rc == -1)
     {
@@ -3896,7 +3896,7 @@ int connect_server(const char *server)
       if (n == 0)
 	ERR_MSG("Failure receiving data port number.");
 
-      got += (size_t) n;	  
+      got += (size_t) n;
     }
 
   for ( ; ; )
@@ -3927,11 +3927,11 @@ int connect_server(const char *server)
 
   /* Connect to the port. */
   serv_addr.sin_family = (sa_family_t) h->h_addrtype;
-  memcpy((char *) &serv_addr.sin_addr.s_addr, 
+  memcpy((char *) &serv_addr.sin_addr.s_addr,
 	 h->h_addr_list[0], h->h_length);
   serv_addr.sin_port = portmap_msg._port;
 
-  rc = connect(fd_server, 
+  rc = connect(fd_server,
 	       (struct sockaddr *) &serv_addr, sizeof(serv_addr));
   if (rc == -1)
     {
@@ -3954,12 +3954,12 @@ uint32_t pipe_has_full_message(ext_write_config_comm *comm)
     return 0;
 
   // we can inspect the header
-	  
-  external_writer_buf_header *header = 
+
+  external_writer_buf_header *header =
     (external_writer_buf_header *) shmc->_cur;
 
   uint32_t length = ntohl(header->_length);
-	  
+
   if (length & 3)
     {
       /*
@@ -4064,7 +4064,7 @@ uint32_t pipe_get_message(ext_write_config_comm *comm)
 					false,false))
 	;
 #endif
-      
+
       // We always try to read as much as possible from the pipe
 
       ssize_t n;
@@ -4121,7 +4121,7 @@ void prepare_pipe_comm(ext_write_config_comm *comm)
     }
 
   shared_mem_circular *shmc = comm->_shmc;
-  
+
   alloc_pipe(comm,EXTERNAL_WRITER_MIN_SHARED_SIZE,NULL);
 
 
@@ -4156,7 +4156,7 @@ int comm_next_item_compare_less(ext_write_config_comm *comm1,
 void pipe_communication(ext_write_config_comm *comm_head)
 {
   size_t nsrc = 0;
-  
+
   for (ext_write_config_comm *comm = comm_head;
        comm != NULL; comm = comm->_next)
     {
@@ -4178,7 +4178,7 @@ void pipe_communication(ext_write_config_comm *comm_head)
       prepare_pipe_comm(comm);
 
       shared_mem_circular *shmc = comm->_shmc;
-  
+
       for ( ; ; )
 	{
 	  // This only returns if at least one message is present!
@@ -4189,8 +4189,8 @@ void pipe_communication(ext_write_config_comm *comm_head)
 	      // MSG("%p %p %p\n",shmc->_mem,shmc->_cur,shmc->_read_end);
 
 	      // The entire message fits in the currently available space
-	  
-	      external_writer_buf_header *header = 
+
+	      external_writer_buf_header *header =
 		(external_writer_buf_header *) shmc->_cur;
 
 	      uint32_t request = ntohl(header->_request);
@@ -4264,8 +4264,8 @@ void pipe_communication(ext_write_config_comm *comm_head)
       ext_write_config_comm *comm = heap[0];
 
       shared_mem_circular *shmc = comm->_shmc;
-    
-      external_writer_buf_header *header = 
+
+      external_writer_buf_header *header =
 	(external_writer_buf_header *) shmc->_cur;
 
       uint32_t request = ntohl(header->_request);
@@ -4288,11 +4288,11 @@ void pipe_communication(ext_write_config_comm *comm_head)
 
       /* Pre-parse the item, such that we have the sorting information. */
 
-      header = 
+      header =
 	(external_writer_buf_header *) shmc->_cur;
 
       pre_handle_request(comm,header);
-      
+
 
       HEAP_MOVE_DOWN(ext_write_config_comm *,
 		     heap, nsrc, comm_next_item_compare_less,
@@ -4300,7 +4300,7 @@ void pipe_communication(ext_write_config_comm *comm_head)
     }
 
 
-  
+
 
  done_message:
   // First close the server, since otherwise that may have to wait for
@@ -4321,7 +4321,7 @@ void pipe_communication(ext_write_config_comm *comm_head)
  reader_loop:
   ext_write_config_comm *comm = comm_head;
   shared_mem_circular *shmc = comm->_shmc;
-  
+
   // We are to read events instead, so our loop drives the event flow.
   if (comm->_pipe_out == -1)
     ERR_MSG("Cannot write events - no output pipe.");
@@ -4335,9 +4335,9 @@ void pipe_communication(ext_write_config_comm *comm_head)
 
   shmc->_cur = shmc->_mem; // we start writing to the beginning of the buffer.
   WRITE_START = shmc->_mem; // tells where the writing should start
-  
-  size_t max_msg_size = 
-    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) + 
+
+  size_t max_msg_size =
+    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
     _offset_array._max_items * sizeof(uint32_t);
 
   for ( ; ; )
@@ -4364,21 +4364,21 @@ void pipe_communication(ext_write_config_comm *comm_head)
       // So, time to write!
 
       full_write(comm->_pipe_out,WRITE_START,shmc->_cur - WRITE_START);
-      
+
       // We got rid of the data, reset the pointers.
-      
+
       if (shmc->_size >= 2*0x1000)
 	{
 	  size_t page_off = (shmc->_cur - shmc->_mem) & (0x1000 - 1);
 	  WRITE_START = shmc->_mem + page_off;
 
-	  
+
 	  shmc->_cur = WRITE_START;
 	}
       else
 	{
 	  shmc->_cur = shmc->_mem;
-	  WRITE_START = shmc->_mem;	  
+	  WRITE_START = shmc->_mem;
 	}
 
       if (shmc->_end - shmc->_cur < max_msg_size)
@@ -4522,10 +4522,10 @@ int main(int argc,char *argv[])
 	  force = -1;
 	else if (strcmp(post,"auto") != 0)
 	  ERR_MSG("Bad option '%s' for --colour=",post);
-	
+
 	colourtext_setforce(force);
 #else
-	ERR_MSG("No colour support since ncurses not compiled in.");	
+	ERR_MSG("No colour support since ncurses not compiled in.");
 #endif
       }
 #if USING_CERNLIB || USING_ROOT
@@ -4607,7 +4607,7 @@ int main(int argc,char *argv[])
       // if possible.  Should call pthread_setname_np too?
       if (writer)
 	strncpy(writer, "_reader",7);
-      
+
     }
 
   if (_config._timeslice)
@@ -4640,7 +4640,7 @@ int main(int argc,char *argv[])
 	  _timeslice_name._ext = "";
 	}
 
-      char *listname = 
+      char *listname =
 	(char *) malloc(strlen(_timeslice_name._dir)+
 			strlen(_timeslice_name._base)+
 			strlen(".txt")+1);
@@ -4655,7 +4655,7 @@ int main(int argc,char *argv[])
       _timeslice_name._list_fd = open(listname,
 				      O_RDWR | O_APPEND | O_CREAT,
 				      S_IRWXU | S_IRWXG | S_IRWXO);
-      
+
       if (_timeslice_name._list_fd == -1)
 	{
 	  perror("open");
@@ -4739,53 +4739,53 @@ int main(int argc,char *argv[])
 
   // Check the size of the shared memory.  Should
   // be at least 4096 bytes (default)
-  
+
   struct stat st;
-  
+
   int r = fstat(comm->_shm_fd, &st);
-  
+
   if (r != 0)
     {
       perror("stat");
       write_response(comm, EXTERNAL_WRITER_RESPONSE_SHM_ERROR);
       ERR_MSG("Cannot determine shared memory size.");
     }
-  
+
   // MSG("stat shared mem: %d - size: %d",r,st.st_size);
-  
+
   if (st.st_size < EXTERNAL_WRITER_MIN_SHARED_SIZE)
     {
       write_response(comm,EXTERNAL_WRITER_RESPONSE_SHM_ERROR);
       ERR_MSG("Size of shared memory unexpectedly small %d < %d.  Try NOSHM.",
 	      (int) st.st_size,EXTERNAL_WRITER_MIN_SHARED_SIZE);
     }
-  
+
   shmc->_len = EXTERNAL_WRITER_MIN_SHARED_SIZE;
-  
+
   // Try to mmap our shared memory
-  
+
   shmc->_ptr = (char *) mmap(0, shmc->_len, (PROT_READ | PROT_WRITE),
 			     MAP_SHARED, comm->_shm_fd, 0);
-  
+
   if (shmc->_ptr == MAP_FAILED)
     {
       write_response(comm,EXTERNAL_WRITER_RESPONSE_SHM_ERROR);
       ERR_MSG("Error mapping shared memory segment.");
     }
-  
+
   shmc->_ctrl = (external_writer_shm_control*) shmc->_ptr;
-  
+
   if (shmc->_ctrl->_magic != EXTERNAL_WRITER_MAGIC)
     ERR_MSG("Bad magic (%08x) in shared memory segment control.",
 	    shmc->_ctrl->_magic);
   if (shmc->_ctrl->_len != shmc->_len)
     ERR_MSG("Shared memory segment control check size (%zd) "
 	    "wrong (!= %zd).",shmc->_ctrl->_len,shmc->_len);
-  
+
   shmc->_cur = shmc->_begin = (char*) (shmc->_ctrl + 1);
   shmc->_end  = shmc->_ptr + shmc->_len;
   shmc->_size = shmc->_end - shmc->_begin;
-  
+
   for ( ; ; )
     {
       char cmd;
@@ -4798,13 +4798,13 @@ int main(int argc,char *argv[])
 	{
 #if STRUCT_WRITER
 	  // Let the server run until there is data in the pipe
-	  
+
 	  while (!ext_net_io_select_clients(comm->_pipe_in,-1,false,false))
 	    ;
 #endif
-	  
+
 	  ret = read(comm->_pipe_in,&cmd,sizeof(cmd));
-	  
+
 	  if (ret == 0)
 	    {
 	      // This is the normal error if someone hits ctrl+C on the
@@ -4813,7 +4813,7 @@ int main(int argc,char *argv[])
 	      close_output(); // close outputs gracefully
 	      ERR_MSG("Unexpected end of command pipe.");
 	    }
-	  
+
 	  if (ret == -1)
 	    {
 	      if (errno == EINTR)
@@ -4821,23 +4821,23 @@ int main(int argc,char *argv[])
 	      perror("read");
 	      ERR_MSG("Unexpected error reading command pipe.");
 	    }
-	  
+
 	  // MSG("Command: %d",cmd);
-	  
+
 	  if (cmd != EXTERNAL_WRITER_CMD_SHM_WORK)
 	    ERR_MSG("Unknown command on command pipe: %d",cmd);
-	  
+
 	  // Now, eat messages as long as there are any
 	}
 
       while (shmc->_ctrl->_done != shmc->_ctrl->_avail)
 	{
-	  external_writer_buf_header *header = 
+	  external_writer_buf_header *header =
 	    (external_writer_buf_header *) shmc->_cur;
 	  size_t lin_left = shmc->_end - shmc->_cur;
 
 	  uint32_t request = ntohl(header->_request);
-	  
+
 	  if (request == EXTERNAL_WRITER_BUF_EAT_LIN_SPACE)
 	    {
 	      //printf ("WASTE: \n");
@@ -4863,7 +4863,7 @@ int main(int argc,char *argv[])
 		    request,length);
 
 	  // The header may be unusable after we've remapped the memory
-	  
+
 	  // So message header is ok.  Handle the message
 
 	  if (handle_request(comm,header))
@@ -4880,7 +4880,7 @@ int main(int argc,char *argv[])
 	  if (request == EXTERNAL_WRITER_BUF_SETUP_DONE_RD)
 	    {
 	      // The writer is actually stuck, so no harm in updating _done
-	      shmc->_ctrl->_done += length;    
+	      shmc->_ctrl->_done += length;
 	      goto reader_loop;
 	    }
 
@@ -4906,15 +4906,15 @@ int main(int argc,char *argv[])
 #if STRUCT_WRITER
 	      // Let the server run until it is allowed to write the
 	      // response.
-	      
+
 	      // If we got signalled, remove the marker
 	      _got_sigio = 0;
 	      MFENCE;
 	      while (!ext_net_io_select_clients(-1,comm->_pipe_out,
 						false,false))
 		;
-#endif	  
-	      // As the responses we write	      
+#endif
+	      // As the responses we write
 	      write_response(comm,EXTERNAL_WRITER_RESPONSE_WORK);
 	    }
 
@@ -4940,7 +4940,7 @@ int main(int argc,char *argv[])
       // some hysteresis, as we anyhow went to sleep
       shmc->_ctrl->_wakeup_avail = shmc->_ctrl->_done + (shmc->_size >> 4);
       MFENCE;
-      shmc->_ctrl->_need_consumer_wakeup = 1;      
+      shmc->_ctrl->_need_consumer_wakeup = 1;
       MFENCE;
 
       // Must check that data did not become available just at the
@@ -4974,9 +4974,9 @@ int main(int argc,char *argv[])
 
   shmc->_ctrl->_wakeup_avail = shmc->_ctrl->_done + (shmc->_size >> 4);
   shmc->_ctrl->_need_consumer_wakeup = 1;
-  
-  size_t max_msg_size = 
-    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) + 
+
+  size_t max_msg_size =
+    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
     _offset_array._max_items * sizeof(uint32_t);
 
   for ( ; ; )
@@ -4989,7 +4989,7 @@ int main(int argc,char *argv[])
 	  // Is the linear space enough?
 
 	  size_t lin_left = shmc->_end - shmc->_cur;
-  
+
 	  if (lin_left < max_msg_size)
 	    {
 	      if (lin_left != 0) // may have been due to just ending at the end
@@ -4997,31 +4997,31 @@ int main(int argc,char *argv[])
 		  assert ((shmc->_end - shmc->_cur) >=
 			  (ssize_t) sizeof(uint32_t));
 		  // put a marker that eats all the space
-		  *((uint32_t*) shmc->_cur) = 
+		  *((uint32_t*) shmc->_cur) =
 		    htonl(EXTERNAL_WRITER_BUF_EAT_LIN_SPACE);
 		  shmc->_ctrl->_avail += lin_left;
 		}
 	      shmc->_cur = shmc->_begin;
 	      continue; // try again
-	    } 
+	    }
 
 	  char *end_msg = shmc->_cur + max_msg_size;
-	  
+
 	  bool more_msg = ntuple_get_event(shmc->_cur,&end_msg);
 
 	  //MSG("max_size: %d  avail: %d  this: %d",
 	  //     max_msg_size,_end - _cur,end_msg - _cur);
 
 	  assert (end_msg <= shmc->_end);
-	  
+
 	  shmc->_ctrl->_avail += end_msg - shmc->_cur;
 	  shmc->_cur = end_msg;
-	  
+
 	  if (!more_msg)
 	    goto read_done;
 
 	  if (shmc->_ctrl->_need_consumer_wakeup &&
-	      (((int) shmc->_ctrl->_avail) - 
+	      (((int) shmc->_ctrl->_avail) -
 	       ((int) shmc->_ctrl->_wakeup_avail)) >= 0)
 	    {
 	      shmc->_ctrl->_need_consumer_wakeup = 0;
@@ -5046,7 +5046,7 @@ int main(int argc,char *argv[])
       // free'd.
 
       MFENCE;
-      shmc->_ctrl->_wakeup_done = 
+      shmc->_ctrl->_wakeup_done =
 	shmc->_ctrl->_avail - shmc->_size + max_msg_size + (shmc->_size >> 4);
       MFENCE;
       shmc->_ctrl->_need_producer_wakeup = 1;
@@ -5062,9 +5062,9 @@ int main(int argc,char *argv[])
 
 	  char cmd;
 	  int ret;
-	  
+
 	  ret = read(comm->_pipe_in,&cmd,sizeof(cmd));
-	  
+
 	  if (ret == 0)
 	    {
 	      // This is the normal error if someone hits ctrl+C on the
@@ -5073,7 +5073,7 @@ int main(int argc,char *argv[])
 	      close_output(); // close outputs gracefully
 	      ERR_MSG("Unexpected end of command pipe.");
 	    }
-	  
+
 	  if (ret == -1)
 	    {
 	      if (errno == EINTR)
@@ -5081,12 +5081,12 @@ int main(int argc,char *argv[])
 	      perror("read");
 	      ERR_MSG("Unexpected error reading command pipe.");
 	    }
-	  
+
 	  // MSG("Command: %d",cmd);
-	  
+
 	  if (cmd != EXTERNAL_WRITER_CMD_SHM_WORK)
 	    ERR_MSG("Unknown command on command pipe: %d",cmd);
-	  
+
 	  // Now, eat messages as long as there are any
 	}
     }
@@ -5098,7 +5098,7 @@ int main(int argc,char *argv[])
 
   SFENCE;
   write_response(comm,EXTERNAL_WRITER_RESPONSE_WORK_RD);
-  
+
   close_output(); // needed? - will at least tell the number of consumed events
   exit(0);
 }

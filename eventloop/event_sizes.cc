@@ -54,7 +54,7 @@ void show_sizes(const event_size *es_event,
     {
       const subevent_ident &ident = iter->first;
       const event_size *es_info = iter->second;
-      
+
       printf ("%s%5d%s/%s%5d%s %s%5d%s:%s%3d%s:%s%3d%s "
 	      "(%s%6" PRIu64 "%s %s%6" PRIu64 "%s)"
 	      "%s%8.1f%s%s%8.1f%s%s%6.1f%s (%s%10.0f%s)\n",
@@ -122,7 +122,7 @@ void event_sizes::show()
       show_sizes(&ev_size[trig],_subev_size[trig]);
 
       add(&ev_total,&ev_size[trig]);
-      
+
       for (set_subevent_size::const_iterator iter = _subev_size[trig].begin();
 	   iter != _subev_size[trig].end(); ++iter)
 	{
@@ -151,7 +151,7 @@ void event_sizes::show()
     }
 
   printf ("\n%sall%s trig:",CT_OUT(BOLD),CT_OUT(NORM));
-  
+
   show_sizes(&ev_total,subev_total);
 }
 

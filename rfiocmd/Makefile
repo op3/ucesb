@@ -43,7 +43,7 @@ ifneq (,$(FILE_CURSES_CONFIG))
 CXXFLAGS     += -DUSE_CURSES=$(USE_CURSES) \
         $(shell $(FILE_CURSES_CONFIG) --cflags)
 CXXLIBS      += $(shell $(FILE_CURSES_CONFIG) --libs)
-else 
+else
 ifdef USE_CURSES
 CXXFLAGS     += -DUSE_CURSES=$(USE_CURSES)
 CXXLIBS      += -lcurses

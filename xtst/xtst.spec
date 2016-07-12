@@ -196,7 +196,7 @@ ITEM_ME2(geom)
   UINT32 header NOENCODE {
     16_23: geom = MATCH(geom);
   }
-  
+
   MATCH_END;
 
   UINT32 data NOENCODE {
@@ -238,7 +238,7 @@ SUBEVENT(XTST_REGRESS)
   {
     0_31: 0;
   }
-  
+
   select several
   {
     v1290mod[0] = VME_CAEN_V1290_SHORT(geom=1);

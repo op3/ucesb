@@ -103,11 +103,11 @@ ssize_t lexer_read(char* buf,size_t max_size);
 		return DOUBLE;
             }
 
-[0-9]+"."[0-9]*([eE][+-]?[0-9]+)? { 
+[0-9]+"."[0-9]*([eE][+-]?[0-9]+)? {
 		yylval.fValue = atof(yytext);
                 return DOUBLE;
             }
-"."[0-9]+([eE][+-]?[0-9]+)? { 
+"."[0-9]+([eE][+-]?[0-9]+)? {
 		yylval.fValue = atof(yytext);
                 return DOUBLE;
             }
@@ -161,7 +161,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 "CHECK_COUNT" { return CHECK_COUNT; }
 "MATCH_END"   { return MATCH_END; }
 
-[_a-zA-Z][_a-zA-Z0-9]* { 
+[_a-zA-Z][_a-zA-Z0-9]* {
                 yylval.strValue = find_str_identifiers(yytext);
                 return IDENTIFIER;
             }
@@ -197,9 +197,9 @@ ssize_t lexer_read(char* buf,size_t max_size);
 [ \t\n]+    ;       /* ignore whitespace */
 
 .           {
-	      char str[64]; 
-	      sprintf (str,"Unknown character: '%s'.",yytext); 
-	      yyerror(str); 
+	      char str[64];
+	      sprintf (str,"Unknown character: '%s'.",yytext);
+	      yyerror(str);
             }
 
 "# "[0-9]+" \"".+"\""[ 0-9]*\n {  /* Information about the source location. */
