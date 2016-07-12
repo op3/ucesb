@@ -80,7 +80,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 
  /******************************************************************/
  /* BEGIN_INCLUDE_FILE "../lu_common/lexer_rules_double.lex" */
- /* MD5SUM_INCLUDE 816228aa90a9084a2b656c2f35d7aa69 */
+ /* MD5SUM_INCLUDE b467a933b92a527b77ec8050a260efa3 */
  /* Lexer rules to recognize a floating point value
   *
   * These would usually be among the first rules
@@ -139,7 +139,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 
  /******************************************************************/
  /* BEGIN_INCLUDE_FILE "../lu_common/lexer_rules_whitespace_lineno.lex" */
- /* MD5SUM_INCLUDE 3b2c208a6ddc407da6c01f6919f1f4d6 */
+ /* MD5SUM_INCLUDE 06e1db2353eec1157e20fec02ad0ed49 */
  /* Lexer rules to eat and discard whitespace (space, tab, newline)
   * Complain at finding an unrecognized character
   * Handle line number information
