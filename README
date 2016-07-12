@@ -1,0 +1,156 @@
+UCESB - unpack & check every single bit
+>>>>>===<========<=====<=====<======<==
+
+Contents
+========
+
+1. Overview
+2. License
+3. File formats
+4. Compilation
+5. Documentation
+6. Contributors
+7. Contact
+
+
+1. Overview
+===========
+
+A UCESB program can read and unpack event-wise experimental data from
+e.g. nuclear physics experiments, on a format given by a C-like
+structure description.  Note that any UCESB-based unpacker program
+needs an user-written data-format specification, from which code is
+generated and then compiled together with the generic UCESB sources.
+A particular aim of the system is efficiency, performance and
+ease-of-use.
+
+The system has facilities for acting as a Swiss Army-knife to
+manipulate and transport data over the network, making itself a
+valuable companion in the DAQ toolbox.  The default mode is to perform
+strict checks, thus the name:
+
+UCESB - unpack & check every single bit
+
+Easy access to the various data members is provided in user functions,
+as well as hbook ntuple files, root trees, or plain C structures.  The
+latter in any program via the network.  Several common data quality
+monitoring modes are available.  General operation is command-line
+driven.
+
+
+2. License
+==========
+
+UCESB is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 2.1 of the
+License, or (at your option) any later version.
+
+UCESB is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with UCESB.  If not, see <http://www.gnu.org/licenses/>.
+
+For details, see the file COPYING.LIB.
+
+
+3. File formats
+===============
+
+The file format for an unpacker is a compile time option, essentially
+given together with the data format specification in the build
+process.  UCESB has been adapted to handle various file formats
+produced by several different DAQ systems:
+
+LMD   List mode data, produced by the MBS system from GSI.
+EBYE  Data from the Daresbury MIDAS system.
+PAX   KVI data.
+HLD   HADES experiment (at GSI).
+RIDF  RIBF Data Format (RIKEN).
+
+Note that data formats are sometimes ill-documented, ambiguous in
+their definitions, or even forked with minor modifications by
+individual experiments.  Thus it happens that some adaption is
+required when handling a data from a new experimental setup.  The
+author is interested in information about such cases.  Extending the
+system to handle also other file formats is another stimulating
+activity.
+
+
+4. Compilation
+==============
+
+All necessary configuration is performed during build.  To
+e.g. compile the simplest LMD format unpacker, issue:
+
+make empty
+
+If you have an .lmd file at hand, the integrity of its event packing
+can then be investigated:
+
+empty/empty <filename>
+
+If no such file is available, the process can be simulated:
+
+file_input/empty_file --lmd | empty/empty --file=-
+
+
+5. Documentation
+================
+
+Comprehensive documentation of command-line options for use with
+existing unpackers, as well as descriptions of how to write a new data
+format specification, can be found in the write-up, available at the
+UCESB webpage:
+
+http://fy.chalmers.se/~f96hajo/ucesb
+
+
+6. Contributors
+===============
+
+Since its inception in 2006, the system has been used as the first
+processing stage of data from many experiments.
+
+The many suggestions for improvements, bug reports, direct code
+contributions, discussions as well as intriguing support requests is a
+great joy of the author, and deeply appreciated!
+
+In rough order of appearance:
+
+Haik Simon
+Elisabeth Tengborn
+Stefanos Paschalis
+Tudi LeBleis
+Hannes Hultgren
+Ralf Plag
+Felix Wamers
+Antti Saastamoine
+Yuliya Aksyutina
+Bastian Loeher
+Daid Kahl
+Fredrik Strannerdahl
+Heiko Scheit
+Dmytro Symochko
+Hans Törnqvist
+Oleg Kiselev
+Joel Silva
+Michael Munch
+Audrey Chatillon
+Dmytro Kresan
+
+(Any omissions are unintentional, please notify the author.)
+
+
+7. Contact
+==========
+
+Håkan T. Johansson                  e-mail: f96hajo@chalmers.se
+Subatomic physics
+Department of Physics  (previously Fundamental physics)
+Chalmers University of Technology
+412 96 Göteborg
+Sweden
