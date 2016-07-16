@@ -18,8 +18,8 @@
  * MA  02110-1301  USA
  */
 
-#ifndef __UCESB_MACROS_HH__
-#define __UCESB_MACROS_HH__
+#ifndef __UCESBGEN_MACROS_HH__
+#define __UCESBGEN_MACROS_HH__
 
 #include "error.hh"
 #include "optimise.hh"
@@ -375,6 +375,6 @@
 
 #include "data_src_force_impl.hh"
 
-#endif//__UCESB_MACROS_HH__
+#endif//__UCESBGEN_MACROS_HH__
 
 

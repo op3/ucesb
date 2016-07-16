@@ -501,7 +501,7 @@ endif
 #########################################################
 
 include $(UCESB_BASE_DIR)/makefile_acc_def.inc
-include $(UCESB_BASE_DIR)/makefile_ucesb.inc
+include $(UCESB_BASE_DIR)/makefile_ucesbgen.inc
 include $(UCESB_BASE_DIR)/makefile_psdc.inc
 include $(UCESB_BASE_DIR)/makefile_empty_file.inc
 
@@ -532,10 +532,10 @@ $(UNPACKER).spec.d:
 	  sed -e 's,$(UNPACKER).o[ :]*,gen/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
 	> $(UNPACKER).spec.d
 
-gen/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESB)
-	@echo "  UCESB  $@"
+gen/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN)
+	@echo "UCESBGEN $@"
 	@mkdir -p gen
-	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESB) > $@.tmp
+	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
 gen/$(UNPACKER).pre: $(UNPACKER).spec.d
@@ -544,15 +544,15 @@ gen/$(UNPACKER).pre: $(UNPACKER).spec.d
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec > $@.tmp
 	@mv $@.tmp $@
 
-gen/verify.uce: gen/reparse.uce $(UCESB)
-	@echo "  UCESB  $@"
+gen/verify.uce: gen/reparse.uce $(UCESBGEN)
+	@echo "UCESBGEN $@"
 	@mkdir -p gen
-	$(QUIET)$(CPP) -x c++ gen/reparse.uce | $(UCESB) > $@.tmp
+	$(QUIET)$(CPP) -x c++ gen/reparse.uce | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
 #########################################################
 
-VERIFYUCESB=gen/verify_reparse.ucesb.match
+VERIFYUCESB=gen/verify_reparse.ucesbgen.match
 
 gen/clean_structures.hh: gen/structures.hh
 	@echo "   CPP   $@"
@@ -736,7 +736,7 @@ gen/calib_struct_mirror.hh: gen/calib_struct_dump.psd gen/default_mirror_define.
 
 $(VERIFYUCESB): gen/reparse.uce gen/verify_reparse.uce
 	@echo " COMPARE $^"
-	@diff -u $^ > gen/verify_reparse.diff || echo "Internal error in UCESB, reparse of output mismatch"
+	@diff -u $^ > gen/verify_reparse.diff || echo "Internal error in UCESBGEN, reparse of output mismatch"
 	@diff -u $^
 	@touch $@
 

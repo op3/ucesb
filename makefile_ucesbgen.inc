@@ -19,10 +19,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA  02110-1301  USA
 
-UCESB=$(UCESB_BASE_DIR)/ucesb/ucesb
+UCESBGEN=$(UCESB_BASE_DIR)/ucesbgen/ucesbgen
 
--include $(UCESB_BASE_DIR)/ucesb/ucesb.base.dep
+-include $(UCESB_BASE_DIR)/ucesbgen/ucesbgen.base.dep
 
-$(UCESB):
-	$(MAKE) -C $(UCESB_BASE_DIR)/ucesb ucesb
+$(UCESBGEN):
+	$(MAKE) -C $(UCESB_BASE_DIR)/ucesbgen ucesbgen
 

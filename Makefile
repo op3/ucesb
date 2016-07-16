@@ -43,13 +43,13 @@ all: $(UNPACKERS)
 # Submakefiles that the programs depend on
 
 include $(UCESB_BASE_DIR)/makefile_acc_def.inc
-include $(UCESB_BASE_DIR)/makefile_ucesb.inc
+include $(UCESB_BASE_DIR)/makefile_ucesbgen.inc
 include $(UCESB_BASE_DIR)/makefile_psdc.inc
 include $(UCESB_BASE_DIR)/makefile_empty_file.inc
 include $(UCESB_BASE_DIR)/makefile_tdas_conv.inc
 include $(UCESB_BASE_DIR)/makefile_ext_file_writer.inc
 
-DEPENDENCIES=$(UCESB) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS)
+DEPENDENCIES=$(UCESBGEN) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS)
 
 include $(UCESB_BASE_DIR)/makefile_hasrawapi.inc
 ifneq (,$(HAS_RAWAPI))
@@ -359,7 +359,7 @@ ridf: $(DEPENDENCIES)
 
 #########################################################
 
-clean: clean-dir-ucesb clean-dir-psdc clean-dir-rfiocmd clean-dir-hbook \
+clean: clean-dir-ucesbgen clean-dir-psdc clean-dir-rfiocmd clean-dir-hbook \
 	$(UNPACKERS:%=clean-unp-%) $(UNPACKERS_EXT:%=clean-unp-%)
 	rm -rf gen/acc_auto_def gen/
 	rm -f xtst/xtst.spec.d xtst/*.o xtst/*.d xtst/*.dep
