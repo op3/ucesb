@@ -435,6 +435,37 @@ void write_data_lmd()
 
   gettimeofday(&timeslot_start,NULL);
 
+  // Calculate invariant size constraints
+
+  // Event header
+  size_t min_event_total_size = sizeof(lmd_event_10_1_host);
+
+  // (First) subevent size
+  size_t min_subevent_total_size = 0;
+  
+  // And any payload data (in first subevent)
+  if (_conf._titris_stamp)
+    min_subevent_total_size += 4 * sizeof(uint32_t);
+  if (_conf._wr_stamp)
+    min_subevent_total_size += 5 * sizeof(uint32_t);
+
+  if (_conf._caen_v775 || _conf._caen_v1290)
+    min_subevent_total_size += 2 * sizeof(uint32_t);
+
+  if (_conf._caen_v775)
+    min_subevent_total_size +=
+      _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
+  if (_conf._caen_v1290)
+    min_subevent_total_size +=
+      _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
+
+  // If subevent data, it needs a header
+  if (min_subevent_total_size)
+    min_subevent_total_size += sizeof(lmd_subevent_10_1_host);
+
+  // Add the subevent size to the event size
+  min_event_total_size += min_subevent_total_size;
+
   for (uint64 nb = 0, nev = 0; (nb < _conf._max_buffers &&
 				nev < _conf._max_events); nb++)
     {
@@ -466,29 +497,6 @@ void write_data_lmd()
 
       // Write as many events as fits...
 
-      // If we are to dump titris stamps, we require each event
-      // to have at least one subevent.
-
-      size_t min_event_total_size = sizeof(lmd_event_10_1_host);
-
-      if (_conf._titris_stamp || _conf._wr_stamp ||
-	  _conf._caen_v775 || _conf._caen_v1290)
-	min_event_total_size += sizeof(lmd_subevent_10_1_host);
-      if (_conf._titris_stamp)
-	min_event_total_size += 4 * sizeof(uint32_t);
-      if (_conf._wr_stamp)
-	min_event_total_size += 5 * sizeof(uint32_t);
-
-      if (_conf._caen_v775 || _conf._caen_v1290)
-	min_event_total_size += 2 * sizeof(uint32_t);
-
-      if (_conf._caen_v775)
-	min_event_total_size +=
-	  _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
-      if (_conf._caen_v1290)
-	min_event_total_size +=
-	  _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
-
       while (_buffer_end - data_end >= min_event_total_size &&
 	     nev < _conf._max_events)
 	{
@@ -509,22 +517,7 @@ void write_data_lmd()
 
 	  data_end = (char*) (ev + 1);
 
-	  size_t min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
-
-	  if (_conf._titris_stamp)
-	    min_subevent_total_size += 4 * sizeof(uint32_t);
-	  if (_conf._wr_stamp)
-	    min_subevent_total_size += 5 * sizeof(uint32_t);
-
-	  if (_conf._caen_v775 || _conf._caen_v1290)
-	    min_subevent_total_size += 2 * sizeof(uint32_t);
-
-	  if (_conf._caen_v775)
-	    min_subevent_total_size +=
-	      _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
-	  if (_conf._caen_v1290)
-	    min_subevent_total_size +=
-	      _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
+	  size_t need_subevent_total_size = min_subevent_total_size;
 
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
@@ -538,7 +531,7 @@ void write_data_lmd()
 		  write_wr_stamp ||
 		  write_caen_vxxx ||
 		  data_end - (char*) ev < event_size) &&
-		 _buffer_end - data_end >= min_subevent_total_size)
+		 _buffer_end - data_end >= need_subevent_total_size)
 	    {
 	      lmd_subevent_10_1_host *sev =
 		(lmd_subevent_10_1_host *) data_end;
@@ -553,11 +546,11 @@ void write_data_lmd()
 	      if (data_len > subevent_size)
 		data_len = subevent_size;
 
-	      size_t min_subevent_data_size =
-		min_subevent_total_size - sizeof(lmd_subevent_10_1_host);
+	      size_t need_subevent_data_size =
+		need_subevent_total_size - sizeof(lmd_subevent_10_1_host);
 
-	      if (data_len < min_subevent_data_size)
-		data_len = min_subevent_data_size;
+	      if (data_len < need_subevent_data_size)
+		data_len = need_subevent_data_size;
 
 	      data_len &= ~0x03; // align to 32-bit words
 
@@ -649,7 +642,7 @@ void write_data_lmd()
 
 	      data_end = data_start + data_len;
 
-	      min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
+	      need_subevent_total_size = sizeof(lmd_subevent_10_1_host);
 	    }
 
 	  if (_conf._max_rate &&
