@@ -46,3 +46,5 @@ have type:subtype 10:1 (and reject 10:1 as actual sticky subevents).
 Such that if one of many (but not all) sticky subevents are removed or
 superceded, then only those are removed, but the remainer of the event
 can be kept (in particular the first subevent holding the time stamp).
+This also means that sticky events should not really be merged between
+(sticky) events, as we loose the timestamps.
