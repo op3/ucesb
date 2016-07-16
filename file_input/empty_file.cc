@@ -436,7 +436,7 @@ void write_data_lmd()
   gettimeofday(&timeslot_start,NULL);
 
   for (uint64 nb = 0, nev = 0; (nb < _conf._max_buffers &&
-		       nev < _conf._max_events); nb++)
+				nev < _conf._max_events); nb++)
     {
       memset(_buffer,0,_conf._buffer_size);
 
@@ -461,205 +461,206 @@ void write_data_lmd()
       char *data_start = (char*) (bufhe+1);
       char *data_end = data_start;
 
-      if (!_conf._empty_buffers)
+      if (_conf._empty_buffers)
+	goto finish_buffer;
+
+      // Write as many events as fits...
+
+      // If we are to dump titris stamps, we require each event
+      // to have at least one subevent.
+
+      size_t min_event_total_size = sizeof(lmd_event_10_1_host);
+
+      if (_conf._titris_stamp || _conf._wr_stamp ||
+	  _conf._caen_v775 || _conf._caen_v1290)
+	min_event_total_size += sizeof(lmd_subevent_10_1_host);
+      if (_conf._titris_stamp)
+	min_event_total_size += 4 * sizeof(uint32_t);
+      if (_conf._wr_stamp)
+	min_event_total_size += 5 * sizeof(uint32_t);
+
+      if (_conf._caen_v775 || _conf._caen_v1290)
+	min_event_total_size += 2 * sizeof(uint32_t);
+
+      if (_conf._caen_v775)
+	min_event_total_size +=
+	  _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
+      if (_conf._caen_v1290)
+	min_event_total_size +=
+	  _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
+
+      while (_buffer_end - data_end >= min_event_total_size &&
+	     nev < _conf._max_events)
 	{
-	  // Write as many events as fits...
+	  nev++;
+	  timeslot_nev++;
 
-	  // If we are to dump titris stamps, we require each event
-	  // to have at least one subevent.
+	  lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
 
-	  size_t min_event_total_size = sizeof(lmd_event_10_1_host);
+	  ev->_header.l_dlen    =
+	    DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
+	  ev->_header.i_type    = LMD_EVENT_10_1_TYPE;
+	  ev->_header.i_subtype = LMD_EVENT_10_1_SUBTYPE;
+	  ev->_info.i_trigger   =
+	    _conf._random_trig ? rxs64s(&rstate_trig) % 15 + 1 : 1;
+	  ev->_info.l_count     = nev;
 
-	  if (_conf._titris_stamp || _conf._wr_stamp ||
-	      _conf._caen_v775 || _conf._caen_v1290)
-	    min_event_total_size += sizeof(lmd_subevent_10_1_host);
+	  bufhe->l_evt++;
+
+	  data_end = (char*) (ev + 1);
+
+	  size_t min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
+
 	  if (_conf._titris_stamp)
-	    min_event_total_size += 4 * sizeof(uint32_t);
+	    min_subevent_total_size += 4 * sizeof(uint32_t);
 	  if (_conf._wr_stamp)
-	    min_event_total_size += 5 * sizeof(uint32_t);
+	    min_subevent_total_size += 5 * sizeof(uint32_t);
 
 	  if (_conf._caen_v775 || _conf._caen_v1290)
-	    min_event_total_size += 2 * sizeof(uint32_t);
+	    min_subevent_total_size += 2 * sizeof(uint32_t);
 
 	  if (_conf._caen_v775)
-	    min_event_total_size +=
+	    min_subevent_total_size +=
 	      _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
 	  if (_conf._caen_v1290)
-	    min_event_total_size +=
+	    min_subevent_total_size +=
 	      _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
 
-	  while (_buffer_end - data_end >= min_event_total_size &&
-		 nev < _conf._max_events)
+	  bool write_titris_stamp = !!_conf._titris_stamp;
+	  bool write_wr_stamp = !!_conf._wr_stamp;
+	  bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
+
+	  uint event_size = _conf._event_size;
+	  if (_conf._random_size && event_size)
+	    event_size = rxs64s(&rstate_evsize) % (event_size+1);
+
+	  while ((write_titris_stamp ||
+		  write_wr_stamp ||
+		  write_caen_vxxx ||
+		  data_end - (char*) ev < event_size) &&
+		 _buffer_end - data_end >= min_subevent_total_size)
 	    {
-	      nev++;
-	      timeslot_nev++;
+	      lmd_subevent_10_1_host *sev =
+		(lmd_subevent_10_1_host *) data_end;
 
-	      lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
+	      uint data_len =
+		_buffer_end - data_end - sizeof(lmd_subevent_10_1_host);
 
-	      ev->_header.l_dlen    =
-		DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
-	      ev->_header.i_type    = LMD_EVENT_10_1_TYPE;
-	      ev->_header.i_subtype = LMD_EVENT_10_1_SUBTYPE;
-	      ev->_info.i_trigger   =
-		_conf._random_trig ? rxs64s(&rstate_trig) % 15 + 1 : 1;
-	      ev->_info.l_count     = nev;
+	      uint subevent_size = _conf._subevent_size;
+	      if (_conf._random_size && subevent_size)
+		subevent_size = rxs64s(&rstate_sevsize) % (subevent_size+1);
 
-	      bufhe->l_evt++;
+	      if (data_len > subevent_size)
+		data_len = subevent_size;
 
-	      data_end = (char*) (ev + 1);
+	      size_t min_subevent_data_size =
+		min_subevent_total_size - sizeof(lmd_subevent_10_1_host);
 
-	      size_t min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
+	      if (data_len < min_subevent_data_size)
+		data_len = min_subevent_data_size;
 
-	      if (_conf._titris_stamp)
-		min_subevent_total_size += 4 * sizeof(uint32_t);
-	      if (_conf._wr_stamp)
-		min_subevent_total_size += 5 * sizeof(uint32_t);
+	      data_len &= ~0x03; // align to 32-bit words
 
-	      if (_conf._caen_v775 || _conf._caen_v1290)
-		min_subevent_total_size += 2 * sizeof(uint32_t);
+	      sev->_header.i_type    = 1234; // dummy (I refuse 10/1: nuts)
+	      sev->_header.i_subtype = 5678;
+	      sev->h_control  = 0;
+	      sev->h_subcrate = 0;
+	      sev->i_procid   = 0;
 
-	      if (_conf._caen_v775)
-		min_subevent_total_size +=
-		  _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
-	      if (_conf._caen_v1290)
-		min_subevent_total_size +=
-		  _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
+	      char *data_start = (char*) (sev + 1);
+	      char *data_write = data_start;
+	      char *data_cut = NULL;
 
-	      bool write_titris_stamp = !!_conf._titris_stamp;
-	      bool write_wr_stamp = !!_conf._wr_stamp;
-	      bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
-
-	      uint event_size = _conf._event_size;
-	      if (_conf._random_size && event_size)
-		event_size = rxs64s(&rstate_evsize) % (event_size+1);
-
-	      while ((write_titris_stamp ||
-		      write_wr_stamp ||
-		      write_caen_vxxx ||
-		      data_end - (char*) ev < event_size) &&
-		     _buffer_end - data_end >= min_subevent_total_size)
+	      if (write_titris_stamp)
 		{
-		  lmd_subevent_10_1_host *sev =
-		    (lmd_subevent_10_1_host *) data_end;
+		  data_write = create_titris_stamp(data_write,
+						   &rstate_badtitris);
+		  write_titris_stamp = false;
+		}
+	      if (write_wr_stamp)
+		{
+		  data_write = create_wr_stamp(data_write,
+					       &rstate_badwr);
+		  write_wr_stamp = false;
+		}
+	      if (write_caen_vxxx)
+		{
+		  data_end = data_write;
 
-		  uint data_len =
-		    _buffer_end - data_end - sizeof(lmd_subevent_10_1_host);
+		  sev->_header.i_type    = 0x0cae;
+		  sev->_header.i_subtype = 0x0cae;
 
-		  uint subevent_size = _conf._subevent_size;
-		  if (_conf._random_size && subevent_size)
-		    subevent_size = rxs64s(&rstate_sevsize) % (subevent_size+1);
+		  uint32 seed = (uint32) rxs64s(&rstate_sim_caen);
 
-		  if (data_len > subevent_size)
-		    data_len = subevent_size;
+		  uint32_t *p = (uint32_t *) data_write;
 
-		  size_t min_subevent_data_size =
-		    min_subevent_total_size - sizeof(lmd_subevent_10_1_host);
+		  *(p++) = seed;
 
-		  if (data_len < min_subevent_data_size)
-		    data_len = min_subevent_data_size;
+		  data_write = (char *) p;
 
-		  data_len &= ~0x03; // align to 32-bit words
-
-		  sev->_header.i_type    = 1234; // dummy (I refuse 10/1: nuts)
-		  sev->_header.i_subtype = 5678;
-		  sev->h_control  = 0;
-		  sev->h_subcrate = 0;
-		  sev->i_procid   = 0;
-
-		  char *data_start = (char*) (sev + 1);
-		  char *data_write = data_start;
-		  char *data_cut = NULL;
-
-		  if (write_titris_stamp)
+		  for (int geom = 1; geom <= _conf._caen_v775 &&
+			 geom < 32; geom++)
 		    {
-		      data_write = create_titris_stamp(data_write,
-						       &rstate_badtitris);
-		      write_titris_stamp = false;
-		    }
-		  if (write_wr_stamp)
-		    {
-		      data_write = create_wr_stamp(data_write,
-						   &rstate_badwr);
-		      write_wr_stamp = false;
-		    }
-		  if (write_caen_vxxx)
-		    {
-		      data_end = data_write;
+		      int crate = 0x80 - geom; // for fun!
 
-		      sev->_header.i_type    = 0x0cae;
-		      sev->_header.i_subtype = 0x0cae;
+		      caen_v775_data cev;
 
-		      uint32 seed = (uint32) rxs64s(&rstate_sim_caen);
-
-		      uint32_t *p = (uint32_t *) data_write;
-
-		      *(p++) = seed;
-
-		      data_write = (char *) p;
-
-		      for (int geom = 1; geom <= _conf._caen_v775 &&
-			     geom < 32; geom++)
-			{
-			  int crate = 0x80 - geom; // for fun!
-
-			  caen_v775_data cev;
-
-			  create_caen_v775_event(&cev, geom, crate,
+		      create_caen_v775_event(&cev, geom, crate,
 						 nev + 0xdef, seed);
 
-			  data_write = (char *)
-			    create_caen_v775_data((uint32 *) data_write,
-						  &cev, geom, crate);
-			}
-
-		      p = (uint32_t *) data_write;
-
-		      *(p++) = 0;
-
-		      data_write = (char *) p;
-
-		      for (int geom = 1; geom <= _conf._caen_v1290 &&
-			     geom < 32; geom++)
-			{
-			  caen_v1290_data cev;
-
-			  create_caen_v1290_event(&cev, geom,
-						  nev + 0xdef, seed);
-
-			  data_write = (char *)
-			    create_caen_v1290_data((uint32 *) data_write,
-						  &cev, geom);
-			}
-
-		      data_cut = data_write;
-
-		      write_caen_vxxx = false;
+		      data_write = (char *)
+			create_caen_v775_data((uint32 *) data_write,
+					      &cev, geom, crate);
 		    }
 
-		  if (data_cut)
+		  p = (uint32_t *) data_write;
+
+		  *(p++) = 0;
+
+		  data_write = (char *) p;
+
+		  for (int geom = 1; geom <= _conf._caen_v1290 &&
+			 geom < 32; geom++)
 		    {
-		      data_len = data_cut - data_start;
+		      caen_v1290_data cev;
+
+		      create_caen_v1290_event(&cev, geom,
+					      nev + 0xdef, seed);
+
+		      data_write = (char *)
+			create_caen_v1290_data((uint32 *) data_write,
+					       &cev, geom);
 		    }
 
-		  sev->_header.l_dlen    =
-		    SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
-		  ev->_header.l_dlen +=
-		    (sizeof(lmd_subevent_10_1_host) + data_len) / 2;
+		  data_cut = data_write;
 
-		  data_end = data_start + data_len;
-
-		  min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
+		  write_caen_vxxx = false;
 		}
 
-	      if (_conf._max_rate &&
-		  timeslot_nev >= _conf._max_rate)
+	      if (data_cut)
 		{
-		  timeslot_nev = 0;
-		  break;
+		  data_len = data_cut - data_start;
 		}
+
+	      sev->_header.l_dlen    =
+		SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
+	      ev->_header.l_dlen +=
+		(sizeof(lmd_subevent_10_1_host) + data_len) / 2;
+
+	      data_end = data_start + data_len;
+
+	      min_subevent_total_size = sizeof(lmd_subevent_10_1_host);
+	    }
+
+	  if (_conf._max_rate &&
+	      timeslot_nev >= _conf._max_rate)
+	    {
+	      timeslot_nev = 0;
+	      break;
 	    }
 	}
 
+    finish_buffer:
       bufhe->l_free[2] = IUSED_FROM_BUFFER_USED(data_end - data_start);
 
       if (bufhe->l_dlen <= LMD_BUF_HEADER_MAX_IUSED_DLEN)
