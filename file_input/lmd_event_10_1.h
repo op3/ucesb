@@ -83,8 +83,6 @@ typedef lmd_event_10_1_big_endian           lmd_event_10_1_network_order;
 
 #define LMD_EVENT_10_1_TYPE      10
 #define LMD_EVENT_10_1_SUBTYPE   1
-#define LMD_EVENT_10_1_X_TYPE      10
-#define LMD_EVENT_10_1_X_SUBTYPE   2
 
 /* ------------------------------------------------------------------ */
 
