@@ -446,10 +446,10 @@ void write_data_lmd()
   // Calculate invariant size constraints
 
   // Event header
-  size_t min_event_total_size = sizeof(lmd_event_10_1_host);
+  ssize_t min_event_total_size = sizeof(lmd_event_10_1_host);
 
   // (First) subevent size
-  size_t min_subevent_total_size = 0;
+  ssize_t min_subevent_total_size = 0;
   
   // And any payload data (in first subevent)
   if (_conf._titris_stamp)
@@ -532,7 +532,7 @@ void write_data_lmd()
 	      // we want to inject some varying amount of payload
 	      // (after the minimum, since 0 payload means revoke)
 
-	      size_t need_sticky_event_total_size =
+	      ssize_t need_sticky_event_total_size =
 		sizeof(lmd_event_10_1_host);
 
 	      for (int isev = 0; isev < 8; isev++)
@@ -641,7 +641,7 @@ void write_data_lmd()
 
 	  data_end = (char*) (ev + 1);
 
-	  size_t need_subevent_total_size = min_subevent_total_size;
+	  ssize_t need_subevent_total_size = min_subevent_total_size;
 
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
@@ -670,7 +670,7 @@ void write_data_lmd()
 	      if (data_len > subevent_size)
 		data_len = subevent_size;
 
-	      size_t need_subevent_data_size =
+	      ssize_t need_subevent_data_size =
 		need_subevent_total_size - sizeof(lmd_subevent_10_1_host);
 
 	      if (data_len < need_subevent_data_size)
