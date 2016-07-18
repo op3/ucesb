@@ -83,6 +83,7 @@ void usage(char *cmdname)
   printf ("  --bad-stamp=N     Write bad stamps every so often.\n");
   printf ("  --caen-v775=N     Write CAEN V775 subevent.\n");
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
+  printf ("  --sticky=N        Write sticky events every ~N events.\n");
   printf ("  --empty-buffers   No events.\n");
   printf ("  --rate=N          At most, output N events/s.\n");
 
@@ -115,6 +116,8 @@ struct config
 
   int  _caen_v775;
   int  _caen_v1290;
+
+  int  _sticky_fraction;
 
   uint64 _max_buffers;
   uint64 _max_events;
@@ -174,10 +177,13 @@ int main(int argc,char *argv[])
 	_conf._bad_stamp = atol(post);
       }
       else if (MATCH_PREFIX("--caen-v775=",post)) {
-      _conf._caen_v775 = atol(post);
+	_conf._caen_v775 = atol(post);
       }
       else if (MATCH_PREFIX("--caen-v1290=",post)) {
-      _conf._caen_v1290 = atol(post);
+	_conf._caen_v1290 = atol(post);
+      }
+      else if (MATCH_PREFIX("--sticky-fraction=",post)) {
+	_conf._sticky_fraction = atol(post);
       }
       else if (MATCH_PREFIX("--events=",post)) {
 	_conf._max_events = atol(post);
@@ -423,6 +429,8 @@ void write_data_lmd()
   uint64_t timeslot_nev = 0;
   struct timeval timeslot_start;
 
+  uint32_t sticky_active = 0;
+
   // round the buffer size up to next multiple of 1024 bytes.
   // default size is 32k
 
@@ -497,9 +505,125 @@ void write_data_lmd()
 
       // Write as many events as fits...
 
-      while (_buffer_end - data_end >= min_event_total_size &&
-	     nev < _conf._max_events)
+      for ( ; ; )
 	{
+	  // Should we write a sticky event?
+	  
+	  // In order to allow checking of the sticky event handling,
+	  // we use a semi-random way of deciding when and what
+	  // sticky events to modify.
+
+	  if (_conf._sticky_fraction &&
+	      ((nev >> 12) ^ nev) % _conf._sticky_fraction == 0)
+	    {
+	      // We after this sticky event want to have sticky
+	      // subevents active given by the 8 low bits of the to-be
+	      // event counter.  Also, driven by the next 8 bits, if set,
+	      // (and the corresponding low bit also set), we want to
+	      // update the sticky subevent even if present.
+
+	      uint32_t sticky_after  = nev & 0xff;
+	      uint32_t sticky_update = (nev >> 8) & 0xff;
+	      uint32_t sticky_new    =  sticky_after  & ~sticky_active;
+	      uint32_t sticky_kill   = ~sticky_after  &  sticky_active;
+	      uint32_t sticky_renew  =  sticky_update &  sticky_active;
+
+	      // In order to further cause some mess for the receiver,
+	      // we want to inject some varying amount of payload
+	      // (after the minimum, since 0 payload means revoke)
+
+	      size_t need_sticky_event_total_size =
+		sizeof(lmd_event_10_1_host);
+
+	      for (int isev = 0; isev < 8; isev++)
+		{
+		  if (sticky_kill & (1 << isev))
+		    need_sticky_event_total_size +=
+		      sizeof(lmd_subevent_10_1_host);
+
+		  if ((sticky_new | sticky_renew) & (1 << isev))
+		    {
+		      need_sticky_event_total_size +=
+			sizeof(lmd_subevent_10_1_host);
+
+		      need_sticky_event_total_size += sizeof (uint32_t);
+		    }
+		}
+
+	      // If this buffer cannot hold the sticky event, go for the
+	      // next one!
+	      
+	      if (_buffer_end - data_end < need_sticky_event_total_size)
+		break;
+
+	      // We have space enough for the sticky event!
+
+	      nev++;  /// ??
+
+	      lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
+
+	      ev->_header.l_dlen    =
+		DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
+	      ev->_header.i_type    = LMD_EVENT_STICKY_TYPE;
+	      ev->_header.i_subtype = LMD_EVENT_STICKY_SUBTYPE;
+	      ev->_info.i_trigger   = 16;
+	      ev->_info.l_count     = nev;
+
+	      bufhe->l_evt++;
+	      bufhe->i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
+	      bufhe->i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
+
+	      data_end = (char*) (ev + 1);
+
+	      for (int isev = 0; isev < 8; isev++)
+		{
+		  if (!!(sticky_kill |
+			 sticky_new | sticky_renew) & (1 << isev))
+		    continue;
+
+		  lmd_subevent_10_1_host *sev =
+		    (lmd_subevent_10_1_host *) data_end;
+
+		  sev->_header.i_type    = 0x7374; // test value
+		  sev->_header.i_subtype = 0x6b79;
+		  sev->h_control  = isev;
+		  sev->h_subcrate = 1 << isev;
+		  sev->i_procid   = 0;
+
+		  char *data_start = (char*) (sev + 1);
+
+		  if (sticky_kill & (1 << isev))
+		    {
+		      sev->_header.l_dlen = -1;
+		      ev->_header.l_dlen += sizeof(lmd_subevent_10_1_host) / 2;
+		      data_end = data_start;
+		      continue;
+		    }
+
+		  // So new or renew.
+
+		  uint data_len = 0;
+
+		  data_len = sizeof (uint32_t);
+		  *((uint32_t *) data_start) = 1;
+
+		  sev->_header.l_dlen    =
+		    SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
+		  ev->_header.l_dlen +=
+		    (sizeof(lmd_subevent_10_1_host) + data_len) / 2;
+
+		  data_end = data_start + data_len;
+		}
+	      
+	      continue;
+	    }
+	  
+	  // Space enough for a normal event?
+	  
+	  if (_buffer_end - data_end < min_event_total_size ||
+	      nev >= _conf._max_events)
+	    break;
+
 	  nev++;
 	  timeslot_nev++;
 
@@ -599,7 +723,7 @@ void write_data_lmd()
 		      caen_v775_data cev;
 
 		      create_caen_v775_event(&cev, geom, crate,
-						 nev + 0xdef, seed);
+					     nev + 0xdef, seed);
 
 		      data_write = (char *)
 			create_caen_v775_data((uint32 *) data_write,
@@ -648,7 +772,9 @@ void write_data_lmd()
 	  if (_conf._max_rate &&
 	      timeslot_nev >= _conf._max_rate)
 	    {
+	      // We have used up all the events for this timeslot.
 	      timeslot_nev = 0;
+	      // Close the buffer and sleep a while
 	      break;
 	    }
 	}
