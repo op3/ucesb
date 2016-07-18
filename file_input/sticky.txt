@@ -23,11 +23,13 @@ Sticky events:
 
 The main thing is the subevents.  The mechanics is that a sticky event
 is replaced when a new subevent with the same identifier
-type:subtype:ctrl:crate:procid arrives.  If the new subevents has no
-payload data, then it removed completely.  The new empty marker thus
-need to be sent along to all systems once, but then be forgotten.
-(For checking, we can consider it an error to receive a revoking
-sticky subevent with nothing to revoke.)
+type:subtype:ctrl:crate:procid arrives.  If the new subevents has the
+length set to -1, then it removed completely.  (The length set to -1
+for removal is such that sticky subevents of size 0 are allowed
+entities.)  The new empty marker thus need to be sent along to all
+systems once, but then be forgotten.  (For checking, we can consider
+it an error to receive a revoking sticky subevent with nothing to
+revoke.)
 
 The way to distinguish sticky subevents from normal (sub)events is
 that they are packaged in special events, of type (to be finally
