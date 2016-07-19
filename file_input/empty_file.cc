@@ -497,8 +497,8 @@ void write_data_lmd()
 
       bufhe->l_buf = nb;
 
-      char *data_start = (char*) (bufhe+1);
-      char *data_end = data_start;
+      char *evp_start = (char*) (bufhe+1);
+      char *evp_end = evp_start;
 
       if (_conf._empty_buffers)
 	goto finish_buffer;
@@ -527,7 +527,11 @@ void write_data_lmd()
 	      uint32_t sticky_new    =  sticky_after  & ~sticky_active;
 	      uint32_t sticky_kill   = ~sticky_after  &  sticky_active;
 	      uint32_t sticky_renew  =  sticky_update &  sticky_active;
-
+	      /*
+	      fprintf (stderr,
+		       "%02x %02x %02x\n",
+		       sticky_new,sticky_kill,sticky_renew);
+	      */
 	      // In order to further cause some mess for the receiver,
 	      // we want to inject some varying amount of payload
 	      // (after the minimum, since 0 payload means revoke)
@@ -537,33 +541,31 @@ void write_data_lmd()
 
 	      for (int isev = 0; isev < 8; isev++)
 		{
+		  if (!((sticky_kill |
+			 sticky_new | sticky_renew) & (1 << isev)))
+		    continue;
+
+		  need_sticky_event_total_size +=
+		    sizeof(lmd_subevent_10_1_host);
+
 		  if (sticky_kill & (1 << isev))
-		    need_sticky_event_total_size +=
-		      sizeof(lmd_subevent_10_1_host);
+		    continue;
 
-		  if ((sticky_new | sticky_renew) & (1 << isev))
-		    {
-		      need_sticky_event_total_size +=
-			sizeof(lmd_subevent_10_1_host);
-
-		      need_sticky_event_total_size += sizeof (uint32_t);
-		    }
+		  need_sticky_event_total_size += sizeof (uint32_t);
 		}
 
 	      // If this buffer cannot hold the sticky event, go for the
 	      // next one!
 	      
-	      if (_buffer_end - data_end < need_sticky_event_total_size)
+	      if (_buffer_end - evp_end < need_sticky_event_total_size)
 		break;
 
 	      // We have space enough for the sticky event!
 
 	      nev++;  /// ??
 
-	      lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
+	      lmd_event_10_1_host *ev = (lmd_event_10_1_host *) evp_end;
 
-	      ev->_header.l_dlen    =
-		DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
 	      ev->_header.i_type    = LMD_EVENT_STICKY_TYPE;
 	      ev->_header.i_subtype = LMD_EVENT_STICKY_SUBTYPE;
 	      ev->_info.i_trigger   = 16;
@@ -573,64 +575,65 @@ void write_data_lmd()
 	      bufhe->i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
 	      bufhe->i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
 
-	      data_end = (char*) (ev + 1);
+	      evp_end = (char*) (ev + 1);
 
 	      for (int isev = 0; isev < 8; isev++)
 		{
-		  if (!!(sticky_kill |
-			 sticky_new | sticky_renew) & (1 << isev))
+		  if (!((sticky_kill |
+			 sticky_new | sticky_renew) & (1 << isev)))
 		    continue;
 
 		  lmd_subevent_10_1_host *sev =
-		    (lmd_subevent_10_1_host *) data_end;
+		    (lmd_subevent_10_1_host *) evp_end;
 
-		  sev->_header.i_type    = 0x7374; // test value
-		  sev->_header.i_subtype = 0x6b79;
+		  sev->_header.i_type    = 0x789a; // test value
+		  sev->_header.i_subtype = 0xbad0;
 		  sev->h_control  = isev;
 		  sev->h_subcrate = 1 << isev;
 		  sev->i_procid   = 0;
 
-		  char *data_start = (char*) (sev + 1);
+		  char *sev_start = (char*) (sev + 1);
 
 		  if (sticky_kill & (1 << isev))
 		    {
 		      sev->_header.l_dlen = -1;
-		      ev->_header.l_dlen += sizeof(lmd_subevent_10_1_host) / 2;
-		      data_end = data_start;
+		      evp_end = sev_start;
 		      continue;
 		    }
 
 		  // So new or renew.
 
-		  uint data_len = 0;
+		  uint32_t *p = (uint32_t *) sev_start;
 
-		  data_len = sizeof (uint32_t);
-		  *((uint32_t *) data_start) = 1;
+		  *(p++) = 1;
 
-		  sev->_header.l_dlen    =
-		    SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
-		  ev->_header.l_dlen +=
-		    (sizeof(lmd_subevent_10_1_host) + data_len) / 2;
+		  char *sevp_end = (char *) p;
 
-		  data_end = data_start + data_len;
+		  sev->_header.l_dlen =
+		    SUBEVENT_DLEN_FROM_DATA_LENGTH(sevp_end - sev_start);
+
+		  evp_end = sevp_end;
 		}
 	      
+	      ev->_header.l_dlen    =
+		DLEN_FROM_EVENT_DATA_LENGTH(evp_end - (char *) &ev->_info);
+
+	      sticky_active = sticky_after;
+
 	      continue;
 	    }
 	  
 	  // Space enough for a normal event?
 	  
-	  if (_buffer_end - data_end < min_event_total_size ||
+	  if (_buffer_end - evp_end < min_event_total_size ||
 	      nev >= _conf._max_events)
 	    break;
 
 	  nev++;
 	  timeslot_nev++;
 
-	  lmd_event_10_1_host *ev = (lmd_event_10_1_host *) data_end;
+	  lmd_event_10_1_host *ev = (lmd_event_10_1_host *) evp_end;
 
-	  ev->_header.l_dlen    =
-	    DLEN_FROM_EVENT_DATA_LENGTH(sizeof(lmd_event_info_host));
 	  ev->_header.i_type    = LMD_EVENT_10_1_TYPE;
 	  ev->_header.i_subtype = LMD_EVENT_10_1_SUBTYPE;
 	  ev->_info.i_trigger   =
@@ -639,7 +642,7 @@ void write_data_lmd()
 
 	  bufhe->l_evt++;
 
-	  data_end = (char*) (ev + 1);
+	  evp_end = (char*) (ev + 1);
 
 	  ssize_t need_subevent_total_size = min_subevent_total_size;
 
@@ -654,29 +657,35 @@ void write_data_lmd()
 	  while ((write_titris_stamp ||
 		  write_wr_stamp ||
 		  write_caen_vxxx ||
-		  data_end - (char*) ev < event_size) &&
-		 _buffer_end - data_end >= need_subevent_total_size)
+		  evp_end - (char*) ev < event_size) &&
+		 _buffer_end - evp_end >= need_subevent_total_size)
 	    {
 	      lmd_subevent_10_1_host *sev =
-		(lmd_subevent_10_1_host *) data_end;
+		(lmd_subevent_10_1_host *) evp_end;
 
-	      uint data_len =
-		_buffer_end - data_end - sizeof(lmd_subevent_10_1_host);
+	      char *sevp_start = (char*) (sev + 1);
+	      char *sevp_write = sevp_start;
+	      char *sevp_cut = NULL;
+
+	      uint sev_len =
+		_buffer_end - sevp_start;
 
 	      uint subevent_size = _conf._subevent_size;
 	      if (_conf._random_size && subevent_size)
 		subevent_size = rxs64s(&rstate_sevsize) % (subevent_size+1);
 
-	      if (data_len > subevent_size)
-		data_len = subevent_size;
+	      if (sev_len > subevent_size)
+		sev_len = subevent_size;
 
 	      ssize_t need_subevent_data_size =
 		need_subevent_total_size - sizeof(lmd_subevent_10_1_host);
 
-	      if (data_len < need_subevent_data_size)
-		data_len = need_subevent_data_size;
+	      if (sev_len < need_subevent_data_size)
+		sev_len = need_subevent_data_size;
 
-	      data_len &= ~0x03; // align to 32-bit words
+	      sev_len &= ~0x03; // align to 32-bit words
+
+	      char *sevp_end = sevp_start + sev_len;
 
 	      sev->_header.i_type    = 1234; // dummy (I refuse 10/1: nuts)
 	      sev->_header.i_subtype = 5678;
@@ -684,36 +693,30 @@ void write_data_lmd()
 	      sev->h_subcrate = 0;
 	      sev->i_procid   = 0;
 
-	      char *data_start = (char*) (sev + 1);
-	      char *data_write = data_start;
-	      char *data_cut = NULL;
-
 	      if (write_titris_stamp)
 		{
-		  data_write = create_titris_stamp(data_write,
+		  sevp_write = create_titris_stamp(sevp_write,
 						   &rstate_badtitris);
 		  write_titris_stamp = false;
 		}
 	      if (write_wr_stamp)
 		{
-		  data_write = create_wr_stamp(data_write,
+		  sevp_write = create_wr_stamp(sevp_write,
 					       &rstate_badwr);
 		  write_wr_stamp = false;
 		}
 	      if (write_caen_vxxx)
 		{
-		  data_end = data_write;
-
 		  sev->_header.i_type    = 0x0cae;
 		  sev->_header.i_subtype = 0x0cae;
 
 		  uint32 seed = (uint32) rxs64s(&rstate_sim_caen);
 
-		  uint32_t *p = (uint32_t *) data_write;
+		  uint32_t *p = (uint32_t *) sevp_write;
 
 		  *(p++) = seed;
 
-		  data_write = (char *) p;
+		  sevp_write = (char *) p;
 
 		  for (int geom = 1; geom <= _conf._caen_v775 &&
 			 geom < 32; geom++)
@@ -725,16 +728,16 @@ void write_data_lmd()
 		      create_caen_v775_event(&cev, geom, crate,
 					     nev + 0xdef, seed);
 
-		      data_write = (char *)
-			create_caen_v775_data((uint32 *) data_write,
+		      sevp_write = (char *)
+			create_caen_v775_data((uint32 *) sevp_write,
 					      &cev, geom, crate);
 		    }
 
-		  p = (uint32_t *) data_write;
+		  p = (uint32_t *) sevp_write;
 
 		  *(p++) = 0;
 
-		  data_write = (char *) p;
+		  sevp_write = (char *) p;
 
 		  for (int geom = 1; geom <= _conf._caen_v1290 &&
 			 geom < 32; geom++)
@@ -744,30 +747,31 @@ void write_data_lmd()
 		      create_caen_v1290_event(&cev, geom,
 					      nev + 0xdef, seed);
 
-		      data_write = (char *)
-			create_caen_v1290_data((uint32 *) data_write,
+		      sevp_write = (char *)
+			create_caen_v1290_data((uint32 *) sevp_write,
 					       &cev, geom);
 		    }
 
-		  data_cut = data_write;
+		  sevp_cut = sevp_write;
 
 		  write_caen_vxxx = false;
 		}
 
-	      if (data_cut)
+	      if (sevp_cut)
 		{
-		  data_len = data_cut - data_start;
+		  sevp_end = sevp_cut;
 		}
 
-	      sev->_header.l_dlen    =
-		SUBEVENT_DLEN_FROM_DATA_LENGTH(data_len);
-	      ev->_header.l_dlen +=
-		(sizeof(lmd_subevent_10_1_host) + data_len) / 2;
+	      sev->_header.l_dlen =
+		SUBEVENT_DLEN_FROM_DATA_LENGTH(sevp_end - sevp_start);
 
-	      data_end = data_start + data_len;
+	      evp_end = sevp_end;
 
 	      need_subevent_total_size = sizeof(lmd_subevent_10_1_host);
 	    }
+
+	  ev->_header.l_dlen    =
+	    DLEN_FROM_EVENT_DATA_LENGTH(evp_end - (char *) &ev->_info);
 
 	  if (_conf._max_rate &&
 	      timeslot_nev >= _conf._max_rate)
@@ -780,7 +784,15 @@ void write_data_lmd()
 	}
 
     finish_buffer:
-      bufhe->l_free[2] = IUSED_FROM_BUFFER_USED(data_end - data_start);
+      if (evp_end > _buffer_end)
+	{
+	  fprintf (stderr,
+		   "Internal error, buffer overflow (%zd bytes)\n",
+		   evp_end - _buffer_end);
+	  exit(1);
+	}
+      
+      bufhe->l_free[2] = IUSED_FROM_BUFFER_USED(evp_end - evp_start);
 
       if (bufhe->l_dlen <= LMD_BUF_HEADER_MAX_IUSED_DLEN)
 	bufhe->i_used = bufhe->l_free[2];
