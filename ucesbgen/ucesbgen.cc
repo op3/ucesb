@@ -32,8 +32,8 @@ bool parse_definitions();
 
 void usage()
 {
-  printf ("ucesb\n"
-	  "usage ucesb\n");
+  printf ("ucesbgen\n"
+	  "usage ucesbgen\n");
   printf ("    ");
 }
 

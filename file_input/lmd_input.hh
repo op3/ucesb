@@ -61,8 +61,9 @@ struct lmd_subevent
 
 #define LMD_EVENT_GET_10_1_INFO_ATTEMPT     0x0001
 #define LMD_EVENT_HAS_10_1_INFO             0x0002
-#define LMD_EVENT_LOCATE_SUBEVENTS_ATTEMPT  0x0004
-#define LMD_EVENT_SUBEVENTS_LEFTOVERS       0x0008 // could not read subevents to end...
+#define LMD_EVENT_IS_STICKY                 0x0004
+#define LMD_EVENT_LOCATE_SUBEVENTS_ATTEMPT  0x0008
+#define LMD_EVENT_SUBEVENTS_LEFTOVERS       0x0010 // could not read subevents to end...
 
 // This structure holds information to hint the unpacking at reasonable
 // allocation sizes.  Since also the preunpacking is within separate

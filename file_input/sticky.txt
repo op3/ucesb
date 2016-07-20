@@ -1,0 +1,52 @@
+Sticky event handling
+---------------------
+
+Normal events:
+--------------
+
+- Packed in type:subtype 10:1 buffers.
+
+- The events have type:subtype 10:1.
+
+- Inside the events are subevents.
+
+- When time-sorting, the first subevent of the event holds the timestamp.
+
+(ucesb-particular: when stitching events together by time-stamp, then
+the subevents of the subsequent events (that have time-stamp within
+the window) are just pasted in after the first ones.  It thus requires
+particular knowledge of what has been stored to recover the
+time-stamps of the appended subevents).
+
+Sticky events:
+--------------
+
+The main thing is the subevents.  The mechanics is that a sticky event
+is replaced when a new subevent with the same identifier
+type:subtype:ctrl:crate:procid arrives.  If the new subevents has the
+length set to -1, then it removed completely.  (The length set to -1
+for removal is such that sticky subevents of size 0 are allowed
+entities.)  The new empty marker thus need to be sent along to all
+systems once, but then be forgotten.  (For checking, we can consider
+it an error to receive a revoking sticky subevent with nothing to
+revoke.)
+
+The way to distinguish sticky subevents from normal (sub)events is
+that they are packaged in special events, of type (to be finally
+decided) ST:KY (as opposed to 10:1).  In order for the buffer
+processing to be able to fast skip past data if needed, buffers that
+contain sticky events, shall be named also ST:KY.  They may however
+also contain normal events!
+
+We need to be able to also time-sort sticky (sub)events.  Especially
+if data is written by multiple event builders, and then are to be
+joined together again.  (One file might have start that is much older,
+and then we need to be able to figure out which is the later sticky
+subevents.)  For the time being, we do it such that the first subevent
+of the sticky event may hold the timestamp.  We also require this to
+have type:subtype 10:1 (and reject 10:1 as actual sticky subevents).
+Such that if one of many (but not all) sticky subevents are removed or
+superceded, then only those are removed, but the remainer of the event
+can be kept (in particular the first subevent holding the time stamp).
+This also means that sticky events should not really be merged between
+(sticky) events, as we loose the timestamps.

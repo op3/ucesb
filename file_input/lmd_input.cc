@@ -345,8 +345,10 @@ bool lmd_source::read_record(bool expect_fragment)
 
       _expect_file_header = false; // we'll accept buffer headers from now on
     }
-  else if (_buffer_header.i_type    == LMD_BUF_HEADER_10_1_TYPE &&
-           _buffer_header.i_subtype == LMD_BUF_HEADER_10_1_SUBTYPE)
+  else if ((_buffer_header.i_type    == LMD_BUF_HEADER_10_1_TYPE &&
+	    _buffer_header.i_subtype == LMD_BUF_HEADER_10_1_SUBTYPE) ||
+	   (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_TYPE &&
+	    _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE))
     {
       // buffer header
 
@@ -359,9 +361,11 @@ bool lmd_source::read_record(bool expect_fragment)
   else
     {
       ERROR("Buffer header neither buffer header nor file header. "
-            "Type/subtype error. (%d/%d)",
-            _buffer_header.i_type,
-            _buffer_header.i_subtype);
+            "Type/subtype error. (%d=0x%04x/%d=0x%04x)",
+            (uint16_t) _buffer_header.i_type,
+	    (uint16_t) _buffer_header.i_type,
+            (uint16_t) _buffer_header.i_subtype,
+	    (uint16_t) _buffer_header.i_subtype);
     }
 
   size_t buf_used;
@@ -1190,13 +1194,22 @@ void lmd_event::get_10_1_info()
 
   _status |= LMD_EVENT_GET_10_1_INFO_ATTEMPT;
 
-  if (_header._header.i_type    != LMD_EVENT_10_1_TYPE ||
-      _header._header.i_subtype != LMD_EVENT_10_1_SUBTYPE)
+  if (_header._header.i_type    == LMD_EVENT_10_1_TYPE &&
+      _header._header.i_subtype == LMD_EVENT_10_1_SUBTYPE)
+    ;
+  else if (_header._header.i_type    == LMD_EVENT_STICKY_TYPE &&
+	   _header._header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
+    {
+      _status |= LMD_EVENT_IS_STICKY;
+    }
+  else
     {
       //printf ("type fail\n");
-      ERROR("Event header type/subtype unsupported: (%d/%d).",
-            _header._header.i_type,
-            _header._header.i_subtype);
+      ERROR("Event header type/subtype unsupported: (%d=0x%04x/%d=0x%04x).",
+            (uint16_t) _header._header.i_type,
+	    (uint16_t) _header._header.i_type,
+            (uint16_t) _header._header.i_subtype,
+	    (uint16_t) _header._header.i_subtype);
     }
 
   // Get the header info.  (this will eat some of the chunk info, but...
