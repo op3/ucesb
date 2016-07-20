@@ -1091,33 +1091,51 @@ Event    65959779 Type/Subtype    10     1 Length    42[w] Trigger  2
 
 void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
 {
-  if (!(_status & LMD_EVENT_HAS_10_1_INFO))
+  const char *ct_out_bold_ev;
+  const char *ct_out_bold_sev;
+  const char *evtypestr = "Event";
+
+  if (!(_status &LMD_EVENT_IS_STICKY))
     {
-      printf("Event           %s-%s Type/Subtype%s%5d%5d%s "
-	     "Size%s%8d%s Trigger  %s-%s\n",
-	     CT_OUT(BOLD_BLUE),CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),
-	     (uint16) _header._header.i_type,
-	     (uint16) _header._header.i_subtype,
-	     CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),
-	     (int) EVENT_DATA_LENGTH_FROM_DLEN(_header._header.l_dlen),
-	     CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),CT_OUT(NORM_DEF_COL));
+      ct_out_bold_ev = CT_OUT(BOLD_BLUE);
+      ct_out_bold_sev = CT_OUT(BOLD_MAGENTA);
     }
   else
     {
-      printf("Event%s%14u%s Type/Subtype%s%5d%5d%s "
-	     "Size%s%9d%s Trigger %s%2d%s\n",
-	     CT_OUT(BOLD_BLUE),_header._info.l_count,CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),
+      evtypestr = "StEvent";
+      ct_out_bold_ev = CT_OUT(BOLD_GREEN);
+      ct_out_bold_sev = CT_OUT(BOLD_CYAN);
+    }
+
+  if (!(_status & LMD_EVENT_HAS_10_1_INFO))
+    {
+      printf("%-7s         %s-%s Type/Subtype%s%5d%5d%s "
+	     "Size%s%8d%s Trigger  %s-%s\n",
+	     evtypestr,
+	     ct_out_bold_ev,CT_OUT(NORM_DEF_COL),
+	     ct_out_bold_ev,
 	     (uint16) _header._header.i_type,
 	     (uint16) _header._header.i_subtype,
 	     CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),
+	     ct_out_bold_ev,
 	     (int) EVENT_DATA_LENGTH_FROM_DLEN(_header._header.l_dlen),
 	     CT_OUT(NORM_DEF_COL),
-	     CT_OUT(BOLD_BLUE),
+	     ct_out_bold_ev,CT_OUT(NORM_DEF_COL));
+    }
+  else
+    {
+      printf("%-7s%s%12u%s Type/Subtype%s%5d%5d%s "
+	     "Size%s%9d%s Trigger %s%2d%s\n",
+	     evtypestr,
+	     ct_out_bold_ev,_header._info.l_count,CT_OUT(NORM_DEF_COL),
+	     ct_out_bold_ev,
+	     (uint16) _header._header.i_type,
+	     (uint16) _header._header.i_subtype,
+	     CT_OUT(NORM_DEF_COL),
+	     ct_out_bold_ev,
+	     (int) EVENT_DATA_LENGTH_FROM_DLEN(_header._header.l_dlen),
+	     CT_OUT(NORM_DEF_COL),
+	     ct_out_bold_ev,
 	     (uint16) _header._info.i_trigger,
 	     CT_OUT(NORM_DEF_COL));
 
@@ -1130,24 +1148,33 @@ void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
 	  bool subevent_error = (unpack_fail &&
 				 unpack_fail->_next == &subevent_info->_header);
 
+	  char data_len[32];
+
+	  if ((_status & LMD_EVENT_IS_STICKY) &&
+	      subevent_info->_header._header.l_dlen == -1)
+	    strcpy(data_len,"revoke");
+	  else
+	    sprintf (data_len,"%d",
+		     SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen));
+	  
 	  printf(" %sSubEv ProcID%s%s%6d%s Type/Subtype%s%5d%5d%s "
-		 "Size%s%9d%s Ctrl%s%4d%s Subcrate%s%4d%s\n",
+		 "Size%s%9s%s Ctrl%s%4d%s Subcrate%s%4d%s\n",
 		 subevent_error ? CT_OUT(BOLD_RED) : "",
 		 subevent_error ? CT_OUT(NORM_DEF_COL) : "",
-		 CT_OUT(BOLD_MAGENTA),
+		 ct_out_bold_sev,
 		 (uint16) subevent_info->_header.i_procid,
 		 CT_OUT(NORM_DEF_COL),
-		 CT_OUT(BOLD_MAGENTA),
+		 ct_out_bold_sev,
 		 (uint16) subevent_info->_header._header.i_type,
 		 (uint16) subevent_info->_header._header.i_subtype,
 		 CT_OUT(NORM_DEF_COL),
-		 CT_OUT(BOLD_MAGENTA),
-		 SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen),
+		 ct_out_bold_sev,
+		 data_len,
 		 CT_OUT(NORM_DEF_COL),
-		 CT_OUT(BOLD_MAGENTA),
+		 ct_out_bold_sev,
 		 (uint8) subevent_info->_header.h_control,
 		 CT_OUT(NORM_DEF_COL),
-		 CT_OUT(BOLD_MAGENTA),
+		 ct_out_bold_sev,
 		 (uint8) subevent_info->_header.h_subcrate,
 		 CT_OUT(NORM_DEF_COL));
 
@@ -1157,8 +1184,14 @@ void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
 
 	      if (subevent_info->_data)
 		{
-		  uint32 data_length = (uint32)
-		    SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen);
+		  size_t data_length;
+
+		  if ((_status & LMD_EVENT_IS_STICKY) &&
+		      subevent_info->_header._header.l_dlen == -1)
+		    data_length = 0;
+		  else
+		    data_length =
+		      SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen);
 
 		  if ((data_length & 3) == 0) // length is divisible by 4
 		    hex_dump(stdout,
@@ -1349,8 +1382,14 @@ void lmd_event::locate_subevents(lmd_event_hint *hints)
       // So, subevent header is there, now remember where we got the
       // data
 
-      size_t data_length =
-	SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) subevent_header->_header.l_dlen);
+      size_t data_length;
+
+      if ((_status & LMD_EVENT_IS_STICKY) &&
+	  subevent_header->_header.l_dlen == -1)
+	data_length = 0;
+      else
+	data_length =
+	  SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) subevent_header->_header.l_dlen);
 
       // Did the data come exclusively from this buffer?
 
