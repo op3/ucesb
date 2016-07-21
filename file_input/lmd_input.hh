@@ -64,6 +64,7 @@ struct lmd_subevent
 #define LMD_EVENT_IS_STICKY                 0x0004
 #define LMD_EVENT_LOCATE_SUBEVENTS_ATTEMPT  0x0008
 #define LMD_EVENT_SUBEVENTS_LEFTOVERS       0x0010 // could not read subevents to end...
+#define LMD_EVENT_FIRST_BUFFER_HAS_STICKY   0x0020
 
 // This structure holds information to hint the unpacking at reasonable
 // allocation sizes.  Since also the preunpacking is within separate
@@ -173,6 +174,8 @@ public:
 
   s_filhe_extra_host _file_header;
   bool               _file_header_seen;
+
+  int                _first_buf_status;
 
 public:
   buf_chunk  _chunks[2];

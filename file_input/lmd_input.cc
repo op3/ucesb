@@ -127,6 +127,7 @@ bool lmd_source::read_record(bool expect_fragment)
  read_buffer_again:
   _prev_record_release_to = _input._cur;
 
+  _first_buf_status = 0;
   // Note: we may not release the previous record.  (We may just be
   // getting the next record for a fragmented event!)
 
@@ -351,6 +352,9 @@ bool lmd_source::read_record(bool expect_fragment)
 	    _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE))
     {
       // buffer header
+      if (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_TYPE &&
+	  _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE)
+	_first_buf_status = LMD_EVENT_FIRST_BUFFER_HAS_STICKY;
 
       if (_expect_file_header)
         {
@@ -784,6 +788,7 @@ lmd_event *lmd_source::get_event()
       size_t event_size =
 	(size_t) EVENT_DATA_LENGTH_FROM_DLEN(event_header->_header.l_dlen);
       dest->_swapping = _swapping;
+      dest->_status |= _first_buf_status;
 
       // Now, we'd like to get the data, but it may be larger than the
       // current chunk, in case the event is fragmented...
@@ -1233,6 +1238,9 @@ void lmd_event::get_10_1_info()
   else if (_header._header.i_type    == LMD_EVENT_STICKY_TYPE &&
 	   _header._header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
     {
+      if (!(_status & LMD_EVENT_FIRST_BUFFER_HAS_STICKY))
+	WARNING("Sticky event starts in buffer "
+		"not marked to contain sticky events.");
       _status |= LMD_EVENT_IS_STICKY;
     }
   else
