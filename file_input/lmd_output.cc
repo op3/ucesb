@@ -1291,15 +1291,24 @@ void lmd_event_out::copy(const lmd_event *event,
 
 	  // we already checked for space for first chunk
 
-	  size_t length = (size_t)
-	    SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen);
+	  size_t length;
+
+	  if ((event->_status & LMD_EVENT_IS_STICKY) &&
+	      subevent_header->_header.l_dlen == -1)
+	    length = 0;
+	  else
+	    length =
+	      SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) subevent_info->_header._header.l_dlen);
 
 	  // ANOTHER_CHUNK(subevent_info->_data,length,event->_swapping);
 
-	  char *buf;
+	  if (length)
+	    {
+	      char *buf;
 
-	  ADD_TO_BUF(buf,subevent_info->_data,length);
-	  ANOTHER_CHUNK(buf,length,event->_swapping);
+	      ADD_TO_BUF(buf,subevent_info->_data,length);
+	      ANOTHER_CHUNK(buf,length,event->_swapping);
+	    }
 	}
       else
 	{
@@ -1317,8 +1326,8 @@ void lmd_event_out::copy(const lmd_event *event,
 	  ADD_TO_BUF(buf,frag->_ptr,size0);
 	  ANOTHER_CHUNK(buf,size0,event->_swapping);
 
-	  size_t length = (size_t)
-	    SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen) - size0;
+	  size_t length =
+	    SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) subevent_info->_header._header.l_dlen) - size0;
 	  frag++;
 
 	  size_t size = frag->_length;
