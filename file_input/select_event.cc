@@ -276,6 +276,10 @@ bool select_event_requests::accept(const void *ptr) const
 
 bool select_event::accept_event(const lmd_event_10_1_host *header) const
 {
+  if (header->_header.i_type == LMD_EVENT_STICKY_TYPE &&
+      header->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
+    return true;
+  
   return _event.accept(header);
 }
 
@@ -288,6 +292,9 @@ bool select_event::accept_final_event(lmd_event_out *event) const
 {
   if (event->is_clear()) // No header, no nothing!
     return false;
+
+  // Also sticky events are useless without payload, so no special
+  // handling needed
 
   if (_omit_empty_payload)
     {

@@ -1263,7 +1263,8 @@ void lmd_event_out::copy(const lmd_event *event,
 
       // Do we want it?
 
-      if (!select->accept_subevent(subevent_header))
+      if (!(event->_status & LMD_EVENT_IS_STICKY) &&
+	  !select->accept_subevent(subevent_header))
 	continue;
 
       // printf ("subev...\n");
