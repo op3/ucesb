@@ -852,6 +852,12 @@ void lmd_output_buffered::write_event(const lmd_event_out *event)
       //INFO(0,"Fragmenting:  writing %d bytes, %d bytes left (%d total).",
       //	   event_size_write,event_size_left,_event._event_size);
 
+      if (event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
+	  event->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
+	{
+	  _buffer_header.i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
+	  _buffer_header.i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
+	}
       _buffer_header.l_evt++; // we write another fragment
 
       _buffer_header.h_begin = 1; // this buffer has an unfinished event
@@ -886,6 +892,12 @@ void lmd_output_buffered::write_event(const lmd_event_out *event)
       offset_cur = 0;
     }
 
+  if (event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
+      event->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
+    {
+      _buffer_header.i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
+      _buffer_header.i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
+    }
   _buffer_header.l_evt++; // we write another fragment
 
   while (flush_buffer())
