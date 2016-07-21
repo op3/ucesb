@@ -1020,7 +1020,7 @@ void lmd_source::print_buffer_header(const s_bufhe_host *header)
 	 time_buf,(uint) header->l_time[1],
 	 CT_OUT(NORM));
 
-  printf("       Events%s%4d%s Type/Subtype%s%5d%5d%s "
+  printf("      Events%s%6d%s Type/Subtype%s%5d%5d%s "
 	 "FragEnd=%s%d%s FragBegin=%s%d%s LastSz%s%8d%s\n",
 	 CT_OUT(BOLD),header->l_evt,CT_OUT(NORM),
 	 CT_OUT(BOLD),
