@@ -50,3 +50,8 @@ superceded, then only those are removed, but the remainer of the event
 can be kept (in particular the first subevent holding the time stamp).
 This also means that sticky events should not really be merged between
 (sticky) events, as we loose the timestamps.
+
+Note that the guarantee of delivery does not mean that all sticky
+subevents are delivered, and in particular that an sticky event may be
+changed to only deliver those sticky subevents that are have not been
+superceeded by later sticky subevents.
