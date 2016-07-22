@@ -1338,6 +1338,7 @@ void lmd_event_out::copy(const lmd_event *event,
 	  ADD_TO_BUF(buf,frag->_ptr,size0);
 	  ANOTHER_CHUNK(buf,size0,event->_swapping);
 
+	  // No guard against stciky revoke (size -1), as we had large size
 	  size_t length =
 	    SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) subevent_info->_header._header.l_dlen) - size0;
 	  frag++;
