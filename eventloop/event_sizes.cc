@@ -193,8 +193,14 @@ void event_sizes::account(FILE_INPUT_EVENT *event)
       else
 	es_info = iter->second;
 
-      uint64_t sub_size = (uint64_t)
-	SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen);
+      uint64_t sub_size;
+
+      if ((event->_status & LMD_EVENT_IS_STICKY) &&
+	  subevent_info->_header._header.l_dlen == -1)
+	sub_size = 0;
+      else
+	sub_size = (uint64_t)
+	  SUBEVENT_DATA_LENGTH_FROM_DLEN(subevent_info->_header._header.l_dlen);
 
       if (sub_size < es_info->_min)
 	es_info->_min = sub_size;
