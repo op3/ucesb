@@ -890,7 +890,7 @@ void *lmd_output_tcp::server_thread(void *us)
 
 void *lmd_output_tcp::server()
 {
-  // This thread does not want to see any SIG_PIPEs.  It also does not
+  // This thread does not want to see any SIGPIPEs.  It also does not
   // respond to the SIGINT requests (they are for the main thraed)
 
   bool show_connections = false;
@@ -1109,7 +1109,7 @@ void *lmd_output_tcp::server()
 	  // the server is waiting for a free stream to write
 	  // to this means that the free list is out of streams.
 	  // perhaps our clients are to slow reading, so we'll be
-	  // forced to steal a stream form the list of streams
+	  // forced to steal a stream from the list of streams
 	  // available
 
 	  if (_state._num_streams < _state._max_streams)
@@ -1319,7 +1319,8 @@ void lmd_output_tcp::write_buffer(size_t count)
       // DGBprintf ("producer adding filled stream: %2d .. \n",
       // DGB	      _state._fill_stream->_alloc_stream_no);
 
-      _state._filled_streams[_state._filled_streams_avail % LMD_OUTPUT_FILLED_STREAMS] = _state._fill_stream;
+      _state._filled_streams[_state._filled_streams_avail %
+			     LMD_OUTPUT_FILLED_STREAMS] = _state._fill_stream;
       MFENCE;
       _state._filled_streams_avail++;
       _state._fill_stream = NULL;
@@ -1399,7 +1400,8 @@ void lmd_output_tcp::get_buffer()
       assert (_state._free_streams_avail - _state._free_streams_used > 0);
     }
 
-  _state._fill_stream = _state._free_streams[_state._free_streams_used % LMD_OUTPUT_FREE_STREAMS];
+  _state._fill_stream =
+    _state._free_streams[_state._free_streams_used % LMD_OUTPUT_FREE_STREAMS];
   MFENCE;
   _state._free_streams_used++;
 
