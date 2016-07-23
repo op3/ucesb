@@ -646,6 +646,11 @@ void write_data_lmd()
 
 	  ssize_t need_subevent_total_size = min_subevent_total_size;
 
+	  // If we reach this point, and intend to write some subevents,
+	  // we better be able to fit the header.
+	  if (!need_subevent_total_size)
+	    need_subevent_total_size = sizeof(lmd_subevent_10_1_host);	    
+
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
 	  bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
