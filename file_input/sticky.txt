@@ -67,3 +67,17 @@ that the server must keep track of what has been sent to that
 particular client.  In order to not have to do that, it may instead
 send some additional (earlier) sticky data, that thus will reach the
 client twice.
+
+Not a solution for everything
+-----------------------------
+
+Beware that sticky events do not solve all calibration issues.  They
+contain information known at data-taking time, and also cannot be
+changed afterwards.  This means that only information which is known
+to be correct should be stored in sticky events.  Information which is
+likely to change during the course of analysis work (like calibration
+parameters) are better not stored in sticky events at all, since that
+is just confusing.  Also, do not prompt the user to enter values to be
+stored in the data files, as this is just stressful and likely leads
+to information which has to be partially overridden afterwards anyhow.
+Alas, the sticky events are not a replacement for an experimental log.
