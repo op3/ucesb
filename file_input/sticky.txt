@@ -55,3 +55,15 @@ Note that the guarantee of delivery does not mean that all sticky
 subevents are delivered, and in particular that an sticky event may be
 changed to only deliver those sticky subevents that are have not been
 superceeded by later sticky subevents.
+
+Also note that sticky events may be delivered multiple times.  This
+applies to online clients, as well as the replay at the beginning of a
+new file.  The reason for an online client to receive a replay is when
+it has not managed to keep up with the server (may be due to the
+server output bandwidth being saturated; does not matter - same end
+result).  Before sending later data, the server need to ensure that
+the client receives all sticky data before that point.  Which means
+that the server must keep track of what has been sent to that
+particular client.  In order to not have to do that, it may instead
+send some additional (earlier) sticky data, that thus will reach the
+client twice.
