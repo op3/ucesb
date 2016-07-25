@@ -83,6 +83,8 @@ public:
 
   size_t get_length() const;
 
+  void write(void *dest) const;
+
 public:
   void copy_header(const lmd_event *event,
 		   bool combine_event);

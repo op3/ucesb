@@ -444,7 +444,7 @@ ifdef USE_LMD_INPUT
 CXXFLAGS     += -DUSE_LMD_INPUT=$(USE_LMD_INPUT)
 OBJS         += lmd_event.o lmd_input.o lmd_input_tcp.o \
 		tcp_pipe_buffer.o select_event.o \
-		lmd_output.o
+		lmd_output.o lmd_sticky_store.o
 ifdef USE_PTHREAD
 CXXFLAGS     += -DUSE_LMD_OUTPUT_TCP
 OBJS         += lmd_output_tcp.o

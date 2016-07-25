@@ -87,6 +87,9 @@ typedef lmd_event_10_1_big_endian           lmd_event_10_1_network_order;
 #define LMD_EVENT_STICKY_TYPE      0x5354
 #define LMD_EVENT_STICKY_SUBTYPE   0x4b59
 
+#define LMD_SUBEVENT_STICKY_TSTAMP_TYPE      10
+#define LMD_SUBEVENT_STICKY_TSTAMP_SUBTYPE   1
+
 /* ------------------------------------------------------------------ */
 
 #endif// __LMD_EVENT_10_1_H__

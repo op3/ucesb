@@ -1397,3 +1397,16 @@ size_t lmd_event_out::get_length() const
 
   return length;
 }
+
+void lmd_event_out::write(void *dest) const
+{
+  char *p = (char *) dest;
+  
+  for (const buf_chunk_swap* c = _chunk_start; c < _chunk_end; c++)
+    {
+      ::copy_to_buffer(p,
+		       c->_ptr, c->_length,
+		       c->_swapping);
+      p += c->_length;
+    }
+}
