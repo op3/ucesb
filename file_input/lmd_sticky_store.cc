@@ -44,9 +44,11 @@ lmd_sticky_store::lmd_sticky_store()
 {
   _data = NULL;
   _data_end = _data_alloc = 0; // bytes
+  _data_revoked = 0;
 
   _meta = NULL;
   _meta_end = _meta_alloc = 0; // bytes
+  _meta_revoked = 0;
 
   _hash = NULL;
   _hash_used = _hash_size = 0; // items
@@ -353,11 +355,23 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	      lmd_sticky_meta_event *check_ev =
 		(lmd_sticky_meta_event *) (_meta + check_sev->_ev_offset);
 
+	      // When data (or meta) gets compacted, this subevent
+	      // will not be retained
+	      _data_revoked += check_sev->_data_length;
+	      _meta_revoked += sizeof (lmd_sticky_meta_subevent);
 	      check_ev->_live_sub--;
-	      break;
+	      if (check_ev->_live_sub == 0)
+		{
+		  // Upon compacting, this event will not be retained.
+		  _data_revoked += check_ev->_data_length;
+		  _meta_revoked += sizeof (lmd_sticky_meta_event);
+		}
+	      goto hash_found;
 	    }
 	  entry = (entry + 1) & (_hash_size - 1);
 	}
+      _hash_used++;
+    hash_found:
       // We have found either an empty slot, or we will overwrite
       // the previous.
       _hash[entry]._sub_offset = dest_sev_offset;
@@ -533,4 +547,5 @@ void lmd_sticky_store::insert_hash(lmd_sticky_meta_subevent *sev)
       entry = (entry + 1) & (_hash_size - 1);
     }
   _hash[entry]._sub_offset = offset_sev;
+  _hash_used++;
 }
