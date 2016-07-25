@@ -63,6 +63,8 @@ protected:
 
   void insert_hash(lmd_sticky_meta_subevent *sev);
 
+  void verify_meta();
+
 };
 
 #endif//__LMD_STICKY_STORE_HH__

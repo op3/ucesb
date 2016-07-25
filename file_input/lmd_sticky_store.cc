@@ -38,6 +38,7 @@
  *
  */
 
+#define DEBUG_LMD_STICKY_STORE  1
 
 
 lmd_sticky_store::lmd_sticky_store()
@@ -376,7 +377,10 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
       // the previous.
       _hash[entry]._sub_offset = dest_sev_offset;
     }
-  
+
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+#endif
 }
 
 void lmd_sticky_store::compact_data()
@@ -428,6 +432,10 @@ void lmd_sticky_store::compact_data()
   assert(iter_ev_offset == _meta_end);
   // New end of meta-data:
   _data_end = dest_offset;
+
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+#endif
 }
 
 void lmd_sticky_store::compact_meta()
@@ -488,6 +496,10 @@ void lmd_sticky_store::compact_meta()
   assert(iter_ev_offset == _meta_end);
   // New end of meta-data:
   _meta_end = dest_offset;
+
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+#endif
 }
 
 void lmd_sticky_store::populate_hash()
@@ -526,6 +538,9 @@ void lmd_sticky_store::populate_hash()
 	}
     }
   assert(iter_ev_offset == _meta_end);
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+#endif
 }
 
 void lmd_sticky_store::insert_hash(lmd_sticky_meta_subevent *sev)
@@ -549,3 +564,50 @@ void lmd_sticky_store::insert_hash(lmd_sticky_meta_subevent *sev)
   _hash[entry]._sub_offset = offset_sev;
   _hash_used++;
 }
+
+#if DEBUG_LMD_STICKY_STORE
+void lmd_sticky_store::verify_meta()
+{
+  // This function is used to check the integrity of the meta-data
+  // structures
+
+  size_t iter_ev_offset;
+
+  for (iter_ev_offset = 0; iter_ev_offset < _meta_end; )
+    {
+      assert (iter_ev_offset + sizeof (lmd_sticky_meta_event) < _meta_end);
+
+      size_t this_ev_offset = iter_ev_offset;
+      lmd_sticky_meta_event *ev =
+	(lmd_sticky_meta_event *) (_meta + iter_ev_offset);
+      iter_ev_offset +=
+	sizeof (lmd_sticky_meta_event) +
+	ev->_num_sub * sizeof (lmd_sticky_meta_subevent);
+      assert(iter_ev_offset < _meta_end);
+
+      assert(ev->_data_offset + ev->_data_length < _data_end);
+
+      uint32_t live_sub = 0;
+      
+      // Get pointer to the subevents
+      lmd_sticky_meta_subevent *sev =
+	(lmd_sticky_meta_subevent *) (ev + 1);
+
+      for (uint32_t i = 0; i < ev->_num_sub; i++, sev++)
+	{
+	  assert((char *) (sev+1) < _meta + _meta_end);
+	  
+	  if (sev->_data_offset == -1)
+	    continue;
+
+	  live_sub++;
+
+	  assert(sev->_ev_offset == this_ev_offset);
+	  assert(sev->_data_offset > 0);
+	  assert(sev->_data_offset + sev->_data_length < _data_end);
+	}
+      assert(live_sub == ev->_live_sub);
+    }
+  assert(iter_ev_offset == _meta_end);
+}
+#endif
