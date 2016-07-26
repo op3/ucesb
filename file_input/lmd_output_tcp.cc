@@ -310,11 +310,15 @@ lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *s
 
   lmd_output_stream *next_stream = stream->_next;
 
-  if (_sendonce)
+  // See if we have to skip forward through the streams...
+  for ( ; next_stream; next_stream = next_stream->_next)
     {
-      while (next_stream &&
-	     next_stream->_clients)
-	next_stream = next_stream->_next;
+      if (_sendonce &&
+	  next_stream->_clients)
+	continue; // Do not send twice
+
+      // This stream is to be sent
+      break;
     }
 
   // The next stream has a client now...
