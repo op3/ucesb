@@ -484,6 +484,25 @@ bool lmd_output_client_con::stream_is_available(lmd_output_stream *stream)
   return true;
 }
 
+void lmd_output_client_con::next_stream(lmd_output_tcp *tcp_server)
+{
+  if (_pending)
+    {
+      _current = _pending;
+      _pending = NULL;
+    }
+  else
+    _current = _data->get_next_client_stream(_current);
+  _offset = 0; // in any case
+
+  if (_current)
+    _state = LOCC_STATE_SEND_WAIT;
+  else
+    {
+      tcp_server->_tell_fill_stream = 1;
+      _state = LOCC_STATE_STREAM_WAIT;
+    }
+}
 
 bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 					 lmd_output_tcp *tcp_server)
@@ -553,21 +572,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	    _state = LOCC_STATE_REQUEST_WAIT;
 	  else
 	    {
-	      if (_pending)
-		{
-		  _current = _pending;
-		  _pending = NULL;
-		}
-	      else
-		_current = _data->get_next_client_stream(_current);
-
-	      if (_current)
-		_state = LOCC_STATE_SEND_WAIT;
-	      else
-		{
-		  tcp_server->_tell_fill_stream = 1;
-		  _state = LOCC_STATE_STREAM_WAIT;
-		}
+	      next_stream(tcp_server);
 	    }
 	  return true;
 	}
@@ -613,22 +618,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	  // Data wanted...
 	  // See if we can get ourselves a buffer...
 
-	  if (_pending)
-	    {
-	      _current = _pending;
-	      _pending = NULL;
-	    }
-	  else
-	    _current = _data->get_next_client_stream(_current);
-	  _offset = 0; // in any case
-
-	  if (!_current)
-	    {
-	      tcp_server->_tell_fill_stream = 1;
-	      _state = LOCC_STATE_STREAM_WAIT;
-	    }
-	  else
-	    _state = LOCC_STATE_SEND_WAIT;
+	  next_stream(tcp_server);
 	}
       break;
       // case LOCC_STATE_STREAM_WAIT:
@@ -688,20 +678,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 		  // This stream will never get more data, find ourselves
 		  // a new one...
 
-		  if (_pending)
-		    {
-		      _current = _pending;
-		      _pending = NULL;
-		    }
-		  else
-		    _current = _data->get_next_client_stream(_current);
-		  _offset = 0; // in any case
-
-		  if (!_current)
-		    {
-		      tcp_server->_tell_fill_stream = 1;
-		      _state = LOCC_STATE_STREAM_WAIT;
-		    }
+		  next_stream(tcp_server);
 		}
 	    }
 	  else

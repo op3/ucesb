@@ -231,6 +231,9 @@ public:
 
   struct sockaddr_in _cliAddr;
 
+protected:
+  void next_stream(lmd_output_tcp *tcp_server);
+
 public:
   int setup_select(int nfd,
 		   fd_set *readfds,fd_set *writefds);
