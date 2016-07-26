@@ -215,9 +215,12 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 			sev_payload_size);
 
       if (sev_next_off > ev_len)
+	{
+	  assert (false);
 	ERROR("Trying to store sticky event with "
 	      "subevent payload overflowing event (%zd bytes).",
 	      sev_next_off - ev_len);
+	}
 
       if (sev_header->_header.i_type    == LMD_SUBEVENT_STICKY_TSTAMP_TYPE &&
 	  sev_header->_header.i_subtype == LMD_SUBEVENT_STICKY_TSTAMP_SUBTYPE)
@@ -708,3 +711,76 @@ void lmd_sticky_store::verify_meta()
 # endif
 }
 #endif
+
+void lmd_sticky_store::write_events(lmd_output_buffered *dest)
+{
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf(stderr,"Write events!\n");
+# endif
+#endif
+
+  // Go trough the meta-data, and prepare all non-empty events
+  // for writing, and send the write call.
+
+  lmd_event_out event;
+
+  size_t iter_ev_offset;
+
+  for (iter_ev_offset = 0; iter_ev_offset < _meta_end; )
+    {
+      lmd_sticky_meta_event *ev =
+	(lmd_sticky_meta_event *) (_meta + iter_ev_offset);
+      iter_ev_offset +=
+	sizeof (lmd_sticky_meta_event) +
+	ev->_num_sub * sizeof (lmd_sticky_meta_subevent);
+
+      if (!ev->_live_sub)
+	{
+	  // There are no live subevents left in this event.
+	  continue;
+	}
+
+      event.clear();
+
+      char *src_ptr = _data + ev->_data_offset;
+      lmd_event_10_1_host *header_ptr =
+	(lmd_event_10_1_host *) src_ptr;
+
+      // The first part of the header
+      event._header = header_ptr->_header;
+      // The second part of the header
+      event._info = header_ptr->_info;
+      // Which is handled as a chunk
+      event.add_chunk(&event._info, sizeof (event._info), false/*native*/);
+
+      assert(ev->_data_length >= sizeof (lmd_event_10_1_host));
+      char *more_ptr = src_ptr + sizeof (lmd_event_10_1_host);
+      size_t more_length = ev->_data_length - sizeof (lmd_event_10_1_host);
+      // Any additional data
+      if (more_length)
+	event.add_chunk(more_ptr, more_length, false/*native*/);
+      /*
+      printf ("%zd = %zd - %zd\n",
+	      more_length,ev->_data_length,sizeof (lmd_event_10_1_host));
+      */
+      // Get pointer to the subevents
+      lmd_sticky_meta_subevent *sev =
+	(lmd_sticky_meta_subevent *) (ev + 1);
+
+      for (uint32_t i = 0; i < ev->_num_sub; i++, sev++)
+	{
+	  if (sev->_data_offset == -1)
+	    continue;
+
+	  char *src_ptr = _data + sev->_data_offset;
+
+	  event.add_chunk(src_ptr, sev->_data_length, false/*native*/);
+	}
+
+      // event.dump_debug();
+      dest->write_event(&event, true);
+    }
+  assert(iter_ev_offset == _meta_end);
+}

@@ -26,6 +26,7 @@ struct lmd_sticky_hash_subevent
 };
 
 class lmd_event_out;
+class lmd_output_buffered;
 
 class lmd_sticky_store
 {
@@ -55,6 +56,8 @@ protected:
 
 public:
   void insert(const lmd_event_out *event);
+
+  void write_events(lmd_output_buffered *dest);
 
 protected:
   void compact_data();

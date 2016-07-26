@@ -367,6 +367,8 @@ void lmd_output_file::new_file(const char *filename)
 
   if (_has_file_header)
     write_file_header(&_file_header_extra);
+
+  _sticky_store.write_events(this);
 }
 
 void lmd_output_file::open_stdout()
@@ -710,9 +712,11 @@ void lmd_output_buffered::copy_to_buffer(const void *data,
   _stream_left -= length;
 }
 
-void lmd_output_buffered::write_event(const lmd_event_out *event)
+void lmd_output_buffered::write_event(const lmd_event_out *event,
+				      bool sticky_replay)
 {
-  if (event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
+  if (!sticky_replay && // do not add from the replay
+      event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
       event->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
     _sticky_store.insert(event);
   
@@ -931,19 +935,14 @@ void lmd_output_file::event_no_seen(sint32 seventno)
   _last_eventno = eventno;
 }
 
-void lmd_output_file::write_event(const lmd_event_out *event)
+void lmd_output_file::write_event(const lmd_event_out *event,
+				  bool sticky_replay)
 {
-  /*
-  if (_event_cut &&
-      event->_header._info.l_count % _event_cut == 0 &&
-      _cur_events) // do not change an empty file
-    change_file();
-  */
-
-  lmd_output_buffered::write_event(event);
+  lmd_output_buffered::write_event(event, sticky_replay);
 
   add_events(); // we've added an event
-  can_change_file(); // now would be a good time to change file
+  if (!sticky_replay) // Do not change file while replaying
+    can_change_file(); // now would be a good time to change file
 }
 
 
@@ -1428,4 +1427,22 @@ void lmd_event_out::write(void *dest) const
   ::copy_to_buffer(dest,
 		   &header_write,sizeof(lmd_event_header_host),
 		   false);
+}
+
+void lmd_event_out::dump_debug()
+{
+  fprintf (stderr, "-- Event: --\n");
+  fprintf (stderr, "t/s: %04x/%04x\n", _header.i_type, _header.i_subtype);
+  fprintf (stderr, "d: %04x  t: %04x  cnt: %08x\n",
+	   _info.i_dummy, _info.i_trigger, _info.l_count);
+
+  for (const buf_chunk_swap* c = _chunk_start; c < _chunk_end; c++)
+    {
+      const char *p = c->_ptr;
+      fprintf(stderr, "\n");
+      for (size_t i = 0; i < c->_length; i += sizeof (uint32_t))
+	fprintf (stderr, "%3zx: %08x\n", i, *((const uint32_t *) (p+i)));
+    }
+
+  fprintf (stderr, "------------\n");
 }

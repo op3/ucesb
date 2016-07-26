@@ -86,6 +86,8 @@ public:
 
   void write(void *dest) const;
 
+  void dump_debug();
+
 public:
   void copy_header(const lmd_event *event,
 		   bool combine_event);
@@ -108,7 +110,8 @@ public:
 
 
 public:
-  virtual void write_event(const lmd_event_out *event);
+  virtual void write_event(const lmd_event_out *event,
+			   bool sticky_replay = false);
   virtual void event_no_seen(sint32 eventno) { }
 
   virtual void set_file_header(const s_filhe_extra_host *file_header_extra,
@@ -180,7 +183,8 @@ public:
   virtual void new_file(const char *filename);
 
 public:
-  virtual void write_event(const lmd_event_out *event);
+  virtual void write_event(const lmd_event_out *event,
+			   bool sticky_replay = false);
   virtual void event_no_seen(sint32 eventno);
 
   virtual void set_file_header(const s_filhe_extra_host *file_header_extra,
