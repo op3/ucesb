@@ -1175,9 +1175,9 @@ void lmd_event_out::clear()
   _buf_end += length;					  \
 }
 
-void lmd_event_out::add_chunk(void *ptr,size_t len,bool swapping)
+void lmd_event_out::add_chunk(const void *ptr,size_t len,bool swapping)
 {
-  ANOTHER_CHUNK((char *) ptr,len,swapping);
+  ANOTHER_CHUNK((const char *) ptr,len,swapping);
 }
 
 void lmd_event_out::copy_header(const lmd_event *event,

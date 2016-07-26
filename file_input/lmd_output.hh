@@ -76,7 +76,7 @@ protected:
   void realloc_buf(size_t more);
 
 public:
-  void add_chunk(void *ptr,size_t len,bool swapping);
+  void add_chunk(const void *ptr,size_t len,bool swapping);
 
   void clear();
   bool is_clear() const { return _chunk_end == _chunk_start; }

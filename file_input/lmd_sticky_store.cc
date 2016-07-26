@@ -748,8 +748,8 @@ void lmd_sticky_store::write_events(lmd_output_buffered *dest)
 
       event.clear();
 
-      char *src_ptr = _data + ev->_data_offset;
-      lmd_event_10_1_host *header_ptr =
+      const char *src_ptr = _data + ev->_data_offset;
+      const lmd_event_10_1_host *header_ptr =
 	(lmd_event_10_1_host *) src_ptr;
 
       // The first part of the header
@@ -760,7 +760,7 @@ void lmd_sticky_store::write_events(lmd_output_buffered *dest)
       event.add_chunk(&event._info, sizeof (event._info), false/*native*/);
 
       assert(ev->_data_length >= sizeof (lmd_event_10_1_host));
-      char *more_ptr = src_ptr + sizeof (lmd_event_10_1_host);
+      const char *more_ptr = src_ptr + sizeof (lmd_event_10_1_host);
       size_t more_length = ev->_data_length - sizeof (lmd_event_10_1_host);
       // Any additional data
       if (more_length)
@@ -778,7 +778,7 @@ void lmd_sticky_store::write_events(lmd_output_buffered *dest)
 	  if (sev->_data_offset == -1)
 	    continue;
 
-	  char *src_ptr = _data + sev->_data_offset;
+	  const char *src_ptr = _data + sev->_data_offset;
 
 	  event.add_chunk(src_ptr, sev->_data_length, false/*native*/);
 	}
