@@ -56,6 +56,17 @@ subevents are delivered, and in particular that an sticky event may be
 changed to only deliver those sticky subevents that are have not been
 superceeded by later sticky subevents.
 
+The guarantee of delivery applies at the spot when the next *normal*
+event is received.  At that point, exactly the correct set of sticky
+subevents shall be present.  In what order or how many times they have
+received does not matter.  This also means that e.g. an completely
+empty file would not matter at all.
+
+For systems merging multiple data sources, as long as the sticky
+events have different ids, they do not interfere.  If the sources are
+sorted together however, any sticky subevents which are active from
+several sources at once must match exactly - bit for bit.
+
 Also note that sticky events may be delivered multiple times.  This
 applies to online clients, as well as the replay at the beginning of a
 new file.  The reason for an online client to receive a replay is when
@@ -69,7 +80,12 @@ send some additional (earlier) sticky data, that thus will reach the
 client twice.
 
 When a data source ends (either it is a network server or an input
-file), the sticky events that it provided must be discarded/revoked.
+file), the sticky events that it provided must be discarded/revoked by
+the receiver.  Note: the source (server or file writer) *shall not*
+produce the revoke events at the end of the data, as that would
+prevent the receiving end from omitting to resend the sticky events in
+case their next occurence (in the next file) match the already active
+sticky subevents.
 
 Not a solution for everything
 -----------------------------
