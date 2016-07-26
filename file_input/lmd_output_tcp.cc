@@ -513,7 +513,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       {
 	size_t max_send = sizeof (ltcp_stream_trans_open_info) - _offset;
 
-	n = write(_fd,&info,max_send);
+	n = write(_fd,((char *) &info) + _offset,max_send);
       }
 
       if (n == 0)
