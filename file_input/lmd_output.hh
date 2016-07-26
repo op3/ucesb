@@ -26,6 +26,7 @@
 #include "forked_child.hh"
 
 #include "lmd_input.hh"
+#include "lmd_sticky_store.hh"
 
 #include "limit_file_size.hh"
 
@@ -145,6 +146,9 @@ public:
 
 public:
   select_event       _select;
+
+protected:
+  lmd_sticky_store   _sticky_store;
 };
 
 // This function body (and prototype) should really by placed
@@ -216,7 +220,6 @@ public:
   // When compressing the output on the fly
   forked_child       _compressor;
   uint32             _compression_level;
-
 };
 
 void lmd_out_common_options();

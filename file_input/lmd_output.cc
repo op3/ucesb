@@ -712,6 +712,10 @@ void lmd_output_buffered::copy_to_buffer(const void *data,
 
 void lmd_output_buffered::write_event(const lmd_event_out *event)
 {
+  if (event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
+      event->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
+    _sticky_store.insert(event);
+  
   // We're only dealing with the topmost layer of event data, i.e. the
   // _header and the chunks.  Since these are always valid (after
   // having successfully retrieved an event, we cannot fail).  (we may
@@ -1401,12 +1405,27 @@ size_t lmd_event_out::get_length() const
 void lmd_event_out::write(void *dest) const
 {
   char *p = (char *) dest;
-  
+ 
+  p += sizeof(lmd_event_header_host);
+
   for (const buf_chunk_swap* c = _chunk_start; c < _chunk_end; c++)
     {
+      // printf ("%3zx [%zd]\n", p - (char *) dest, c->_length);
       ::copy_to_buffer(p,
 		       c->_ptr, c->_length,
 		       c->_swapping);
       p += c->_length;
     }
+
+  size_t event_data_length = p - (char *) dest - sizeof(lmd_event_header_host);
+    
+  lmd_event_header_host header_write;
+  header_write = _header;
+  header_write.l_dlen =
+	(sint32) DLEN_FROM_EVENT_DATA_LENGTH(event_data_length);
+  
+  // printf ("%3x [%zd]\n", 0, sizeof(lmd_event_header_host));
+  ::copy_to_buffer(dest,
+		   &header_write,sizeof(lmd_event_header_host),
+		   false);
 }

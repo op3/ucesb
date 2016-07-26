@@ -38,8 +38,8 @@
  *
  */
 
-#define DEBUG_LMD_STICKY_STORE  1
-
+#define DEBUG_LMD_STICKY_STORE        1
+#define DEBUG_LMD_STICKY_STORE_PRINT  0
 
 lmd_sticky_store::lmd_sticky_store()
 {
@@ -98,6 +98,10 @@ bool sticky_subevent_same_id(const lmd_subevent_10_1_host *header_a,
 
 void lmd_sticky_store::insert(const lmd_event_out *event)
 {
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+#endif
+
   // How much additional does this event contribute (worst case,
   // i.e. without considering any stuff that it revokes)
 
@@ -110,7 +114,8 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
   // anyhow would do) into the data buffer, and then from there sort
   // out the subevents again.
 
-  size_t ev_len = event->get_length();
+  size_t ev_data_len = event->get_length();
+  size_t ev_len = ev_data_len + sizeof(lmd_event_header_host);
 
   if (_data_end + ev_len > _data_alloc)
     {
@@ -147,6 +152,13 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
   
   event->write(raw_ev);
 
+#if DEBUG_LMD_STICKY_STORE
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  for (size_t i = 0; i < ev_len; i += sizeof (uint32_t))
+    fprintf (stderr, "%3zx: %08x\n", i, *((uint32_t *) (raw_ev+i)));
+# endif
+#endif
+
   // And figure out how many subevents it contains
 
   // Some minor checks of the event header.  That the size is correct,
@@ -157,15 +169,15 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
   size_t ev_size =
     EVENT_DATA_LENGTH_FROM_DLEN((size_t) ev_header->_header.l_dlen);
 
-  if (ev_size != ev_len)
-    ERROR("Trying to store sticky event with wrong size "
-	  "(in header %zd != total%zd).",
+  if (ev_size != ev_data_len)
+    ERROR("Trying to store sticky event with wrong data size "
+	  "(in header data %zd != total data %zd).",
 	  ev_size, ev_len);
 
-  if (ev_size < sizeof (lmd_event_10_1_host))
+  if (ev_size + sizeof(lmd_event_header_host) < sizeof (lmd_event_10_1_host))
     ERROR("Trying to store sticky event with small size "
 	  "(%zd < 1 header).",
-	  ev_size);
+	  ev_size + sizeof(lmd_event_header_host));
 
   if (!(ev_header->_header.i_type    == LMD_EVENT_STICKY_TYPE &&
 	ev_header->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE))
@@ -175,13 +187,13 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	  (uint16_t) ev_header->_header.i_subtype,
 	  (uint16_t) ev_header->_header.i_subtype);
 
-  size_t ev_data_len = sizeof (lmd_event_10_1_host);
+  size_t ev_raw_data_len = sizeof (lmd_event_10_1_host);
 
   // Now count the subevents.
 
   uint32_t num_sev = 0;
 
-  for (size_t sev_data_off = ev_data_len; sev_data_off != ev_len; )
+  for (size_t sev_data_off = ev_raw_data_len; sev_data_off != ev_len; )
     {
       if (sev_data_off + sizeof (lmd_subevent_10_1_host) > ev_len)
 	ERROR("Trying to store sticky event with "
@@ -192,16 +204,20 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
       lmd_subevent_10_1_host *sev_header =
 	(lmd_subevent_10_1_host *) (raw_ev + sev_data_off);
 
-      size_t sev_payload_size =
-	SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) sev_header->_header.l_dlen);
+      size_t sev_payload_size;
+      if (sev_header->_header.l_dlen == -1)
+	sev_payload_size = 0;
+      else
+	sev_payload_size =
+	  SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) sev_header->_header.l_dlen);
+      size_t sev_next_off =
+	sev_data_off + (sizeof (lmd_subevent_10_1_host) +
+			sev_payload_size);
 
-      if (sev_data_off + (sizeof (lmd_subevent_10_1_host) +
-			  sev_payload_size) > ev_len)
+      if (sev_next_off > ev_len)
 	ERROR("Trying to store sticky event with "
 	      "subevent payload overflowing event (%zd bytes).",
-	      sev_data_off + (sizeof (lmd_subevent_10_1_host) +
-			      sev_payload_size) -
-	      ev_len);
+	      sev_next_off - ev_len);
 
       if (sev_header->_header.i_type    == LMD_SUBEVENT_STICKY_TSTAMP_TYPE &&
 	  sev_header->_header.i_subtype == LMD_SUBEVENT_STICKY_TSTAMP_SUBTYPE)
@@ -216,12 +232,14 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	      // We (locally) account this together with the event
 	      // header, such that this subevent is kept whatever happens
 	      // to the other subevents.
-	      ev_data_len +=
+	      ev_raw_data_len +=
 		(sizeof (lmd_subevent_10_1_host) + sev_payload_size);
 	    }
 	}
       else
 	num_sev++;
+
+      sev_data_off = sev_next_off;
     }
   
   // Reallocations?
@@ -277,7 +295,8 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
       if (sz > _hash_size ||
 	  sz < _hash_size / 4) // if needs have decreased dramatically...
 	{
-	  _hash = (lmd_sticky_hash_subevent *) realloc (_hash, sz);
+	  _hash = (lmd_sticky_hash_subevent *)
+	    realloc (_hash, sz * sizeof (_hash[0]));
 	  if (!_hash)
 	    ERROR("Memory allocation failure.");
 	  
@@ -300,17 +319,24 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
   _meta_end += sizeof (lmd_sticky_meta_event);
 
   ev->_data_offset = ev_data_off;
-  ev->_data_length = ev_data_len;
+  ev->_data_length = ev_raw_data_len;
   ev->_num_sub  = num_sev;
   ev->_live_sub = num_sev;
   
-  for (size_t sev_data_off = ev_data_len; sev_data_off != ev_len; )
+  for (size_t sev_data_off = ev_raw_data_len; sev_data_off != ev_len; )
     {
       lmd_subevent_10_1_host *sev_header =
 	(lmd_subevent_10_1_host *) (raw_ev + sev_data_off);
 
-      size_t sev_payload_size =
-	SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) sev_header->_header.l_dlen);
+      size_t sev_payload_size;
+      if (sev_header->_header.l_dlen == -1)
+	sev_payload_size = 0;
+      else
+	sev_payload_size =
+	  SUBEVENT_DATA_LENGTH_FROM_DLEN((size_t) sev_header->_header.l_dlen);
+      size_t sev_next_off =
+	sev_data_off + (sizeof (lmd_subevent_10_1_host) +
+			sev_payload_size);
 
       // Insert the subevent metadata
 
@@ -376,6 +402,12 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
       // We have found either an empty slot, or we will overwrite
       // the previous.
       _hash[entry]._sub_offset = dest_sev_offset;
+#if DEBUG_LMD_STICKY_STORE
+# if DEBUG_LMD_STICKY_STORE_PRINT
+      fprintf(stderr, "Inserted sev at hash %zd.\n", entry);
+# endif
+#endif
+      sev_data_off = sev_next_off;
     }
 
 #if DEBUG_LMD_STICKY_STORE
@@ -385,6 +417,12 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 
 void lmd_sticky_store::compact_data()
 {
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf(stderr,"Compact data!\n");
+# endif
+#endif
   // Go trough the meta-data, and move all event data up ahead.
 
   size_t dest_offset = 0;
@@ -407,6 +445,7 @@ void lmd_sticky_store::compact_data()
 
       char *src_ptr = _data + ev->_data_offset;
       char *dest_ptr = _data + (ev->_data_offset = dest_offset);
+      dest_offset += ev->_data_length;
 
       // Move (if needed) the event to its new position
       assert (dest_ptr <= src_ptr);
@@ -423,6 +462,7 @@ void lmd_sticky_store::compact_data()
 
 	  char *src_ptr = _data + sev->_data_offset;
 	  char *dest_ptr = _data + (sev->_data_offset = dest_offset);
+	  dest_offset += sev->_data_length;
 
 	  // Move (if needed) to its new position
 	  assert (dest_ptr <= src_ptr);
@@ -432,6 +472,7 @@ void lmd_sticky_store::compact_data()
   assert(iter_ev_offset == _meta_end);
   // New end of meta-data:
   _data_end = dest_offset;
+  _data_revoked = 0;
 
 #if DEBUG_LMD_STICKY_STORE
   verify_meta();
@@ -440,6 +481,12 @@ void lmd_sticky_store::compact_data()
 
 void lmd_sticky_store::compact_meta()
 {
+#if DEBUG_LMD_STICKY_STORE
+  verify_meta();
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf(stderr,"Compact meta!\n");
+# endif
+#endif
   // Go trough the meta-data, and squeeze out all subevents that have
   // vanished.
 
@@ -496,7 +543,7 @@ void lmd_sticky_store::compact_meta()
   assert(iter_ev_offset == _meta_end);
   // New end of meta-data:
   _meta_end = dest_offset;
-
+  _meta_revoked = 0;
 #if DEBUG_LMD_STICKY_STORE
   verify_meta();
 #endif
@@ -504,6 +551,12 @@ void lmd_sticky_store::compact_meta()
 
 void lmd_sticky_store::populate_hash()
 {
+#if DEBUG_LMD_STICKY_STORE
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf(stderr,"Populating hash!\n");
+# endif
+#endif
+
   // Initialize all items empty
 
   for (size_t i = 0; i < _hash_size; i++)
@@ -545,6 +598,12 @@ void lmd_sticky_store::populate_hash()
 
 void lmd_sticky_store::insert_hash(lmd_sticky_meta_subevent *sev)
 {
+#if DEBUG_LMD_STICKY_STORE
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf(stderr,"Insert hash!\n");
+# endif
+#endif
+
   // can never be 0, as an event always is before the subevent
   ssize_t offset_sev = (char *) sev - _meta;
 
@@ -573,19 +632,33 @@ void lmd_sticky_store::verify_meta()
 
   size_t iter_ev_offset;
 
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf (stderr,"--- DATA: [%05zx/%05zx] r:%05zx ---\n",
+	   _data_end, _data_alloc, _data_revoked);
+  fprintf (stderr,"--- META: [%05zx/%05zx] r:%05zx ---\n",
+	   _meta_end, _meta_alloc, _meta_revoked);
+# endif
   for (iter_ev_offset = 0; iter_ev_offset < _meta_end; )
     {
-      assert (iter_ev_offset + sizeof (lmd_sticky_meta_event) < _meta_end);
+      assert (iter_ev_offset + sizeof (lmd_sticky_meta_event) <= _meta_end);
 
       size_t this_ev_offset = iter_ev_offset;
       lmd_sticky_meta_event *ev =
 	(lmd_sticky_meta_event *) (_meta + iter_ev_offset);
+# if DEBUG_LMD_STICKY_STORE_PRINT
+      fprintf (stderr,
+	       "@%04zx  EV   d@=%05zx:%02zx  live:%d/%d\n",
+	       iter_ev_offset,
+	       ev->_data_offset, ev->_data_length,
+	       ev->_live_sub, ev->_num_sub);
+# endif
       iter_ev_offset +=
 	sizeof (lmd_sticky_meta_event) +
 	ev->_num_sub * sizeof (lmd_sticky_meta_subevent);
-      assert(iter_ev_offset < _meta_end);
+      assert(iter_ev_offset <= _meta_end);
 
-      assert(ev->_data_offset + ev->_data_length < _data_end);
+      assert(!ev->_live_sub ||
+	     ev->_data_offset + ev->_data_length <= _data_end);
 
       uint32_t live_sub = 0;
       
@@ -595,7 +668,15 @@ void lmd_sticky_store::verify_meta()
 
       for (uint32_t i = 0; i < ev->_num_sub; i++, sev++)
 	{
-	  assert((char *) (sev+1) < _meta + _meta_end);
+	  assert((char *) (sev+1) <= _meta + _meta_end);
+	  
+# if DEBUG_LMD_STICKY_STORE_PRINT
+	  fprintf (stderr,
+		   " @%04zx  SEV d@=%05zx:%02zx  (EV@%04zx)\n",
+		   ((char *) sev) - _meta,
+		   sev->_data_offset, sev->_data_length,
+		   sev->_ev_offset);
+# endif
 	  
 	  if (sev->_data_offset == -1)
 	    continue;
@@ -604,10 +685,26 @@ void lmd_sticky_store::verify_meta()
 
 	  assert(sev->_ev_offset == this_ev_offset);
 	  assert(sev->_data_offset > 0);
-	  assert(sev->_data_offset + sev->_data_length < _data_end);
+	  assert(sev->_data_offset + sev->_data_length <= _data_end);
 	}
       assert(live_sub == ev->_live_sub);
     }
   assert(iter_ev_offset == _meta_end);
+  
+# if DEBUG_LMD_STICKY_STORE_PRINT
+  fprintf (stderr,"--- HASH: [%zx/%zx] ---\n",
+	   _hash_used,_hash_size);
+  for (size_t i = 0; i < _hash_size; i++)
+    {
+      if (_hash[i]._sub_offset)
+	{
+	  fprintf (stderr,
+		   " [%04zx] SEV@%04zx\n",
+		   i,
+		   _hash[i]._sub_offset);	  
+	}
+    }
+  fprintf (stderr,"-------------\n");
+# endif
 }
 #endif
