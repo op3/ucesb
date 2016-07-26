@@ -68,6 +68,9 @@ particular client.  In order to not have to do that, it may instead
 send some additional (earlier) sticky data, that thus will reach the
 client twice.
 
+When a data source ends (either it is a network server or an input
+file), the sticky events that it provided must be discarded/revoked.
+
 Not a solution for everything
 -----------------------------
 
