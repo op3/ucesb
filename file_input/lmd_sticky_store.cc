@@ -724,6 +724,10 @@ void lmd_sticky_store::write_events(lmd_output_buffered *dest)
   // Go trough the meta-data, and prepare all non-empty events
   // for writing, and send the write call.
 
+  // TODO: when writing for a file, we should not eject sticky
+  // 'revoke' events.  The file is new, and does not need any
+  // revoking.
+
   lmd_event_out event;
 
   size_t iter_ev_offset;
