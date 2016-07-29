@@ -213,7 +213,7 @@ uint64 parse_size_postfix(const char *post,const char *allowed,
       else if (strcmp(size_end,"Mi") == 0)
 	{ size <<= 20; goto success; }
       else if (strcmp(size_end,"G") == 0)
-	{ size *= 1000000; goto success; }
+	{ size *= 1000000000; goto success; }
       else if (strcmp(size_end,"Gi") == 0)
 	{ size <<= 30; goto success; }
     }

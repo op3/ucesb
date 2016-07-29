@@ -1459,7 +1459,7 @@ void lmd_server_usage()
   lmd_out_common_options();
   printf ("bufsize=N           Buffer size [ki|Mi|Gi].\n");
   printf ("streambufs=N        Buffers per stream.\n");
-  printf ("size=N              Total size of buffers.\n");
+  printf ("size=N              Total size of buffers [ki|Mi|Gi].\n");
   printf ("stream[:PORT]       Stream server protocol.\n");
   printf ("trans[:PORT]        Transport server protocol.\n");
   printf ("flush=N             Flush interval (s).\n");
