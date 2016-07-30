@@ -34,7 +34,8 @@
 #define CTR_PART_OP        4
 #define CTR_PART_FGCOL(i)  (5+(i))
 #define CTR_PART_BGCOL(i)  (13+(i))
-#define CTR_MAX_PART 21
+#define CTR_PART_CUU1      21
+#define CTR_MAX_PART    22
 
 const char *_colourtext_escape_part[CTR_MAX_PART];
 
@@ -83,6 +84,8 @@ size_t colourtext_init()
   _colourtext_escape_part[CTR_PART_SGR0] = tigetstr_wrap("sgr0");
 
   _colourtext_escape_part[CTR_PART_OP] = tigetstr_wrap("op");
+
+  _colourtext_escape_part[CTR_PART_CUU1] = tigetstr_wrap("cuu1");
 
 #ifndef NCURSES_CONST
 #define NCURSES_CONST
@@ -225,6 +228,7 @@ size_t colourtext_prepare()
 	  CTR_PART_FGCOL(COLOR_CYAN),    0, 0 }, // CTR_UL_CYAN
 	{ CTR_PART_FGCOL(COLOR_WHITE),   0, 0, 0 }, // CTR_WHITE
 	{ CTR_PART_FGCOL(COLOR_BLACK),   0, 0, 0 }, // CTR_BLACK
+	{ CTR_PART_CUU1,                 0, 0, 0 }, // CTR_UP1LINE
       };
 
       for (int j = 0; j < CTR_NUM_REQUEST; j++)

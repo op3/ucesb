@@ -56,7 +56,8 @@
 #define CTR_UL_CYAN            24
 #define CTR_WHITE              25 // not for general use!!!
 #define CTR_BLACK              26 // not for general use!!!
-#define CTR_NUM_REQUEST        27
+#define CTR_UP1LINE            27
+#define CTR_NUM_REQUEST        28
 
 #ifdef USE_CURSES
 
