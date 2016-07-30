@@ -247,6 +247,10 @@ void lmd_output_state::free_oldest_unused()
   if (!stream) // no unused stream
     return;
 
+  if (stream->_prev &&
+      (stream->_flags & LOS_FLAGS_HAS_STICKY_EVENT))
+    stream->_prev->_flags |= LOS_FLAGS_STICKY_LOST_AFTER;
+
   // We must unlink the stream from the list...
 
   unlink_stream(stream);
@@ -297,11 +301,45 @@ void lmd_output_state::free_client_stream(lmd_output_stream *stream)
    }
 }
 
+bool matching_recovery_stream(lmd_output_stream *stream,
+			      int *need_recovery_stream)
+{
+  int recovery_mask = stream->_flags & LOS_FLAGS_STICKY_RECOVERY_MASK;
 
-lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *stream)
+  switch (*need_recovery_stream)
+    {
+    case 0:
+      if (recovery_mask)
+	return false;
+      break;
+    case 1:
+      if (recovery_mask != LOS_FLAGS_STICKY_RECOVERY_FIRST)
+	return false;
+      *need_recovery_stream = 2;
+      break;
+    case 2:
+      if (recovery_mask != LOS_FLAGS_STICKY_RECOVERY_MORE)
+	*need_recovery_stream = 0;
+      if (recovery_mask)
+	return false;
+      break;
+    default:
+      assert (false);
+      break;
+    }
+  return true;
+}
+
+lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *stream, int *need_recovery_stream)
 {
   if (!stream)
     return NULL;
+
+  if (stream->_flags & LOS_FLAGS_STICKY_LOST_AFTER)
+    {
+      printf ("Will need recovery stream.\n");
+      *need_recovery_stream = 1;
+    }
 
   // So, client is done with the stream, find the next one in the
   // list...  If there is no next stream, then we will return null,
@@ -315,10 +353,42 @@ lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *s
     {
       if (_sendonce &&
 	  next_stream->_clients)
-	continue; // Do not send twice
+	{
+	  if (next_stream->_flags & LOS_FLAGS_HAS_STICKY_EVENT)
+	    {
+	      WARNING("Sendonce and sticky events gives lousy performance!  "
+		      "See code for details.");
+	      // As soon as a client skips some stream, it will have to
+	      // request a full recovery stream.  We need two things to
+	      // adress this: variable-sized streams such that we
+	      // need not transmit unduly large amounts of data as recovery.
+	      // And recovery streams tailored for each receiver.
+	      // ~ Alternatively: for each stream sent only once, we need
+	      // an alternative stream to send to everyone else containing
+	      // the summary of the sticky events in the stream that they
+	      // just missed.
+
+	      // Let's at least try to do it correctly.
+	      *need_recovery_stream = 1;
+	    }
+	  goto skip_stream; // Do not send twice
+	}
+
+      assert(*need_recovery_stream >= 0 &&
+	     *need_recovery_stream <= 2);
+
+      if (!matching_recovery_stream(next_stream,need_recovery_stream))
+	goto skip_stream;
 
       // This stream is to be sent
       break;
+
+    skip_stream:
+      if (next_stream->_flags & LOS_FLAGS_STICKY_LOST_AFTER)
+	{
+	  printf ("Will need recovery stream II.\n");
+	  *need_recovery_stream = 1;
+	}    
     }
 
   // The next stream has a client now...
@@ -422,6 +492,8 @@ lmd_output_client_con::lmd_output_client_con(int fd,int mode,
   _state = 0;
   _request._got = 0;
 
+  _need_recovery_stream = 3; // 3 = figure out if we need on first attempt
+
   _current = NULL;
   _pending = NULL;
   _offset  = 0;
@@ -453,8 +525,9 @@ int lmd_output_client_con::setup_select(int nfd,
   return nfd;
 }
 
-
-bool lmd_output_client_con::stream_is_available(lmd_output_stream *stream)
+bool lmd_output_client_con::stream_is_available(lmd_output_stream *stream,
+						bool sticky_events_seen,
+						lmd_output_tcp *tcp_server)
 {
   if (_current || _pending)
     return false;
@@ -462,6 +535,20 @@ bool lmd_output_client_con::stream_is_available(lmd_output_stream *stream)
   if (_data->_sendonce &&
       stream->_clients)
     return false; // someone got before us to this one, we are not interested
+
+  if (_need_recovery_stream == 3)
+    {
+      if (sticky_events_seen)
+	{
+	  _need_recovery_stream = 1;
+	  tcp_server->_need_recovery_stream = 1;
+	}
+      else
+	_need_recovery_stream = 0;
+    }
+
+  if (!matching_recovery_stream(stream, &_need_recovery_stream))
+    return false;
 
   stream->_clients++;
 
@@ -492,13 +579,16 @@ void lmd_output_client_con::next_stream(lmd_output_tcp *tcp_server)
       _pending = NULL;
     }
   else
-    _current = _data->get_next_client_stream(_current);
+    _current = _data->get_next_client_stream(_current,
+					     &_need_recovery_stream);
   _offset = 0; // in any case
 
   if (_current)
     _state = LOCC_STATE_SEND_WAIT;
   else
     {
+      if (_need_recovery_stream == 1)
+	tcp_server->_need_recovery_stream = 1;
       tcp_server->_tell_fill_stream = 1;
       _state = LOCC_STATE_STREAM_WAIT;
     }
@@ -968,9 +1058,13 @@ void *lmd_output_tcp::server()
       // basically just sent to wake us up if necessary, and also such
       // that a response can be sent
 
+      bool got_stream = false;
+
       while (_state._filled_streams_avail - _state._filled_streams_used > 0)
 	{
 	  // a stream is available
+
+	  got_stream = true;
 
 	  lmd_output_stream *stream = _state.deque_filled_stream();
 
@@ -979,6 +1073,14 @@ void *lmd_output_tcp::server()
 	  // there are no clients.  yet...
 	  stream->_clients = 0;
 
+	  if (stream->_flags & LOS_FLAGS_HAS_STICKY_EVENT)
+	    _sticky_events_seen = true;
+
+	  // TODO!!! (above) Hmm, do we eever propagare half-filled
+	  // streams?  In that case, perhaps it gets ignored first,
+	  // and then get the first sticky events,.  But a client that
+	  // skipped it would not know to ask for a replay!
+	  
 	  // check if any client wants it
 	  // we do the strange looping in order to spread the data evenly
 	  // when we are in sendonce mode
@@ -994,7 +1096,9 @@ void *lmd_output_tcp::server()
 
 	      lmd_output_client_con *client = _clients[client_i];
 
-	      bool used = client->stream_is_available(stream);
+	      bool used = client->stream_is_available(stream,
+						      _sticky_events_seen,
+						      this);
 
 	      if (used && _state._sendonce)
 		{
@@ -1014,7 +1118,28 @@ void *lmd_output_tcp::server()
 	      // the stream was not wanted, add it to the free list
 	      _state.add_free_stream(stream);
 	    }
+
   	}
+
+      if (got_stream)
+	{
+	  for (lmd_output_client_con_vect::iterator client_iter = _clients.begin();
+	       client_iter != _clients.end(); )
+	    {
+	      lmd_output_client_con *client = *client_iter;
+
+	      if (!client->_current && !client->_pending)
+		{
+		  // We got some free streams, but some client is
+		  // still in need of streams.  Please tell us soon as
+		  // some become available
+		  _tell_fill_stream = 1;
+		  break;
+		}
+	      ++client_iter;
+	    }
+	}
+      
       /*
       _state.dump_state();
       for (lmd_output_client_con_vect::iterator client = _clients.begin();
@@ -1260,7 +1385,7 @@ void lmd_output_tcp::close()
 
 
 
-void lmd_output_tcp::write_buffer(size_t count)
+void lmd_output_tcp::write_buffer(size_t count, bool has_sticky)
 {
   // we do not allow compacting of the buffers!
   assert (count == _cur_buf_length);
@@ -1269,11 +1394,22 @@ void lmd_output_tcp::write_buffer(size_t count)
 
   _state._fill_stream->_filled += _state._buf_size;
 
+  if (has_sticky)
+    _state._fill_stream->_flags |= LOS_FLAGS_HAS_STICKY_EVENT;
+
   if (_state._fill_stream->_filled >= _state._fill_stream->_max_fill)
     {
       // We just completely filled the stream.
 
       // Put this one into the output circular buffer
+
+      if (_mark_replay_stream)
+	printf ("Mark replay: %02x\n", _mark_replay_stream);
+
+      _state._fill_stream->_flags |= _mark_replay_stream;
+
+      if (_mark_replay_stream == LOS_FLAGS_STICKY_RECOVERY_FIRST)
+	_mark_replay_stream = LOS_FLAGS_STICKY_RECOVERY_MORE;
 
       if (_state._filled_streams_avail -
 	  _state._filled_streams_used >= LMD_OUTPUT_FILLED_STREAMS)
@@ -1320,6 +1456,53 @@ void lmd_output_tcp::write_buffer(size_t count)
       _tell_fill_buffer = 0;
       _block_server.wakeup(LOT_TOKEN_FILLED_BUFFER);
     }
+}
+
+bool lmd_output_tcp::do_sticky_replay()
+{
+  if (!_need_recovery_stream)
+    return false;
+
+  // We must be at stream boundary in order for it to make sense to
+  // inject a replay stream.
+
+  if (_state._fill_stream->_filled != 0)
+    return false;
+
+  // And we should not be doing a replay!
+  if (_mark_replay_stream)
+    return false;
+
+  // Remove the flag that we need a recovery stream.  This so that it
+  // can be set again by the needing thread.  In principle, the
+  // (better, i.e. last) point to remove the flag would be when the
+  // receving (server) thread receives the first stream of the replay.
+  // But if we wait that long, potentially the writing thread sees the
+  // request still being active, and injects multiple replay
+  // streams...
+
+  // We cannot remove the mark in the producing thread after we have
+  // performed the replay: if we produce multiple buffers, the first
+  // may already have reached the server thread, been discarded and
+  // after that, yet another client of the server ended up needing
+  // another replay.
+
+  _need_recovery_stream = 0;
+
+  return true;
+}
+
+void lmd_output_tcp::mark_replay_stream(bool replay)
+{
+  if (replay)
+    {
+      _mark_replay_stream = LOS_FLAGS_STICKY_RECOVERY_FIRST;
+      // We definately want to be told as soon as this one becomes
+      // available; someone is waiting for it...
+      _tell_fill_stream = 1;
+    }
+  else
+    _mark_replay_stream = 0;
 }
 
 void lmd_output_tcp::get_buffer()

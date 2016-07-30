@@ -123,9 +123,12 @@ public:
   void send_buffer(size_t lie_about_used_when_large_dlen = 0);
 
 protected:
-  virtual void write_buffer(size_t count) = 0;
+  virtual void write_buffer(size_t count, bool has_sticky) = 0;
   virtual void get_buffer() = 0;
   virtual bool flush_buffer() { return false; }
+
+  virtual bool do_sticky_replay() { return false; }
+  virtual void mark_replay_stream(bool replay) { UNUSED(replay); }
 
 protected:
   void copy_to_buffer(const void *src,size_t length,bool swap_32);
@@ -198,7 +201,7 @@ public:
   void report_open_close(bool open);
 
 protected:
-  virtual void write_buffer(size_t count);
+  virtual void write_buffer(size_t count, bool has_sticky);
   virtual void get_buffer();
 
 public:

@@ -481,8 +481,10 @@ void lmd_output_file::open_file(const char* filename)
 
 
 
-void lmd_output_file::write_buffer(size_t count)
+void lmd_output_file::write_buffer(size_t count, bool has_sticky)
 {
+  UNUSED(has_sticky);
+  
   full_write(_fd_write,_cur_buf_start,count);
 
   add_size(count);
@@ -599,6 +601,10 @@ void lmd_output_buffered::send_buffer(size_t lie_about_used_when_large_dlen)
   // Make sure the buffer header ends up in network order
   // I.e., we need to swap if we are not big endian
 
+  bool has_sticky =
+    (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_TYPE &&
+     _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE);
+
   if (!_write_native)
     byteswap_32(_buffer_header);
 
@@ -612,7 +618,7 @@ void lmd_output_buffered::send_buffer(size_t lie_about_used_when_large_dlen)
 
   // printf ("write (%8x, %d)\n",count,_cur_buf_left);
 
-  write_buffer(count);
+  write_buffer(count, has_sticky);
 }
 
 void lmd_output_buffered::new_buffer(size_t lie_about_used_when_large_dlen)
@@ -679,6 +685,28 @@ void lmd_output_buffered::new_buffer(size_t lie_about_used_when_large_dlen)
   //printf ("_cur_buf_ptr : %8p .. %8p\n",_cur_buf_ptr,_cur_buf_ptr+_cur_buf_left);
 
   // We intend to write this much more data to the file...
+
+  ///////
+
+  if (do_sticky_replay())
+    {
+      printf ("Sticky replay (buf %d).\n",
+	      _buffer_header.l_buf);
+      
+      // Before we continue with normal operation, we can (and shall)
+      // now inject the sticky events needed for replay.
+
+      mark_replay_stream(true);
+      
+      _sticky_store.write_events(this);
+
+      // Make sure the entire stream is ejected!
+
+      while (_stream_left != _stream_left_max)
+	new_buffer();
+
+      mark_replay_stream(false);      
+    }
 }
 
 void copy_to_buffer(void *dest, const void *src,

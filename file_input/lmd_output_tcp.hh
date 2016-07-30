@@ -52,6 +52,18 @@ struct lmd_output_buffer
 };
 */
 
+// Stream is first sticky event replay part:
+#define LOS_FLAGS_STICKY_RECOVERY_FIRST     0x01
+// Stream is (part of) sticky event replay:
+#define LOS_FLAGS_STICKY_RECOVERY_MORE      0x02
+#define LOS_FLAGS_STICKY_RECOVERY_MASK     (LOS_FLAGS_STICKY_RECOVERY_FIRST | \
+					    LOS_FLAGS_STICKY_RECOVERY_MORE)
+// This stream contains sticky events
+#define LOS_FLAGS_HAS_STICKY_EVENT          0x04
+// If a client is about to go beyond this stream, them it will
+// loose sticky events, so it needs to find a recovery stream. 
+#define LOS_FLAGS_STICKY_LOST_AFTER         0x08
+
 struct lmd_output_stream
 {
   lmd_output_stream *_next;
@@ -59,6 +71,7 @@ struct lmd_output_stream
 
   int    _alloc_stream_no; // only for debugging, used to keep track...
 
+  int    _flags;
   int    _sequence_no;
   size_t _filled;   // only increased by the filling routine
   size_t _max_fill; // more than this will never be filled (may only
@@ -175,7 +188,8 @@ public:
 public:
   void free_client_stream(lmd_output_stream *stream);
 
-  lmd_output_stream *get_next_client_stream(lmd_output_stream *stream);
+  lmd_output_stream *get_next_client_stream(lmd_output_stream *stream,
+					    int *need_recovery_stream);
 
   lmd_output_stream *get_last_client_stream();
 
@@ -225,6 +239,7 @@ public:
   lmd_output_stream *_current; // current stream we send from
   size_t             _offset;  // how much has been sent
 
+  int                _need_recovery_stream;
   lmd_output_stream *_pending; // stream to send from
 
   lmd_output_state  *_data;
@@ -242,7 +257,9 @@ public:
 		    lmd_output_tcp *tcp_server);
 
 public:
-  bool stream_is_available(lmd_output_stream *stream);
+  bool stream_is_available(lmd_output_stream *stream,
+			   bool sticky_events_seen,
+			   lmd_output_tcp *tcp_server);
 
 public:
   void close();
@@ -305,6 +322,10 @@ public:
 
     _tell_fill_stream = 0;
     _tell_fill_buffer = 0;
+    _need_recovery_stream = 0;
+    _sticky_events_seen = false;
+
+    _mark_replay_stream = 0;
 
     _need_free_stream = 0;
     _shutdown_streams_to_send = 0;
@@ -338,6 +359,8 @@ public:
   // Communication between the data producer and the server itself
   volatile int  _tell_fill_stream;
   volatile int  _tell_fill_buffer;
+  volatile int  _need_recovery_stream;
+  volatile bool _sticky_events_seen;
 
 public:
   pthread_t _thread;
@@ -348,6 +371,8 @@ public:
   thread_block _block_producer;
 
 public:
+  int _mark_replay_stream;
+  
   bool _need_free_stream;
 
   size_t _next_search_client_i;
@@ -371,9 +396,12 @@ public:
   virtual void close();
 
 protected:
-  virtual void write_buffer(size_t count);
+  virtual void write_buffer(size_t count, bool has_sticky);
   virtual void get_buffer();
   virtual bool flush_buffer();
+
+  virtual bool do_sticky_replay();
+  virtual void mark_replay_stream(bool replay);
 
 };
 
