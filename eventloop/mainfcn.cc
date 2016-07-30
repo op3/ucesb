@@ -1598,32 +1598,32 @@ downscale_event:
 				    if (rate < 19)
 				      fprintf (stderr,
 					       "[%s%5.2f%s/s] ",
-					       CT_OUT(BOLD),
+					       CT_ERR(BOLD),
 					       rate,
-					       CT_OUT(NORM));
+					       CT_ERR(NORM));
 				    else if (rate < 19999)
 				      fprintf (stderr,
 					       "[%s%5.0f%s/s] ",
-					       CT_OUT(BOLD),
+					       CT_ERR(BOLD),
 					       rate,
-					       CT_OUT(NORM));
+					       CT_ERR(NORM));
 				    else
 				      fprintf (stderr,
 					       "[%s%4.0f%sk/s] ",
-					       CT_OUT(BOLD),
+					       CT_ERR(BOLD),
 					       rate * 0.001,
-					       CT_OUT(NORM));
+					       CT_ERR(NORM));
 
 				  }
 
 				fprintf(stderr,
 					"%s%"PRIu64"%s  (%s%.1f%sk/s)  ",
-					CT_OUT(BOLD_GREEN),
+					CT_ERR(BOLD_GREEN),
 					events,
-					CT_OUT(NORM_DEF_COL),
-					CT_OUT(BOLD),
+					CT_ERR(NORM_DEF_COL),
+					CT_ERR(BOLD),
 					event_rate,
-					CT_OUT(NORM));
+					CT_ERR(NORM));
 
 				if (prev_event_merge_order)
 				  print_current_merge_order(prev_event_merge_order);
