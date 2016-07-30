@@ -1637,21 +1637,21 @@ downscale_event:
 				    "%s%"PRIu64"%s  (%s%.1f%sk/s)  "
 				    "%s%"PRIu64"%s  (%s%.1f%sk/s) "
 				    "(%s%"PRIu64"%s errors)      \r",
-				    CT_OUT(BOLD_GREEN),
+				    CT_ERR(BOLD_GREEN),
 				    events,
-				    CT_OUT(NORM_DEF_COL),
-				    CT_OUT(BOLD),
+				    CT_ERR(NORM_DEF_COL),
+				    CT_ERR(BOLD),
 				    event_rate,
-				    CT_OUT(NORM),
-				    CT_OUT(BOLD_BLUE),
+				    CT_ERR(NORM),
+				    CT_ERR(BOLD_BLUE),
 				    total_multi,
-				    CT_OUT(NORM_DEF_COL),
-				    CT_OUT(BOLD),
+				    CT_ERR(NORM_DEF_COL),
+				    CT_ERR(BOLD),
 				    (double) (total_multi-last_show_multi)*0.001/elapsed,
-				    CT_OUT(NORM),
-				    CT_OUT(BOLD_RED),
+				    CT_ERR(NORM),
+				    CT_ERR(BOLD_RED),
 				    total_errors,
-				    CT_OUT(NORM_DEF_COL));
+				    CT_ERR(NORM_DEF_COL));
 			      }
 			    fflush(stderr);
 			    // INFO_FLUSH;
