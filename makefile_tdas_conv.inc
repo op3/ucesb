@@ -28,6 +28,7 @@ $(TDAS_CONV): $(TDAS_CONV).cc
 	@echo "  BUILD  $@"
 	@$(CXX) -O3 -g -D__LAND02_CODE__ \
 	  -I$(UCESB_BASE_DIR)/file_input \
+	  -I$(UCESB_BASE_DIR)/file_input/lmd_struct \
 	  -I$(UCESB_BASE_DIR)/eventloop \
 	  -I$(UCESB_BASE_DIR)/threading \
 	  -I$(UCESB_BASE_DIR)/common \

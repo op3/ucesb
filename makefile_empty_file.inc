@@ -38,6 +38,7 @@ $(EMPTY_FILE): $(EMPTY_FILE).cc
 	@echo "  BUILD  $@"
 	@$(CXX) -O3 -g \
 	  -I$(UCESB_BASE_DIR)/file_input \
+	  -I$(UCESB_BASE_DIR)/file_input/lmd_struct \
 	  -I$(UCESB_BASE_DIR)/eventloop \
 	  -I$(UCESB_BASE_DIR)/acc_def \
 	  -I$(UCESB_BASE_DIR) \
