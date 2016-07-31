@@ -75,6 +75,7 @@ lmd_output_buffered::lmd_output_buffered()
   _cur_buf_left = 0;
 
   _buffer_header.l_buf = 1;
+  _last_bufno = _buffer_header.l_buf;
 
   _write_native = true;
   _compact_buffers = false; // to be compatible with eventapi, who
@@ -488,6 +489,8 @@ void lmd_output_file::write_buffer(size_t count, bool has_sticky)
   full_write(_fd_write,_cur_buf_start,count);
 
   add_size(count);
+
+  _total_written += count;
 }
 
 void lmd_output_file::get_buffer()
@@ -1099,6 +1102,25 @@ void lmd_output_file::report_open_close(bool open)
   _lmd_log->append(output);
 
   delete[] output;
+}
+
+void lmd_output_file::print_status(double elapsed)
+{
+  double bufrate =
+    (double) (_buffer_header.l_buf - _last_bufno) * 1.e-3 / elapsed;
+  _last_bufno = _buffer_header.l_buf;
+  double datarate =
+    (double) (_total_written - _last_written) * 1.e-6 / elapsed;
+  _last_written = _total_written;
+  
+  fprintf (stderr,
+	   "\nFile: %s%.1f%sMB/s (%s%.1f%skbuf/s)\r",
+	   CT_ERR(BOLD_MAGENTA),
+	   datarate,
+	   CT_ERR(NORM),
+	   CT_ERR(BOLD),
+	   bufrate,
+	   CT_ERR(NORM));
 }
 
 lmd_event_out::lmd_event_out()

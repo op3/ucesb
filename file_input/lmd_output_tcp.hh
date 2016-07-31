@@ -384,6 +384,10 @@ public:
   int  _flush_interval;
 
 public:
+  volatile uint64_t _total_sent;
+  uint64_t _last_sent;
+
+public:
   bool _hold; // no buffer should be discarded, all must be sent somewhere
   // no guarantee however, as we may not notice a client disconnecting
   // until some future buffer, i.e. a few streams may be sent into
@@ -394,6 +398,8 @@ public:
 
 public:
   virtual void close();
+
+  virtual void print_status(double elapsed);
 
 protected:
   virtual void write_buffer(size_t count, bool has_sticky);

@@ -23,6 +23,7 @@
 
 #include "optimise.hh"
 #include "error.hh"
+#include "colourtext.hh"
 #include "set_thread_name.hh"
 
 #include "../common/strndup.hh"
@@ -652,6 +653,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	}
 
       _offset += (size_t) n;
+      tcp_server->_total_sent += n;
 
       if (_offset >= sizeof (ltcp_stream_trans_open_info))
 	{
@@ -747,7 +749,8 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	}
 
       _offset += (size_t) n;
-
+      tcp_server->_total_sent += n;
+      
       if (_offset >= _current->_filled)
 	{
 	  // We reached the end of the data we currently know about
@@ -1634,6 +1637,26 @@ bool lmd_output_tcp::flush_buffer()
   return false;
 }
 
+void lmd_output_tcp::print_status(double elapsed)
+{
+  double bufrate =
+    (double) (_buffer_header.l_buf - _last_bufno) * 1.e-3 / elapsed;
+  _last_bufno = _buffer_header.l_buf;
+  uint64_t sent = _total_sent;
+  double sentrate =
+    (double) (sent - _last_sent) * 1.e-6 / elapsed;
+  _last_sent = sent;  
+    
+  fprintf (stderr,
+	   "\nServer: (%s%.1f%skbuf/s) Sent: %s%.1f%sMB/s\r",
+	   CT_ERR(BOLD),
+	   bufrate,
+	   CT_ERR(NORM),
+	   CT_ERR(BOLD_MAGENTA),
+	   sentrate,
+	   CT_ERR(NORM));
+}
+
 void lmd_server_usage()
 {
   printf ("\n");
@@ -1758,3 +1781,35 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
   return out_tcp;
 }
 
+/* 
+Some TCP/trans performance numbers:
+
+# E5-2690 v3 @ 2.60GHz, dual 10 Gbps network
+
+evsize   sevsize    sent     sentmany (to other machines)
+                    MB/s     MB/s
+
+0        0          180      2350
+10       0          185      2350
+50       0          325      2330
+100      0          380      2340
+500      0          450      2340
+1000     0          470      2340
+10000    0          480      2340
+
+100      10         450      2340
+100      50         ~700     2340
+500      50         ~750     2340
+1000     100        ~900     2340
+10000    1000       ~900     2320
+
+# Sender:
+
+file_input/empty_file --lmd --event-size=100 --subevent-size=10 | \
+  empty/empty --file=- --server=trans
+
+# Receivers (10+10+10 on different machines when many):
+
+empty/empty --trans=vale 2> /dev/null &
+
+*/

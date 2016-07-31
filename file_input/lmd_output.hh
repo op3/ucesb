@@ -122,6 +122,8 @@ public:
   void new_buffer(size_t lie_about_used_when_large_dlen = 0);
   void send_buffer(size_t lie_about_used_when_large_dlen = 0);
 
+  virtual void print_status(double elapsed) = 0;
+
 protected:
   virtual void write_buffer(size_t count, bool has_sticky) = 0;
   virtual void get_buffer() = 0;
@@ -152,6 +154,9 @@ public:
 
 public:
   select_event       _select;
+
+public:
+  uint32_t           _last_bufno;
 
 protected:
   lmd_sticky_store   _sticky_store;
@@ -195,6 +200,8 @@ public:
 
   virtual void close();
 
+  virtual void print_status(double elapsed);
+
 public:
   void write_file_header(const s_filhe_extra_host *file_header_extra);
 
@@ -222,6 +229,10 @@ public:
   uint32             _buf_size;
 
   bool               _write_protect;
+
+public:
+  uint64_t           _total_written;
+  uint64_t           _last_written;
 
 public:
   // When compressing the output on the fly
