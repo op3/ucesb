@@ -21,8 +21,7 @@
 #ifndef __LMD_EVENT_10_1_H__
 #define __LMD_EVENT_10_1_H__
 
-#include "swapping.hh"
-#include "typedef.hh"
+#include "lmd_types.h"
 
 /*  ================= GSI VME Event header =======================  */
 

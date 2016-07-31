@@ -22,41 +22,38 @@
  * changed the first members to be s_bufhe
  */
 
-#ifndef __LMD_FILE_HEADER_H__
-#define __LMD_FILE_HEADER_H__
+#ifndef __LMD_STRUCT__LMD_FILE_HEADER_H__
+#define __LMD_STRUCT__LMD_FILE_HEADER_H__
 
 #include "lmd_buf_header.h"
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
-template<int maxlen>
-struct s_l_string
-{
-  uint16 len;            /* Length of string */
-  sint8  string[maxlen]; /* String data      */
-};
-
-template<int len>
-struct s_string
-{
-  char   string[len];    /* String data      */
-};
+#define LMD_FILHE_STRING(name,len)			\
+  uint16_t name##_l;					\
+  char     name[len]
 
 typedef struct
 {
-  s_l_string<30> filhe_label;    	/* tape label */
-  s_l_string<86> filhe_file;		/* file name */
-  s_l_string<30> filhe_user;		/* user name */
-  s_string<24>   filhe_time;		/* date and time string (no length specifier) */
-  s_l_string<66> filhe_run;		/* run id */
-  s_l_string<66> filhe_exp;		/* explanation */
-  uint32         filhe_lines;           /* # of comment lines */
-  s_l_string<78> s_strings[30];         /* max 30 comment lines */
+  uint16_t string_l;                /* Length of string */
+  char     string[78];              /* String data      */
+} s_filhe_comment_string;
+
+typedef struct
+{
+  LMD_FILHE_STRING(filhe_label,30); /* tape label */
+  LMD_FILHE_STRING(filhe_file,86);  /* file name */
+  LMD_FILHE_STRING(filhe_user,30);  /* user name */
+  char         filhe_time[24];      /* date and time string (no length spec) */ 
+  LMD_FILHE_STRING(filhe_run,66);   /* run id */
+  LMD_FILHE_STRING(filhe_exp,66);   /* explanation */
+  uint32_t       filhe_lines;       /* # of comment lines */
+  s_filhe_comment_string s_strings[30];  /* max 30 comment lines */
 } s_filhe_extra_network_order;
 
 #define s_filhe_extra_host s_filhe_extra_network_order
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
 typedef struct
 {
@@ -73,11 +70,11 @@ typedef struct
 typedef s_filhe_big_endian         s_filhe_network_order;
 #define s_filhe_host               HOST_ENDIAN_TYPE(s_filhe)
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
-#define LMD_FILE_HEADER_10_1_TYPE      2000
-#define LMD_FILE_HEADER_10_1_SUBTYPE   1
+#define LMD_FILE_HEADER_2000_1_TYPE      2000
+#define LMD_FILE_HEADER_2000_1_SUBTYPE   1
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
-#endif // __LMD_FILE_HEADER_H__
+#endif/*__LMD_STRUCT__LMD_FILE_HEADER_H__*/

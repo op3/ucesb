@@ -229,8 +229,8 @@ bool lmd_source::read_record(bool expect_fragment)
       // The MBS eventapi creates broken file headers, with l_dlen
       // of original size/2, without taking itself out of account
 
-      if (_buffer_header.i_type    == LMD_FILE_HEADER_10_1_TYPE &&
-          _buffer_header.i_subtype == LMD_FILE_HEADER_10_1_SUBTYPE)
+      if (_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
+          _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE)
 	{
 	  size_t buffer_size_dlen_broken =
 	    (size_t) BUFFER_SIZE_FROM_DLEN_BROKEN(_buffer_header.l_dlen);
@@ -262,8 +262,8 @@ bool lmd_source::read_record(bool expect_fragment)
   size_t file_header_size = 0;
   ssize_t file_header_used_size = -1;
 
-  if (_buffer_header.i_type    == LMD_FILE_HEADER_10_1_TYPE &&
-      _buffer_header.i_subtype == LMD_FILE_HEADER_10_1_SUBTYPE)
+  if (_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
+      _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE)
     {
       if (!_expect_file_header)
 	WARNING("Unexpected file header.");
@@ -397,8 +397,8 @@ bool lmd_source::read_record(bool expect_fragment)
       // used part of the file header in i_used, but not l_free[2].
 
       if (_buffer_header.i_used != 0 &&
-	  !(_buffer_header.i_type    == LMD_FILE_HEADER_10_1_TYPE &&
-	    _buffer_header.i_subtype == LMD_FILE_HEADER_10_1_SUBTYPE &&
+	  !(_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
+	    _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE &&
 	    BUFFER_USED_FROM_IUSED((uint) (ushort) _buffer_header.i_used) ==
 	    file_header_used_size))
 	ERROR("Used buffer space double defined differently (large buffer) "
@@ -422,8 +422,8 @@ bool lmd_source::read_record(bool expect_fragment)
           header_size + buf_used,
           buffer_size_dlen);
 
-  if ((_buffer_header.i_type    == LMD_FILE_HEADER_10_1_TYPE &&
-       _buffer_header.i_subtype == LMD_FILE_HEADER_10_1_SUBTYPE))
+  if ((_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
+       _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE))
     {
       if (buf_used)
 	{
@@ -999,8 +999,8 @@ void lmd_source::print_buffer_header(const s_bufhe_host *header)
 
   used = BUFFER_USED_FROM_IUSED(used);
 
-  if (header->i_type    == LMD_FILE_HEADER_10_1_TYPE &&
-      header->i_subtype == LMD_FILE_HEADER_10_1_SUBTYPE)
+  if (header->i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
+      header->i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE)
     {
       if (header->l_dlen > LMD_BUF_HEADER_MAX_IUSED_DLEN)
 	{
@@ -1048,9 +1048,9 @@ void lmd_source::print_buffer_header(const s_bufhe_host *header)
     printf("  %-8s %s%s%s\n",name,CT_OUT(BOLD),tmp,CT_OUT(NORM_DEF_COL)); \
   }
 #define PRINT_STRING_L(name,str,maxlen) \
-  PRINT_STRING_L2(name,str.string,maxlen,(unsigned int) str.len)
+  PRINT_STRING_L2(name,str,maxlen,(unsigned int) str##_l)
 #define PRINT_STRING(name,str) \
-  PRINT_STRING_L(name,str,sizeof(str.string))
+  PRINT_STRING_L(name,str,sizeof(str))
 
 void lmd_source::print_file_header(const s_filhe_extra_host *header)
 {
@@ -1058,11 +1058,11 @@ void lmd_source::print_file_header(const s_filhe_extra_host *header)
   PRINT_STRING("Label",   header->filhe_label);
   PRINT_STRING("File",    header->filhe_file);
   PRINT_STRING("User",    header->filhe_user);
-  PRINT_STRING_L2("Time", header->filhe_time.string,24,24);
+  PRINT_STRING_L2("Time", header->filhe_time,24,24);
   PRINT_STRING("Run",     header->filhe_run);
   PRINT_STRING("Exp",     header->filhe_exp);
   for (uint i = 0; i < min(30,header->filhe_lines); i++)
-    PRINT_STRING("Comment",header->s_strings[i]);
+    PRINT_STRING("Comment",header->s_strings[i].string);
 }
 
 /*

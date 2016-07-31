@@ -985,8 +985,8 @@ void lmd_output_file::write_file_header(const s_filhe_extra_host *file_header_ex
 
   // mark it as file header
 
-  _buffer_header.i_type    = LMD_FILE_HEADER_10_1_TYPE;
-  _buffer_header.i_subtype = LMD_FILE_HEADER_10_1_SUBTYPE;
+  _buffer_header.i_type    = LMD_FILE_HEADER_2000_1_TYPE;
+  _buffer_header.i_subtype = LMD_FILE_HEADER_2000_1_SUBTYPE;
 
   // allocate and set to zero the extra space...
 
@@ -1061,10 +1061,10 @@ lmd_output_file::set_file_header(const s_filhe_extra_host *file_header_extra,
 
   strncpy((char*) _file_header_extra.s_strings[comment_index].string,
 	  add_comment,sizeof(_file_header_extra.s_strings[comment_index].string));
-  _file_header_extra.s_strings[comment_index].len = (uint16) strlen(add_comment);
-  if (_file_header_extra.s_strings[comment_index].len >
+  _file_header_extra.s_strings[comment_index].string_l = (uint16) strlen(add_comment);
+  if (_file_header_extra.s_strings[comment_index].string_l >
       sizeof(_file_header_extra.s_strings[comment_index].string))
-    _file_header_extra.s_strings[comment_index].len =
+    _file_header_extra.s_strings[comment_index].string_l =
       sizeof(_file_header_extra.s_strings[comment_index].string);
 
   _has_file_header = true;
