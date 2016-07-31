@@ -18,55 +18,65 @@
  * MA  02110-1301  USA
  */
 
-/* From s_filhe.h
+/* From s_bufhe.h
  */
 
-#ifndef __LMD_BUF_HEADER_H__
-#define __LMD_BUF_HEADER_H__
+#ifndef __LMD_STRUCT__LMD_BUF_HEADER_H__
+#define __LMD_STRUCT__LMD_BUF_HEADER_H__
 
-#include "typedef.hh"
-#include "swapping.hh"
+#include "lmd_types.h"
 
-/*  ================= GSI Buffer header =======================  */
+/* Signed and unsigned has the same representation in a register.
+ * Be (respecifying) the items as unsigned, we avoid having to check
+ * for negatives all over the place.  It is enough with checking
+ * that the values are not insanely large.
+ */
 
-// (0x8000 - sizeof(s_bufhe))/2
-// Above this buffer size l_free[2] is used for used words.
+/********************************************************************/
+/* GSI buffer header */
+
+/* (0x8000 - sizeof(s_bufhe))/2
+ * Above this buffer size (as given by l_dlen) l_free[2] is used to
+ * give the number of used words.
+ */
 #define LMD_BUF_HEADER_MAX_IUSED_DLEN 16360
 
 typedef struct
 {
-  sint32  l_dlen;      /*  Length of data field in words */
-  sint16  i_type;
-  sint16  i_subtype;
-  sint16  i_used;      /*  Used length of data field in words */
-  sint8   h_end;       /*  Fragment at begin of buffer */
-  sint8   h_begin;     /*  Fragment at end of buffer */
-  sint32  l_buf;       /*  Current buffer number */
-  sint32  l_evt;       /*  Number of fragments */
-  sint32  l_current_i; /*  Index, temporarily used */
-  sint32  l_time[2];
-  sint32  l_free[4];
+  /*  0 */ uint32_t  l_dlen;      /* Length of data field in words */
+  /*  4 */ uint16_t  i_type;
+  /*    */ uint16_t  i_subtype;
+  /*  8 */ uint16_t  i_used;      /* Used length of data field in words */
+  /*    */ uint8_t   h_end;       /* Fragment at beginning of buffer */
+  /*    */ uint8_t   h_begin;     /* Fragment at end of buffer */
+  /* 12 */ uint32_t  l_buf;       /* Current buffer number */
+  /* 16 */ uint32_t  l_evt;       /* Number of fragments */
+  /* 20 */ uint32_t  l_current_i; /* Index, temporarily used */
+  /* 24 */ uint32_t  l_time[2];
+  /* 32 */ uint32_t  l_free[4];
+  /* 48 */
 } s_bufhe_little_endian;
 
 typedef struct
 {
-  sint32  l_dlen;      /*  Length of data field in words */
-  sint16  i_subtype;
-  sint16  i_type;
-  sint8   h_begin;     /*  Fragment at end of buffer */
-  sint8   h_end;       /*  Fragment at begin of buffer */
-  sint16  i_used;      /*  Used length of data field in words */
-  sint32  l_buf;       /*  Current buffer number */
-  sint32  l_evt;       /*  Number of fragments */
-  sint32  l_current_i; /*  Index, temporarily used */
-  sint32  l_time[2];
-  sint32  l_free[4];
+  /*  0 */ uint32_t  l_dlen;      /* Length of data field in words */
+  /*  4 */ uint16_t  i_subtype;
+  /*    */ uint16_t  i_type;
+  /*  8 */ uint8_t   h_begin;     /* Fragment at end of buffer */
+  /*    */ uint8_t   h_end;       /* Fragment at beginning of buffer */
+  /*    */ uint16_t  i_used;      /* Used length of data field in words */
+  /* 12 */ uint32_t  l_buf;       /* Current buffer number */
+  /* 16 */ uint32_t  l_evt;       /* Number of fragments */
+  /* 20 */ uint32_t  l_current_i; /* Index, temporarily used */
+  /* 24 */ uint32_t  l_time[2];
+  /* 32 */ uint32_t  l_free[4];
+  /* 48 */
 } s_bufhe_big_endian;
 
 typedef s_bufhe_big_endian         s_bufhe_network_order;
 #define s_bufhe_host               HOST_ENDIAN_TYPE(s_bufhe)
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
 #define LMD_BUF_HEADER_10_1_TYPE            10
 #define LMD_BUF_HEADER_10_1_SUBTYPE         1
@@ -74,6 +84,6 @@ typedef s_bufhe_big_endian         s_bufhe_network_order;
 #define LMD_BUF_HEADER_HAS_STICKY_TYPE      0x5354
 #define LMD_BUF_HEADER_HAS_STICKY_SUBTYPE   0x4b59
 
-/* ------------------------------------------------------------------ */
+/********************************************************************/
 
-#endif // __LMD_BUF_HEADER_H__
+#endif/*__LMD_STRUCT__LMD_BUF_HEADER_H__*/

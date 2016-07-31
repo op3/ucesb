@@ -161,7 +161,7 @@ public:
 public:
   s_bufhe_host       _buffer_header;
   bool               _swapping;
-  int                _last_buffer_no;
+  uint32_t           _last_buffer_no;
   bool               _expect_file_header;
   int                _events_left;
 

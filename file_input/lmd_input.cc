@@ -213,7 +213,7 @@ bool lmd_source::read_record(bool expect_fragment)
   if (!_buffer_header.l_dlen)
     ERROR("Buffer size l_dlen of file header zero.  Cannot be.");
 
-  if (_buffer_header.l_dlen < 0 ||
+  if (/*_buffer_header.l_dlen < 0 || */ /* unsigned, no check needed */
       _buffer_header.l_dlen > 0x20000000)
     ERROR("Buffer size l_dlen (0x%08x) of file header "
 	  "negative or very large, refusing.",
