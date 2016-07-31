@@ -205,7 +205,7 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	(lmd_subevent_10_1_host *) (raw_ev + sev_data_off);
 
       size_t sev_payload_size;
-      if (sev_header->_header.l_dlen == -1)
+      if (sev_header->_header.l_dlen == LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	sev_payload_size = 0;
       else
 	sev_payload_size =
@@ -332,7 +332,7 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	(lmd_subevent_10_1_host *) (raw_ev + sev_data_off);
 
       size_t sev_payload_size;
-      if (sev_header->_header.l_dlen == -1)
+      if (sev_header->_header.l_dlen == LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	sev_payload_size = 0;
       else
 	sev_payload_size =

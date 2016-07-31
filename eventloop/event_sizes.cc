@@ -211,7 +211,8 @@ void event_sizes::account(FILE_INPUT_EVENT *event)
       uint64_t sub_size;
 
       if ((event->_status & LMD_EVENT_IS_STICKY) &&
-	  subevent_info->_header._header.l_dlen == -1)
+	  subevent_info->_header._header.l_dlen ==
+	  LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	sub_size = 0;
       else
 	sub_size = (uint64_t)

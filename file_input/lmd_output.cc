@@ -1359,7 +1359,8 @@ void lmd_event_out::copy(const lmd_event *event,
 	  size_t length;
 
 	  if ((event->_status & LMD_EVENT_IS_STICKY) &&
-	      subevent_header->_header.l_dlen == -1)
+	      subevent_header->_header.l_dlen ==
+	      LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	    length = 0;
 	  else
 	    length =

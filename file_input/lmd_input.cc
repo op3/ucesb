@@ -1156,7 +1156,8 @@ void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
 	  char data_len[32];
 
 	  if ((_status & LMD_EVENT_IS_STICKY) &&
-	      subevent_info->_header._header.l_dlen == -1)
+	      subevent_info->_header._header.l_dlen ==
+	      LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	    strcpy(data_len,"revoke");
 	  else
 	    sprintf (data_len,"%d",
@@ -1192,7 +1193,8 @@ void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
 		  size_t data_length;
 
 		  if ((_status & LMD_EVENT_IS_STICKY) &&
-		      subevent_info->_header._header.l_dlen == -1)
+		      subevent_info->_header._header.l_dlen ==
+		      LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 		    data_length = 0;
 		  else
 		    data_length =
@@ -1393,7 +1395,7 @@ void lmd_event::locate_subevents(lmd_event_hint *hints)
       size_t data_length;
 
       if ((_status & LMD_EVENT_IS_STICKY) &&
-	  subevent_header->_header.l_dlen == -1)
+	  subevent_header->_header.l_dlen == LMD_SUBEVENT_STICKY_DLEN_REVOKE)
 	data_length = 0;
       else
 	data_length =
