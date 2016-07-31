@@ -1654,12 +1654,14 @@ downscale_event:
 				    CT_ERR(NORM_DEF_COL));
 			      }
 			    unsigned int nlines = 0;
+#if defined(USE_LMD_INPUT)
 			    for (unsigned int i = 0; i < loop._output.size(); i++)
 			      {
 				output_info &output = loop._output[i];
 				output._dest->print_status(elapsed);
 				nlines++;
 			      }
+#endif
 			    for (unsigned int i = 0; i < nlines; i++)
 			      fprintf (stderr,"%s",CT_ERR(UP1LINE));
 			    fflush(stderr);
