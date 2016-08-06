@@ -562,6 +562,7 @@ void lmd_sticky_store::populate_hash()
 
   // Initialize all items empty
 
+  _hash_used = 0;
   for (size_t i = 0; i < _hash_size; i++)
     _hash[i]._sub_offset = 0;
   
