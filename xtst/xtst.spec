@@ -224,6 +224,16 @@ SUBEVENT(XTST_PLAIN)
   // DATA32 d;
 }
 
+STICKY_ACTIVE()
+{
+  UINT32 separator NOENCODE {
+    0_31: 7;
+  }
+
+  UINT32 active;
+  UINT32 mark;
+}
+
 SUBEVENT(XTST_REGRESS)
 {
   UINT32 seed;
@@ -243,6 +253,11 @@ SUBEVENT(XTST_REGRESS)
   {
     v1290mod[0] = VME_CAEN_V1290_SHORT(geom=1);
     v1290mod[1] = VME_CAEN_V1290_SHORT(geom=2);
+  }
+
+  select several
+  {
+    sticky_active = STICKY_ACTIVE();
   }
 }
 
