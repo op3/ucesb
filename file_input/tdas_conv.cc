@@ -374,26 +374,39 @@ int fetch_data(char **ptr,uint32 *data_left)
 
 #define mymin(a,b) ((a)<(b)?(a):(b))
 
-#define INFO_STRING_L2(name,str,maxlen,len) { char tmp[maxlen+1]; memcpy (tmp,str,maxlen); tmp[mymin(maxlen,len)] = 0; printf("  %-8s %s\n",name,tmp);  }
-#define INFO_STRING_L(name,str,maxlen) INFO_STRING_L2(name,str.string,maxlen,(unsigned int) str.len)
-#define INFO_STRING(name,str) INFO_STRING_L(name,str,sizeof(str.string))
+#define INFO_STRING_L2(name,str,maxlen,len) {	\
+    char tmp[maxlen+1];				\
+    memcpy (tmp,str,maxlen);			\
+    tmp[mymin(maxlen,len)] = 0;			\
+    printf("  %-8s %s\n",name,tmp);		\
+ }
+#define INFO_STRING_L(name,str,maxlen) \
+  INFO_STRING_L2(name,str,maxlen,(unsigned int) str##_l)
+#define INFO_STRING(name,str) \
+  INFO_STRING_L(name,str,sizeof(str))
 
-#define TAG_STRING_L2(str,maxlen,len) { char tmp[maxlen+1]; memcpy (tmp,str,maxlen); tmp[mymin(maxlen,len)] = 0; printf(" %-*s",maxlen,tmp);  }
-#define TAG_STRING_L(str,maxlen) TAG_STRING_L2(str.string,maxlen,(unsigned int) str.len)
+#define TAG_STRING_L2(str,maxlen,len) {         \
+    char tmp[maxlen+1];                         \
+    memcpy (tmp,str,maxlen);                    \
+    tmp[mymin(maxlen,len)] = 0;                 \
+    printf(" %-*s",maxlen,tmp);                 \
+ }
+#define TAG_STRING_L(str,maxlen) \
+  TAG_STRING_L2(str,maxlen,(unsigned int) str##_l)
 
 void dump_file_header(const s_filhe_extra_host *header)
 {
   INFO_STRING("Label",   header->filhe_label);
   INFO_STRING("File",    header->filhe_file);
   INFO_STRING("User",    header->filhe_user);
-  INFO_STRING_L2("Time", header->filhe_time.string,24,24);
+  INFO_STRING_L2("Time", header->filhe_time,24,24);
   INFO_STRING("Run",     header->filhe_run);
   INFO_STRING("Exp",     header->filhe_exp);
   for (int i = 0; i < mymin(30,header->filhe_lines); i++)
-    INFO_STRING("Comment",header->s_strings[i]);
+    INFO_STRING("Comment",header->s_strings[i].string);
 
   printf ("\nFileTags:");
-  TAG_STRING_L2(header->filhe_time.string,24,24);
+  TAG_STRING_L2(header->filhe_time,24,24);
   TAG_STRING_L(header->filhe_label,12);
   TAG_STRING_L(header->filhe_file,12);
   TAG_STRING_L(header->filhe_run,6);
@@ -405,12 +418,12 @@ void dump_comments(const s_filhe_extra_host *header)
 {
   unsigned char filename[87];
 
-  memcpy(filename,header->filhe_file.string,86);
+  memcpy(filename,header->filhe_file,86);
   filename[86] = 0;
 
   unsigned char timestr[25];
 
-  memcpy(timestr,header->filhe_time.string,24);
+  memcpy(timestr,header->filhe_time,24);
   timestr[24] = 0;
 
   printf ("%s: %s: ",filename,timestr);
@@ -599,8 +612,8 @@ int main(int argc,char *argv[])
 
 	      s_filhe_extra_host* filhe = (s_filhe_extra_host*) data;
 
-	      memcpy(name,filhe->filhe_file.string,filhe->filhe_file.len);
-	      name[filhe->filhe_file.len] = 0;
+	      memcpy(name,filhe->filhe_file,filhe->filhe_file_l);
+	      name[filhe->filhe_file_l] = 0;
 
 	      for (int i = 0; i < sizeof(name); i++)
 		name[i] = tolower(name[i]);
