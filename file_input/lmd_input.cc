@@ -1100,7 +1100,7 @@ void lmd_event::print_event(int data,hex_dump_mark_buf *unpack_fail) const
   const char *ct_out_bold_sev;
   const char *evtypestr = "Event";
 
-  if (!(_status &LMD_EVENT_IS_STICKY))
+  if (!(_status & LMD_EVENT_IS_STICKY))
     {
       ct_out_bold_ev = CT_OUT(BOLD_BLUE);
       ct_out_bold_sev = CT_OUT(BOLD_MAGENTA);

@@ -1237,12 +1237,24 @@ downscale_event:
 		loop.stitch_event(*event,&stitch);
 #endif
 
+#if defined(USE_LMD_INPUT)
+	      if (file_event->is_sticky())
+		;
+	      else
+#endif
 	      loop.unpack_event(*event);
 		}
 
-	      int num_multi;
+	      int num_multi = 0;
 
-	      bool write_ok = loop.handle_event(*event,&num_multi);
+	      bool write_ok = true;
+
+#if defined(USE_LMD_INPUT)
+	      if (file_event->is_sticky())
+		;
+	      else
+#endif
+		loop.handle_event(*event,&num_multi);
 
 	      total_multi += (uint64_t) num_multi;
 

@@ -140,6 +140,7 @@ public:
   void get_subevent_data_src(lmd_subevent *subevent_info,
 			     char *&start,char *&end);
   void print_event(int data,hex_dump_mark_buf *unpack_fail) const;
+  bool is_sticky() const { return _status & LMD_EVENT_IS_STICKY; }
 };
 
 #define FILE_INPUT_EVENT lmd_event
