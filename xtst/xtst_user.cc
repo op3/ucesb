@@ -46,7 +46,7 @@ void sticky_event_user_function(const void *header,
     {
       if (!(_sticky_active & (1 << isev)))
 	{
-	  ERROR("Non-active sticky subevent (%d) revoked.", isev);
+	  WARNING("Non-active sticky subevent (%d) revoked.", isev);
 	}
       _sticky_active &= ~(1 << isev);
     }
@@ -72,14 +72,14 @@ int user_function(unpack_event *event)
 
   if (_sticky_active != event->regress.sticky_active.active)
     {
-      ERROR("Wrong sticky events active (active: %08x, event says: %08x)\n",
+      ERROR("Wrong sticky events active (active: %08x, event says: %08x).",
 	    _sticky_active, event->regress.sticky_active.active);
     }
 
   if ((_sticky_mark & _sticky_active) !=
       (event->regress.sticky_active.mark & _sticky_active))
     {
-      ERROR("Wrong sticky events payload (mark: %08x, event says: %08x)\n",
+      ERROR("Wrong sticky events payload (mark: %08x, event says: %08x).",
 	    _sticky_mark & _sticky_active,
 	    event->regress.sticky_active.active & _sticky_active);
     }
