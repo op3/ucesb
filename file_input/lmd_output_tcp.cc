@@ -566,7 +566,11 @@ bool lmd_output_client_con::stream_is_available(lmd_output_stream *stream,
 
   _current = stream;
   _offset = 0;
-
+  /*
+  printf ("cur: %8d %04x\n",
+	  ((uint32_t*) _current->_bufs)[3],
+	  _current->_flags);
+  */
   _state = LOCC_STATE_SEND_WAIT;
 
   return true;
@@ -585,7 +589,14 @@ void lmd_output_client_con::next_stream(lmd_output_tcp *tcp_server)
   _offset = 0; // in any case
 
   if (_current)
-    _state = LOCC_STATE_SEND_WAIT;
+    {
+      /*
+      printf ("cur: %8d %04x\n",
+	      ((uint32_t*) _current->_bufs)[3],
+	      _current->_flags);
+      */
+      _state = LOCC_STATE_SEND_WAIT;
+    }
   else
     {
       if (_need_recovery_stream == 1)
@@ -1506,6 +1517,8 @@ void lmd_output_tcp::mark_replay_stream(bool replay)
     }
   else
     _mark_replay_stream = 0;
+
+  // printf ("Set mark replay: %02x\n", _mark_replay_stream);
 }
 
 void lmd_output_tcp::get_buffer()
@@ -1575,6 +1588,7 @@ void lmd_output_tcp::get_buffer()
   // DGBprintf ("producer got free stream: %2d\n",
   // DGB	  _state._fill_stream->_alloc_stream_no);
 
+  _state._fill_stream->_flags = 0;
   _state._fill_stream->_filled = 0;
   _state._fill_stream->_max_fill =
     _state._stream_bufs * _state._buf_size;
