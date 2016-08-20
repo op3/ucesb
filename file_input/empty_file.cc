@@ -430,6 +430,9 @@ void write_data_lmd()
   struct timeval timeslot_start;
 
   uint32_t sticky_active = 0;
+  uint32_t sticky_mark = 0;
+
+  uint32_t sticky_payload_count;
 
   // round the buffer size up to next multiple of 1024 bytes.
   // default size is 32k
@@ -457,7 +460,8 @@ void write_data_lmd()
   if (_conf._wr_stamp)
     min_subevent_total_size += 5 * sizeof(uint32_t);
 
-  if (_conf._caen_v775 || _conf._caen_v1290)
+  if (_conf._caen_v775 || _conf._caen_v1290 ||
+      _conf._sticky_fraction)
     min_subevent_total_size += 2 * sizeof(uint32_t);
 
   if (_conf._caen_v775)
@@ -466,6 +470,9 @@ void write_data_lmd()
   if (_conf._caen_v1290)
     min_subevent_total_size +=
       _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
+
+  if (_conf._sticky_fraction)
+    min_subevent_total_size += 3 * sizeof(uint32_t);
 
   // If subevent data, it needs a header
   if (min_subevent_total_size)
@@ -605,7 +612,11 @@ void write_data_lmd()
 
 		  uint32_t *p = (uint32_t *) sev_start;
 
-		  *(p++) = 1;
+		  sticky_payload_count++;
+		  *(p++) = sticky_payload_count;
+
+		  sticky_mark = (sticky_mark & ~(1 << isev)) |
+		    ((sticky_payload_count & 1) << isev);
 
 		  char *sevp_end = (char *) p;
 
@@ -654,6 +665,7 @@ void write_data_lmd()
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
 	  bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
+	  bool write_sticky_mark = !!_conf._sticky_fraction;
 
 	  uint event_size = _conf._event_size;
 	  if (_conf._random_size && event_size)
@@ -662,6 +674,7 @@ void write_data_lmd()
 	  while ((write_titris_stamp ||
 		  write_wr_stamp ||
 		  write_caen_vxxx ||
+		  write_sticky_mark ||
 		  evp_end - (char*) ev < event_size) &&
 		 _buffer_end - evp_end >= need_subevent_total_size)
 	    {
@@ -710,7 +723,8 @@ void write_data_lmd()
 					       &rstate_badwr);
 		  write_wr_stamp = false;
 		}
-	      if (write_caen_vxxx)
+	      if (write_caen_vxxx ||
+		  write_sticky_mark)
 		{
 		  sev->_header.i_type    = 0x0cae;
 		  sev->_header.i_subtype = 0x0cae;
@@ -757,6 +771,23 @@ void write_data_lmd()
 					       &cev, geom);
 		    }
 
+		  if (write_sticky_mark)
+		    {
+		      p = (uint32_t *) sevp_write;
+
+		      *(p++) = 7; /* separator */
+		      /* Tell which sticky subevents should be active
+		       * during this event.  If wrong,t hen the guaranteed
+		       * delivery mechanism has failed.
+		       */
+		      *(p++) = sticky_active;
+		      *(p++) = sticky_mark;
+
+		      sevp_write = (char *) p;
+
+		      write_sticky_mark = false;
+		    }
+
 		  sevp_cut = sevp_write;
 
 		  write_caen_vxxx = false;
@@ -792,7 +823,7 @@ void write_data_lmd()
       if (evp_end > _buffer_end)
 	{
 	  fprintf (stderr,
-		   "Internal error, buffer overflow (%zd bytes)\n",
+		   "Internal generator error, buffer overflow (%zd bytes)\n",
 		   evp_end - _buffer_end);
 	  exit(1);
 	}
