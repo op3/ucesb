@@ -96,7 +96,8 @@ bool sticky_subevent_same_id(const lmd_subevent_10_1_host *header_a,
   return false;
 }
 
-void lmd_sticky_store::insert(const lmd_event_out *event)
+void lmd_sticky_store::insert(const lmd_event_out *event,
+			      bool discard_revoke)
 {
 #if DEBUG_LMD_STICKY_STORE
   verify_meta();
@@ -341,28 +342,49 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 	sev_data_off + (sizeof (lmd_subevent_10_1_host) +
 			sev_payload_size);
 
-      // Insert the subevent metadata
+# if DEBUG_LMD_STICKY_STORE_PRINT
+      fprintf(stderr, "Consider sev (l_dlen=%d).\n",
+	      sev_header->_header.l_dlen);
+# endif
 
-      size_t dest_sev_offset = _meta_end;
-      lmd_sticky_meta_subevent *sev =
-	(lmd_sticky_meta_subevent *) (_meta + _meta_end);
-      _meta_end += sizeof (lmd_sticky_meta_subevent);
+	  size_t dest_sev_offset = _meta_end;
 
-      sev->_ev_offset = dest_ev_offset;
-      sev->_data_offset = ev_data_off + sev_data_off;
-      sev->_data_length = (sizeof (lmd_subevent_10_1_host) +
-			   sev_payload_size);
+      if (!discard_revoke ||
+	  sev_header->_header.l_dlen != LMD_SUBEVENT_STICKY_DLEN_REVOKE)
+	{      
+	  // Insert the subevent metadata
+
+	  lmd_sticky_meta_subevent *sev =
+	    (lmd_sticky_meta_subevent *) (_meta + _meta_end);
+	  _meta_end += sizeof (lmd_sticky_meta_subevent);
+
+	  sev->_ev_offset = dest_ev_offset;
+	  sev->_data_offset = ev_data_off + sev_data_off;
+	  sev->_data_length = (sizeof (lmd_subevent_10_1_host) +
+			       sev_payload_size);
+	}
+      else
+	{
+	  ev->_num_sub--;
+	  ev->_live_sub--;
+	}
 
       // And into the hash table Perhaps it is known before?  Note: We
       // cannot remove revoke events.  Since our purpose is to be used
       // for replays, also the revoke events are important!
 
+      // For file replay, we do not want the revoke events however.
+
       uint32_t hash = sticky_subevent_hash(sev_header);
 
       size_t entry = hash & (_hash_size - 1);
 
-      while (_hash[entry]._sub_offset)
+      for ( ; _hash[entry]._sub_offset;
+	    entry = (entry + 1) & (_hash_size - 1))
 	{
+	  if (_hash[entry]._sub_offset == -1)
+	    continue; // discarded
+
 	  // Investigate if this is the same id as ours
 
 	  lmd_sticky_meta_subevent *check_sev =
@@ -396,20 +418,32 @@ void lmd_sticky_store::insert(const lmd_event_out *event)
 		  _data_revoked += check_ev->_data_length;
 		  _meta_revoked += sizeof (lmd_sticky_meta_event);
 		}
+	      // May be moved into earlier discardred slot, so kill this one.
+	      _hash[entry]._sub_offset = -1;
 	      goto hash_found;
 	    }
-	  entry = (entry + 1) & (_hash_size - 1);
 	}
       _hash_used++;
     hash_found:
-      // We have found either an empty slot, or we will overwrite
-      // the previous.
-      _hash[entry]._sub_offset = dest_sev_offset;
+      if (!discard_revoke ||
+	  sev_header->_header.l_dlen != LMD_SUBEVENT_STICKY_DLEN_REVOKE)
+	{
+	  // Since we may have discarded slots, do the search again
+	  entry = hash & (_hash_size - 1);
+	  while (_hash[entry]._sub_offset &&
+		 _hash[entry]._sub_offset != -1)
+	    {
+	      entry = (entry + 1) & (_hash_size - 1);
+	    }
+	  // We have found either an empty slot, or we will overwrite
+	  // the previous.
+	  _hash[entry]._sub_offset = dest_sev_offset;
 #if DEBUG_LMD_STICKY_STORE
 # if DEBUG_LMD_STICKY_STORE_PRINT
-      fprintf(stderr, "Inserted sev at hash %zd.\n", entry);
+	  fprintf(stderr, "Inserted sev at hash %zd.\n", entry);
 # endif
 #endif
+	}
       sev_data_off = sev_next_off;
     }
 
@@ -620,7 +654,8 @@ void lmd_sticky_store::insert_hash(lmd_sticky_meta_subevent *sev)
 
   size_t entry = hash & (_hash_size - 1);
 
-  while (_hash[entry]._sub_offset)
+  while (_hash[entry]._sub_offset &&
+	 _hash[entry]._sub_offset != -1) // we can insert at discarded position
     {
       entry = (entry + 1) & (_hash_size - 1);
     }
@@ -700,7 +735,8 @@ void lmd_sticky_store::verify_meta()
 	   _hash_used,_hash_size);
   for (size_t i = 0; i < _hash_size; i++)
     {
-      if (_hash[i]._sub_offset)
+      if (_hash[i]._sub_offset &&
+	  _hash[i]._sub_offset != -1)
 	{
 	  fprintf (stderr,
 		   " [%04zx] SEV@%04zx\n",

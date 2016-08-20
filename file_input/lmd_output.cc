@@ -744,12 +744,13 @@ void lmd_output_buffered::copy_to_buffer(const void *data,
 }
 
 void lmd_output_buffered::write_event(const lmd_event_out *event,
-				      bool sticky_replay)
+				      bool sticky_replay,
+				      bool discard_revoke)
 {
   if (!sticky_replay && // do not add from the replay
       event->_header.i_type == LMD_EVENT_STICKY_TYPE &&
       event->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
-    _sticky_store.insert(event);
+    _sticky_store.insert(event, discard_revoke);
   
   // We're only dealing with the topmost layer of event data, i.e. the
   // _header and the chunks.  Since these are always valid (after
@@ -967,9 +968,12 @@ void lmd_output_file::event_no_seen(sint32 seventno)
 }
 
 void lmd_output_file::write_event(const lmd_event_out *event,
-				  bool sticky_replay)
+				  bool sticky_replay,
+				  bool discard_revoke)
 {
-  lmd_output_buffered::write_event(event, sticky_replay);
+  UNUSED(discard_revoke);
+  
+  lmd_output_buffered::write_event(event, sticky_replay, true);
 
   add_events(); // we've added an event
   if (!sticky_replay) // Do not change file while replaying

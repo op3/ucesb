@@ -22,7 +22,7 @@ struct lmd_sticky_meta_subevent
 
 struct lmd_sticky_hash_subevent
 {
-  size_t _sub_offset;
+  ssize_t _sub_offset; // -1 for revoked
 };
 
 class lmd_event_out;
@@ -55,7 +55,8 @@ protected:
   size_t  _hash_size;
 
 public:
-  void insert(const lmd_event_out *event);
+  void insert(const lmd_event_out *event,
+	      bool discard_revoke);
 
   void write_events(lmd_output_buffered *dest);
 

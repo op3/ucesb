@@ -111,7 +111,8 @@ public:
 
 public:
   virtual void write_event(const lmd_event_out *event,
-			   bool sticky_replay = false);
+			   bool sticky_replay = false,
+			   bool discard_revoke = false);
   virtual void event_no_seen(sint32 eventno) { }
 
   virtual void set_file_header(const s_filhe_extra_host *file_header_extra,
@@ -192,7 +193,8 @@ public:
 
 public:
   virtual void write_event(const lmd_event_out *event,
-			   bool sticky_replay = false);
+			   bool sticky_replay = false,
+			   bool discard_revoke = false);
   virtual void event_no_seen(sint32 eventno);
 
   virtual void set_file_header(const s_filhe_extra_host *file_header_extra,
