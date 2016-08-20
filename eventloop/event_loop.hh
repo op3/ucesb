@@ -212,6 +212,8 @@ public:
 
   bool handle_event(event_base &eb,int *num_multi);
 
+  static void unpack_sticky(event_base &eb);
+
 public:
   bool get_ext_source_event(event_base &eb);
   void close_ext_source();

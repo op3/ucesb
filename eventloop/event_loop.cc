@@ -1322,6 +1322,41 @@ void ucesb_event_loop::unpack_event(event_base &eb)
   level_dump(DUMP_LEVEL_UNPACK,"UNPACK",eb._unpack);
 }
 
+#ifdef USE_LMD_INPUT
+void ucesb_event_loop::unpack_sticky(event_base &eb)
+{
+  /* This is partly a copy of what is in unpack_event above.  Merge?
+   */
+  
+#if USE_THREADING || USE_MERGING
+  FILE_INPUT_EVENT *src_event = (FILE_INPUT_EVENT *) eb._file_event;
+#else
+  FILE_INPUT_EVENT *src_event = &_file_event;
+#endif
+
+  if (_conf._event_sizes)
+    _event_sizes.account(src_event);
+
+  for (int subevent = 0; subevent < src_event->_nsubevents; subevent++)
+    {
+      typedef __typeof__(*src_event->_subevents) subevent_t;
+
+      subevent_t *subevent_info = &src_event->_subevents[subevent];
+
+      char *start;
+      char *end;
+
+      src_event->get_subevent_data_src(subevent_info,start,end);
+
+
+#ifdef STICKY_SUBEVENT_USER_FUNCTION
+      STICKY_SUBEVENT_USER_FUNCTION(&subevent_info->_header,
+				    start, end, src_event->_swapping);
+#endif
+    }
+}
+#endif
+
 void ucesb_event_loop::force_event_data(event_base &eb
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
 					, source_event_hint_t *hints

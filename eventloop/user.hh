@@ -87,6 +87,13 @@ void OPEN_CLOSE_USER_FUNCTION(bool open, const char* filename,
 			      uint64 file_size, uint32 n_events);
 #endif
 
+#ifdef STICKY_SUBEVENT_USER_FUNCTION
+// This is a hack for TESTING only.  void * access - bah!
+void STICKY_SUBEVENT_USER_FUNCTION(const void *header,
+				   const char *start, const char *end,
+				   bool swapping);
+#endif
+
 // The following function/interface WILL change, getopt_long is to be
 // used instead.  You're welcome to fix ucesb yourself, to make it
 // happen now, or expect that you'll have to adapt your program in the

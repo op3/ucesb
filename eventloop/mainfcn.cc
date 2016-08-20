@@ -1239,7 +1239,7 @@ downscale_event:
 
 #if defined(USE_LMD_INPUT)
 	      if (file_event->is_sticky())
-		;
+		loop.unpack_sticky(*event);
 	      else
 #endif
 	      loop.unpack_event(*event);
