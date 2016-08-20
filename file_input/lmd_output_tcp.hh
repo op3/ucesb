@@ -72,7 +72,6 @@ struct lmd_output_stream
   int    _alloc_stream_no; // only for debugging, used to keep track...
 
   int    _flags;
-  int    _sequence_no;
   size_t _filled;   // only increased by the filling routine
   size_t _max_fill; // more than this will never be filled (may only
 		    // decrease while active filling)
