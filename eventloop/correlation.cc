@@ -461,18 +461,18 @@ bool raw_array_correlation_2<Tsingle_correlation,Tsingle,T_correlation,T,n,n1,n2
 #define FCNCALL_CALL(member) enumerate_correlations(__id,__info)
 #define FCNCALL_CALL_TYPE(type,member) ::enumerate_correlations<type>(member,__id,__info)
 #define FCNCALL_FOR(index,size) for (int index = 0; index < size; ++index)
-#define FCNCALL_SUBINDEX(index) const signal_id &__shadow_id = __id; signal_id __id(__shadow_id,index); bool &__shadow_active = active; bool active = false;
-#define FCNCALL_SUBINDEX_END(index) __shadow_active |= active;
+#define FCNCALL_SUBINDEX(index) const signal_id &__shadow_id = __id; signal_id __id(__shadow_id,index); bool &__shadow_active = __active; bool __active = false;
+#define FCNCALL_SUBINDEX_END(index) __shadow_active |= __active;
 #define FCNCALL_SUBNAME(name)   const signal_id &__shadow_id = __id; signal_id __id(__shadow_id,name);
 //#define FCNCALL_SUBINDEX(index) const signal_id &shadow_id = id; signal_id id(shadow_id,index);
 //#define FCNCALL_SUBNAME(name)   const signal_id &shadow_id = id; signal_id id(shadow_id,name);
 #define FCNCALL_MULTI_MEMBER(name) name
 #define FCNCALL_MULTI_ARG(name) name
 #define FCNCALL_CALL_CTRL_WRAP(ctrl,call) ctrl##_active = (call)
-#define FCNCALL_CALL_CTRL_WRAP_ARRAY(ctrl_name,ctrl_non_last_index,ctrl_last_index,call) active |= ((call) ? (ctrl_name##_active ctrl_non_last_index.set(ctrl_last_index)) , true : false)
+#define FCNCALL_CALL_CTRL_WRAP_ARRAY(ctrl_name,ctrl_non_last_index,ctrl_last_index,call) __active |= ((call) ? (ctrl_name##_active ctrl_non_last_index.set(ctrl_last_index)) , true : false)
 #define FCNCALL_RET_TYPE bool
-#define FCNCALL_INIT     bool active = false;
-#define FCNCALL_RET      return active;
+#define FCNCALL_INIT     bool __active = false;
+#define FCNCALL_RET      return __active;
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/struct_fcncall.hh"
