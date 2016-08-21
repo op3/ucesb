@@ -81,8 +81,8 @@ typedef s_bufhe_big_endian         s_bufhe_network_order;
 #define LMD_BUF_HEADER_10_1_TYPE            10
 #define LMD_BUF_HEADER_10_1_SUBTYPE         1
 
-#define LMD_BUF_HEADER_HAS_STICKY_TYPE      0x5354
-#define LMD_BUF_HEADER_HAS_STICKY_SUBTYPE   0x4b59
+#define LMD_BUF_HEADER_HAS_STICKY_TYPE      0x4b59
+#define LMD_BUF_HEADER_HAS_STICKY_SUBTYPE   0x5354
 
 /********************************************************************/
 
