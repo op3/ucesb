@@ -261,6 +261,8 @@
 // both: if l_free[0] of buffer header of first buffer is not 0x00000001, then
 // do 4-byte swapping
 
+// both: if l_evt of buffer header is negative, close connection
+
 
 #include "lmd_input_tcp.hh"
 #include "swapping.hh"
