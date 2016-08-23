@@ -27,6 +27,13 @@
 static uint32_t _sticky_active = 0;
 static uint32_t _sticky_mark = 0;
 
+static uint32_t _sticky_last_ev[32] = {
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+};
+
 void sticky_event_user_function(unpack_event *event,
 				const void *header,
 				const char *start, const char *end,
@@ -67,6 +74,18 @@ void sticky_event_user_function(unpack_event *event,
 	  _sticky_mark = (_sticky_mark & ~(1 << isev)) |
 	    ((payload & 1) << isev);
 	}
+    }
+
+  if (isev < 32)
+    {
+      if (_sticky_last_ev[isev] == event->event_no)
+	{
+	  WARNING("Event %d: "
+		  "Sticky subevent (%d) seen for same event no.",
+		  event->event_no,
+		  isev);
+	}      
+      _sticky_last_ev[isev] = event->event_no;
     }
 }
 
