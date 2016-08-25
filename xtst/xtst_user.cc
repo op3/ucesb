@@ -34,6 +34,8 @@ static uint32_t _sticky_last_ev[32] = {
   0, 0, 0, 0,  0, 0, 0, 0,
 };
 
+uint64_t _spurious_revokes = 0;
+
 void sticky_event_user_function(unpack_event *event,
 				const void *header,
 				const char *start, const char *end,
@@ -54,10 +56,16 @@ void sticky_event_user_function(unpack_event *event,
     {
       if (!(_sticky_active & (1 << isev)))
 	{
+	  /* Revoking markers may be spurious, so just count them, do
+	   * not inform.
+	   */
+	  _spurious_revokes++;
+	  /*
 	  WARNING("Event %d: "
 		  "Non-active sticky subevent (%d) revoked.",
 		  event->event_no,
 		  isev);
+	  */
 	}
       _sticky_active &= ~(1 << isev);
     }
@@ -95,6 +103,12 @@ int user_function(unpack_event *event)
 
   if (_sticky_active != event->regress.sticky_active.active)
     {
+      for (int isev = 0; isev < 8; isev++)
+	WARNING("Event %d: Sticky subevent (%d) from event: %d.",
+		event->event_no,
+		isev,
+		_sticky_last_ev[isev]);
+
       ERROR("Event %d: "
 	    "Wrong sticky events active (active: %08x, event says: %08x).",
 	    event->event_no,
