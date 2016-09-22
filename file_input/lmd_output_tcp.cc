@@ -1662,7 +1662,7 @@ void lmd_output_tcp::print_status(double elapsed)
   _last_sent = sent;  
     
   fprintf (stderr,
-	   "\nServer: (%s%.1f%skbuf/s) Sent: %s%.1f%sMB/s\r",
+	   "\nServer: (%s%.1f%skbuf/s) Sent: %s%.1f%sMB/s   \r",
 	   CT_ERR(BOLD),
 	   bufrate,
 	   CT_ERR(NORM),
