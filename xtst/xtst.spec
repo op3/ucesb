@@ -173,8 +173,12 @@ SUBEVENT(BITS64)
   UINT32 data32_1;
   UINT32 data32_2;
 
+  MARK_COUNT(start);
+
   UINT64 data64_1;
 
+  MARK_COUNT(end);
+  CHECK_COUNT(data32_1,start,end,4,4);
 
   select several
   {
