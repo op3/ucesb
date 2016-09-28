@@ -89,7 +89,8 @@ void OPEN_CLOSE_USER_FUNCTION(bool open, const char* filename,
 
 #ifdef STICKY_SUBEVENT_USER_FUNCTION
 // This is a hack for TESTING only.  void * access - bah!
-void STICKY_SUBEVENT_USER_FUNCTION(const void *header,
+void STICKY_SUBEVENT_USER_FUNCTION(unpack_event *event,
+				   const void *header,
 				   const char *start, const char *end,
 				   bool swapping);
 #endif

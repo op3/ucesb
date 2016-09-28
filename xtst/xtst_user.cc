@@ -27,7 +27,17 @@
 static uint32_t _sticky_active = 0;
 static uint32_t _sticky_mark = 0;
 
-void sticky_event_user_function(const void *header,
+static uint32_t _sticky_last_ev[32] = {
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+  0, 0, 0, 0,  0, 0, 0, 0,
+};
+
+uint64_t _spurious_revokes = 0;
+
+void sticky_event_user_function(unpack_event *event,
+				const void *header,
 				const char *start, const char *end,
 				bool swapping)
 {
@@ -46,7 +56,16 @@ void sticky_event_user_function(const void *header,
     {
       if (!(_sticky_active & (1 << isev)))
 	{
-	  WARNING("Non-active sticky subevent (%d) revoked.", isev);
+	  /* Revoking markers may be spurious, so just count them, do
+	   * not inform.
+	   */
+	  _spurious_revokes++;
+	  /*
+	  WARNING("Event %d: "
+		  "Non-active sticky subevent (%d) revoked.",
+		  event->event_no,
+		  isev);
+	  */
 	}
       _sticky_active &= ~(1 << isev);
     }
@@ -64,6 +83,18 @@ void sticky_event_user_function(const void *header,
 	    ((payload & 1) << isev);
 	}
     }
+
+  if (isev < 32)
+    {
+      if (_sticky_last_ev[isev] == event->event_no)
+	{
+	  WARNING("Event %d: "
+		  "Sticky subevent (%d) seen for same event no.",
+		  event->event_no,
+		  isev);
+	}      
+      _sticky_last_ev[isev] = event->event_no;
+    }
 }
 
 int user_function(unpack_event *event)
@@ -72,14 +103,24 @@ int user_function(unpack_event *event)
 
   if (_sticky_active != event->regress.sticky_active.active)
     {
-      ERROR("Wrong sticky events active (active: %08x, event says: %08x).",
+      for (int isev = 0; isev < 8; isev++)
+	WARNING("Event %d: Sticky subevent (%d) from event: %d.",
+		event->event_no,
+		isev,
+		_sticky_last_ev[isev]);
+
+      ERROR("Event %d: "
+	    "Wrong sticky events active (active: %08x, event says: %08x).",
+	    event->event_no,
 	    _sticky_active, event->regress.sticky_active.active);
     }
 
   if ((_sticky_mark & _sticky_active) !=
       (event->regress.sticky_active.mark & _sticky_active))
     {
-      ERROR("Wrong sticky events payload (mark: %08x, event says: %08x).",
+      ERROR("Event %d: "
+	    "Wrong sticky events payload (mark: %08x, event says: %08x).",
+	    event->event_no,
 	    _sticky_mark & _sticky_active,
 	    event->regress.sticky_active.active & _sticky_active);
     }

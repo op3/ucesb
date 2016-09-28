@@ -1350,7 +1350,8 @@ void ucesb_event_loop::unpack_sticky(event_base &eb)
 
 
 #ifdef STICKY_SUBEVENT_USER_FUNCTION
-      STICKY_SUBEVENT_USER_FUNCTION(&subevent_info->_header,
+      STICKY_SUBEVENT_USER_FUNCTION(&eb._unpack,
+				    &subevent_info->_header,
 				    start, end, src_event->_swapping);
 #endif
     }

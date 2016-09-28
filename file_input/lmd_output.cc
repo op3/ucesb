@@ -1118,7 +1118,7 @@ void lmd_output_file::print_status(double elapsed)
   _last_written = _total_written;
   
   fprintf (stderr,
-	   "\nFile: %s%.1f%sMB/s (%s%.1f%skbuf/s)\r",
+	   "\nFile: %s%.1f%sMB/s (%s%.1f%skbuf/s)   \r",
 	   CT_ERR(BOLD_MAGENTA),
 	   datarate,
 	   CT_ERR(NORM),

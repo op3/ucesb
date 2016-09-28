@@ -390,6 +390,9 @@ void lmd_sticky_store::insert(const lmd_event_out *event,
 	  lmd_sticky_meta_subevent *check_sev =
 	    (lmd_sticky_meta_subevent *) (_meta + _hash[entry]._sub_offset);
 
+	  if (check_sev->_data_offset == -1)
+	    continue; // discarded
+
 	  char *check_raw = _data + check_sev->_data_offset;
 
 	  lmd_subevent_10_1_host *check_sev_header =
