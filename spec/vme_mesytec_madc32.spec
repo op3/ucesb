@@ -24,6 +24,7 @@ VME_MESYTEC_MADC32(geom)
 {
   MEMBER(DATA12_OVERFLOW data[32] ZERO_SUPPRESS);
 
+  MARK_COUNT(start);
   UINT32 header NOENCODE
   {
     0_11:  word_number; // includes end_of_event
@@ -56,4 +57,7 @@ VME_MESYTEC_MADC32(geom)
     0_29:  counter;
     30_31: 0b11;
   }
+
+  MARK_COUNT(end);
+  CHECK_COUNT(header.word_number,start,end,-4,4);
 }
