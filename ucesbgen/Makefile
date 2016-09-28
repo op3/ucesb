@@ -106,8 +106,9 @@ $(GENDIR)/y.tab.c: parser.y $(GENDIR)/parser.y.incfile
 	@echo "  YACC   $@"
 	@mkdir -p $(dir $@)
 	@$(YACC) -d $(YACC_WERROR_FLAG) -o $@ $< || \
-	  $(error "Yacc -W flag unknown, try to compile with"\
-			" '$(MAKE) NO_YACC_WERROR=1'")
+	  (echo "If -W flag unknown, try to compile with" \
+		" '$(MAKE) NO_YACC_WERROR=1'" && \
+	   exit 1 )
 	@touch $(GENDIR)/y.tab.h
 
 $(GENDIR)/y.tab.h: $(GENDIR)/y.tab.c
