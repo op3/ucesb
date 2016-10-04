@@ -269,7 +269,8 @@ public:
 
 class lmd_output_server_con
 {
-
+public:
+  lmd_output_server_con();
 
 public:
   void bind(int mode,int port);
@@ -281,6 +282,8 @@ public:
 
 public:
   int _mode;
+  int _data_port;
+  bool _allow_data;
 
 public:
   int setup_select(int nfd,
@@ -392,8 +395,12 @@ public:
   // until some future buffer, i.e. a few streams may be sent into
   // the big vacuum when a client disconnects
 
+protected:
+  lmd_output_server_con *create_server(int mode, int port,
+				       bool allow_data);
 public:
-  void create_server(int mode,int port);
+  void create_server(int mode, int port, bool dataport,
+		     bool allow_data_on_map_port);
 
 public:
   virtual void close();

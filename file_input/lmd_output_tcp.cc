@@ -835,10 +835,13 @@ void lmd_output_client_con::dump_state()
 
 
 
+lmd_output_server_con::lmd_output_server_con()
+{
+  _socket = -1;
+  _data_port = -1;
+}
 
-
-
-void lmd_output_server_con::bind(int mode,int port)
+void lmd_output_server_con::bind(int mode, int port)
 {
   struct sockaddr_in servAddr;
 
@@ -850,12 +853,15 @@ void lmd_output_server_con::bind(int mode,int port)
   if (_socket < 0)
     ERROR("Could not open server socket.");
 
-  servAddr.sin_family = AF_INET;
-  servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servAddr.sin_port = htons(port);
+  if (port != -1) // otherwise bind to random port (for data)
+    {
+      servAddr.sin_family = AF_INET;
+      servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+      servAddr.sin_port = htons(port);
 
-  if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
-    ERROR("Failure binding server to port %d.",port);
+      if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
+	ERROR("Failure binding server to port %d.",port);
+    }
 
   if (::listen(_socket,3) != 0)
     ERROR("Failure to set server listening on port %d.",port);
@@ -870,12 +876,6 @@ void lmd_output_server_con::bind(int mode,int port)
     }
 
   _mode = mode;
-
-  const char *mode_str[] = { "","stream","trans" };
-
-  assert (_mode && _mode <= 2);
-
-  INFO(0,"Started %s server on port %d",mode_str[_mode],port);
 }
 
 void lmd_output_server_con::close()
@@ -1310,16 +1310,64 @@ void *lmd_output_tcp::server()
 
 
 
-void lmd_output_tcp::create_server(int mode,int port)
+lmd_output_server_con *
+lmd_output_tcp::create_server(int mode, int port, bool allow_data)
 {
-  lmd_output_server_con *server = new lmd_output_server_con();
+  lmd_output_server_con *server = NULL;
+
+  server = new lmd_output_server_con();
 
   if (!server)
     ERROR("Memory allocation failure, could not allocate server control.");
 
   server->bind(mode,port);
 
+  server->_allow_data = allow_data;
+
   _servers.push_back(server);
+
+  return server;
+}
+
+void lmd_output_tcp::create_server(int mode, int port, bool dataport,
+				   bool allow_data_on_map_port)
+{
+  lmd_output_server_con *server_map  = NULL;
+  lmd_output_server_con *server_data = NULL;
+
+  server_map  = create_server(mode, port, allow_data_on_map_port);
+  if (dataport)
+    {
+      server_data = create_server(mode, -1, true);
+
+      // We need to know which port was chosen!
+
+      struct sockaddr_in serv_addr;
+      socklen_t len = sizeof(serv_addr);
+
+      if (::getsockname(server_data->_socket,
+			(struct sockaddr *) &serv_addr,&len) != 0)
+	{
+	  perror("getsockname()");
+	  ERROR("Failure getting data server port number.");
+	}
+
+      if (len != sizeof(serv_addr) ||
+	  serv_addr.sin_family != AF_INET)
+	{
+	  ERROR("Got bad length (%d) or address family (%d) for data socket.",
+		len,serv_addr.sin_family);
+	}
+
+      server_map->_data_port = ntohs(serv_addr.sin_port);
+    }
+
+  const char *mode_str[] = { "","stream","trans" };
+
+  assert (server_map->_mode > 0 && server_map->_mode <= 2);
+
+  INFO(0,"Started %s server on port %d (data port %d)",
+       mode_str[server_map->_mode], port, server_map->_data_port); 
 }
 
 
@@ -1786,9 +1834,14 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
        out_tcp->_flush_interval);
 
   if (stream_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port);
+    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,true,true);
   if (trans_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port);
+    {
+      out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
+      out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
+			     trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
+			     true,false);
+    }
 
   out_tcp->init();
 

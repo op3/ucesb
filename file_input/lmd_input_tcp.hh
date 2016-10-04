@@ -26,9 +26,11 @@
 
 #include <stdlib.h>
 
-#define LMD_TCP_PORT_TRANS    6000
-#define LMD_TCP_PORT_STREAM   6002
-#define LMD_TCP_PORT_EVENT    6003
+#define LMD_TCP_PORT_TRANS          6000
+#define LMD_TCP_PORT_STREAM         6002
+#define LMD_TCP_PORT_EVENT          6003
+
+#define LMD_TCP_PORT_TRANS_MAP_ADD  1234
 
 struct ltcp_filter_opcode
 {
