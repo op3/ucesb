@@ -122,6 +122,7 @@ public:
 
   void new_buffer(size_t lie_about_used_when_large_dlen = 0);
   void send_buffer(size_t lie_about_used_when_large_dlen = 0);
+  void mark_close_buffer();
 
   virtual void print_status(double elapsed) = 0;
 

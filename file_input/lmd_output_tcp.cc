@@ -1396,6 +1396,17 @@ void lmd_output_tcp::init()
   _active = true;
 }
 
+void lmd_output_tcp::send_last_buffer()
+{
+  while (_state._fill_stream->_filled + _state._buf_size <
+	 _state._fill_stream->_max_fill)
+    new_buffer();
+
+  // make sure the last buffer gets sent...
+
+  send_buffer();
+}
+
 void lmd_output_tcp::close()
 {
   if (_active)
@@ -1407,11 +1418,15 @@ void lmd_output_tcp::close()
 	  while (_state._fill_stream->_filled + _state._buf_size <
 		 _state._fill_stream->_max_fill)
 	    new_buffer();
-
-	  // make sure the last buffer gets sent...
-
-	  send_buffer();
 	}
+
+      // Inject an empty buffer with l_evt negative to tell children
+      // to close.  For stream server, it must be marked in the first
+      // buffer of the stream.
+
+      new_buffer();
+      mark_close_buffer();
+      send_last_buffer();
 
       // Tell the server that it should shut down
 

@@ -404,6 +404,9 @@ public:
   void create_server(int mode, int port, bool dataport,
 		     bool allow_data_on_map_port);
 
+protected:
+  void send_last_buffer();
+
 public:
   virtual void close();
 
