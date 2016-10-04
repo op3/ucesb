@@ -1733,6 +1733,7 @@ void lmd_server_usage()
   printf ("flush=N             Flush interval (s).\n");
   printf ("hold                Wait for clients, no data discarded.\n");
   printf ("sendonce            Only one receiver per stream, for fan-out.\n");
+  printf ("forcemap            No data transmission on fixed port (avoid timeout on bind).\n");
   printf ("\n");
 }
 
@@ -1749,6 +1750,7 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 
   int stream_port = -1;
   int trans_port = -1;
+  bool forcemap = false;
 
   uint64 max_size = LMD_OUTPUT_DEFAULT_MAX_BUF;
 
@@ -1783,6 +1785,8 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 	out_tcp->_hold = true;
       else if (MATCH_C_ARG("sendonce"))
 	out_tcp->_state._sendonce = true;
+      else if (MATCH_C_ARG("forcemap"))
+	forcemap = true;
       else if (MATCH_C_PREFIX("bufsize=",post))
 	{
 	  out_tcp->_state._buf_size =
@@ -1834,10 +1838,12 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
        out_tcp->_flush_interval);
 
   if (stream_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,true,true);
+    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,true,
+			   forcemap ? false : true);
   if (trans_port != -1)
     {
-      out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
+      if (!forcemap)
+	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
       out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
 			     trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
 			     true,false);
