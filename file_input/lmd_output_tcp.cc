@@ -482,11 +482,12 @@ void lmd_output_state::dump_state()
 
 
 
-lmd_output_client_con::lmd_output_client_con(int fd,int mode,
+lmd_output_client_con::lmd_output_client_con(int fd,
+					     lmd_output_server_con *server_con,
 					     lmd_output_state *data)
 {
   _fd   = fd;
-  _mode = mode;
+  _server_con = server_con;
 
   _data = data;
 
@@ -632,6 +633,12 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       info.bufs_per_stream = tcp_server->_state._stream_bufs;
       info.streams = 1; // we have a variable number of streams...
 
+      if (_server_con->_data_port != -1)
+	{
+	  // We use the dummy field to transmit the port number
+	  info.streams = LMD_PORT_MAP_MARK | _server_con->_data_port;
+	}
+
       // we abuse the _offset field to remember how much of the info
       // buffer has been sent so far...
 
@@ -671,7 +678,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	  // We've sent the info, go into next state...
 	  _offset = 0;
 
-	  if (_mode == LMD_OUTPUT_STREAM_SERVER)
+	  if (_server_con->_mode == LMD_OUTPUT_STREAM_SERVER)
 	    _state = LOCC_STATE_REQUEST_WAIT;
 	  else
 	    {
@@ -682,7 +689,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       break;
 
     case LOCC_STATE_REQUEST_WAIT:
-      assert(_mode == LMD_OUTPUT_STREAM_SERVER);
+      assert(_server_con->_mode == LMD_OUTPUT_STREAM_SERVER);
 
       if (!FD_ISSET(_fd,readfds))
 	return true;
@@ -768,7 +775,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
 	  if (_current->_filled >= _current->_max_fill)
 	    {
-	      if (_mode == LMD_OUTPUT_STREAM_SERVER)
+	      if (_server_con->_mode == LMD_OUTPUT_STREAM_SERVER)
 		{
 		  // We'll change buffer only after we got the
 		  // request...
@@ -777,7 +784,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 		}
 	      else
 		{
-		  assert(_mode == LMD_OUTPUT_TRANS_SERVER);
+		  assert(_server_con->_mode == LMD_OUTPUT_TRANS_SERVER);
 
 		  // This stream will never get more data, find ourselves
 		  // a new one...
@@ -826,7 +833,7 @@ void lmd_output_client_con::close()
 
 void lmd_output_client_con::dump_state()
 {
-  printf ("Client: mode=%d state=%d ",_mode,_state);
+  printf ("Client: mode=%d state=%d ",_server_con->_mode,_state);
   if (_current)
     printf ("%2d(off:%6d)",_current->_alloc_stream_no,(int)_offset);
 
@@ -946,7 +953,7 @@ bool lmd_output_server_con::after_select(fd_set *readfds,fd_set *writefds,
   // ok, so we got a connection...
 
   lmd_output_client_con *client =
-    new lmd_output_client_con(client_fd,_mode,&tcp_server->_state);
+    new lmd_output_client_con(client_fd,this,&tcp_server->_state);
 
   if (!client)
     ERROR("Memory allocation failure, could not allocate client control.");

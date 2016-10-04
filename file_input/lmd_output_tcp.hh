@@ -215,18 +215,18 @@ public:
 
 
 class lmd_output_tcp;
+class lmd_output_server_con;
 
 class lmd_output_client_con
 {
 public:
-  lmd_output_client_con(int fd,int mode,lmd_output_state *data);
+  lmd_output_client_con(int fd, lmd_output_server_con *server_con,
+			lmd_output_state *data);
 
 public:
   int _fd;
 
   int _state;
-
-  int _mode;
 
   struct request
   {
@@ -244,6 +244,8 @@ public:
   lmd_output_state  *_data;
 
   struct sockaddr_in _cliAddr;
+
+  lmd_output_server_con *_server_con;
 
 protected:
   void next_stream(lmd_output_tcp *tcp_server);
@@ -273,7 +275,7 @@ public:
   lmd_output_server_con();
 
 public:
-  void bind(int mode,int port);
+  void bind(int mode, int port);
 
   void close();
 

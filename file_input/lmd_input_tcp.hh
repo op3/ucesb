@@ -32,6 +32,8 @@
 
 #define LMD_TCP_PORT_TRANS_MAP_ADD  1234
 
+#define LMD_PORT_MAP_MARK         0x50540000
+
 struct ltcp_filter_opcode
 {
 #if __BYTE_ORDER == __BIG_ENDIAN
