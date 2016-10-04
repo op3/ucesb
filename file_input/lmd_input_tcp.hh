@@ -201,7 +201,7 @@ public:
 protected:
   size_t read_info();
 
-  size_t read_buffer(void *buf,size_t count,int *nbufs = NULL);
+  size_t read_buffer(void *buf,size_t count,int *nbufs);
 
 };
 

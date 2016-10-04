@@ -723,8 +723,7 @@ size_t lmd_input_tcp_buffer::read_info()
 size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 					 int *nbufs)
 {
-  if (nbufs)
-    *nbufs = 0;
+  *nbufs = 0;
 
   if (count < _info.bufsize)
     {
@@ -788,14 +787,16 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
   // The buffer number seems to be quite random...
 
-  if (nbufs)
-    *nbufs = 1;
+  *nbufs = 1;
 
   if (((sint32*) buffer_header)[2] == 0 && // used, end, begin
       buffer_header->l_evt == 0)
     {
       return 0;
     }
+
+  if (((sint32) buffer_header->l_evt) < 0)
+    *nbufs = -1;
 
   return _info.bufsize;
 }
@@ -827,6 +828,12 @@ size_t lmd_input_tcp_transport::get_buffer(void *buf,size_t count)
       int nbufs;
 
       size_t n = lmd_input_tcp_buffer::read_buffer(buf,count,&nbufs);
+
+      if (nbufs == -1)
+	{
+	  WARNING("Got disconnect buffer from tcp transport.");
+	  return 0;
+	}
 
       if (n)
 	return n;
@@ -909,6 +916,12 @@ size_t lmd_input_tcp_stream::get_buffer(void *buf,size_t count)
 	  int nbufs;
 
 	  size_t n = lmd_input_tcp_buffer::read_buffer(buf,count,&nbufs);
+
+	  if (nbufs == -1)
+	    {
+	      WARNING("Got disconnect buffer from stream transport.");
+	      return 0;
+	    }
 
 	  _buffers_to_read -= nbufs;
 
