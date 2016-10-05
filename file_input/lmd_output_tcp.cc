@@ -513,6 +513,7 @@ int lmd_output_client_con::setup_select(int nfd,
   switch (_state)
     {
     case LOCC_STATE_REQUEST_WAIT:
+    case LOCC_STATE_CLOSE_WAIT:
       FD_SET(_fd,readfds);
       if (_fd > nfd)
 	nfd = _fd;
@@ -675,6 +676,12 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       if (_offset >= sizeof (ltcp_stream_trans_open_info))
 	{
+	  if (!_server_con->_allow_data)
+	    {
+	      gettimeofday(&_close_beginwait,NULL);
+	      _state = LOCC_STATE_CLOSE_WAIT;
+	    }
+	  
 	  // We've sent the info, go into next state...
 	  _offset = 0;
 
@@ -801,6 +808,36 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	      _state = LOCC_STATE_BUFFER_WAIT;
 	    }
 	}
+      break;
+    
+    case LOCC_STATE_CLOSE_WAIT:
+      // Note: there is no need to go into this state after we are out
+      // of streams to send, i.e. after the disconnect request buffer
+      // has been sent.  Since we only reach that end when wanting to
+      // shut down, we will in a few seconds tear the connection down
+      // unless the client does so first.  Either way, we would not
+      // gain anything by us timing out a second earlier perhaps and
+      // tearing it down.  (We need to client to do the first close to
+      // not end up in network timeouts.)
+
+      // We do get here to tear down pure portmap connections though.
+
+      // If the timeout has passed, we close the connection.
+
+      struct timeval now;
+
+      gettimeofday(&now,NULL);
+      
+      if (now.tv_sec < _close_beginwait.tv_sec ||
+	  now.tv_sec > _close_beginwait.tv_sec + 1)
+	return false;
+      
+      // If the connection is ready for reading, either the client is
+      // writing garbage to us, or actually did close.  In any case:
+      // close the connection.
+      
+      if (FD_ISSET(_fd,readfds))
+	return false;
 
       break;
     }

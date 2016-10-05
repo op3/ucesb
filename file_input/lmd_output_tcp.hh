@@ -210,8 +210,7 @@ public:
 #define LOCC_STATE_STREAM_WAIT    3  // waiting for data in a stream
 #define LOCC_STATE_BUFFER_WAIT    4  // waiting for data in a buffer
 #define LOCC_STATE_SEND_WAIT      5
-
-
+#define LOCC_STATE_CLOSE_WAIT     6  // wait (timeout) for othe end to close
 
 
 class lmd_output_tcp;
@@ -246,6 +245,8 @@ public:
   struct sockaddr_in _cliAddr;
 
   lmd_output_server_con *_server_con;
+
+  struct timeval _close_beginwait;
 
 protected:
   void next_stream(lmd_output_tcp *tcp_server);
