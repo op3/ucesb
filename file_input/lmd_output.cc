@@ -520,6 +520,12 @@ void lmd_output_file::get_buffer()
 
 
 
+void lmd_output_buffered::mark_close_buffer()
+{
+  assert(_buffer_header.l_evt == 0);
+  _buffer_header.l_evt = (uint32_t) -1;
+}
+
 void lmd_output_buffered::send_buffer(size_t lie_about_used_when_large_dlen)
 {
   // Write the current buffer to file.
@@ -898,6 +904,7 @@ void lmd_output_buffered::write_event(const lmd_event_out *event,
 	  _buffer_header.i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
 	  _buffer_header.i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
 	}
+      assert(_buffer_header.l_evt != (uint32_t) -1);
       _buffer_header.l_evt++; // we write another fragment
 
       _buffer_header.h_begin = 1; // this buffer has an unfinished event
@@ -938,6 +945,7 @@ void lmd_output_buffered::write_event(const lmd_event_out *event,
       _buffer_header.i_type    = LMD_BUF_HEADER_HAS_STICKY_TYPE;
       _buffer_header.i_subtype = LMD_BUF_HEADER_HAS_STICKY_SUBTYPE;
     }
+  assert(_buffer_header.l_evt != (uint32_t) -1);
   _buffer_header.l_evt++; // we write another fragment
 
   while (flush_buffer())

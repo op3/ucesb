@@ -26,9 +26,15 @@
 
 #include <stdlib.h>
 
-#define LMD_TCP_PORT_TRANS    6000
-#define LMD_TCP_PORT_STREAM   6002
-#define LMD_TCP_PORT_EVENT    6003
+#define LMD_TCP_PORT_TRANS          6000
+#define LMD_TCP_PORT_STREAM         6002
+#define LMD_TCP_PORT_EVENT          6003
+
+#define LMD_TCP_PORT_TRANS_MAP_ADD  1234
+
+#define LMD_PORT_MAP_MARK         0x50540000
+#define LMD_PORT_MAP_MARK_MASK    0xffff0000
+#define LMD_PORT_MAP_PORT_MASK    0x0000ffff
 
 struct ltcp_filter_opcode
 {
@@ -167,8 +173,8 @@ public:
   int _fd;
 
 protected:
-  void open_connection(const char *server,
-		       int port);
+  bool open_connection(const char *server,
+		       int port, bool error_on_failure);
   void close_connection();
 
   void do_read(void *buf,size_t count,int timeout = -1);
@@ -195,9 +201,12 @@ public:
   ltcp_stream_trans_open_info _info;
 
 protected:
-  size_t read_info();
+  size_t read_info(int *data_port);
 
-  size_t read_buffer(void *buf,size_t count,int *nbufs = NULL);
+  size_t read_buffer(void *buf,size_t count,int *nbufs);
+
+protected:
+  size_t do_map_connect(const char *server, int port_map, int port);
 
 };
 

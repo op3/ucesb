@@ -482,11 +482,12 @@ void lmd_output_state::dump_state()
 
 
 
-lmd_output_client_con::lmd_output_client_con(int fd,int mode,
+lmd_output_client_con::lmd_output_client_con(int fd,
+					     lmd_output_server_con *server_con,
 					     lmd_output_state *data)
 {
   _fd   = fd;
-  _mode = mode;
+  _server_con = server_con;
 
   _data = data;
 
@@ -512,6 +513,7 @@ int lmd_output_client_con::setup_select(int nfd,
   switch (_state)
     {
     case LOCC_STATE_REQUEST_WAIT:
+    case LOCC_STATE_CLOSE_WAIT:
       FD_SET(_fd,readfds);
       if (_fd > nfd)
 	nfd = _fd;
@@ -632,6 +634,21 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       info.bufs_per_stream = tcp_server->_state._stream_bufs;
       info.streams = 1; // we have a variable number of streams...
 
+      if (!_server_con->_allow_data)
+	{
+	  // Put nasty data in the struct, to hint the client that bad
+	  // things will happen.
+	  info.bufsize = (uint32_t) -1;
+	  info.bufs_per_stream = 0;
+	}
+
+      if (_server_con->_data_port != -1)
+	{
+	  // We use the dummy field to transmit the port number
+	  info.streams = LMD_PORT_MAP_MARK | _server_con->_data_port;
+	}
+
+
       // we abuse the _offset field to remember how much of the info
       // buffer has been sent so far...
 
@@ -668,10 +685,17 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
       if (_offset >= sizeof (ltcp_stream_trans_open_info))
 	{
+	  if (!_server_con->_allow_data)
+	    {
+	      gettimeofday(&_close_beginwait,NULL);
+	      _state = LOCC_STATE_CLOSE_WAIT;
+	      return true;
+	    }
+	  
 	  // We've sent the info, go into next state...
 	  _offset = 0;
 
-	  if (_mode == LMD_OUTPUT_STREAM_SERVER)
+	  if (_server_con->_mode == LMD_OUTPUT_STREAM_SERVER)
 	    _state = LOCC_STATE_REQUEST_WAIT;
 	  else
 	    {
@@ -682,7 +706,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       break;
 
     case LOCC_STATE_REQUEST_WAIT:
-      assert(_mode == LMD_OUTPUT_STREAM_SERVER);
+      assert(_server_con->_mode == LMD_OUTPUT_STREAM_SERVER);
 
       if (!FD_ISSET(_fd,readfds))
 	return true;
@@ -768,7 +792,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 
 	  if (_current->_filled >= _current->_max_fill)
 	    {
-	      if (_mode == LMD_OUTPUT_STREAM_SERVER)
+	      if (_server_con->_mode == LMD_OUTPUT_STREAM_SERVER)
 		{
 		  // We'll change buffer only after we got the
 		  // request...
@@ -777,7 +801,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 		}
 	      else
 		{
-		  assert(_mode == LMD_OUTPUT_TRANS_SERVER);
+		  assert(_server_con->_mode == LMD_OUTPUT_TRANS_SERVER);
 
 		  // This stream will never get more data, find ourselves
 		  // a new one...
@@ -794,6 +818,36 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	      _state = LOCC_STATE_BUFFER_WAIT;
 	    }
 	}
+      break;
+    
+    case LOCC_STATE_CLOSE_WAIT:
+      // Note: there is no need to go into this state after we are out
+      // of streams to send, i.e. after the disconnect request buffer
+      // has been sent.  Since we only reach that end when wanting to
+      // shut down, we will in a few seconds tear the connection down
+      // unless the client does so first.  Either way, we would not
+      // gain anything by us timing out a second earlier perhaps and
+      // tearing it down.  (We need to client to do the first close to
+      // not end up in network timeouts.)
+
+      // We do get here to tear down pure portmap connections though.
+
+      // If the timeout has passed, we close the connection.
+
+      struct timeval now;
+
+      gettimeofday(&now,NULL);
+      
+      if (now.tv_sec < _close_beginwait.tv_sec ||
+	  now.tv_sec > _close_beginwait.tv_sec + 1)
+	return false;
+      
+      // If the connection is ready for reading, either the client is
+      // writing garbage to us, or actually did close.  In any case:
+      // close the connection.
+      
+      if (FD_ISSET(_fd,readfds))
+	return false;
 
       break;
     }
@@ -826,7 +880,7 @@ void lmd_output_client_con::close()
 
 void lmd_output_client_con::dump_state()
 {
-  printf ("Client: mode=%d state=%d ",_mode,_state);
+  printf ("Client: mode=%d state=%d ",_server_con->_mode,_state);
   if (_current)
     printf ("%2d(off:%6d)",_current->_alloc_stream_no,(int)_offset);
 
@@ -835,10 +889,13 @@ void lmd_output_client_con::dump_state()
 
 
 
+lmd_output_server_con::lmd_output_server_con()
+{
+  _socket = -1;
+  _data_port = -1;
+}
 
-
-
-void lmd_output_server_con::bind(int mode,int port)
+void lmd_output_server_con::bind(int mode, int port)
 {
   struct sockaddr_in servAddr;
 
@@ -850,12 +907,15 @@ void lmd_output_server_con::bind(int mode,int port)
   if (_socket < 0)
     ERROR("Could not open server socket.");
 
-  servAddr.sin_family = AF_INET;
-  servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servAddr.sin_port = htons(port);
+  if (port != -1) // otherwise bind to random port (for data)
+    {
+      servAddr.sin_family = AF_INET;
+      servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+      servAddr.sin_port = htons(port);
 
-  if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
-    ERROR("Failure binding server to port %d.",port);
+      if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
+	ERROR("Failure binding server to port %d.",port);
+    }
 
   if (::listen(_socket,3) != 0)
     ERROR("Failure to set server listening on port %d.",port);
@@ -870,12 +930,6 @@ void lmd_output_server_con::bind(int mode,int port)
     }
 
   _mode = mode;
-
-  const char *mode_str[] = { "","stream","trans" };
-
-  assert (_mode && _mode <= 2);
-
-  INFO(0,"Started %s server on port %d",mode_str[_mode],port);
 }
 
 void lmd_output_server_con::close()
@@ -946,7 +1000,7 @@ bool lmd_output_server_con::after_select(fd_set *readfds,fd_set *writefds,
   // ok, so we got a connection...
 
   lmd_output_client_con *client =
-    new lmd_output_client_con(client_fd,_mode,&tcp_server->_state);
+    new lmd_output_client_con(client_fd,this,&tcp_server->_state);
 
   if (!client)
     ERROR("Memory allocation failure, could not allocate client control.");
@@ -1310,16 +1364,64 @@ void *lmd_output_tcp::server()
 
 
 
-void lmd_output_tcp::create_server(int mode,int port)
+lmd_output_server_con *
+lmd_output_tcp::create_server(int mode, int port, bool allow_data)
 {
-  lmd_output_server_con *server = new lmd_output_server_con();
+  lmd_output_server_con *server = NULL;
+
+  server = new lmd_output_server_con();
 
   if (!server)
     ERROR("Memory allocation failure, could not allocate server control.");
 
   server->bind(mode,port);
 
+  server->_allow_data = allow_data;
+
   _servers.push_back(server);
+
+  return server;
+}
+
+void lmd_output_tcp::create_server(int mode, int port, bool dataport,
+				   bool allow_data_on_map_port)
+{
+  lmd_output_server_con *server_map  = NULL;
+  lmd_output_server_con *server_data = NULL;
+
+  server_map  = create_server(mode, port, allow_data_on_map_port);
+  if (dataport)
+    {
+      server_data = create_server(mode, -1, true);
+
+      // We need to know which port was chosen!
+
+      struct sockaddr_in serv_addr;
+      socklen_t len = sizeof(serv_addr);
+
+      if (::getsockname(server_data->_socket,
+			(struct sockaddr *) &serv_addr,&len) != 0)
+	{
+	  perror("getsockname()");
+	  ERROR("Failure getting data server port number.");
+	}
+
+      if (len != sizeof(serv_addr) ||
+	  serv_addr.sin_family != AF_INET)
+	{
+	  ERROR("Got bad length (%d) or address family (%d) for data socket.",
+		len,serv_addr.sin_family);
+	}
+
+      server_map->_data_port = ntohs(serv_addr.sin_port);
+    }
+
+  const char *mode_str[] = { "","stream","trans" };
+
+  assert (server_map->_mode > 0 && server_map->_mode <= 2);
+
+  INFO(0,"Started %s server on port %d (data port %d)",
+       mode_str[server_map->_mode], port, server_map->_data_port); 
 }
 
 
@@ -1341,6 +1443,17 @@ void lmd_output_tcp::init()
   _active = true;
 }
 
+void lmd_output_tcp::send_last_buffer()
+{
+  while (_state._fill_stream->_filled + _state._buf_size <
+	 _state._fill_stream->_max_fill)
+    new_buffer();
+
+  // make sure the last buffer gets sent...
+
+  send_buffer();
+}
+
 void lmd_output_tcp::close()
 {
   if (_active)
@@ -1352,11 +1465,15 @@ void lmd_output_tcp::close()
 	  while (_state._fill_stream->_filled + _state._buf_size <
 		 _state._fill_stream->_max_fill)
 	    new_buffer();
-
-	  // make sure the last buffer gets sent...
-
-	  send_buffer();
 	}
+
+      // Inject an empty buffer with l_evt negative to tell children
+      // to close.  For stream server, it must be marked in the first
+      // buffer of the stream.
+
+      new_buffer();
+      mark_close_buffer();
+      send_last_buffer();
 
       // Tell the server that it should shut down
 
@@ -1685,6 +1802,7 @@ void lmd_server_usage()
   printf ("flush=N             Flush interval (s).\n");
   printf ("hold                Wait for clients, no data discarded.\n");
   printf ("sendonce            Only one receiver per stream, for fan-out.\n");
+  printf ("forcemap            No data transmission on fixed port (avoid timeout on bind).\n");
   printf ("\n");
 }
 
@@ -1701,6 +1819,7 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 
   int stream_port = -1;
   int trans_port = -1;
+  bool forcemap = false;
 
   uint64 max_size = LMD_OUTPUT_DEFAULT_MAX_BUF;
 
@@ -1735,6 +1854,8 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 	out_tcp->_hold = true;
       else if (MATCH_C_ARG("sendonce"))
 	out_tcp->_state._sendonce = true;
+      else if (MATCH_C_ARG("forcemap"))
+	forcemap = true;
       else if (MATCH_C_PREFIX("bufsize=",post))
 	{
 	  out_tcp->_state._buf_size =
@@ -1786,9 +1907,16 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
        out_tcp->_flush_interval);
 
   if (stream_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port);
+    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,true,
+			   forcemap ? false : true);
   if (trans_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port);
+    {
+      if (!forcemap)
+	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
+      out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
+			     trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
+			     true,false);
+    }
 
   out_tcp->init();
 
