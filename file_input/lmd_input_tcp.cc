@@ -703,6 +703,12 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
 	  _info.bufs_per_stream,
 	  _info.streams);
   */
+  if (_info.bufsize == (uint32_t) -1)
+    {
+      // This should not happen to us!, since we know how to interpret the map
+      ERROR("Buffer size -1, hint that only port mapped clients allowed.");
+    }
+
   if (_info.bufsize % 1024)
     ERROR("Buffer size not multiple of 1024.");
 

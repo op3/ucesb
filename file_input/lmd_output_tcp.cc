@@ -634,11 +634,20 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       info.bufs_per_stream = tcp_server->_state._stream_bufs;
       info.streams = 1; // we have a variable number of streams...
 
+      if (!_server_con->_allow_data)
+	{
+	  // Put nasty data in the struct, to hint the client that bad
+	  // things will happen.
+	  info.bufsize = (uint32_t) -1;
+	  info.bufs_per_stream = 0;
+	}
+
       if (_server_con->_data_port != -1)
 	{
 	  // We use the dummy field to transmit the port number
 	  info.streams = LMD_PORT_MAP_MARK | _server_con->_data_port;
 	}
+
 
       // we abuse the _offset field to remember how much of the info
       // buffer has been sent so far...
@@ -680,6 +689,7 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
 	    {
 	      gettimeofday(&_close_beginwait,NULL);
 	      _state = LOCC_STATE_CLOSE_WAIT;
+	      return true;
 	    }
 	  
 	  // We've sent the info, go into next state...
