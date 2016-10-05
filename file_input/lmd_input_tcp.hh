@@ -33,6 +33,8 @@
 #define LMD_TCP_PORT_TRANS_MAP_ADD  1234
 
 #define LMD_PORT_MAP_MARK         0x50540000
+#define LMD_PORT_MAP_MARK_MASK    0xffff0000
+#define LMD_PORT_MAP_PORT_MASK    0x0000ffff
 
 struct ltcp_filter_opcode
 {
@@ -199,7 +201,7 @@ public:
   ltcp_stream_trans_open_info _info;
 
 protected:
-  size_t read_info();
+  size_t read_info(int *data_port);
 
   size_t read_buffer(void *buf,size_t count,int *nbufs);
 

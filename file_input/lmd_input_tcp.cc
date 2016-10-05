@@ -343,8 +343,10 @@ void lmd_input_tcp::open_connection(const char *server,
     return;
   }
 
-  INFO(0,"Server '%s' known... (IP : %s).", h->h_name,
-       inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));
+  INFO(0,"Server '%s' known... (IP : %s) (port: %d).",
+       h->h_name,
+       inet_ntoa(*(struct in_addr *)h->h_addr_list[0]),
+       port);
 
   /* socket creation */
   _fd = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
@@ -353,7 +355,6 @@ void lmd_input_tcp::open_connection(const char *server,
     return;
   }
 
-  /* bind any port */
   serv_addr.sin_family = (sa_family_t) h->h_addrtype;
   memcpy((char *) &serv_addr.sin_addr.s_addr,
 	 h->h_addr_list[0], (size_t) h->h_length);
@@ -662,8 +663,10 @@ void lmd_input_tcp::create_dummy_buffer(void *buf,size_t count,
 
 
 
-size_t lmd_input_tcp_buffer::read_info()
+size_t lmd_input_tcp_buffer::read_info(int *data_port)
 {
+  *data_port = -1;
+  
   do_read(&_info,sizeof(_info));
 
   // ltcp_stream_trans_open_info _info;
@@ -685,6 +688,13 @@ size_t lmd_input_tcp_buffer::read_info()
       ERROR("Buffer info endian marker broken: %08x",_info.testbit);
       break;
     }
+
+  if ((_info.streams & LMD_PORT_MAP_MARK_MASK) == LMD_PORT_MAP_MARK)
+    {
+      *data_port = _info.streams & LMD_PORT_MAP_PORT_MASK;
+      return 0;
+    }
+  
   /*
   printf ("info: tb: %08x bs: %08x bps: %08x dmy: %08x\n",
 	  _info.testbit,
@@ -805,8 +815,10 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
 size_t lmd_input_tcp_transport::connect(const char *server)
 {
+  int data_port;
+  
   lmd_input_tcp_buffer::open_connection(server,LMD_TCP_PORT_TRANS);
-  return lmd_input_tcp_buffer::read_info();
+  return lmd_input_tcp_buffer::read_info(&data_port);
 }
 
 void lmd_input_tcp_transport::close()
@@ -860,8 +872,20 @@ lmd_input_tcp_stream::lmd_input_tcp_stream()
 
 size_t lmd_input_tcp_stream::connect(const char *server)
 {
+  int data_port;
+  size_t ret;
+  
   lmd_input_tcp_buffer::open_connection(server,LMD_TCP_PORT_STREAM);
-  return lmd_input_tcp_buffer::read_info();
+  ret = lmd_input_tcp_buffer::read_info(&data_port);
+
+  if (data_port != -1)
+    {
+      lmd_input_tcp_buffer::close_connection();
+      lmd_input_tcp_buffer::open_connection(server,data_port);
+      ret = lmd_input_tcp_buffer::read_info(&data_port);
+    }
+
+  return ret;
 }
 
 void lmd_input_tcp_stream::close()
