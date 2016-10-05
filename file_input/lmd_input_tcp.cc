@@ -313,8 +313,8 @@ lmd_input_tcp::~lmd_input_tcp()
 
 #define max(x,y) ((x)>(y)?(x):(y))
 
-void lmd_input_tcp::open_connection(const char *server,
-				    int port)
+bool lmd_input_tcp::open_connection(const char *server,
+				    int port, bool error_on_failure)
 {
   int rc;
   struct sockaddr_in serv_addr;
@@ -340,7 +340,7 @@ void lmd_input_tcp::open_connection(const char *server,
   }
   if(h==NULL) {
     ERROR("Unknown host '%s'.",server);
-    return;
+    return false;
   }
 
   INFO(0,"Server '%s' known... (IP : %s) (port: %d).",
@@ -352,7 +352,7 @@ void lmd_input_tcp::open_connection(const char *server,
   _fd = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
   if (_fd < 0) {
     ERROR("Cannot open socket.");
-    return;
+    return false;
   }
 
   serv_addr.sin_family = (sa_family_t) h->h_addrtype;
@@ -439,12 +439,15 @@ void lmd_input_tcp::open_connection(const char *server,
 	  goto connect_success;
 	errno = connect_errno;
       }
-    perror("connect()");
-    ERROR("Cannot connect to port.");
-    return;
+    if (error_on_failure)
+      {
+	perror("connect()");
+	ERROR("Cannot connect to port.");
+      }
+    return false;
   }
  connect_success:;
-
+  return true;
 }
 
 
@@ -665,8 +668,6 @@ void lmd_input_tcp::create_dummy_buffer(void *buf,size_t count,
 
 size_t lmd_input_tcp_buffer::read_info(int *data_port)
 {
-  *data_port = -1;
-  
   do_read(&_info,sizeof(_info));
 
   // ltcp_stream_trans_open_info _info;
@@ -813,12 +814,43 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
 /////////////////////////////////////////////////////////////////////
 
+size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
+					    int port_map, int port)
+{
+  int data_port = -1;
+  size_t ret;
+
+  if (port_map != -1)
+    {
+      // First try with port that only might provide mapping.
+
+      if (lmd_input_tcp_buffer::open_connection(server, port_map, false))
+	ret = lmd_input_tcp_buffer::read_info(&data_port);
+    }
+
+  if (data_port == -1)
+    {
+      lmd_input_tcp_buffer::open_connection(server, port, true);
+      ret = lmd_input_tcp_buffer::read_info(&data_port);
+    }
+
+  if (data_port != -1)
+    {
+      lmd_input_tcp_buffer::close_connection();
+      lmd_input_tcp_buffer::open_connection(server, data_port, true);
+      ret = lmd_input_tcp_buffer::read_info(&data_port);
+    }
+
+  return ret;
+}
+
+/////////////////////////////////////////////////////////////////////
+
 size_t lmd_input_tcp_transport::connect(const char *server)
 {
-  int data_port;
-  
-  lmd_input_tcp_buffer::open_connection(server,LMD_TCP_PORT_TRANS);
-  return lmd_input_tcp_buffer::read_info(&data_port);
+  return do_map_connect(server,
+			LMD_TCP_PORT_TRANS + LMD_TCP_PORT_TRANS_MAP_ADD,
+			LMD_TCP_PORT_TRANS);
 }
 
 void lmd_input_tcp_transport::close()
@@ -872,20 +904,7 @@ lmd_input_tcp_stream::lmd_input_tcp_stream()
 
 size_t lmd_input_tcp_stream::connect(const char *server)
 {
-  int data_port;
-  size_t ret;
-  
-  lmd_input_tcp_buffer::open_connection(server,LMD_TCP_PORT_STREAM);
-  ret = lmd_input_tcp_buffer::read_info(&data_port);
-
-  if (data_port != -1)
-    {
-      lmd_input_tcp_buffer::close_connection();
-      lmd_input_tcp_buffer::open_connection(server,data_port);
-      ret = lmd_input_tcp_buffer::read_info(&data_port);
-    }
-
-  return ret;
+  return do_map_connect(server, -1, LMD_TCP_PORT_STREAM);
 }
 
 void lmd_input_tcp_stream::close()
@@ -1130,7 +1149,7 @@ void lmd_input_tcp_event::send_acknowledge()
 size_t lmd_input_tcp_event::connect(const char *server)
 {
   // First establish connection
-  lmd_input_tcp::open_connection(server,LMD_TCP_PORT_EVENT);
+  lmd_input_tcp::open_connection(server, -1, LMD_TCP_PORT_EVENT);
 
   // Then we are to setup, specify and send a filter description...
 

@@ -173,8 +173,8 @@ public:
   int _fd;
 
 protected:
-  void open_connection(const char *server,
-		       int port);
+  bool open_connection(const char *server,
+		       int port, bool error_on_failure);
   void close_connection();
 
   void do_read(void *buf,size_t count,int timeout = -1);
@@ -204,6 +204,9 @@ protected:
   size_t read_info(int *data_port);
 
   size_t read_buffer(void *buf,size_t count,int *nbufs);
+
+protected:
+  size_t do_map_connect(const char *server, int port_map, int port);
 
 };
 
