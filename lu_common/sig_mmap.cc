@@ -23,6 +23,7 @@
 
 #include <errno.h>
 #include <unistd.h>
+#include <stdint.h>
 
 sig_mmap_info *_mmap_infos = NULL;
 
@@ -93,8 +94,8 @@ void sig_diagnose_mmap(void *fault_addr)
 	  off_t file_offset = (off_t) map_offset + info->_offset;
 
 	  WARNING("Received SIGBUS signal for memory address of mmap'ed file "
-		  "(fd = %d, file offset %zd).",
-		  info->_fd, file_offset);
+		  "(fd = %d, file offset %jd).",
+		  info->_fd, (uintmax_t) file_offset);
 	  WARNING("Likely cause: file was truncated, or I/O error.  "
 		  "Trying normal read for diagnostics.");
 
@@ -126,12 +127,12 @@ void sig_diagnose_mmap(void *fault_addr)
 	  if (ret == -1)
 	    {
 	      perror("read");
-	      WARNING("Reading at offset %zd failed.", file_offset);
+	      WARNING("Reading at offset %jd failed.", (uintmax_t) file_offset);
 	    }
 	  else
 	    {
-	      INFO(0, "Successfully read %zd bytes at offset %zd.",
-		   ret, file_offset);
+	      INFO(0, "Successfully read %zd bytes at offset %jd.",
+		   ret, (uintmax_t) file_offset);
 	    }
 
 	  return;
