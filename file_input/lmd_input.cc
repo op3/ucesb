@@ -399,7 +399,8 @@ bool lmd_source::read_record(bool expect_fragment)
       if (_buffer_header.i_used != 0 &&
 	  !(_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
 	    _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE &&
-	    BUFFER_USED_FROM_IUSED((uint) (ushort) _buffer_header.i_used) ==
+	    (ssize_t) BUFFER_USED_FROM_IUSED((uint) (ushort)
+					     _buffer_header.i_used) ==
 	    file_header_used_size))
 	ERROR("Used buffer space double defined differently (large buffer) "
 	      "(i_used:%d, l_free[2]:%d)",
