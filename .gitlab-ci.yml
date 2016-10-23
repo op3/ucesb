@@ -1,0 +1,201 @@
+stages:
+  - build
+
+############################################
+#               COMMON                     #
+############################################
+
+.common: &common
+  stage: build
+  tags:
+   - docker
+
+.build: &build
+  script:
+    - JOB_NAME=( $CI_BUILD_NAME )
+    - export CC=${JOB_NAME[2]}
+    - export CXX=${JOB_NAME[3]}
+    - $CXX --version
+    - flex --version
+    - make -k NO_YACC_WERROR=1 empty
+
+.prepare-debian: &debian
+  <<: *common
+  before_script:
+    - JOB_NAME=( $CI_BUILD_NAME )
+    - export CC=${JOB_NAME[2]}
+    - export CXX=${JOB_NAME[3]}
+    - apt-get update -yq > /dev/null
+    - apt-get install -y --no-install-recommends flex bison libncurses5-dev build-essential > /dev/null
+    - apt-get install -y ${CC} > /dev/null
+    - if [[ $CXX == g++* ]] ; then
+    -   apt-get install -y ${CXX} > /dev/null
+    - fi
+  <<: *build
+
+.prepare-old-debian: &old-debian
+  <<: *common
+  before_script:
+    - JOB_NAME=( $CI_BUILD_NAME )
+    - export CC=${JOB_NAME[2]}
+    - export CXX=${JOB_NAME[3]}
+    - apt-get update -yq > /dev/null
+    - apt-get install -y flex bison libncurses5-dev build-essential > /dev/null
+    - apt-get install -y ${CC} > /dev/null
+    - if [[ $CXX == g++* ]] ; then
+    -   apt-get install -y ${CXX} > /dev/null
+    - fi
+  <<: *build  
+
+.prepare-cc7: &cc7
+  <<: *common
+  before_script:
+  - yum install -y git bison flex ncurses-devel make perl-Digest-MD5 gcc-c++ > /dev/null
+  - export YACC=bison
+  <<: *build
+
+.prepare-slc6: &slc6  
+  <<: *common
+  before_script:
+  - source /opt/rh/devtoolset-4/enable
+  - source /opt/rh/python27/enable
+  - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
+  - export YACC=bison
+  <<: *build    
+
+
+.prepare-ubuntu-gcc6-with-flex: &ubuntu-gcc6
+  <<: *debian
+  before_script:
+    - JOB_NAME=( $CI_BUILD_NAME )
+    - export FLEX=${JOB_NAME[5]}
+    - apt-get update -yq > /dev/null
+    - apt-get install -y --no-install-recommends flex bison libncurses5-dev software-properties-common wget m4 help2man > /dev/null
+    - add-apt-repository ppa:ubuntu-toolchain-r/test > /dev/null
+    - apt-get update -yq > /dev/null
+    - apt-get install -y gcc-6 g++-6 > /dev/null
+    - export CC=gcc-6
+    - export CXX=g++-6
+    - wget https://github.com/westes/flex/releases/download/v${FLEX}/flex-${FLEX}.tar.gz > /dev/null
+    - tar -xf flex-${FLEX}.tar.gz 
+    - cd flex-${FLEX}
+    - ./configure
+    - make
+    - make install
+    - cd ..
+
+.qemu-common: &qemu
+  stage: build
+  script:
+    - _DISABLE="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    - _SSH="ssh -c 3des-cbc root@127.0.0.1 -p $PORT $_DISABLE"
+    - sleep 60
+    - while ! $_SSH -o ConnectTimeout=5 'uname -a'; do echo "Alive!" && sleep 1; done
+    - scp -r -P $PORT $_DISABLE ./ root@127.0.0.1:./    
+    - $_SSH 'make -k empty'
+  # after_script:
+  #   - echo quit | socat - UNIX-CONNECT:/tmp/monitor
+  tags:
+    - docker
+  variables:
+    PORT: "2222"      
+  
+############################################
+#               TARGETS                    #
+############################################
+
+
+SLC6 root6 gcc g++:
+  image: munken/root:slc6-root6
+  <<: *slc6
+
+SLC6 root5 gcc g++:
+  image: munken/root:slc6-root5
+  <<: *slc6  
+
+CC7 root6 gcc g++:
+  image: munken/root:cc7-root6
+  <<: *cc7
+
+CC7 root5 gcc g++:
+  image: munken/root:cc7-root5
+  <<: *cc7
+
+Trusty root5 gcc g++:
+  image: munken/root:trusty-root5
+  <<: *debian
+
+Trusty root5 clang clang++:
+  image: munken/root:trusty-root5
+  <<: *debian
+
+Trusty root6 gcc g++:
+  image: munken/root:trusty-root6
+  <<: *debian
+
+Trusty root6 clang clang++:
+  image: munken/root:trusty-root6
+  <<: *debian
+
+Trusty 32bit gcc g++:
+  image: daald/ubuntu32:trusty
+  <<: *debian      
+
+Xenial root5 gcc g++:
+  image: munken/root:xenial-root5
+  <<: *debian
+
+Xenial root5 clang clang++:
+  image: munken/root:xenial-root5
+  <<: *debian
+
+Xenial root6 gcc g++:
+  image: munken/root:xenial-root6
+  <<: *debian
+
+Xenial root6 clang clang++:
+  image: munken/root:xenial-root6
+  <<: *debian
+  
+Xenial root6 gcc-6 g++-6 flex 2.6.1:
+  image: munken/root:xenial-root6
+  <<: *ubuntu-gcc6
+
+Xenial root6 gcc-6 g++-6 flex 2.6.2:
+  image: munken/root:xenial-root6
+  <<: *ubuntu-gcc6
+
+Arch minimal gcc g++:
+  <<: *common
+  image: pritunl/archlinux
+  before_script:
+    - pacman -S base-devel git flex bison ncurses --noconfirm --needed
+  <<: *build
+
+gcc-latest minimal gcc g++:
+  image: gcc:latest
+  <<: *debian
+
+debian jessie gcc g++:
+  image: debian:jessie
+  <<: *debian  
+
+debian jessie gcc g++:
+  image: debian:wheezy
+  <<: *debian
+
+debian etch gcc g++:
+  image: munken/debian:etch
+  <<: *old-debian  
+
+qemu arm:
+  image: munken/qemu:arm
+  before_script:
+    - qemu-system-arm -M vexpress-a9 -kernel /qemu/vmlinuz-3.2.0-4-vexpress -initrd /qemu/initrd.img-3.2.0-4-vexpress -drive if=sd,file=/qemu/debian_wheezy_armhf_apt.qcow2 -append "root=/dev/mmcblk0p2" -redir tcp:2222::22 -m 512 -monitor unix:/tmp/monitor,server,nowait -daemonize -display none  
+  <<: *qemu
+
+qemu ppc:
+  image: munken/qemu:ppc
+  before_script:
+    - qemu-system-ppc -hda /qemu/debian_wheezy_powerpc_gcc.qcow2 -redir tcp:${PORT}::22 -m 512 -monitor unix:/tmp/monitor,server,nowait -daemonize -display none
+  <<: *qemu
