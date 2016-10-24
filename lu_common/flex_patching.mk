@@ -3,7 +3,9 @@ FLEX_PATCH_PIPELINE=\
 	  -e "s/int yyleng;/size_t yyleng;/" \
 	  -e "s/int yyget_leng/size_t yyget_leng/" \
 	  -e "s/int yyl;/size_t yyl;/" \
-	  -e "s/int yy_n_chars;/size_t yy_n_chars;/" \
+	  -e "s/int yy_n_chars;/yy_size_t yy_n_chars;/" \
+	  -e "s/int yy_buf_size;/yy_size_t yy_buf_size;/" \
+	  -e "s/int number_to_move/yy_size_t number_to_move/" \
 	  -e "s/(int) ((yy_n_chars) + number_to_move) >/((yy_n_chars) + number_to_move) >/" \
 	  -e "s/int num_to_alloc;/size_t num_to_alloc;/" \
 	  -e "s/int num_to_read =/size_t num_to_read =/" \
