@@ -17,7 +17,8 @@ stages:
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
-    - make -k NO_YACC_WERROR=1 empty
+    - make -k NO_YACC_WERROR=1
+    - make -k NO_YACC_WERROR=1
 
 .prepare-debian: &debian
   <<: *common
