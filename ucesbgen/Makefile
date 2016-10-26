@@ -43,7 +43,7 @@ CXXFLAGS += -ansi -Wall -W -Wno-unused-function -Wno-unused-label -Wno-unused-pa
 
 UNAME_S:=$(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
-  CXXFLAGS += -Wno-non-template-friend
+  CXXFLAGS += 
 endif
 
 OPTFLAGS += # -fmudflap #-fstack-protector

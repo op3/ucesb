@@ -28,7 +28,7 @@ gen/acc_auto_def/%.h: $(UCESB_BASE_DIR)/acc_def/%.h $(MAKE_ACC_AUTO_DEF)
 	@mkdir -p $(dir $@)
 	@$(MAKE_ACC_AUTO_DEF) \
 	  --input $< --compiler $(CXX) \
-	  --compileargs $(filter-out -Wno-non-template-friend,$(CXXFLAGS)) > $@.tmp
+	  --compileargs $(filter-out ,$(CXXFLAGS)) > $@.tmp
 	@mv $@.tmp $@
 
 #########################################################

@@ -37,7 +37,7 @@ endif
 
 CXXFLAGS += #-ansi -Wall -W -Wno-unused-function -Wno-unused-label \
 	-Wno-unused-parameter -Wwrite-strings #-Wconversion \
-	-Wno-non-template-friend -Werror # -Wshadow -Wcast-qual
+	 -Werror # -Wshadow -Wcast-qual
 CFLAGS += -Wall -W -Wno-unused-function -Wno-unused-label \
 	-Wno-unused-parameter -Wwrite-strings #-Wconversion \
 	-Werror -Wshadow -Wcast-qual

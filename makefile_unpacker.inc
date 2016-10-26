@@ -54,10 +54,10 @@ CXXFLAGS += # -ansi , troubles with strdup and fileno
 
 CXXFLAGS += -ansi -Wall -W -Wno-unused-function -Wno-unused-label \
 	-Wno-unused-parameter -Wwrite-strings -Wconversion #\
-#	-Wno-non-template-friend # -Wshadow -Wcast-qual
+#	 # -Wshadow -Wcast-qual
 
 ifneq ($(UNAME_S),Darwin)
-  CXXFLAGS += -Wno-non-template-friend
+  CXXFLAGS += 
 else
   CXXFLAGS += -Wno-comment -Wno-macro-redefined -Wno-sign-conversion -Wno-float-conversion -Wno-mismatched-tags
 endif
