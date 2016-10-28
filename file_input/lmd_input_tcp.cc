@@ -689,13 +689,6 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
       ERROR("Buffer info endian marker broken: %08x",_info.testbit);
       break;
     }
-
-  if ((_info.streams & LMD_PORT_MAP_MARK_MASK) == LMD_PORT_MAP_MARK)
-    {
-      *data_port = _info.streams & LMD_PORT_MAP_PORT_MASK;
-      return 0;
-    }
-  
   /*
   printf ("info: tb: %08x bs: %08x bps: %08x dmy: %08x\n",
 	  _info.testbit,
@@ -703,10 +696,25 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
 	  _info.bufs_per_stream,
 	  _info.streams);
   */
-  if (_info.bufsize == (uint32_t) -1)
+  if (data_port &&
+      (_info.streams & LMD_PORT_MAP_MARK_MASK) == LMD_PORT_MAP_MARK)
+    {
+      *data_port = _info.streams & LMD_PORT_MAP_PORT_MASK;
+      return 0;
+    }
+  
+  if (_info.bufsize == (uint32_t) LMD_TCP_INFO_BUFSIZE_NODATA)
     {
       // This should not happen to us!, since we know how to interpret the map
-      ERROR("Buffer size -1, hint that only port mapped clients allowed.");
+      ERROR("Buffer size -1, "
+	    "hint that only port mapped clients allowed.");
+    }
+
+  if (_info.bufsize == (uint32_t) LMD_TCP_INFO_BUFSIZE_MAXCLIENTS)
+    {
+      // This should not happen to us!, since we know how to interpret the map
+      ERROR("Buffer size -2, "
+	    "hint that maximum number of clients are already connected.");
     }
 
   if (_info.bufsize % 1024)
@@ -837,14 +845,14 @@ size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
   if (data_port == -1)
     {
       lmd_input_tcp_buffer::open_connection(server, port, true);
-      ret = lmd_input_tcp_buffer::read_info(&data_port);
+      ret = lmd_input_tcp_buffer::read_info(port_map == -1 ? &data_port : NULL);
     }
 
   if (data_port != -1)
     {
       lmd_input_tcp_buffer::close_connection();
       lmd_input_tcp_buffer::open_connection(server, data_port, true);
-      ret = lmd_input_tcp_buffer::read_info(&data_port);
+      ret = lmd_input_tcp_buffer::read_info(NULL);
     }
 
   return ret;
