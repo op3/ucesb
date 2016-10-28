@@ -1911,11 +1911,14 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 			   forcemap ? false : true);
   if (trans_port != -1)
     {
-      if (!forcemap)
-	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
+      /* Bind portmap port before legacy port, so clients do not accidentaly
+       * revert to the legacy port while we are trying to bind.
+       */
       out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
 			     trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
 			     true,false);
+      if (!forcemap)
+	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
     }
 
   out_tcp->init();
