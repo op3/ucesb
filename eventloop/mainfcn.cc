@@ -20,6 +20,7 @@
 
 #include "event_loop.hh"
 #include "config.hh"
+#include "monitor.hh"
 #include "error.hh"
 #include "colourtext.hh"
 
@@ -191,6 +192,8 @@ void usage()
 	  "input (files) are treated in order.");
   */
 }
+
+status_monitor _status;
 
 config_opts _conf;
 
@@ -917,10 +920,9 @@ int main(int argc, char **argv)
 
 #ifndef USE_THREADING
 
-    uint64_t   events = 0;
-    uint64_t   errors = 0;
-    uint64_t   total_errors = 0;
-    uint64_t   total_multi = 0;
+    memset(&_status, 0, sizeof (_status));
+
+    uint64_t   errors_file = 0;
 
     uint64_t   show_events = 1;
     uint64_t   next_show = show_events;
@@ -1045,7 +1047,7 @@ int main(int argc, char **argv)
 	// Open input channel
 
 	if (_conf._broken_files)
-	  errors = 0;
+	  errors_file = 0;
 
 #ifdef USE_MERGING
 	while (input != _inputs.end() &&
@@ -1256,7 +1258,7 @@ downscale_event:
 #endif
 		loop.handle_event(*event,&num_multi);
 
-	      total_multi += (uint64_t) num_multi;
+	      _status._multi_events += (uint64_t) num_multi;
 
 	      if (!write_ok)
 		goto no_more_files;
@@ -1267,8 +1269,8 @@ downscale_event:
 #endif
 	    } catch (error &e) {
 	      had_error = true;
-	      errors++;
-	      total_errors++;
+	      errors_file++;
+	      _status._errors++;
 	      if (!_conf._allow_errors) {
 		if (_conf._debug && !printed_data)
 		  {
@@ -1284,7 +1286,7 @@ downscale_event:
 		    file_event->print_event(1,&event->_unpack_fail);
 		  }
 		//printf ("\n");
-		if (errors >= 10)
+		if (_status._errors >= 10)
 		  {
 		    if (_conf._broken_files)
 		      {
@@ -1295,12 +1297,13 @@ downscale_event:
 			check_new_file_header = true;
 #endif
 			// This is not an I/O error, it's a format fault
-			WARNING("Too many (%"PRIu64") errors, next file...",errors);
+			WARNING("Too many (%"PRIu64") errors, next file...",
+				_status._errors);
 			goto no_more_events;
 		      }
 		    else
 		      {
-			WARNING("Too many (%"PRIu64") errors, aborting...",total_errors);
+			WARNING("Too many (%"PRIu64") errors, aborting...",_status._errors);
 			goto no_more_files;
 		      }
 		  }
@@ -1548,10 +1551,10 @@ downscale_event:
 	      UNUSED(unpack_event);
 #endif
 	    }
-	    events++;
+	    _status._events++;
 
 	    if (_conf._max_events &&
-		events >= _conf._max_events)
+		_status._events >= _conf._max_events)
 	      goto no_more_files;
 
 #ifndef USE_MERGING
@@ -1562,7 +1565,7 @@ downscale_event:
 #endif
 #endif
 	      {
-		if (events >= next_show)
+		if (_status._events >= next_show)
 		  {
 		    timeval now;
 
@@ -1585,11 +1588,12 @@ downscale_event:
 			  {
 			    /* Do not update the time for the first events,
 			     * to quickly slow progress >= 1. */
-			    if (events >= 100)
+			    if (_status._events >= 100)
 			      last_show_time = now;
 
 			    double event_rate =
-			      (double) (events-last_show)*0.001/elapsed;
+			      (double) (_status._events-last_show) *
+			      0.001 / elapsed;
 
 #ifdef USE_MERGING
 			    if (_conf._merge_concurrent_files > 1)
@@ -1650,19 +1654,20 @@ downscale_event:
 				    "%s%"PRIu64"%s  (%s%.1f%sk/s) "
 				    "(%s%"PRIu64"%s errors)      \r",
 				    CT_ERR(BOLD_GREEN),
-				    events,
+				    _status._events,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
 				    event_rate,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_BLUE),
-				    total_multi,
+				    _status._multi_events,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
-				    (double) (total_multi-last_show_multi)*0.001/elapsed,
+				    (double) (_status._multi_events-
+					      last_show_multi)*0.001/elapsed,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_RED),
-				    total_errors,
+				    _status._errors,
 				    CT_ERR(NORM_DEF_COL));
 			      }
 			    unsigned int nlines = 0;
@@ -1679,12 +1684,12 @@ downscale_event:
 			    fflush(stderr);
 			    // INFO_FLUSH;
 
-			    last_show = events;
-			    last_show_multi = total_multi;
+			    last_show = _status._events;
+			    last_show_multi = _status._multi_events;
 			  }
 		      }
 
-		    if (events >=
+		    if (_status._events >=
 			show_events * (show_events <= 200 ? 20 : 2000))
 		      show_events *= 10;
 
@@ -1742,7 +1747,7 @@ downscale_event:
 	 ERR_GREEN"%"PRIu64 ERR_ENDCOL"   "
 	 ERR_BLUE"%"PRIu64 ERR_ENDCOL"             ("
 	 ERR_RED"%"PRIu64 ERR_ENDCOL" errors)                \n",
-	 events,total_multi,total_errors);
+	 _status._events,_status._multi_events,_status._errors);
     try {
       loop.postprocess();
     } catch (error &e) {
