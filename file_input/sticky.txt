@@ -22,16 +22,28 @@ needed, as the stitching 'uses up' that information.)
 Sticky events:
 --------------
 
-The main thing is the subevents.  The mechanics is that a sticky
-subevent is replaced when a new sticky subevent with the same
-identifier type:subtype:ctrl:crate:procid arrives.  If the new
-subevent has the length set to -1, then it removed completely.  (The
-length set to -1 for removal is such that sticky subevents of size 0
-are allowed entities.)  The new empty revoke marking subevent thus
-need to be sent along to all systems once, but can then be forgotten.
-(For checking, we can consider it an error to receive a revoking
-sticky subevent with nothing to revoke.  Hmm - true?  We had to give
-this up?)
+The sticky thing is the subevents.  They have a guarantee of delivery:
+
+The guarantee of delivery applies at the spot when the next *normal*
+event is received.  At that point, exactly the correct set of sticky
+subevents shall be present.  In what order or how many times they have
+been received does not matter.  This also means that e.g. an
+completely empty file would not matter at all.
+
+Note that the guarantee of delivery does not mean that all sticky
+subevents are delivered, and in particular that an sticky event that
+is replayed may be changed to only deliver those sticky subevents that
+have not been superceeded by later sticky subevents.
+
+The mechanics is that a sticky subevent is replaced when a new sticky
+subevent with the same identifier type:subtype:ctrl:crate:procid
+arrives.  If the new subevent has the length set to -1, then it
+removed completely.  (The length set to -1 for removal is such that
+sticky subevents of size 0 are allowed entities.)  The new empty
+revoke marking subevent thus need to be sent along to all systems
+once, but can then be forgotten.  (For checking, we can consider it an
+error to receive a revoking sticky subevent with nothing to revoke.
+Hmm - true?  We had to give this up?)
 
 The way to distinguish sticky subevents from normal (sub)events is
 that they are packaged in special events, of type (to be finally
@@ -52,17 +64,6 @@ removed or superceded, then only those are removed, but the remainder
 of the event can be kept (in particular, the first subevent holding
 the time stamp).  This also means that sticky events should not really
 be merged, as would loose the timestamps.
-
-Note that the guarantee of delivery does not mean that all sticky
-subevents are delivered, and in particular that an sticky event that
-is replayed may be changed to only deliver those sticky subevents that
-have not been superceeded by later sticky subevents.
-
-The guarantee of delivery applies at the spot when the next *normal*
-event is received.  At that point, exactly the correct set of sticky
-subevents shall be present.  In what order or how many times they have
-been received does not matter.  This also means that e.g. an
-completely empty file would not matter at all.
 
 For systems merging multiple data sources, as long as the sticky
 events have different ids, they do not interfere.  If the sources are
