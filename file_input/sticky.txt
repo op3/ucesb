@@ -12,24 +12,26 @@ Normal events:
 
 - When time-sorting, the first subevent of the event holds the timestamp.
 
-(ucesb-particular: when stitching events together by time-stamp, then
-the subevents of the subsequent events (that have time-stamp within
-the window) are just pasted in after the first ones.  It thus requires
-particular knowledge of what has been stored to recover the
-time-stamps of the appended subevents).
+(When stitching (ucesb-terminology) time-sorted events together by
+time-stamp, then the subevents of the subsequent events (that have
+time-stamp within the window) are just pasted after the first ones.
+It thus requires particular knowledge of what has been stored to
+recover the time-stamps of the appended subevents.  Usually not
+needed, as the stitching 'uses up' that information.)
 
 Sticky events:
 --------------
 
-The main thing is the subevents.  The mechanics is that a sticky event
-is replaced when a new subevent with the same identifier
-type:subtype:ctrl:crate:procid arrives.  If the new subevents has the
-length set to -1, then it removed completely.  (The length set to -1
-for removal is such that sticky subevents of size 0 are allowed
-entities.)  The new empty marker thus need to be sent along to all
-systems once, but then be forgotten.  (For checking, we can consider
-it an error to receive a revoking sticky subevent with nothing to
-revoke.)
+The main thing is the subevents.  The mechanics is that a sticky
+subevent is replaced when a new sticky subevent with the same
+identifier type:subtype:ctrl:crate:procid arrives.  If the new
+subevent has the length set to -1, then it removed completely.  (The
+length set to -1 for removal is such that sticky subevents of size 0
+are allowed entities.)  The new empty revoke marking subevent thus
+need to be sent along to all systems once, but can then be forgotten.
+(For checking, we can consider it an error to receive a revoking
+sticky subevent with nothing to revoke.  Hmm - true?  We had to give
+this up?)
 
 The way to distinguish sticky subevents from normal (sub)events is
 that they are packaged in special events, of type (to be finally
@@ -45,39 +47,41 @@ and then we need to be able to figure out which is the later sticky
 subevents.)  For the time being, we do it such that the first subevent
 of the sticky event may hold the timestamp.  We also require this to
 have type:subtype 10:1 (and reject 10:1 as actual sticky subevents).
-Such that if one of many (but not all) sticky subevents are removed or
-superceded, then only those are removed, but the remainer of the event
-can be kept (in particular the first subevent holding the time stamp).
-This also means that sticky events should not really be merged between
-(sticky) events, as we loose the timestamps.
+This means that if one of many (but not all) sticky subevents are
+removed or superceded, then only those are removed, but the remainder
+of the event can be kept (in particular, the first subevent holding
+the time stamp).  This also means that sticky events should not really
+be merged, as would loose the timestamps.
 
 Note that the guarantee of delivery does not mean that all sticky
-subevents are delivered, and in particular that an sticky event may be
-changed to only deliver those sticky subevents that are have not been
-superceeded by later sticky subevents.
+subevents are delivered, and in particular that an sticky event that
+is replayed may be changed to only deliver those sticky subevents that
+have not been superceeded by later sticky subevents.
 
 The guarantee of delivery applies at the spot when the next *normal*
 event is received.  At that point, exactly the correct set of sticky
 subevents shall be present.  In what order or how many times they have
-received does not matter.  This also means that e.g. an completely
-empty file would not matter at all.
+been received does not matter.  This also means that e.g. an
+completely empty file would not matter at all.
 
 For systems merging multiple data sources, as long as the sticky
 events have different ids, they do not interfere.  If the sources are
 sorted together however, any sticky subevents which are active from
-several sources at once must match exactly - bit for bit.
+several sources at once must match exactly - bit for bit.  Otherwise,
+it matters which is the last, or it is ambiguous which is to be the
+active one.
 
 Also note that sticky events may be delivered multiple times.  This
 applies to online clients, as well as the replay at the beginning of a
 new file.  The reason for an online client to receive a replay is when
 it has not managed to keep up with the server (may be due to the
-server output bandwidth being saturated; does not matter - same end
-result).  Before sending later data, the server need to ensure that
-the client receives all sticky data before that point.  Which means
-that the server must keep track of what has been sent to that
-particular client.  In order to not have to do that, it may instead
-send some additional (earlier) sticky data, that thus will reach the
-client twice.
+server output bandwidth being saturated; but the reason does not
+matter - same end result).  Before sending further (later) data, the
+server need to ensure that the client receives all sticky data before
+that point.  Which means that the server must keep track of what has
+been sent to that particular client.  In order to not have to do that,
+it may instead send some additional (earlier sent) sticky data, that thus
+will reach the client twice.
 
 When a data source ends (either it is a network server or an input
 file), the sticky events that it provided must be discarded/revoked by
