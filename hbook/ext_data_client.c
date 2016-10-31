@@ -1213,7 +1213,8 @@ int ext_data_setup(struct ext_data_client *client,
 
       if (slo->_size_struct != size_buf)
 	{
-	  client->_last_error = "Structure layout gives different buffer size.";
+	  client->_last_error =
+	    "Structure layout gives different buffer size.";
 	  errno = EINVAL;
 	  return -1;
 	}
@@ -2556,7 +2557,8 @@ int ext_data_close(struct ext_data_client *client)
       /* Then, we should write a done message, and flush again. */
 
       header =
-	(struct external_writer_buf_header *) (client->_buf + client->_buf_filled);
+	(struct external_writer_buf_header *) (client->_buf +
+					       client->_buf_filled);
 
       header->_request = htonl(EXTERNAL_WRITER_BUF_DONE);
       header->_length = htonl(sizeof(struct external_writer_buf_header));
