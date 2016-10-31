@@ -269,6 +269,32 @@ int ext_data_setup(struct ext_data_client *client,
 
 /*************************************************************************/
 
+/* Make the file descriptor non-blocking, such that clients can fetch
+ * events in some loop that also controls other stuff, e.g. an interactive
+ * program.  The file descriptor is returned.
+ *
+ * After this call, ext_data_fetch_event() may return failure (-1) with
+ * errno set to EAGAIN.
+ *
+ * Note that if the user fails to verify that
+ * some data is available before calling ext_data_fetch_event() again
+ * after such using e.g. select() or poll(), then the program will
+ * butn CPU uselessly.
+ *
+ * Note that for the time being, this function must be called after
+ * ext_data_setup() (which currently requiers blocking access).
+ *
+ * Return value:
+ *  n  file descriptor.
+ * -1  failure, see errno.
+ *
+ * Error codes on falure come from fcntl().
+ */
+
+int ext_data_nonblocking_fd(struct ext_data_client *client);
+
+/*************************************************************************/
+
 /* Fetch one event from an open connection (buffered) into a
  * user-provided buffer.
  *
@@ -297,6 +323,8 @@ int ext_data_setup(struct ext_data_client *client,
  *                  Malformed message.  Bug?
  * EPROTO           Unexpected message.  Bug?
  * EFAULT           @client is NULL.
+ * EAGAIN           No futher data at this moment (after using
+ *                  ext_data_nonblocking_fd()).
  */
 
 int ext_data_fetch_event(struct ext_data_client *client,

@@ -31,6 +31,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <assert.h>
+#include <fcntl.h>
 
 #include <stdio.h>
 
@@ -734,6 +735,13 @@ ext_data_peek_message(struct ext_data_client *client)
 	{
 	  if (errno == EINTR)
 	    continue;
+	  if (errno == EAGAIN)
+	    {
+	      client->_last_error = "No more data yet, "
+		"for non-blocking client.";
+	      /* errno already set */
+	      return NULL;
+	    }
 	  client->_last_error = "Failure reading buffer data.";
 	  /* Failure. */
 	  return NULL;
@@ -1113,6 +1121,32 @@ struct ext_data_client *ext_data_open_out()
   client->_write = 1;
 
   return client;
+}
+
+int ext_data_nonblocking_fd(struct ext_data_client *client)
+{
+  if (!client)
+    {
+      /* client->_last_error = "Client context NULL."; */
+      errno = EFAULT;
+      return -1;
+    }
+  if (!client->_setup)
+    {
+      client->_last_error = "Client context has not had setup.";
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (fcntl(client->_fd,F_SETFL,
+	    fcntl(client->_fd,F_GETFL) | O_NONBLOCK) == -1)
+    {
+      client->_last_error = "Failure making file descriptor non-blocking";
+      /* errno already set */
+      return -1;
+    }
+
+  return client->_fd;
 }
 
 const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
