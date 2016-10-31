@@ -2733,6 +2733,21 @@ int ext_data_setup_stderr(struct ext_data_client *client,
   return 1;
 }
 
+int ext_data_nonblocking_fd_stderr(struct ext_data_client *client)
+{
+  int fd = ext_data_nonblocking_fd(client);
+
+  if (fd == -1)
+    {
+      perror("ext_data_fetch_event");
+      fprintf (stderr,"Failed to make file descriptor non-blocking: %s\n",
+	       client->_last_error);
+      return -1;
+    }
+
+  return fd;
+}
+
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
 				void *buf,size_t size)
 {
@@ -2746,6 +2761,9 @@ int ext_data_fetch_event_stderr(struct ext_data_client *client,
 
   if (ret == -1)
     {
+      if (errno == EAGAIN)
+	return -1;
+
       perror("ext_data_fetch_event");
       fprintf (stderr,"Failed to fetch event: %s\n",
 	       client->_last_error);

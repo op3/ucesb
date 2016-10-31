@@ -537,7 +537,10 @@ const char *ext_data_last_error(struct ext_data_client *client);
  * ext_data_struct_info_free           1 or 0 (failure)
  *
  * ext_data_connect_stderr        pointer or NULL
+ * ext_data_setup_stderr          1 or 0
+ * ext_data_nonblocking_fd_stderr fd or -1
  * ext_data_fetch_event_stderr    1 or 0 (got event, or end of data)
+ *                                or -1 (for EAGAIN, with non-blocking)
  * ext_data_get_raw_data_stderr   1 or 0
  * ext_data_clear_event_stderr    1 or 0
  * ext_data_write_event_stderr    1 or 0
@@ -562,6 +565,8 @@ int ext_data_setup_stderr(struct ext_data_client *client,
 			  const void *struct_layout_info,size_t size_info,
 			  struct ext_data_structure_info *struct_info,
 			  size_t size_buf);
+
+int ext_data_nonblocking_fd_stderr(struct ext_data_client *client);
 
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
 				void *buf,size_t size);

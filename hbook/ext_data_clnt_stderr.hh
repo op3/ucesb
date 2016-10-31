@@ -38,6 +38,7 @@ public:
   bool connect(const char *server);
   bool connect(const char *server,int port);
   // bool connect(int fd);
+  int nonblocking_fd();
 
   int setup(const void *struct_layout_info,size_t size_info,
 	    ext_data_struct_info *struct_info,

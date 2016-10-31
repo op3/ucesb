@@ -73,6 +73,11 @@ bool ext_data_clnt::connect(int fd)
   return _client != NULL;
 }
 
+int ext_data_clnt::nonblocking_fd()
+{
+  return ext_data_nonblocking_fd((ext_data_client *) _client);
+}
+
 int ext_data_clnt::setup(const void *struct_layout_info,
 			 size_t size_info,
 			 ext_data_struct_info *struct_info,
@@ -131,6 +136,11 @@ bool ext_data_clnt_stderr::connect(const char *server,int port)
   sprintf(tmp,"%s:%d",server,port);
   _client = ext_data_connect_stderr(tmp);
   return _client != NULL;
+}
+
+int ext_data_clnt_stderr::nonblocking_fd()
+{
+  return ext_data_nonblocking_fd_stderr((ext_data_client *) _client);
 }
 
 int ext_data_clnt_stderr::setup(const void *struct_layout_info,
