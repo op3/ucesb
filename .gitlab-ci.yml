@@ -18,7 +18,6 @@ stages:
     - $CXX --version
     - flex --version
     - make -k NO_YACC_WERROR=1
-    - make -k NO_YACC_WERROR=1
 
 .prepare-debian: &debian
   <<: *common
