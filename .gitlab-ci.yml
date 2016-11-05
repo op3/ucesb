@@ -92,7 +92,7 @@ stages:
     - sleep 60
     - while ! $_SSH -o ConnectTimeout=5 'uname -a'; do echo "Alive!" && sleep 1; done
     - scp -r -P $PORT $_DISABLE ./ root@127.0.0.1:./    
-    - $_SSH 'make -k empty'
+    - $_SSH 'make -k empty xtst'
   # after_script:
   #   - echo quit | socat - UNIX-CONNECT:/tmp/monitor
   tags:
