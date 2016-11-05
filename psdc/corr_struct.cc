@@ -62,6 +62,9 @@ void corr_find_members(const char *type,
 	"DATA12",
 	"DATA12_RANGE",
 	"DATA12_OVERFLOW",
+	"DATA14",
+	"DATA14_RANGE",
+	"DATA14_OVERFLOW",
       };
 
       const char *no_corr_types[] = {

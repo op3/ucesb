@@ -73,6 +73,9 @@ typedef data_map<DATA16> DATA16_map;
 typedef data_map<DATA12> DATA12_map;
 typedef data_map<DATA12_OVERFLOW> DATA12_OVERFLOW_map;
 typedef data_map<DATA12_RANGE> DATA12_RANGE_map;
+typedef data_map<DATA14> DATA14_map;
+typedef data_map<DATA14_OVERFLOW> DATA14_OVERFLOW_map;
+typedef data_map<DATA14_RANGE> DATA14_RANGE_map;
 typedef data_map<DATA8>  DATA8_map;
 typedef data_map<float>  float_map;
 

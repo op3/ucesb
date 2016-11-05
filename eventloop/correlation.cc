@@ -170,6 +170,7 @@ bool corr_item_nonzero(const rawdata32 &src) { return src.value != 0; }
 bool corr_item_nonzero(const rawdata24 &src) { return src.value != 0; }
 bool corr_item_nonzero(const rawdata16 &src) { return src.value != 0; }
 bool corr_item_nonzero(const rawdata12 &src) { return src.value != 0; }
+bool corr_item_nonzero(const rawdata14 &src) { return src.value != 0; }
 bool corr_item_nonzero(const rawdata8  &src) { return src.value != 0; }
 
 template<typename T>

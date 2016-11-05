@@ -141,6 +141,25 @@ void watcher_channel_wrap<T,Twatcher_channel>::event(DATA12 value,
 }
 
 template<typename T,typename Twatcher_channel>
+void watcher_channel_wrap<T,Twatcher_channel>::event(DATA14 value,
+						     watcher_event_info *watch_info)
+{
+  // All this to avoid type-punning warnings... it seems
+
+  union value_ref_t
+  {
+    DATA14 _DATA14;
+    uint16 _uint16;
+  };
+
+  value_ref_t value_ref;
+
+  value_ref._DATA14 = value;
+
+  _data.collect_raw((uint) value_ref._uint16,_event_info._type,watch_info);
+}
+
+template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(DATA16 value,
 						     watcher_event_info *watch_info)
 {

@@ -45,6 +45,8 @@ void rawdata24::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata24>(id,unit); }
 void rawdata16::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata16>(id,unit); }
+void rawdata14::show_members(const signal_id &id,const char *unit) const
+{ ::show_members<rawdata14>(id,unit); }
 void rawdata12::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata12>(id,unit); }
 void rawdata8::show_members(const signal_id &id,const char *unit) const
@@ -294,6 +296,16 @@ void rawdata16::dump(const signal_id &id,pretty_dump_info &pdi) const
 {
   char buf[32];
   sprintf(buf,"0x%04x=%d",value,value);
+  pretty_dump(id,buf,pdi);
+}
+
+void rawdata14::dump(const signal_id &id,pretty_dump_info &pdi) const
+{
+  char buf[32];
+  sprintf(buf,"0x%04x=%d%c%c",
+	  value,value,
+	  overflow ? 'O' : ' ',
+	  range ? 'R'    : ' ');
   pretty_dump(id,buf,pdi);
 }
 

@@ -34,22 +34,23 @@
 #define ENUM_TYPE_UINT64    0x0008
 #define ENUM_TYPE_DATA8     0x0009
 #define ENUM_TYPE_DATA12    0x000a
-#define ENUM_TYPE_DATA16    0x000b
-#define ENUM_TYPE_DATA24    0x000c
-#define ENUM_TYPE_DATA32    0x000d
-#define ENUM_TYPE_DATA64    0x000e
-#define ENUM_TYPE_MASK      0x000f
-#define ENUM_HAS_INT_LIMIT  0x0010
-#define ENUM_IS_LIST_LIMIT  0x0020
-#define ENUM_IS_LIST_LIMIT2 0x0040 // second-level limit (multi-hit)
-#define ENUM_IS_ARRAY_MASK  0x0080
-#define ENUM_IS_LIST_INDEX  0x0100
+#define ENUM_TYPE_DATA14    0x000b
+#define ENUM_TYPE_DATA16    0x000c
+#define ENUM_TYPE_DATA24    0x000d
+#define ENUM_TYPE_DATA32    0x000e
+#define ENUM_TYPE_DATA64    0x000f
+#define ENUM_TYPE_MASK      0x001f
+#define ENUM_HAS_INT_LIMIT  0x0020
+#define ENUM_IS_LIST_LIMIT  0x0040
+#define ENUM_IS_LIST_LIMIT2 0x0080 // second-level limit (multi-hit)
+#define ENUM_IS_ARRAY_MASK  0x0100
+#define ENUM_IS_LIST_INDEX  0x0200
 
 // item is (non-first) part of indexed list, may not be used as mapping
 // destination
-#define ENUM_NO_INDEX_DEST  0x0200
+#define ENUM_NO_INDEX_DEST  0x0400
 
-#define ENUM_HAS_PTR_OFFSET 0x0400
+#define ENUM_HAS_PTR_OFFSET 0x0800
 
 typedef bool(*set_dest_fcn)(void *,void *);
 
@@ -153,6 +154,7 @@ public:
 
 struct rawdata8;
 struct rawdata12;
+struct rawdata14;
 struct rawdata16;
 struct rawdata24;
 struct rawdata32;
@@ -160,6 +162,7 @@ struct rawdata64;
 
 inline int get_enum_type(rawdata8  *) { return ENUM_TYPE_DATA8; }
 inline int get_enum_type(rawdata12 *) { return ENUM_TYPE_DATA12; }
+inline int get_enum_type(rawdata14 *) { return ENUM_TYPE_DATA14; }
 inline int get_enum_type(rawdata16 *) { return ENUM_TYPE_DATA16; }
 inline int get_enum_type(rawdata24 *) { return ENUM_TYPE_DATA24; }
 inline int get_enum_type(rawdata32 *) { return ENUM_TYPE_DATA32; }

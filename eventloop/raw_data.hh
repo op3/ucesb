@@ -273,6 +273,64 @@ public:
   void map_members(const data_map<rawdata12> &map MAP_MEMBERS_PARAM) const;
 };
 
+// rawdata12 and 14 are different in at what bit the range is.
+// Hmm, what we needed was really a overflow bit,
+// and they are at the same position.  Do it like this for now.
+struct rawdata14
+{
+public:
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  uint16  value    : 14;
+  uint16  range    : 1;
+  uint16  overflow : 1;
+  // uint16  dummy2   : 16;
+#endif
+#if __BYTE_ORDER == __BIG_ENDIAN
+  // uint16  dummy2   : 16;
+  uint16  overflow : 1;
+  uint16  range    : 1;
+  uint16  value    : 14;
+#endif
+
+public:
+  void show_members(const signal_id &id,const char *unit) const;
+
+  void enumerate_members(const signal_id &id,
+			 const enumerate_info &info,
+			 enumerate_fcn callback,void *extra) const
+  {
+    // We actually have 16 bits, due to overrange and range bits...
+    callback(id,enumerate_info(info,this,ENUM_TYPE_DATA14,0,0x0000ffff),extra);
+  }
+
+  void dump()
+  {
+    printf ("0x%04x%c%c",
+	    value,
+	    overflow ? 'O' : ' ',
+	    range ? 'R'    : ' ');
+  }
+
+  void dump(const signal_id &id,pretty_dump_info &pdi) const;
+
+  void __clean()
+  {
+    uint16* pthis = (uint16 *) (this);
+    *pthis = 0;
+  }
+
+  void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
+  {
+    insert_zero_suppress_info_ptrs(this,used_info);
+  }
+
+public:
+  //uint32 *get_dest_info() { return &value; }
+
+public:
+  void map_members(const data_map<rawdata14> &map MAP_MEMBERS_PARAM) const;
+};
+
 struct rawdata8
 {
 public:
@@ -320,6 +378,9 @@ public:
 #define DATA12           rawdata12
 #define DATA12_OVERFLOW  rawdata12
 #define DATA12_RANGE     rawdata12
+#define DATA14           rawdata14
+#define DATA14_OVERFLOW  rawdata14
+#define DATA14_RANGE     rawdata14
 #define DATA8            rawdata8
 
 #endif//__RAW_DATA_HH__

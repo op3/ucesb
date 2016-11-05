@@ -238,6 +238,7 @@ void enumerate_member_paw_ntuple(const signal_id &id,
       item = new ntuple_item(name,(float*)  info._addr,ptr_offset);
       break;
     case ENUM_TYPE_DATA12:
+    case ENUM_TYPE_DATA14:
       // needs full 16 bits, as it sometimes really is 12 bits+overflow+range
     case ENUM_TYPE_DATA16:
     case ENUM_TYPE_USHORT:

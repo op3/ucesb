@@ -623,6 +623,8 @@ bool set_raw_to_tcal(void *info,
 
   SET_RAW_TO_TCAL2(DATA12,rawdata12,FLOAT,float);
   SET_RAW_TO_TCAL2(DATA12,rawdata12,DOUBLE,double);
+  SET_RAW_TO_TCAL2(DATA14,rawdata14,FLOAT,float);
+  SET_RAW_TO_TCAL2(DATA14,rawdata14,DOUBLE,double);
   SET_RAW_TO_TCAL2(DATA16,rawdata16,FLOAT,float);
   SET_RAW_TO_TCAL2(DATA16,rawdata16,DOUBLE,double);
   SET_RAW_TO_TCAL2(DATA24,rawdata24,FLOAT,float);
