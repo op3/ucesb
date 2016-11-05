@@ -273,10 +273,14 @@ size_t colourtext_prepare()
   return maxlen;
 }
 
-// Since we do not know what background colour the user has in his
-// terminal, we cannot use e.g. yellow.  Assuming the background is
-// either black or white, the following are readable:
+#else
 
-// red, green, (blue), magenta, (cyan)
+size_t colourtext_init() { return 0; }
+
+size_t colourtext_setforce(int force_colour) { (void) force_colour; return 0; }
+
+int colourtext_getforce() { return 0; }
+
+size_t colourtext_prepare() { return 0; }
 
 #endif/*USE_CURSES*/

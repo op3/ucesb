@@ -86,38 +86,41 @@ typedef struct colourtext_prepared_item_t
 
 extern colourtext_prepared_item _colourtext_prepared[2][CTR_NUM_REQUEST];
 
-inline const char *colourtext_get(int fileno,int request) {
-  return _colourtext_prepared[fileno][request]._str;
-}
-
-inline colourtext_prepared_item *
-colourtext_get_prepared(int fileno,int request) {
-  return &_colourtext_prepared[fileno][request];
-}
+#define COLOURTEXT_GET(fd,request) \
+  (_colourtext_prepared[(fd)][(request)]._str)
+#define COLOURTEXT_GET_PREPARED(fd,request) \
+  (&_colourtext_prepared[(fd)][(request)])
 
 #define CT_OUT(request) \
-  colourtext_get(0,CTR_##request)
+  COLOURTEXT_GET(0,CTR_##request)
 #define CT_ERR(request) \
-  colourtext_get(1,CTR_##request)
+  COLOURTEXT_GET(1,CTR_##request)
 
 #define CTP_OUT(request) \
-  colourtext_get_prepared(0,CTR_##request)
+  COLOURTEXT_GET_PREPARED(0,CTR_##request)
 #define CTP_ERR(request) \
-  colourtext_get_prepared(1,CTR_##request)
+  COLOURTEXT_GET_PREPARED(1,CTR_##request)
 
 char *escapeashash(const char *text);  /* For debugging */
 
 #else
 
-inline size_t colourtext_init() { return 0; }
+/* Older compilers do not know inline, so we cannot have these
+ * functions marked inline.  Thus cannot have them as functions here
+ * if we want the cost of them to be zero when not having curses
+ * available.  Either do them as macros, or small dummy functions in
+ * colourtext.c...  Small dummies, so types are still checked.  They
+ * are anyhow only called around printing, which is expensive in
+ * itself.
+ */
 
-inline size_t colourtext_setforce(int) { return 0; }
+size_t colourtext_init();
 
-inline int colourtext_getforce() { return 0; }
+size_t colourtext_setforce(int force_colour);
 
-inline size_t colourtext_prepare() { return 0; }
+int colourtext_getforce();
 
-inline const char *colourtext_get(int,int) { return ""; }
+size_t colourtext_prepare();
 
 #define CT_OUT(request) ""
 #define CT_ERR(request) ""
