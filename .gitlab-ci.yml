@@ -17,7 +17,7 @@ stages:
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
-    - make -k NO_YACC_WERROR=1
+    - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
 
 .prepare-debian: &debian
   <<: *common
@@ -68,7 +68,7 @@ stages:
   <<: *debian
   before_script:
     - JOB_NAME=( $CI_BUILD_NAME )
-    - export FLEX=${JOB_NAME[5]}
+    - export FLEX=${JOB_NAME[6]}
     - apt-get update -yq > /dev/null
     - apt-get install -y --no-install-recommends flex bison libncurses5-dev software-properties-common wget m4 help2man > /dev/null
     - add-apt-repository ppa:ubuntu-toolchain-r/test > /dev/null
@@ -104,87 +104,98 @@ stages:
 #               TARGETS                    #
 ############################################
 
+# Fast build (only empty or xtst) to quickly see if there is some chance
 
-SLC6 root6 gcc g++:
+Trusty root5 gcc g++ empty:
+  image: munken/root:trusty-root5
+  <<: *debian
+
+Trusty root5 clang clang++ xtst:
+  image: munken/root:trusty-root5
+  <<: *debian
+
+#
+
+SLC6 root6 gcc g++ all:
   image: munken/root:slc6-root6
   <<: *slc6
 
-SLC6 root5 gcc g++:
+SLC6 root5 gcc g++ all:
   image: munken/root:slc6-root5
   <<: *slc6  
 
-CC7 root6 gcc g++:
+CC7 root6 gcc g++ all:
   image: munken/root:cc7-root6
   <<: *cc7
 
-CC7 root5 gcc g++:
+CC7 root5 gcc g++ all:
   image: munken/root:cc7-root5
   <<: *cc7
 
-Trusty root5 gcc g++:
+Trusty root5 gcc g++ all:
   image: munken/root:trusty-root5
   <<: *debian
 
-Trusty root5 clang clang++:
+Trusty root5 clang clang++ all:
   image: munken/root:trusty-root5
   <<: *debian
 
-Trusty root6 gcc g++:
+Trusty root6 gcc g++ all:
   image: munken/root:trusty-root6
   <<: *debian
 
-Trusty root6 clang clang++:
+Trusty root6 clang clang++ all:
   image: munken/root:trusty-root6
   <<: *debian
 
-Trusty 32bit gcc g++:
+Trusty 32bit gcc g++ all:
   image: daald/ubuntu32:trusty
   <<: *debian      
 
-Xenial root5 gcc g++:
+Xenial root5 gcc g++ all:
   image: munken/root:xenial-root5
   <<: *debian
 
-Xenial root5 clang clang++:
+Xenial root5 clang clang++ all:
   image: munken/root:xenial-root5
   <<: *debian
 
-Xenial root6 gcc g++:
+Xenial root6 gcc g++ all:
   image: munken/root:xenial-root6
   <<: *debian
 
-Xenial root6 clang clang++:
+Xenial root6 clang clang++ all:
   image: munken/root:xenial-root6
   <<: *debian
   
-Xenial root6 gcc-6 g++-6 flex 2.6.1:
+Xenial root6 gcc-6 g++-6 all flex 2.6.1:
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
-Xenial root6 gcc-6 g++-6 flex 2.6.2:
+Xenial root6 gcc-6 g++-6 all flex 2.6.2:
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
-Arch minimal gcc g++:
+Arch minimal gcc g++ all:
   <<: *common
   image: pritunl/archlinux
   before_script:
     - pacman -S base-devel git flex bison ncurses --noconfirm --needed
   <<: *build
 
-gcc-latest minimal gcc g++:
+gcc-latest minimal gcc g++ all:
   image: gcc:latest
   <<: *debian
 
-debian jessie gcc g++:
+debian jessie gcc g++ all:
   image: debian:jessie
-  <<: *debian  
+  <<: *debian
 
-debian jessie gcc g++:
+debian jessie gcc g++ all:
   image: debian:wheezy
   <<: *debian
 
-debian etch gcc g++:
+debian etch gcc g++ all:
   image: munken/debian:etch
   <<: *old-debian  
 
