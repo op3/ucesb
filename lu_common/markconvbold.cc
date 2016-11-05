@@ -35,7 +35,7 @@ regex_t *markconvbold_compile()
 {
   regex_t *regex = new regex_t;
 
-  // printf ("Compiling...\n");
+  /* printf ("Compiling...\n"); */
 
 #define REGEXP_NOBOLD_CONVERSION	 	        \
   "(" ERR_NOBOLD ")?"              /* no-bold mark 1 */ \
@@ -88,8 +88,9 @@ char *markconvbold(const char *fmt)
   if (ret == REG_NOMATCH)
     return NULL;
 
-  // We need to allocate a temporary buffer.  We will not add more
-  // than at most 4 characters per % found, so do a counting
+  /* We need to allocate a temporary buffer.  We will not add more
+   * than at most 4 characters per % found, so do a counting.
+   */
 
   size_t percent_count = 0;
 
@@ -107,7 +108,7 @@ char *markconvbold(const char *fmt)
 
   size_t len = strlen(cur) + (size_t) (cur - fmt);
 
-  // printf ("Length %d, percent %d: '%s'\n",(int) len,percent_count,fmt);
+  /* printf ("Length %d, percent %d: '%s'\n",(int) len,percent_count,fmt); */
 
   size_t newsize = len + 1 + 4 * percent_count;
 
@@ -125,9 +126,10 @@ char *markconvbold(const char *fmt)
 	      pmatch[2].rm_so,pmatch[2].rm_eo,curfmt[pmatch[2].rm_so]);
       */
 
-      // if the match is just a percent?
-      // (we must handle them, so that the matcher does not do a false
-      // start after a %%)
+      /* if the match is just a percent?
+       * (we must handle them, so that the matcher does not do a false
+       * start after a %%)
+       */
 
       bool dobold = true;
 
@@ -135,7 +137,7 @@ char *markconvbold(const char *fmt)
 	  curfmt[pmatch[REGEXP_NOBOLD_CONVERSION_MATCH_PERCENT].rm_so] == '%')
 	dobold = false;
 
-      // copy up to the match (destroys curfmt <-> rm_so relationship)
+      /* copy up to the match (destroys curfmt <-> rm_so relationship) */
 
       memcpy(endfmt,curfmt,(size_t) pmatch[0].rm_so);
       curfmt += pmatch[0].rm_so;
@@ -216,7 +218,7 @@ void markconvbold_output(const char *buf,int linemarkup)
 	      break;
 	    case 'B':
 	      ctext_esc = CT_ERR(NORM);
-	      ctext_repeat = ctext; // in case NORM switches colours off
+	      ctext_repeat = ctext; /* in case NORM switches colours off */
 	      break;
 	    case 'C':
 	      ctext_esc = CT_ERR(RED);
