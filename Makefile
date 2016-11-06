@@ -59,6 +59,11 @@ endif
 
 #########################################################
 
+.PHONY: builddeps
+builddeps: $(DEPENDENCIES)
+
+#########################################################
+
 .PHONY: empty_real
 empty_real: $(DEPENDENCIES)
 	@$(MAKE) -C empty -f ../makefile_unpacker.inc UNPACKER=empty
