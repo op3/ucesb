@@ -211,10 +211,10 @@ debian etch gcc g++ all:
   <<: *old-debian  
 
 freebsd 10 gcc g++:
-  <<: *bsd-build
+  <<: *build-bsd
 
 freebsd 10 clang clang++:
-  <<: *bsd-build
+  <<: *build-bsd
   
 qemu arm:
   image: munken/qemu:arm
