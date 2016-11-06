@@ -103,12 +103,10 @@ const char *_argv0;
 #include "../lu_common/colourtext.hh"
 #endif
 
-#ifdef USE_CURSES
 #ifdef BUILD_LAND02
 #include "../../lu_common/colourtext.cc"
 #else
 #include "../lu_common/colourtext.cc"
-#endif
 #endif
 
 ext_write_config _config;
