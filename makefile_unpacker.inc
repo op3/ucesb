@@ -316,9 +316,9 @@ CXXFLAGS     += -DUSE_CURSES=$(USE_CURSES) -I$(UCESB_BASE_DIR)/watcher \
 CXXLIBS      += $(CURSES_LIBS)
 endif
 
-ifdef USE_CURSES
 OBJS         += colourtext.o
 
+ifdef USE_CURSES
 ifndef USE_MERGING # disabled for the time being (to be fixed...)
 OBJS         += watcher_window.o watcher_channel.o
 OBJS         += watcher.o
