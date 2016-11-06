@@ -45,6 +45,7 @@ typedef unsigned char uchar;
 #include "limit_file_size.cc"
 #include "select_event.cc"
 #include "markconvbold.cc"
+#include "colourtext.cc"
 #include "error.cc"
 #include "logfile.cc"
 
