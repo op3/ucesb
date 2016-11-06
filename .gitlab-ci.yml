@@ -99,11 +99,12 @@ stages:
   script:
     - _DISABLE="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
     - _SSH="ssh -c 3des-cbc root@127.0.0.1 -p $PORT $_DISABLE"
+    - JOB_NAME=( $CI_BUILD_NAME )
     - _TARGET="${JOB_NAME[4]}"
     - sleep 60
     - while ! $_SSH -o ConnectTimeout=5 'uname -a'; do echo "Alive!" && sleep 1; done
     - scp -r -P $PORT $_DISABLE ./ root@127.0.0.1:./    
-    - $_SSH 'make -k $_TARGET'
+    - $_SSH "make -k $_TARGET"
   # after_script:
   #   - echo quit | socat - UNIX-CONNECT:/tmp/monitor
   tags:
