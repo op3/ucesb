@@ -1,4 +1,5 @@
 stages:
+  - fast-build
   - build
 
 ############################################
@@ -6,7 +7,6 @@ stages:
 ############################################
 
 .common: &common
-  stage: build
   tags:
    - docker
 
@@ -20,13 +20,12 @@ stages:
     - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
 
 .build-bsd: &build-bsd
-  stage: build
   script:
     - JOB_NAME=( $CI_BUILD_NAME )
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k NO_YACC_WERROR=1
+    - gmake -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
   tags:
     - bsd
 
@@ -100,11 +99,12 @@ stages:
   script:
     - _DISABLE="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
     - _SSH="ssh -c 3des-cbc root@127.0.0.1 -p $PORT $_DISABLE"
+    - JOB_NAME=( $CI_BUILD_NAME )
     - _TARGET="${JOB_NAME[4]}"
     - sleep 60
     - while ! $_SSH -o ConnectTimeout=5 'uname -a'; do echo "Alive!" && sleep 1; done
     - scp -r -P $PORT $_DISABLE ./ root@127.0.0.1:./    
-    - $_SSH 'make -k $_TARGET'
+    - $_SSH "make -k $_TARGET"
   # after_script:
   #   - echo quit | socat - UNIX-CONNECT:/tmp/monitor
   tags:
@@ -131,76 +131,118 @@ stages:
 # Fast build (only empty or xtst) to quickly see if there is some chance
 
 Trusty root5 gcc g++ empty:
+  stage: fast-build
   image: munken/root:trusty-root5
   <<: *debian
 
+Trusty root5 gcc g++ xtst:
+  stage: fast-build
+  image: munken/root:trusty-root5
+  <<: *debian
+
+Trusty root5 clang clang++ empty:
+  stage: fast-build
+  image: munken/root:trusty-root5
+  <<: *debian  
+  
 Trusty root5 clang clang++ xtst:
+  stage: fast-build
   image: munken/root:trusty-root5
   <<: *debian
 
+Trusty 32bit gcc g++ empty:
+  stage: fast-build
+  image: daald/ubuntu32:trusty
+  <<: *debian
+
+Trusty 32bit gcc g++ empty:
+  stage: fast-build
+  image: daald/ubuntu32:trusty
+  <<: *debian  
+
+freebsd 10 gcc g++ empty:
+  stage: fast-build
+  <<: *build-bsd
+  
 #
 
 SLC6 root6 gcc g++ all:
+  stage: build
   image: munken/root:slc6-root6
   <<: *slc6
 
 SLC6 root5 gcc g++ all:
+  stage: build
   image: munken/root:slc6-root5
   <<: *slc6  
 
 CC7 root6 gcc g++ all:
+  stage: build
   image: munken/root:cc7-root6
   <<: *cc7
 
 CC7 root5 gcc g++ all:
+  stage: build  
   image: munken/root:cc7-root5
   <<: *cc7
 
 Trusty root5 gcc g++ all:
+  stage: build  
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root5 clang clang++ all:
+  stage: build  
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root6 gcc g++ all:
+  stage: build  
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty root6 clang clang++ all:
+  stage: build  
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty 32bit gcc g++ all:
+  stage: build  
   image: daald/ubuntu32:trusty
   <<: *debian      
 
 Xenial root5 gcc g++ all:
+  stage: build  
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root5 clang clang++ all:
+  stage: build  
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root6 gcc g++ all:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *debian
 
 Xenial root6 clang clang++ all:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *debian
   
 Xenial root6 gcc-6 g++-6 all flex 2.6.1:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
 Xenial root6 gcc-6 g++-6 all flex 2.6.2:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
 Arch minimal gcc g++ all:
+  stage: build
   <<: *common
   image: pritunl/archlinux
   before_script:
@@ -208,35 +250,45 @@ Arch minimal gcc g++ all:
   <<: *build
 
 gcc-latest minimal gcc g++ all:
+  stage: build  
   image: gcc:latest
   <<: *debian
 
 debian jessie gcc g++ all:
+  stage: build  
   image: debian:jessie
   <<: *debian
 
 debian jessie gcc g++ all:
+  stage: build  
   image: debian:wheezy
   <<: *debian
 
 debian etch gcc g++ all:
+  stage: build  
   image: munken/debian:etch
   <<: *old-debian  
 
-freebsd 10 gcc g++:
+freebsd 10 gcc g++ all:
+  stage: build  
   <<: *build-bsd
 
-freebsd 10 clang clang++:
+freebsd 10 clang clang++ all:
+  stage: build  
   <<: *build-bsd
   
 qemu arm . . empty:
+  stage: build  
   <<: *qemu-arm
 
 qemu arm . . xtst:
+  stage: build  
   <<: *qemu-arm
 
 qemu ppc . . empty:
+  stage: build  
   <<: *qemu-ppc
 
 qemu ppc . . xtst:
+  stage: build  
   <<: *qemu-ppc
