@@ -162,10 +162,6 @@ Trusty 32bit gcc g++ empty:
 freebsd 10 gcc g++ empty:
   stage: fast-build
   <<: *build-bsd
-
-freebsd 10 clang clang++ xtst:
-  stage: fast-build
-  <<: *build-bsd
   
 #
 
