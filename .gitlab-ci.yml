@@ -1,4 +1,5 @@
 stages:
+  - fast-build
   - build
 
 ############################################
@@ -26,7 +27,7 @@ stages:
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k NO_YACC_WERROR=1
+    - gmake -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
   tags:
     - bsd
 
@@ -131,13 +132,41 @@ stages:
 # Fast build (only empty or xtst) to quickly see if there is some chance
 
 Trusty root5 gcc g++ empty:
+  stage: fast-build
   image: munken/root:trusty-root5
   <<: *debian
 
+Trusty root5 gcc g++ xtst:
+  stage: fast-build
+  image: munken/root:trusty-root5
+  <<: *debian
+
+Trusty root5 clang clang++ empty:
+  stage: fast-build
+  image: munken/root:trusty-root5
+  <<: *debian  
+  
 Trusty root5 clang clang++ xtst:
+  stage: fast-build
   image: munken/root:trusty-root5
   <<: *debian
 
+Trusty 32bit gcc g++ empty:
+  stage: fast-build
+  image: daald/ubuntu32:trusty
+  <<: *debian
+
+Trusty 32bit gcc g++ empty:
+  stage: fast-build
+  image: daald/ubuntu32:trusty
+  <<: *debian  
+
+freebsd 10 gcc g++ empty:
+  <<: *build-bsd
+
+freebsd 10 clang clang++ xtst:
+  <<: *build-bsd
+  
 #
 
 SLC6 root6 gcc g++ all:
@@ -223,10 +252,10 @@ debian etch gcc g++ all:
   image: munken/debian:etch
   <<: *old-debian  
 
-freebsd 10 gcc g++:
+freebsd 10 gcc g++ all:
   <<: *build-bsd
 
-freebsd 10 clang clang++:
+freebsd 10 clang clang++ all:
   <<: *build-bsd
   
 qemu arm . . empty:
