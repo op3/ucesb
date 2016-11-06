@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 struct lmd_sticky_meta_event
 {
