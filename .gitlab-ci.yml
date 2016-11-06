@@ -19,6 +19,17 @@ stages:
     - flex --version
     - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
 
+.build-bsd: &build-bsd
+  stage: build
+  script:
+    - JOB_NAME=( $CI_BUILD_NAME )
+    - export CC=${JOB_NAME[2]}
+    - export CXX=${JOB_NAME[3]}
+    - $CC --version
+    - gmake -k
+  tags:
+    - bsd
+
 .prepare-debian: &debian
   <<: *common
   before_script:
@@ -199,6 +210,12 @@ debian etch gcc g++ all:
   image: munken/debian:etch
   <<: *old-debian  
 
+freebsd 10 gcc g++:
+  <<: *bsd-build
+
+freebsd 10 clang clang++:
+  <<: *bsd-build
+  
 qemu arm:
   image: munken/qemu:arm
   before_script:
