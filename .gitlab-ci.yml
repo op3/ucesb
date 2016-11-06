@@ -7,7 +7,6 @@ stages:
 ############################################
 
 .common: &common
-  stage: build
   tags:
    - docker
 
@@ -21,7 +20,6 @@ stages:
     - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
 
 .build-bsd: &build-bsd
-  stage: build
   script:
     - JOB_NAME=( $CI_BUILD_NAME )
     - export CC=${JOB_NAME[2]}
@@ -162,74 +160,92 @@ Trusty 32bit gcc g++ empty:
   <<: *debian  
 
 freebsd 10 gcc g++ empty:
+  stage: fast-build
   <<: *build-bsd
 
 freebsd 10 clang clang++ xtst:
+  stage: fast-build
   <<: *build-bsd
   
 #
 
 SLC6 root6 gcc g++ all:
+  stage: build
   image: munken/root:slc6-root6
   <<: *slc6
 
 SLC6 root5 gcc g++ all:
+  stage: build
   image: munken/root:slc6-root5
   <<: *slc6  
 
 CC7 root6 gcc g++ all:
+  stage: build
   image: munken/root:cc7-root6
   <<: *cc7
 
 CC7 root5 gcc g++ all:
+  stage: build  
   image: munken/root:cc7-root5
   <<: *cc7
 
 Trusty root5 gcc g++ all:
+  stage: build  
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root5 clang clang++ all:
+  stage: build  
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root6 gcc g++ all:
+  stage: build  
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty root6 clang clang++ all:
+  stage: build  
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty 32bit gcc g++ all:
+  stage: build  
   image: daald/ubuntu32:trusty
   <<: *debian      
 
 Xenial root5 gcc g++ all:
+  stage: build  
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root5 clang clang++ all:
+  stage: build  
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root6 gcc g++ all:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *debian
 
 Xenial root6 clang clang++ all:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *debian
   
 Xenial root6 gcc-6 g++-6 all flex 2.6.1:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
 Xenial root6 gcc-6 g++-6 all flex 2.6.2:
+  stage: build  
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
 Arch minimal gcc g++ all:
+  stage: build
   <<: *common
   image: pritunl/archlinux
   before_script:
@@ -237,35 +253,45 @@ Arch minimal gcc g++ all:
   <<: *build
 
 gcc-latest minimal gcc g++ all:
+  stage: build  
   image: gcc:latest
   <<: *debian
 
 debian jessie gcc g++ all:
+  stage: build  
   image: debian:jessie
   <<: *debian
 
 debian jessie gcc g++ all:
+  stage: build  
   image: debian:wheezy
   <<: *debian
 
 debian etch gcc g++ all:
+  stage: build  
   image: munken/debian:etch
   <<: *old-debian  
 
 freebsd 10 gcc g++ all:
+  stage: build  
   <<: *build-bsd
 
 freebsd 10 clang clang++ all:
+  stage: build  
   <<: *build-bsd
   
 qemu arm . . empty:
+  stage: build  
   <<: *qemu-arm
 
 qemu arm . . xtst:
+  stage: build  
   <<: *qemu-arm
 
 qemu ppc . . empty:
+  stage: build  
   <<: *qemu-ppc
 
 qemu ppc . . xtst:
+  stage: build  
   <<: *qemu-ppc
