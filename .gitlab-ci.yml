@@ -26,7 +26,7 @@ stages:
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k
+    - gmake -k NO_YACC_WERROR=1
   tags:
     - bsd
 
