@@ -17,7 +17,7 @@ stages:
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
-    - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
+    - make -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
 
 .build-bsd: &build-bsd
   script:
@@ -25,7 +25,7 @@ stages:
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k NO_YACC_WERROR=1 ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
+    - gmake -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
   tags:
     - bsd
 
@@ -162,6 +162,8 @@ Trusty 32bit gcc g++ empty:
 
 freebsd 10 gcc g++ empty:
   stage: fast-build
+  variables:
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
   
 #
@@ -267,16 +269,20 @@ debian jessie gcc g++ all:
 debian etch gcc g++ all:
   stage: build  
   image: munken/debian:etch
+  variables:
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *old-debian  
 
 freebsd 10 gcc g++ all:
   stage: build
   variables:
-    EXTRA_MAKE_FLAGS: "CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
 
 freebsd 10 clang clang++ all:
   stage: build
+  variables:
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *build-bsd
   
 qemu arm . . empty:
