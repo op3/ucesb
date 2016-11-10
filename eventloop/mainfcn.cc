@@ -841,6 +841,8 @@ int main(int argc, char **argv)
   if (_conf._files_open_ahead < 1)
     _conf._files_open_ahead = 1;
 
+  bool had_broken = false;
+
 #ifdef USE_THREADING
   int files_to_open = -1;
   int files_opened = 0; // the one that will be done
@@ -1061,6 +1063,7 @@ int main(int argc, char **argv)
 	    try {
 	      loop.close_source();
 	    } catch (error &e) {
+	      had_broken = true;
 	      if (_conf._io_error_fatal)
 		goto no_more_files;
 	      WARNING("Close reported errors, skipping this file...");
@@ -1086,6 +1089,7 @@ int main(int argc, char **argv)
 	      _ti_info._file_input = NULL; /* got troubles when src object deleted.. */
 #endif
 	    } catch (error &e) {
+	      had_broken = true;
 	      if (_conf._io_error_fatal)
 		goto no_more_files;
 	      WARNING("Open reported errors, skipping this file...");
@@ -1171,6 +1175,7 @@ downscale_event:
 	      _current_event = NULL;
 	      check_new_file_header = true;
 #endif
+	      had_broken = true;
 	      if (_conf._io_error_fatal)
 		goto no_more_files;
 	      WARNING("Event reported errors, skipping this file...");
@@ -2012,7 +2017,7 @@ downscale_event:
 #endif
   }
 
-  return 0;
+  return had_broken ? 2 : 0;
 }
 
 
