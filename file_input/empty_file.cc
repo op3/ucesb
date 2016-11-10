@@ -896,6 +896,9 @@ void write_data_ebye()
 
       rh->_data_length = data_end - data_start;
 
+      /* Filler. */
+      memset(data_end, 0x5e, _buffer_end - data_end);
+
       write_buffer();
     }
 }
