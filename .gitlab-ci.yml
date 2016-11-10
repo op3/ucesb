@@ -17,7 +17,7 @@ stages:
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
-    - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
+    - make -k NO_YACC_WERROR=1 ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
 
 .build-bsd: &build-bsd
   script:
@@ -25,7 +25,7 @@ stages:
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k NO_YACC_WERROR=1 ${JOB_NAME[4]}
+    - gmake -k NO_YACC_WERROR=1 ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
   tags:
     - bsd
 
@@ -104,7 +104,7 @@ stages:
     - sleep 60
     - while ! $_SSH -o ConnectTimeout=5 'uname -a'; do echo "Alive!" && sleep 1; done
     - scp -r -P $PORT $_DISABLE ./ root@127.0.0.1:./    
-    - $_SSH "make -k $_TARGET"
+    - $_SSH "make -k $_TARGET $EXTRA_MAKE_FLAGS"
   # after_script:
   #   - echo quit | socat - UNIX-CONNECT:/tmp/monitor
   tags:
@@ -270,11 +270,13 @@ debian etch gcc g++ all:
   <<: *old-debian  
 
 freebsd 10 gcc g++ all:
-  stage: build  
+  stage: build
+  variables:
+    EXTRA_MAKE_FLAGS: "CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
 
 freebsd 10 clang clang++ all:
-  stage: build  
+  stage: build
   <<: *build-bsd
   
 qemu arm . . empty:
