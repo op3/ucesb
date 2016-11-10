@@ -1286,7 +1286,7 @@ downscale_event:
 		    file_event->print_event(1,&event->_unpack_fail);
 		  }
 		//printf ("\n");
-		if (_status._errors >= 10)
+		if (errors_file >= 10)
 		  {
 		    if (_conf._broken_files)
 		      {
