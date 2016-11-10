@@ -55,7 +55,7 @@ stages:
     - if [[ $CXX == g++* ]] ; then
     -   apt-get install -y ${CXX} > /dev/null
     - fi
-  <<: *build  
+  <<: *build
 
 .prepare-cc7: &cc7
   <<: *common
@@ -71,7 +71,7 @@ stages:
   - source /opt/rh/python27/enable
   - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
   - export YACC=bison
-  <<: *build    
+  <<: *build  
 
 
 .prepare-ubuntu-gcc6-with-flex: &ubuntu-gcc6
@@ -128,7 +128,7 @@ stages:
 #               TARGETS                    #
 ############################################
 
-# Fast build (only empty or xtst) to quickly see if there is some chance
+# Fast build (only empty or xtst) to quickly see if there is some chance.
 
 Trusty root5 gcc g++ empty:
   stage: fast-build
@@ -166,7 +166,25 @@ freebsd 10 gcc g++ empty:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
   
-#
+# Simulated qemu architectures take long time, begin with those.
+  
+qemu arm . . empty:
+  stage: build
+  <<: *qemu-arm
+
+qemu arm . . xtst:
+  stage: build
+  <<: *qemu-arm
+
+qemu ppc . . empty:
+  stage: build
+  <<: *qemu-ppc
+
+qemu ppc . . xtst:
+  stage: build
+  <<: *qemu-ppc
+
+# And the rest.
 
 SLC6 root6 gcc g++ all:
   stage: build
@@ -184,62 +202,62 @@ CC7 root6 gcc g++ all:
   <<: *cc7
 
 CC7 root5 gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/root:cc7-root5
   <<: *cc7
 
 Trusty root5 gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root5 clang clang++ all:
-  stage: build  
+  stage: build
   image: munken/root:trusty-root5
   <<: *debian
 
 Trusty root6 gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty root6 clang clang++ all:
-  stage: build  
+  stage: build
   image: munken/root:trusty-root6
   <<: *debian
 
 Trusty 32bit gcc g++ all:
-  stage: build  
+  stage: build
   image: daald/ubuntu32:trusty
   <<: *debian      
 
 Xenial root5 gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root5 clang clang++ all:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root5
   <<: *debian
 
 Xenial root6 gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root6
   <<: *debian
 
 Xenial root6 clang clang++ all:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root6
   <<: *debian
   
 Xenial root6 gcc-6 g++-6 all flex 2.6.1:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
 Xenial root6 gcc-6 g++-6 all flex 2.6.2:
-  stage: build  
+  stage: build
   image: munken/root:xenial-root6
   <<: *ubuntu-gcc6
 
@@ -252,22 +270,22 @@ Arch minimal gcc g++ all:
   <<: *build
 
 gcc-latest minimal gcc g++ all:
-  stage: build  
+  stage: build
   image: gcc:latest
   <<: *debian
 
 debian jessie gcc g++ all:
-  stage: build  
+  stage: build
   image: debian:jessie
   <<: *debian
 
 debian jessie gcc g++ all:
-  stage: build  
+  stage: build
   image: debian:wheezy
   <<: *debian
 
 debian etch gcc g++ all:
-  stage: build  
+  stage: build
   image: munken/debian:etch
   variables:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
@@ -284,19 +302,3 @@ freebsd 10 clang clang++ all:
   variables:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *build-bsd
-  
-qemu arm . . empty:
-  stage: build  
-  <<: *qemu-arm
-
-qemu arm . . xtst:
-  stage: build  
-  <<: *qemu-arm
-
-qemu ppc . . empty:
-  stage: build  
-  <<: *qemu-ppc
-
-qemu ppc . . xtst:
-  stage: build  
-  <<: *qemu-ppc
