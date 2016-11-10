@@ -68,7 +68,7 @@ struct source_event_base
   uint64_t    _events;           // for display
   uint64_t    _events_last_show; // for display
 
-  int         _tstamp_align_index;
+  ssize_t     _tstamp_align_index;
 
   const char *_name;      // for debug
 };

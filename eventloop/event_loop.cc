@@ -353,7 +353,7 @@ void ucesb_event_loop::close_output()
 #if defined(USE_LMD_INPUT)
 bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
 			  uint64_t *timestamp,
-			  size_t *ts_align_index)
+			  ssize_t *ts_align_index)
 {
   if (src_event->_nsubevents < 1)
     ERROR("No subevents, cannot get a TITRIS time stamp.");
@@ -393,7 +393,7 @@ bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
   if (ts_align_index)
     {
       if (!_ts_align_hist)
-	*ts_align_index = (size_t) -1;
+	*ts_align_index = -1;
       else
 	*ts_align_index =
 	  _ts_align_hist->get_index(subevent_info,
@@ -425,7 +425,7 @@ bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
 
 bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
 		      uint64_t *timestamp,
-		      size_t *ts_align_index)
+		      ssize_t *ts_align_index)
 {
   if (src_event->_nsubevents < 1)
     ERROR("No subevents, cannot get a WR time stamp.");
@@ -467,7 +467,7 @@ bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
   if (ts_align_index)
     {
       if (!_ts_align_hist)
-        *ts_align_index = (size_t) -1;
+        *ts_align_index = -1;
       else
 	*ts_align_index =
 	  _ts_align_hist->get_index(subevent_info,
@@ -504,7 +504,7 @@ bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
 bool get_timestamp(int timestamp_type,
 		   FILE_INPUT_EVENT *src_event,
 		   uint64_t *timestamp,
-		   size_t *ts_align_index)
+		   ssize_t *ts_align_index)
 {
   switch (timestamp_type)
     {
@@ -1428,7 +1428,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
   if (_ts_align_hist)
     {
       uint64_t timestamp;
-      size_t ts_align_index;
+      ssize_t ts_align_index;
 
 #if USE_THREADING || USE_MERGING
       FILE_INPUT_EVENT *src_event = (FILE_INPUT_EVENT *) eb._file_event;

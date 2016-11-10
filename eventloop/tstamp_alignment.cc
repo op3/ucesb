@@ -60,7 +60,7 @@ void tstamp_alignment_histo::add_histos(size_t n)
 }
 
 
-size_t tstamp_alignment::get_index(const lmd_subevent *subevent_info,
+ssize_t tstamp_alignment::get_index(const lmd_subevent *subevent_info,
 				   uint titris_branch_id)
 {
   titris_subevent_ident ident;
@@ -100,9 +100,9 @@ size_t tstamp_alignment::get_index(const lmd_subevent *subevent_info,
     return iter->second;
 }
 
-void tstamp_alignment::account(size_t index, uint64_t stamp)
+void tstamp_alignment::account(ssize_t index, uint64_t stamp)
 {
-  if (index == (size_t) -1)
+  if (index == -1)
     return;
 
   // printf ("%d %zd\n",index, _vect_histo.size());

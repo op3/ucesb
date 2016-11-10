@@ -100,9 +100,9 @@ public:
   vect_tstamp_alignment_histo  _vect_histo;
 
 public:
-  size_t get_index(const lmd_subevent *subevent_info,
+  ssize_t get_index(const lmd_subevent *subevent_info,
 		   uint titris_branch_id);
-  void account(size_t index, uint64_t stamp);
+  void account(ssize_t index, uint64_t stamp);
 
 public:
   void init();
