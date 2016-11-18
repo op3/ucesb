@@ -52,7 +52,7 @@ VME_MESYTEC_MADC32(geom)
     0_31: 0x00000000;
   }
 
-  UINT32 end_of_event NOENCODE
+  UINT32 end_of_event
   {
     0_29:  counter;
     30_31: 0b11;
