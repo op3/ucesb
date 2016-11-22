@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA  02110-1301  USA
 
+ifndef QUIET
+QUIET=@
+endif
+
 GENDIR = generated
 
 GENOBJS = $(GENDIR)/parser.o $(GENDIR)/lexer.o
@@ -90,12 +94,12 @@ AUTO_DEPS += $(GENDIR)/parser.y.incfile.d
 $(GENDIR)/parser.y.incfile.d: parser.y $(INCLUDE_FILE_PL)
 	@echo " INCDEPS $@"
 	@mkdir -p $(dir $@)
-	@perl $(INCLUDE_FILE_PL) --input=$< --dependencies=$@ > $@
+	$(QUIET)perl $(INCLUDE_FILE_PL) --input=$< --dependencies=$@ > $@
 
 $(GENDIR)/parser.y.incfile: parser.y $(GENDIR)/parser.y.incfile.d
 	@echo " INCFILE $@"
 	@mkdir -p $(dir $@)
-	@perl $(INCLUDE_FILE_PL) --input=$< && touch $@
+	$(QUIET)perl $(INCLUDE_FILE_PL) --input=$< && touch $@
 
 # TODO: should be automatically determined, i.e. if $(YACC) accepts -Werror
 ifeq ($(NO_YACC_WERROR),)
@@ -105,21 +109,21 @@ endif
 $(GENDIR)/y.tab.c: parser.y $(GENDIR)/parser.y.incfile
 	@echo "  YACC   $@"
 	@mkdir -p $(dir $@)
-	@$(YACC) -d $(YACC_WERROR_FLAG) -o $@ $< || \
+	$(QUIET)$(YACC) -d $(YACC_WERROR_FLAG) -o $@ $< || \
 	  (echo "If -W flag unknown, try to compile with" \
 		" '$(MAKE) NO_YACC_WERROR=1'" && \
 	   exit 1 )
-	@touch $(GENDIR)/y.tab.h
+	$(QUIET)touch $(GENDIR)/y.tab.h
 
 $(GENDIR)/y.tab.h: $(GENDIR)/y.tab.c
 
 $(GENDIR)/parser.cc: $(GENDIR)/y.tab.c
 	@echo "   CP    $@"
-	@cp $(GENDIR)/y.tab.c $@
+	$(QUIET)cp $(GENDIR)/y.tab.c $@
 
 $(GENDIR)/parser.hh: $(GENDIR)/y.tab.h
 	@echo "   CP    $@"
-	@cp $(GENDIR)/y.tab.h $@
+	$(QUIET)cp $(GENDIR)/y.tab.h $@
 
 AUTO_DEPS += $(GENDIR)/lexer.lex.incfile.d
 
@@ -131,34 +135,36 @@ $(GENDIR)/lexer.lex.incfile.d: lexer.lex $(INCLUDE_FILE_PL)
 $(GENDIR)/lexer.lex.incfile: lexer.lex $(GENDIR)/lexer.lex.incfile.d
 	@echo " INCFILE $@"
 	@mkdir -p $(dir $@)
-	@perl $(INCLUDE_FILE_PL) --input=$< && touch $@
+	$(QUIET)perl $(INCLUDE_FILE_PL) --input=$< && touch $@
 
 $(GENDIR)/lexer.cc: lexer.lex $(GENDIR)/lexer.lex.incfile
 	@echo "   LEX   $@"
 	@mkdir -p $(dir $@)
-	@$(LEX) -8 -o $@.lex.tmp $<
-	@cat $@.lex.tmp | $(FLEX_PATCH_PIPELINE) > $@.tmp
-	@mv $@.tmp $@
+	$(QUIET)$(LEX) -8 -o $@.lex.tmp $<
+	$(QUIET)cat $@.lex.tmp | $(FLEX_PATCH_PIPELINE) > $@.tmp
+	$(QUIET)mv $@.tmp $@
 
 $(GENDIR)/lexer.o: $(GENDIR)/parser.hh
 
 %.o: %.cc %.d
 	@echo "   CXX   $@"
-	@$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) $(OPTFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) $(OPTFLAGS) \
+	  -o $@ -c $<
 
 %.d: %.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< | \
+	$(QUIET)$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 %.o: ../common/%.cc %.d
 	@echo "   CXX   $@"
-	@$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) $(OPTFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) $(OPTFLAGS) \
+	  -o $@ -c $<
 
 %.d: ../common/%.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< | \
+	$(QUIET)$(CXX) $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
@@ -167,7 +173,7 @@ include ../makefile_deps.inc
 ucesbgen.dep: $(AUTO_DEPS)
 	@echo " FULLDEP $@"
 	@echo "$@ $(MAKECMDGOALS): \\" > $@
-	@cat $(AUTO_DEPS) | sed -e 's,^.*:,,g' |\
+	$(QUIET)cat $(AUTO_DEPS) | sed -e 's,^.*:,,g' |\
           sed -e 's,^#.*,,g' |\
           sed -e 's,^.*:,,g' |\
 	  $(SPACE_TO_NEWLINE) |\
@@ -182,14 +188,15 @@ ucesbgen.dep: $(AUTO_DEPS)
 ucesbgen.base.dep: ucesbgen.dep
 	@echo " BASEDEP $@"
 	@echo '$$(UCESB_BASE_DIR)/ucesbgen/$(MAKECMDGOALS): \' > $@
-	@cat $< | grep -v ' \\' | sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/ucesbgen/,g' | sort -u >> $@
+	$(QUIET)cat $< | grep -v ' \\' | \
+	  sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/ucesbgen/,g' | sort -u >> $@
 
 #
 # Link
 
 ucesbgen: $(ALL_OBJS) ucesbgen.dep ucesbgen.base.dep
 	@echo "  LINK   $@"
-	@$(CXXLINK) $(CXXLINKFLAGS) $(ALL_OBJS) $(CXXLIBS) -o $@
+	$(QUIET)$(CXXLINK) $(CXXLINKFLAGS) $(ALL_OBJS) $(CXXLIBS) -o $@
 
 ifneq (clean,$(MAKECMDGOALS))
 -include $(AUTO_DEPS) # dependency files (.d)
