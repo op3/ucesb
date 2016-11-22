@@ -665,7 +665,7 @@ void print_current_merge_order(const merge_event_order *prev)
       break;
     case MERGE_EVENTS_MODE_TITRIS_TIME:
       fprintf(stderr,
-	      "HI: %s0x%08"PRIx64":%02"PRIx64"%s",
+	      "HI: %s0x%08" PRIx64 ":%02" PRIx64 "%s",
 	      CT_OUT(BOLD_BLUE),
 	      prev->_timestamp >> 32,
 	      (prev->_timestamp >> 24) & 0xff,
