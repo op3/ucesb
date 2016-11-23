@@ -334,7 +334,7 @@ int fetch_data(char **ptr,uint32 *data_left)
 		}
 
 	      if (s32[3])
-		fprintf (stderr,"First FB data word not 0.\n",s32[3]);
+		fprintf (stderr,"First FB data word not 0: %08x.\n", s32[3]);
 
 	      for (uint32 *p = s32 + 4; p < se; p++)
 		{
