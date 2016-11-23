@@ -1641,7 +1641,7 @@ downscale_event:
 				fprintf(stderr,
 					"%s%" PRIu64 "%s  (%s%.1f%sk/s)  ",
 					CT_ERR(BOLD_GREEN),
-					events,
+					_status._events,
 					CT_ERR(NORM_DEF_COL),
 					CT_ERR(BOLD),
 					event_rate,
