@@ -274,7 +274,14 @@ gcc-latest minimal gcc g++ all:
   image: gcc:latest
   <<: *debian
 
-gcc-latest minimal gcc g++ all merging:
+gcc-latest minimal gcc g++ empty merging:
+  stage: build
+  image: gcc:latest
+  <<: *debian
+  variables:
+    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
+
+gcc-latest minimal gcc g++ xtst merging:
   stage: build
   image: gcc:latest
   <<: *debian
