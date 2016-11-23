@@ -274,6 +274,13 @@ gcc-latest minimal gcc g++ all:
   image: gcc:latest
   <<: *debian
 
+gcc-latest minimal gcc g++ all merging:
+  stage: build
+  image: gcc:latest
+  <<: *debian
+  variables:
+    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
+
 debian jessie gcc g++ all:
   stage: build
   image: debian:jessie
