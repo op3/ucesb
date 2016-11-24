@@ -126,6 +126,7 @@ void usage()
   printf ("  --colour=yes|no   Force colour and markup on or off.\n");
   printf ("  --event-sizes     Show average sizes of events and subevents.\n");
 
+  printf ("  --monitor[=PORT]  Status information server.\n");
   printf ("  --quiet           Suppress harmless problem reports.\n");
   printf ("  --io-error-fatal  Any I/O error is fatal.\n");
   printf ("  --allow-errors    Allow errors.\n");
@@ -621,6 +622,12 @@ int main(int argc, char **argv)
       }
       else if (MATCH_ARG("--quiet")) {
 	_conf._quiet++;
+      }
+      else if (MATCH_ARG("--monitor")) {
+	_conf._monitor_port = EXT_WRITER_UCESB_MONITOR_DEFAULT_PORT;
+      }
+      else if (MATCH_PREFIX("--monitor=",post)) {
+	_conf._monitor_port = atoi(post);
       }
       else if (MATCH_PREFIX("--colour=",post)) {
 #ifdef USE_CURSES
@@ -1701,6 +1708,7 @@ downscale_event:
 
 		    next_show += show_events;
 		  }
+		MON_CHECK_COPY_BLOCK(&_status_block, &_status);
 	      }
 	  }
       no_more_events:;

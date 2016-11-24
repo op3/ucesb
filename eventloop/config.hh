@@ -51,6 +51,7 @@ struct config_opts
   // General info control
   int _debug;
   int _quiet;
+  int _monitor_port;
 
   int _io_error_fatal;
 

@@ -140,7 +140,7 @@ GENERATED = gen/clean_structures.hh \
 OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	convert_picture.o pretty_dump.o \
 	event_sizes.o tstamp_alignment.o \
-	mainfcn.o location.o \
+	mainfcn.o location.o monitor.o \
 	common.o zero_suppress_map.o signal_id_map.o \
 	struct_fcns.o struct_mapping.o multi_chunk_fcn.o \
 	struct_calib.o user_struct.o \
