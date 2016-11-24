@@ -866,6 +866,7 @@ void external_writer::send_setup_done(bool reader)
   assert (p == _buf->_cur + space);
 
   _buf->commit_buf_space(space);
+  _buf->flush();
 
   // If we are to be a reader, then flush the buffer
 
@@ -948,6 +949,11 @@ void external_writer::send_offsets_fill(uint32_t *po)
   header->_length  = htonl(size);
 
   _buf->commit_buf_space(size);
+}
+
+void external_writer::send_flush()
+{
+  _buf->flush();
 }
 
 void ext_writer_shm_buf::resize_shm(uint32_t size)

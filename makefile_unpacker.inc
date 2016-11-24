@@ -268,6 +268,11 @@ endif
 include $(UCESB_BASE_DIR)/makefile_ext_file_writer.inc
 
 $(UNPACKER): $(EXT_WRITERS)
+
+EXTWRITE_SOURCES += $(UCESB_BASE_DIR)/eventloop/monitor.cc
+
+include $(UCESB_BASE_DIR)/makefile_ext_struct_sender.inc
+
 endif
 
 #########################################################

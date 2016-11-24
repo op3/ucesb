@@ -40,5 +40,6 @@ void mon_block_update(status_block *handle, status_monitor *data);
     }							\
   } while (0)
 
+void start_monitor_thread(int port);
 
 #endif/*__MONITOR_HH__*/

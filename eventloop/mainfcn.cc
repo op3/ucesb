@@ -839,6 +839,9 @@ int main(int argc, char **argv)
     _event_processor_threads[i].init(i);
 #endif
 
+  if (_conf._monitor_port)
+    start_monitor_thread(_conf._monitor_port);
+
   // Initialize the threading info structure (must be before first
   // file open)
   _ti_info.init(tasks,

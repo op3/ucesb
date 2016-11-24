@@ -201,6 +201,7 @@ public:
 			      uint32_t **raw = NULL,
 			      uint32_t raw_words = 0);
   void send_done();
+  void send_flush(); /* Used when data is sent seldomly...  Hmmm */
 
   uint32_t max_h1i_size(size_t max_id_title_len,uint32_t bins);
   void send_hist_h1i(int hid,const char *id,const char *title,
