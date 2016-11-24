@@ -97,10 +97,8 @@ const char *_argv0;
 
 #ifdef BUILD_LAND02
 #include "../optimise.hh"
-#include "../../lu_common/colourtext.hh"
 #else
 #include "../eventloop/optimise.hh"
-#include "../lu_common/colourtext.hh"
 #endif
 
 #ifdef BUILD_LAND02
@@ -111,31 +109,7 @@ const char *_argv0;
 
 ext_write_config _config;
 
-#define MSG(...) do {              \
-  if (_config._forked)             \
-    fprintf(stderr,"%s%s:%s ",CT_ERR(BLUE),_argv0,CT_ERR(DEF_COL));	\
-  fprintf(stderr,__VA_ARGS__);     \
-  fputc('\n',stderr);              \
-} while (0)
-
-#define WARN_MSG(...) do { \
-  if (_config._forked)             \
-    fprintf(stderr,"%s%s:%s ",CT_ERR(BLUE),_argv0,CT_ERR(DEF_COL));	\
-  fprintf(stderr,"%s",CT_ERR(BLACK_BG_YELLOW));	   \
-  fprintf(stderr,__VA_ARGS__);     \
-  fprintf(stderr,"%s",CT_ERR(DEF_COL));	   \
-  fputc('\n',stderr);              \
-} while(0)
-
-#define ERR_MSG(...) do { \
-  if (_config._forked)             \
-    fprintf(stderr,"%s%s:%s ",CT_ERR(BLUE),_argv0,CT_ERR(DEF_COL));	\
-  fprintf(stderr,"%s",CT_ERR(WHITE_BG_RED));	   \
-  fprintf(stderr,__VA_ARGS__);     \
-  fprintf(stderr,"%s",CT_ERR(DEF_COL));	   \
-  fputc('\n',stderr);              \
-  exit(1);                \
-} while(0)
+#include "ext_file_error.hh"
 
 #if USING_CERNLIB
 #define WARNING       MSG

@@ -36,11 +36,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#ifdef BUILD_LAND02
-#include "../../lu_common/colourtext.hh"
-#else
-#include "../lu_common/colourtext.hh"
-#endif
+#include "ext_file_error.hh"
 
 extern const char *_argv0;
 extern int _got_sigio;
@@ -86,24 +82,6 @@ extern int _got_sigio;
  * fixed by merging items at the end into larger chunks (as long as
  * there are no readers.
  */
-
-// TODO: not nice to have this as another copy here!!!!
-#define MSG(...) do {              \
-  if (_config._forked)             \
-    fprintf(stderr,"%s%s:%s ",CT_ERR(BLUE),_argv0,CT_ERR(DEF_COL));	\
-  fprintf(stderr,__VA_ARGS__);     \
-  fputc('\n',stderr);              \
-} while (0)
-
-#define ERR_MSG(...) do { \
-  if (_config._forked)             \
-    fprintf(stderr,"%s%s:%s ",CT_ERR(BLUE),_argv0,CT_ERR(DEF_COL));	\
-  fprintf(stderr,"%s",CT_ERR(WHITE_BG_RED));	   \
-  fprintf(stderr,__VA_ARGS__);     \
-  fprintf(stderr,"%s",CT_ERR(DEF_COL));	   \
-  fputc('\n',stderr);              \
-  exit(1);                \
-} while(0)
 
 struct send_item_chunk
 {
