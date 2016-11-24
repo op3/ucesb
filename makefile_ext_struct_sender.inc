@@ -8,7 +8,8 @@ EXTWRITE_GENDIR := $(BUILD_DIR)/gen
 
 gen/extwrite_%.hh: $(EXTWRITE) #$(EXTWRITE_SOURCES)
 	@echo "EXTWRSTR $@" # $(ASMGENFLAGS)
-	@$(EXTWRITE) --struct=extwrite_$* < $(EXTWRITE_SOURCES) > $@ || rm $@
+	@perl $(EXTWRITE) --struct=extwrite_$* < $(EXTWRITE_SOURCES) > $@ || \
+	  rm $@
 
 # This rule fixes up problems with auto-gen dependent paths
 # in dependecy files.  Automatic dependencies are a pain.
