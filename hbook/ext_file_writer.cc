@@ -2072,6 +2072,7 @@ void dump_array()
 
       printf ("\n");
     }
+  fflush(stdout);
 }
 #endif
 
