@@ -2081,7 +2081,8 @@ void dump_array_json()
 
   printf ("{");
 
-  bool first = true;
+  stage_array_item_map::iterator last = --_stage_array._items.end();
+  
   for (stage_array_item_map::iterator iter = _stage_array._items.begin();
        iter != _stage_array._items.end(); ++iter)
     {
@@ -2136,10 +2137,7 @@ void dump_array_json()
 	}
       if (is_array) printf("]");
 
-      if (!first) printf(",");
-
-      printf ("\n");
-      first = false;
+      if (iter != last) printf(",");
     }
   printf("}\n");
   fflush(stdout);
