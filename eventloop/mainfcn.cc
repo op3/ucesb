@@ -1148,7 +1148,7 @@ downscale_event:
 	    typedef __typeof__(_file_event) file_event_type;
 	    file_event_type *file_event = &_file_event;
 #endif
-
+	    usleep(50000);
 	    try {
 #if defined(USE_EXT_WRITER)
 	      if (loop._ext_source)

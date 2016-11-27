@@ -44,7 +44,7 @@ void mon_block_update(status_block *handle, status_monitor *data)
 
   handle->_copy_seq[copy][1] = handle->_copy_seq_done;
 
-  printf ("Copied status block to %d\n", copy);
+  //printf ("Copied status block to %d\n", copy);
 }
 
 void *monitor_thread(void *)
@@ -79,7 +79,7 @@ void *monitor_thread(void *)
 	  if (seq_before == seq_after)
 	    {
 	      /* Good. */
-	      printf ("Good copy in %d.\n", copy);
+	      //printf ("Good copy in %d.\n", copy);
 
 	      send_fill_extwrite_mon_block(_mon_ew,mon);
 	      _mon_ew->send_flush();
