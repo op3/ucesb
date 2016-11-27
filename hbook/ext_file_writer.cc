@@ -1987,7 +1987,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 }
 
 #if STRUCT_WRITER
-void dump_array()
+void dump_array_normal()
 {
   // Dump all entries...
 
@@ -2072,6 +2072,76 @@ void dump_array()
 
       printf ("\n");
     }
+  fflush(stdout);
+}
+
+void dump_array_json()
+{
+  // Dump all entries...
+
+  printf ("{");
+
+  bool first = true;
+  for (stage_array_item_map::iterator iter = _stage_array._items.begin();
+       iter != _stage_array._items.end(); ++iter)
+    {
+      stage_array_item &item = iter->second;
+      uint32_t offset = iter->first;
+
+      int items = 1;
+
+      bool is_array = item._var_array_len != (uint32_t) -1;
+
+      if (is_array)
+	{
+	  if (item._var_ctrl_name)
+	    {
+	      uint32_t *ctrl_p =
+		(uint32_t *) (_stage_array._ptr + item._ctrl_offset);
+
+	      items = *ctrl_p;
+	      if (items == 0)
+		continue;
+	    }
+	  else
+	    {
+	      items = item._var_array_len;
+	    }
+	}
+
+      printf("\"%s\":",item._var_name);
+
+      char *p = _stage_array._ptr + offset;
+      
+      if (is_array) printf("[");
+      for (int i = 0; i < items; i++, p += sizeof(uint32_t))
+	{
+	  switch (item._var_type & EXTERNAL_WRITER_FLAG_TYPE_MASK)
+	    {
+	    case EXTERNAL_WRITER_FLAG_TYPE_INT32: {
+	      printf ("%d",(int) *((int32_t *) p)); // PRId32
+	      break;
+	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_UINT32: {
+	      printf ("%u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      break;
+	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_FLOAT32: {
+	      float f = *((float *) p);
+	      printf("%g", f);
+	      break;
+	    }
+	    }
+	  if (is_array && i < items-1) printf(",");
+	}
+      if (is_array) printf("]");
+
+      if (!first) printf(",");
+
+      printf ("\n");
+      first = false;
+    }
+  printf("}\n");
   fflush(stdout);
 }
 #endif
@@ -3110,8 +3180,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 #endif
 #if STRUCT_WRITER
-  if (_config._dump)
-    dump_array();
+  if (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL)
+    dump_array_normal();
+  else if (_config._dump == EXT_WRITER_DUMP_FORMAT_JSON)
+    dump_array_json();
 #endif
 
  statistics:
@@ -4552,7 +4624,15 @@ int main(int argc,char *argv[])
 	_config._stdout = 1;
       }
       else if (MATCH_ARG("--dump")) {
-	_config._dump = 1;
+	_config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;
+      }
+      else if (MATCH_PREFIX("--dump=",post)) {
+	if (strcmp(post,"normal") == 0)
+	  _config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;
+	else if (strcmp(post,"json") == 0)
+	  _config._dump = EXT_WRITER_DUMP_FORMAT_JSON;
+	else if (strcmp(post,"auto") != 0)
+	  ERR_MSG("Bad option '%s' for --dump=",post);
       }
 #endif
       else {

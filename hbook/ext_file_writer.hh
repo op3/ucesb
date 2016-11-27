@@ -105,6 +105,9 @@ struct ext_write_config
   int         _debug_header;
   int         _port;
   int         _stdout;
+
+#define EXT_WRITER_DUMP_FORMAT_NORMAL 1
+#define EXT_WRITER_DUMP_FORMAT_JSON   2  
   int         _dump;
 #endif
 };
