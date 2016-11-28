@@ -29,6 +29,14 @@ stages:
   tags:
     - bsd
 
+.build-mac-sierra: &build-mac-sierra
+  variables:
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
+  <<: *build
+  tags:
+    - mac
+    - sierra  
+
 .prepare-debian: &debian
   <<: *common
   before_script:
@@ -168,12 +176,7 @@ freebsd 10 gcc g++ empty:
 
 mac sierra gcc g++ empty:
   stage: fast-build
-  variables:
-    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
-  <<: *build
-  tags:
-    - mac
-    - sierra
+  <<: *build-mac-sierra
   
   
 # Simulated qemu architectures take long time, begin with those.
@@ -326,3 +329,8 @@ freebsd 10 clang clang++ all:
   variables:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *build-bsd
+
+
+mac sierra gcc g++ all:
+  stage: fast-build
+  <<: *build-mac-sierra
