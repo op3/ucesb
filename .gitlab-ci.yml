@@ -165,6 +165,16 @@ freebsd 10 gcc g++ empty:
   variables:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
+
+mac sierra gcc g++ empty:
+  stage: fast-build
+  variables:
+    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
+  <<: *build
+  tags:
+    - mac
+    - sierra
+  
   
 # Simulated qemu architectures take long time, begin with those.
   
