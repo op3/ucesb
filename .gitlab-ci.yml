@@ -332,5 +332,5 @@ freebsd 10 clang clang++ all:
 
 
 mac sierra gcc g++ all:
-  stage: fast-build
+  stage: build
   <<: *build-mac-sierra
