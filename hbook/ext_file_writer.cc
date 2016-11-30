@@ -4474,7 +4474,7 @@ void usage(char *cmdname)
   printf ("  --debug-header     Litter header declaration with offsets and sizes.\n");
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
-  printf ("  --dump             Make text dump of data.\n");
+  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal or json)\n");
 #endif
   printf ("  --colour=yes|no    Force colour and markup on or off.\n");
   printf ("  --forked=fd1,fd2   File descriptors for forked comm. (internal use only)\n");
@@ -4629,7 +4629,7 @@ int main(int argc,char *argv[])
 	  _config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;
 	else if (strcmp(post,"json") == 0)
 	  _config._dump = EXT_WRITER_DUMP_FORMAT_JSON;
-	else if (strcmp(post,"auto") != 0)
+	else
 	  ERR_MSG("Bad option '%s' for --dump=",post);
       }
 #endif
