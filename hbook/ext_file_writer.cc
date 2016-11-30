@@ -2079,7 +2079,10 @@ void dump_array_json()
 {
   // Dump all entries...
 
+  bool pretty = _config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON;
+  
   printf ("{");
+  if (pretty) printf("\n");
 
   stage_array_item_map::iterator last = --_stage_array._items.end();
   
@@ -2112,6 +2115,9 @@ void dump_array_json()
 
       printf("\"%s\":",item._var_name);
 
+      if (pretty && strlen(item._var_name) < 30)
+	printf("%*s", (int) (30-strlen(item._var_name)), "");
+
       char *p = _stage_array._ptr + offset;
       
       if (is_array) printf("[");
@@ -2138,6 +2144,7 @@ void dump_array_json()
       if (is_array) printf("]");
 
       if (iter != last) printf(",");
+      if (pretty) printf("\n");
     }
   printf("}\n");
   fflush(stdout);
@@ -3180,7 +3187,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #if STRUCT_WRITER
   if (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL)
     dump_array_normal();
-  else if (_config._dump == EXT_WRITER_DUMP_FORMAT_JSON)
+  else if (_config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON ||
+	   _config._dump == EXT_WRITER_DUMP_FORMAT_COMPACT_JSON)
     dump_array_json();
 #endif
 
@@ -4474,7 +4482,7 @@ void usage(char *cmdname)
   printf ("  --debug-header     Litter header declaration with offsets and sizes.\n");
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
-  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal or json)\n");
+  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, json or compact)\n");
 #endif
   printf ("  --colour=yes|no    Force colour and markup on or off.\n");
   printf ("  --forked=fd1,fd2   File descriptors for forked comm. (internal use only)\n");
@@ -4628,7 +4636,9 @@ int main(int argc,char *argv[])
 	if (strcmp(post,"normal") == 0)
 	  _config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;
 	else if (strcmp(post,"json") == 0)
-	  _config._dump = EXT_WRITER_DUMP_FORMAT_JSON;
+	  _config._dump = EXT_WRITER_DUMP_FORMAT_HUMAN_JSON;
+	else if (strcmp(post,"compact_json") == 0)
+	  _config._dump = EXT_WRITER_DUMP_FORMAT_COMPACT_JSON;
 	else
 	  ERR_MSG("Bad option '%s' for --dump=",post);
       }
