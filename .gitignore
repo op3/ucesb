@@ -1,0 +1,47 @@
+# Generated
+*.d
+*.dep
+*/gen/
+gen/
+*/generated/
+*/mc_gen/
+generated/
+ext_test/
+*.pcm
+
+# Dicts
+hbook/*_dict.cc
+
+# Compiled stuff
+*.so
+*.a
+*.o
+
+# Executables
+empty/empty
+file_input/empty_file
+file_input/tdas_conv
+gamma_k8/gamma_k8
+is430_05/is430_05
+is445_08/is445_08
+is446/is446
+labbet1/labbet1
+land/land
+mwpclab/mwpclab
+rpc2006/rpc2006
+sid_genf/sid_genf
+xtst/xtst
+ebye/ebye
+fa192mar09/fa192mar09
+hacky/hacky
+i123/i123
+is507/is507
+madrid/madrid
+ridf/ridf
+s107/s107
+sampler/sampler
+tacquila/tacquila
+hbook/root_writer
+hbook/struct_writer
+psdc/psdc
+ucesbgen/ucesbgen
