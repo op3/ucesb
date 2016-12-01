@@ -4482,7 +4482,7 @@ void usage(char *cmdname)
   printf ("  --debug-header     Litter header declaration with offsets and sizes.\n");
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
-  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, json or compact)\n");
+  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, [compact_]json)\n");
 #endif
   printf ("  --colour=yes|no    Force colour and markup on or off.\n");
   printf ("  --forked=fd1,fd2   File descriptors for forked comm. (internal use only)\n");
