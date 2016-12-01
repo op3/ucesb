@@ -539,7 +539,7 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	; /* We are handled inside the ctrl item. */
       else if (item->_match_item)
 	{
-	  uint *o_mark = o;
+	  uint32_t *o_mark = o;
 
 	  *(o++) = item->_match_item->_offset; /* src  */
 	  *(o++) = item->_offset;              /* dest */
@@ -548,7 +548,7 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	    {
 	      struct ext_data_structure_item *child;
 	      int child_items = 0;
-	      uint *o_loop_size;
+	      uint32_t *o_loop_size;
 	      uint32_t max_loops;
 
 	      max_loops = item->_match_item->_limit_max;
