@@ -126,7 +126,11 @@ void usage()
   printf ("  --colour=yes|no   Force colour and markup on or off.\n");
   printf ("  --event-sizes     Show average sizes of events and subevents.\n");
 
+#if defined(USE_EXT_WRITER)
   printf ("  --monitor[=PORT]  Status information server.\n");
+#else
+  printf (" (--monitor)        No information server compiled in.\n");
+#endif
   printf ("  --quiet           Suppress harmless problem reports.\n");
   printf ("  --io-error-fatal  Any I/O error is fatal.\n");
   printf ("  --allow-errors    Allow errors.\n");
@@ -623,12 +627,14 @@ int main(int argc, char **argv)
       else if (MATCH_ARG("--quiet")) {
 	_conf._quiet++;
       }
+#if defined(USE_EXT_WRITER)
       else if (MATCH_ARG("--monitor")) {
 	_conf._monitor_port = EXT_WRITER_UCESB_MONITOR_DEFAULT_PORT;
       }
       else if (MATCH_PREFIX("--monitor=",post)) {
 	_conf._monitor_port = atoi(post);
       }
+#endif
       else if (MATCH_PREFIX("--colour=",post)) {
 #ifdef USE_CURSES
 	int force = 0;
@@ -839,8 +845,10 @@ int main(int argc, char **argv)
     _event_processor_threads[i].init(i);
 #endif
 
+#if defined(USE_EXT_WRITER)
   if (_conf._monitor_port)
     start_monitor_thread(_conf._monitor_port);
+#endif
 
   // Initialize the threading info structure (must be before first
   // file open)
@@ -1710,7 +1718,9 @@ downscale_event:
 
 		    next_show += show_events;
 		  }
+#if defined(USE_EXT_WRITER)
 		MON_CHECK_COPY_BLOCK(&_status_block, &_status);
+#endif
 	      }
 	  }
       no_more_events:;
