@@ -15,6 +15,7 @@ ext_test/
 
 # Dicts
 hbook/*_dict.cc
+hbook/*_dict.h
 
 # Compiled stuff
 *.so
@@ -45,6 +46,7 @@ ridf/ridf
 s107/s107
 sampler/sampler
 tacquila/tacquila
+hbook/hbook_writer
 hbook/root_writer
 hbook/struct_writer
 psdc/psdc
