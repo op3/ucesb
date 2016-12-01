@@ -1,3 +1,7 @@
+# Editor fall-out.
+*~
+*.swp
+
 # Generated
 *.d
 *.dep
