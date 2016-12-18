@@ -275,6 +275,8 @@ size_t colourtext_prepare()
 
 #else
 
+#include <stdlib.h>
+
 size_t colourtext_init() { return 0; }
 
 size_t colourtext_setforce(int force_colour) { (void) force_colour; return 0; }
