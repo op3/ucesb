@@ -120,6 +120,8 @@ endef
 
 $(eval $(call CHECK_DIRECTORY_EXIST,$(UCESB_BASE_DIR)))
 
+TREE_UCESB_OR_HOME_SRC_DIR_OR_DIE = $(if $(shell test -d '$(call TREE_UCESB_OR_HOME_SRC_DIR,$(1))'), $(call TREE_UCESB_OR_HOME_SRC_DIR, $(1)), $(error Directory '$(1)' does not exist))
+
 #########################################################
 
 MC_GENDIR=mc_gen
@@ -837,6 +839,12 @@ CXXFLAGS     += -I$(UCESB_BASE_DIR)/mapcalib
 # In such templates, all $ must be replaced by $$, to avoid evaluation
 # at instantiation
 define COMPILE_FROM_DIR_template
+#$$(info Arg1 $(1))
+#$$(info Arg2 $(2))
+#$$(info ucesb_base_dir $$(UCESB_BASE_DIR))
+#$$(info cxx $$(CXX))
+#$$(info cxxflags $$(CXXFLAGS))
+#$$(info optflags $$(OPTFLAGS))
 %.o: $(1)/%.cc %.d
 	@echo "   CXX   $$@"
 	$(QUIET)$$(CXX) -I. -I$$(UCESB_BASE_DIR)/eventloop -I$(1) $(2) \
@@ -849,6 +857,7 @@ define COMPILE_FROM_DIR_template
 	  sed -e 's,\($$(*F)\)\.o[ :]*,$$*.o $$@ : ,g' > $$@
 endef
 
+#$(info $(SRC_DIRS_LAND02_CODE))
 $(foreach dir,$(SRC_DIRS),$(eval $(call COMPILE_FROM_DIR_template,$(dir),)))
 $(foreach dir,$(SRC_DIRS_LAND02_CODE),$(eval $(call COMPILE_FROM_DIR_template,$(dir), -D__LAND02_CODE__ )))
 
