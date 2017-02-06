@@ -21,8 +21,8 @@
 
 TDAS_CONV=$(UCESB_BASE_DIR)/file_input/tdas_conv
 
-$(TDAS_CONV): gen/acc_auto_def/byteorder_include.h \
-	gen/acc_auto_def/byteswap_include.h
+$(TDAS_CONV): $(GENDIR)/acc_auto_def/byteorder_include.h \
+	$(GENDIR)/acc_auto_def/byteswap_include.h
 
 $(TDAS_CONV): $(TDAS_CONV).cc
 	@echo "  BUILD  $@"

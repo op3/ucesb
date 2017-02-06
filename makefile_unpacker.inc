@@ -113,19 +113,31 @@ include $(UCESB_BASE_DIR)/makefile_direxist.inc
 #########################################################
 
 MC_GENDIR=mc_gen
+GENDIR=gen_$(UNPACKER)
 
-GENERATED = gen/clean_structures.hh \
-	gen/clean_raw_structure.hh \
-	gen/clean_cal_structure.hh \
-	gen/structures.hh gen/unpacker.hh gen/matcher.hh gen/locations.hh \
-	gen/raw_structure.hh gen/data_mapping.hh \
-	gen/cal_structure.hh \
-	gen/struct_fcncall.hh gen/struct_mirror.hh gen/struct_mirror_decl.hh \
-	gen/raw_struct_fcncall.hh gen/raw_struct_mirror.hh \
-	gen/cal_struct_fcncall.hh \
-	gen/verify.uce gen/struct_dump.psd gen/raw_struct_dump.psd \
-	gen/subevent_names.hh \
-	gen/packer.hh
+CXXFLAGS += -I$(UCESB_BASE_DIR)/$(GENDIR)
+
+GENERATED = $(GENDIR)/clean_structures.hh \
+	$(GENDIR)/clean_raw_structure.hh \
+	$(GENDIR)/clean_cal_structure.hh \
+	$(GENDIR)/structures.hh \
+	$(GENDIR)/unpacker.hh \
+	$(GENDIR)/matcher.hh \
+	$(GENDIR)/locations.hh \
+	$(GENDIR)/raw_structure.hh \
+	$(GENDIR)/data_mapping.hh \
+	$(GENDIR)/cal_structure.hh \
+	$(GENDIR)/struct_fcncall.hh \
+	$(GENDIR)/struct_mirror.hh \
+	$(GENDIR)/struct_mirror_decl.hh \
+	$(GENDIR)/raw_struct_fcncall.hh \
+	$(GENDIR)/raw_struct_mirror.hh \
+	$(GENDIR)/cal_struct_fcncall.hh \
+	$(GENDIR)/verify.uce \
+	$(GENDIR)/struct_dump.psd \
+	$(GENDIR)/raw_struct_dump.psd \
+	$(GENDIR)/subevent_names.hh \
+	$(GENDIR)/packer.hh
 
 OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	convert_picture.o pretty_dump.o \
@@ -147,8 +159,8 @@ OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	$(MC_GENDIR)/mc_parser.o $(MC_GENDIR)/mc_lexer.o
 GENOBJS =
 
-all: gen/$(UNPACKER).uce gen/$(UNPACKER).pre \
-	$(UNPACKER) gen/$(UNPACKER).runstamps \
+all: $(GENDIR)/$(UNPACKER).uce $(GENDIR)/$(UNPACKER).pre \
+	$(UNPACKER) $(GENDIR)/$(UNPACKER).runstamps \
 	generated
 
 #########################################################
@@ -331,13 +343,13 @@ endif
 ifneq (,$(USER_STRUCT_FILE))
 CXXFLAGS += -D'USER_STRUCT_FILE="$(USER_STRUCT_FILE)"'
 
-GENERATED = gen/user_struct_fcncall.hh
+GENERATED = $(GENDIR)/user_struct_fcncall.hh
 endif
 
 ifneq (,$(CALIB_STRUCT_FILE))
 CXXFLAGS += -D'CALIB_STRUCT_FILE="$(CALIB_STRUCT_FILE)"'
 
-GENERATED = gen/calib_struct_fcncall.hh
+GENERATED = $(GENDIR)/calib_struct_fcncall.hh
 endif
 
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
@@ -536,173 +548,173 @@ $(foreach dir,$(INCLUDE_DIRS),$(eval $(call CHECK_DIRECTORY_EXIST,$(dir))))
 $(UNPACKER).spec.d:
 	@echo "  DEPS   $@"
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -MM -MG $(UNPACKER).spec | \
-	  sed -e 's,$(UNPACKER).spec.o[ :]*,gen/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' | \
-	  sed -e 's,$(UNPACKER).o[ :]*,gen/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
+	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' | \
+	  sed -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
 	> $(UNPACKER).spec.d
 
-gen/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN)
+$(GENDIR)/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN)
 	@echo "UCESBGEN $@"
-	@mkdir -p gen
+	@mkdir -p $(GENDIR)
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
-gen/$(UNPACKER).pre: $(UNPACKER).spec.d
+$(GENDIR)/$(UNPACKER).pre: $(UNPACKER).spec.d
 	@echo "   CPP   $@"
-	@mkdir -p gen
+	@mkdir -p $(GENDIR)
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec > $@.tmp
 	@mv $@.tmp $@
 
-gen/verify.uce: gen/reparse.uce $(UCESBGEN)
+$(GENDIR)/verify.uce: $(GENDIR)/reparse.uce $(UCESBGEN)
 	@echo "UCESBGEN $@"
-	@mkdir -p gen
-	$(QUIET)$(CPP) -x c++ gen/reparse.uce | $(UCESBGEN) > $@.tmp
+	@mkdir -p $(GENDIR)
+	$(QUIET)$(CPP) -x c++ $(GENDIR)/reparse.uce | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
 #########################################################
 
-VERIFYUCESB=gen/verify_reparse.ucesbgen.match
+VERIFYUCESB=$(GENDIR)/verify_reparse.ucesbgen.match
 
-gen/clean_structures.hh: gen/structures.hh
+$(GENDIR)/clean_structures.hh: $(GENDIR)/structures.hh
 	@echo "   CPP   $@"
 	$(QUIET)$(CPP) -x c++ -D__LITTLE_ENDIAN=1234 -D__BIG_ENDIAN=4321 -D__BYTE_ORDER=1234 -P $< | \
 	  egrep -v "public:" | grep -v "^$$" > $@
 #	  egrep -v "public:|__unpack|__match" | grep -v "^$$" > $@
 
-gen/clean_raw_structure.hh: gen/raw_structure.hh
+$(GENDIR)/clean_raw_structure.hh: $(GENDIR)/raw_structure.hh
 	@echo "   CPP   $@"
 	$(QUIET)$(CPP) -x c++ -P $< | \
 	  egrep -v "public:" | grep -v "^$$" > $@
 
-gen/clean_cal_structure.hh: gen/cal_structure.hh
+$(GENDIR)/clean_cal_structure.hh: $(GENDIR)/cal_structure.hh
 	@echo "   CPP   $@"
 	$(QUIET)$(CPP) -x c++ -P $< | \
 	  egrep -v "public:" | grep -v "^$$" > $@
 
-gen/structures.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/structures.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) STRUCTURES < $< > $@
 
-gen/unpacker.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/unpacker.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) UNPACKER < $< > $@
 
-gen/packer.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/packer.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) PACKER < $< > $@
 
-gen/matcher.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/matcher.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MATCHER < $< > $@
 
-gen/subevent_names.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/subevent_names.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) SUBEVENT_NAMES < $< > $@
 
-gen/raw_structure.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/raw_structure.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) EVENT_RAW_STRUCTURE < $< > $@
 
-gen/cal_structure.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/cal_structure.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) EVENT_CAL_STRUCTURE < $< > $@
 
-gen/data_mapping.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/data_mapping.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) EVENT_DATA_MAPPING < $< > $@
 
-gen/locations.hh: gen/$(UNPACKER).uce $(VERIFYUCESB)
+$(GENDIR)/locations.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) LOCATIONS < $< > $@
 
-gen/reparse.uce: gen/$(UNPACKER).uce
+$(GENDIR)/reparse.uce: $(GENDIR)/$(UNPACKER).uce
 	@echo " EXTRACT $@"
 	@$(EXTRACT) INPUT_DEFINITION < $< > $@
 
-gen/verify_reparse.uce: gen/verify.uce
+$(GENDIR)/verify_reparse.uce: $(GENDIR)/verify.uce
 	@echo " EXTRACT $@"
 	@$(EXTRACT) INPUT_DEFINITION < $< > $@
 #	@echo ERROR >> $@ # force an 'internal' error
 
 #########################################################
 
-gen/default_fcncall_define.hh \
-gen/default_fcncall_undef.hh \
-gen/default_mirror_define.hh \
-gen/default_mirror_undef.hh: $(UCESB_BASE_DIR)/eventloop/default_fcncall_mirror.pl
+$(GENDIR)/default_fcncall_define.hh \
+$(GENDIR)/default_fcncall_undef.hh \
+$(GENDIR)/default_mirror_define.hh \
+$(GENDIR)/default_mirror_undef.hh: $(UCESB_BASE_DIR)/eventloop/default_fcncall_mirror.pl
 	@echo "   GEN   $@"
 	@mkdir -p $(dir $@)
 	@perl $< $@ > $@
 
 #########################################################
 
-#VERIFYPSDC=gen/verify_reparse.psdc.match
-#VERIFYPSDCRAW=gen/verify_reparse_raw.psdc.match
+#VERIFYPSDC=$(GENDIR)/verify_reparse.psdc.match
+#VERIFYPSDCRAW=$(GENDIR)/verify_reparse_raw.psdc.match
 
-gen/struct_dump.psd: gen/structures.hh $(PSDC)
+$(GENDIR)/struct_dump.psd: $(GENDIR)/structures.hh $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ -D__PSDC__ -D__LITTLE_ENDIAN=1234 -D__BIG_ENDIAN=4321 -D__BYTE_ORDER=1234 \
 	  -D'SINGLE(name,ident)=name ident' -D'MULTI(name,ident)=__MULTI__ name ident' $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
 	@mv $@.tmp $@
 
-gen/struct_fcncall.hh: gen/struct_dump.psd gen/default_fcncall_define.hh gen/default_fcncall_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/struct_fcncall.hh: $(GENDIR)/struct_dump.psd $(GENDIR)/default_fcncall_define.hh $(GENDIR)/default_fcncall_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 
-gen/struct_mirror.hh: gen/struct_dump.psd gen/default_mirror_define.hh gen/default_mirror_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/struct_mirror.hh: $(GENDIR)/struct_dump.psd $(GENDIR)/default_mirror_define.hh $(GENDIR)/default_mirror_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
-gen/struct_mirror_decl.hh: gen/struct_dump.psd # $(VERIFYPSDC)
+$(GENDIR)/struct_mirror_decl.hh: $(GENDIR)/struct_dump.psd # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_DECL_STRUCT < $< > $@
 
 ##
 #
-#gen/struct_dump_multi.psd: gen/structures.hh $(PSDC)
+#$(GENDIR)/struct_dump_multi.psd: $(GENDIR)/structures.hh $(PSDC)
 #	@echo "  PSDC   $@"
 #	@$(CPP) -D__PSDC__ -D__LITTLE_ENDIAN=1234 -D__BIG_ENDIAN=4321 -D__BYTE_ORDER=1234 \
 #	  -D'SINGLE(name,ident)=name ident' -D'MULTI(name,ident)=name multi_##ident' $< | \
 #	  $(PSDC) > $@.tmp
 #	@mv $@.tmp $@
 #
-#gen/struct_fcncall_multi.hh: gen/struct_dump_multi.psd # $(VERIFYPSDC)
+#$(GENDIR)/struct_fcncall_multi.hh: $(GENDIR)/struct_dump_multi.psd # $(VERIFYPSDC)
 #	@echo " EXTRACT $@"
 #	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 #
-#gen/struct_mirror_multi.hh: gen/struct_dump_multi.psd # $(VERIFYPSDC)
+#$(GENDIR)/struct_mirror_multi.hh: $(GENDIR)/struct_dump_multi.psd # $(VERIFYPSDC)
 #	@echo " EXTRACT $@"
 #	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 #
 ##
 
-gen/raw_struct_dump.psd: gen/raw_structure.hh $(PSDC)
+$(GENDIR)/raw_struct_dump.psd: $(GENDIR)/raw_structure.hh $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ -D__PSDC__ -D__LITTLE_ENDIAN=1234 -D__BIG_ENDIAN=4321 -D__BYTE_ORDER=1234 $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
 	@mv $@.tmp $@
 
-gen/raw_struct_fcncall.hh: gen/raw_struct_dump.psd gen/default_fcncall_define.hh gen/default_fcncall_undef.hh # $(VERIFYPSDCRAW)
+$(GENDIR)/raw_struct_fcncall.hh: $(GENDIR)/raw_struct_dump.psd $(GENDIR)/default_fcncall_define.hh $(GENDIR)/default_fcncall_undef.hh # $(VERIFYPSDCRAW)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 
-gen/raw_struct_mirror.hh: gen/raw_struct_dump.psd gen/default_mirror_define.hh gen/default_mirror_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/raw_struct_mirror.hh: $(GENDIR)/raw_struct_dump.psd $(GENDIR)/default_mirror_define.hh $(GENDIR)/default_mirror_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
 #
 
-gen/cal_struct_dump.psd: gen/cal_structure.hh $(PSDC)
+$(GENDIR)/cal_struct_dump.psd: $(GENDIR)/cal_structure.hh $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ -D__PSDC__ -D__LITTLE_ENDIAN=1234 -D__BIG_ENDIAN=4321 -D__BYTE_ORDER=1234 $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
 	@mv $@.tmp $@
 
-gen/cal_struct_fcncall.hh: gen/cal_struct_dump.psd gen/default_fcncall_define.hh gen/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
+$(GENDIR)/cal_struct_fcncall.hh: $(GENDIR)/cal_struct_dump.psd $(GENDIR)/default_fcncall_define.hh $(GENDIR)/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 
-gen/cal_struct_mirror.hh: gen/cal_struct_dump.psd gen/default_mirror_define.hh gen/default_mirror_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/cal_struct_mirror.hh: $(GENDIR)/cal_struct_dump.psd $(GENDIR)/default_mirror_define.hh $(GENDIR)/default_mirror_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
@@ -711,59 +723,59 @@ gen/cal_struct_mirror.hh: gen/cal_struct_dump.psd gen/default_mirror_define.hh g
 # The dependency on user_struct.o is to a) make sure the file is
 # compilable (the compiler) has better error messages than psdc, and
 # b) make sure we depend on all included files
-gen/user_struct_dump.psd: $(USER_STRUCT_FILE) user_struct.o $(PSDC)
+$(GENDIR)/user_struct_dump.psd: $(USER_STRUCT_FILE) user_struct.o $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ $(PSDC_CPP_FLAGS) -D__PSDC__ $(addprefix -I,$(INCLUDE_DIRS)) -D'USER_STRUCT_FCNS_DECL=' $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
 	@mv $@.tmp $@
 
-gen/user_struct_fcncall.hh: gen/user_struct_dump.psd gen/default_fcncall_define.hh gen/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
+$(GENDIR)/user_struct_fcncall.hh: $(GENDIR)/user_struct_dump.psd $(GENDIR)/default_fcncall_define.hh $(GENDIR)/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 
-gen/user_struct_mirror.hh: gen/user_struct_dump.psd gen/default_mirror_define.hh gen/default_mirror_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/user_struct_mirror.hh: $(GENDIR)/user_struct_dump.psd $(GENDIR)/default_mirror_define.hh $(GENDIR)/default_mirror_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
 # The dependency on user_struct.o ... see above
-gen/calib_struct_dump.psd: $(CALIB_STRUCT_FILE) user_struct.o $(PSDC)
+$(GENDIR)/calib_struct_dump.psd: $(CALIB_STRUCT_FILE) user_struct.o $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ $(PSDC_CPP_FLAGS) -D__PSDC__ $(addprefix -I,$(INCLUDE_DIRS)) -D'CALIB_STRUCT_FCNS_DECL=' $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
 	@mv $@.tmp $@
 
-gen/calib_struct_fcncall.hh: gen/calib_struct_dump.psd gen/default_fcncall_define.hh gen/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
+$(GENDIR)/calib_struct_fcncall.hh: $(GENDIR)/calib_struct_dump.psd $(GENDIR)/default_fcncall_define.hh $(GENDIR)/default_fcncall_undef.hh # $(VERIFYPSDCCAL)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) FUNCTION_CALL_PER_MEMBER < $< > $@
 
-gen/calib_struct_mirror.hh: gen/calib_struct_dump.psd gen/default_mirror_define.hh gen/default_mirror_undef.hh # $(VERIFYPSDC)
+$(GENDIR)/calib_struct_mirror.hh: $(GENDIR)/calib_struct_dump.psd $(GENDIR)/default_mirror_define.hh $(GENDIR)/default_mirror_undef.hh # $(VERIFYPSDC)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
 #########################################################
 
-$(VERIFYUCESB): gen/reparse.uce gen/verify_reparse.uce
+$(VERIFYUCESB): $(GENDIR)/reparse.uce $(GENDIR)/verify_reparse.uce
 	@echo " COMPARE $^"
-	@diff -u $^ > gen/verify_reparse.diff || echo "Internal error in UCESBGEN, reparse of output mismatch"
+	@diff -u $^ > $(GENDIR)/verify_reparse.diff || echo "Internal error in UCESBGEN, reparse of output mismatch"
 	@diff -u $^
 	@touch $@
 
-$(VERIFYPSDC): gen/reparse.psd gen/verify_reparse.psd
+$(VERIFYPSDC): $(GENDIR)/reparse.psd $(GENDIR)/verify_reparse.psd
 	@echo " COMPARE $^"
-	@diff -u $^ > gen/verify_reparse.diff || echo "Internal error in PSDC, reparse of output mismatch"
+	@diff -u $^ > $(GENDIR)/verify_reparse.diff || echo "Internal error in PSDC, reparse of output mismatch"
 	@diff -u $^
 	@touch $@
 
-$(VERIFYPSDC): gen/reparse_raw.psd gen/verify_reparse_raw.psd
+$(VERIFYPSDC): $(GENDIR)/reparse_raw.psd $(GENDIR)/verify_reparse_raw.psd
 	@echo " COMPARE $^"
-	@diff -u $^ > gen/verify_reparse.diff || echo "Internal error in PSDC, reparse of output mismatch"
+	@diff -u $^ > $(GENDIR)/verify_reparse.diff || echo "Internal error in PSDC, reparse of output mismatch"
 	@diff -u $^
 	@touch $@
 
 #########################################################
 
-unpacker.o: gen/unpacker.hh gen/matcher.hh gen/packer.hh \
-	gen/locations.hh gen/structures.hh gen/data_mapping.hh
+unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh $(GENDIR)/packer.hh \
+	$(GENDIR)/locations.hh $(GENDIR)/structures.hh $(GENDIR)/data_mapping.hh
 
 #########################################################
 
@@ -887,7 +899,7 @@ ifndef USE_MERGING
 TEST_ARGS = --show-members --show-calib
 endif
 
-gen/$(UNPACKER).runnullstamp: $(UNPACKER)
+$(GENDIR)/$(UNPACKER).runnullstamp: $(UNPACKER)
 	@echo "  TEST   $@"
 	@./$< /dev/null $(TEST_ARGS) > $@.out 2> $@.err || \
 	  ( echo "Failure while running: './$< /dev/null $(TEST_ARGS)':" ; \
@@ -897,14 +909,14 @@ gen/$(UNPACKER).runnullstamp: $(UNPACKER)
 	@rm $@.out $@.err
 	@touch $@
 
-.PHONY: gen/$(UNPACKER).runstamps
-gen/$(UNPACKER).runstamps: gen/$(UNPACKER).runnullstamp
+.PHONY: $(GENDIR)/$(UNPACKER).runstamps
+$(GENDIR)/$(UNPACKER).runstamps: $(GENDIR)/$(UNPACKER).runnullstamp
 
 #########################################################
 # Test to unpack an input file with no payload data
 
 ifneq (,$(EMPTY_FILE_FORMAT))
-gen/$(UNPACKER).runemptystamp: $(UNPACKER) $(EMPTY_FILE)
+$(GENDIR)/$(UNPACKER).runemptystamp: $(UNPACKER) $(EMPTY_FILE)
 	@echo "  TEST   $@"
 	@$(EMPTY_FILE) $(EMPTY_FILE_FORMAT) --events=10 2> $@.err2 | \
 	  ./$< --file=- > $@.out 2> $@.err || \
@@ -916,7 +928,7 @@ gen/$(UNPACKER).runemptystamp: $(UNPACKER) $(EMPTY_FILE)
 	@rm $@.out $@.err $@.err2
 	@touch $@
 
-gen/$(UNPACKER).runstamps: gen/$(UNPACKER).runemptystamp
+$(GENDIR)/$(UNPACKER).runstamps: $(GENDIR)/$(UNPACKER).runemptystamp
 endif
 
 #########################################################
@@ -938,7 +950,7 @@ ifeq (,$(HAS_UNXZ))
 TESTFILES:=$(filter-out %.xz,$(TESTFILES))
 endif
 
-gen/$(UNPACKER).runfilestamp.%: $(UNPACKER)
+$(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "  TEST   $@"
 	@./$< ../testfiles/$* > $@.out 2> $@.err || \
 	  ( echo "Failure while running: './$< ../testfiles/$*':" ; \
@@ -948,7 +960,7 @@ gen/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@rm $@.out $@.err
 	@touch $@
 
-gen/$(UNPACKER).runstamps: $(addprefix gen/$(UNPACKER).runfilestamp.,$(TESTFILES))
+$(GENDIR)/$(UNPACKER).runstamps: $(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTFILES))
 
 #########################################################
 # Link
@@ -970,5 +982,7 @@ clean::
 	rm -f $(UNPACKER)
 	rm -f $(UNPACKER).spec.d
 	rm -rf $(MC_GENDIR)
-	rm -rf gen
-	rm -rf gen/acc_auto_def
+	rm -rf gen                 # clean old style directories
+	rm -rf gen/acc_auto_def    # clean old style directories
+	rm -rf $(GENDIR)
+	rm -rf $(GENDIR)/acc_auto_def

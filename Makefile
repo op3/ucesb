@@ -31,6 +31,8 @@ export UCESB_BASE_DIR
 #CXX=g++-3.2
 export CXX
 
+GENDIR=gen_$(UNPACKER)
+
 #########################################################
 
 UNPACKERS=land xtst rpc2006 is446 is430_05 is445_08 labbet1 mwpclab \

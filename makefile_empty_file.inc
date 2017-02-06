@@ -29,8 +29,8 @@ endif
 
 EMPTY_FILE=$(UCESB_BASE_DIR)/file_input/empty_file
 
-$(EMPTY_FILE): gen/acc_auto_def/byteorder_include.h \
-	gen/acc_auto_def/byteswap_include.h \
+$(EMPTY_FILE): $(GENDIR)/acc_auto_def/byteorder_include.h \
+	$(GENDIR)/acc_auto_def/byteswap_include.h \
 	$(UCESB_BASE_DIR)/hbook/example/test_caen_v775_data.h \
 	$(UCESB_BASE_DIR)/hbook/example/test_caen_v1290_data.h
 
