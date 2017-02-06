@@ -334,7 +334,9 @@ endif # USE_CURSES
 
 #########################################################
 
+ifneq (clean,$(MAKECMDGOALS))
 include makefile_additional.inc
+endif
 
 #########################################################
 
