@@ -20,6 +20,7 @@
 
 #include "structures.hh"
 #include "error.hh"
+#include "util.hh"
 
 #include "../common/prefix_unit.hh"
 
@@ -344,7 +345,13 @@ void dump_float (const float  item,const signal_id &id,
   char buf[32]; sprintf(buf,"%.7g",item);   pretty_dump(id,buf,pdi);}
 void dump_double(const double item,const signal_id &id,
 		 pretty_dump_info &pdi) {
+#if GCC_VERSION == 40902
+/* Workaround for buggy compiler */
+/* #pragma message(stringify(GCC_VERSION)) */
+  if (!pdi._dump_nan && isnan((float)(item))) return;
+#else
   if (!pdi._dump_nan && isnan(item)) return;
+#endif
   char buf[32]; sprintf(buf,"%.13g",item);   pretty_dump(id,buf,pdi);}
 
 

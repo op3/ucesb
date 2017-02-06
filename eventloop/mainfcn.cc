@@ -58,9 +58,6 @@
 
 #include "user.hh"
 
-#define stringify_r(x) #x
-#define stringify(x)   stringify_r(x)
-
 void signal_handler_ret(int signal)
 {
   UNUSED(signal);
