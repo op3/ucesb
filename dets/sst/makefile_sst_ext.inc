@@ -21,8 +21,7 @@
 
 OBJS += siderem_ext.o sst_ext.o
 
-DSPCODE_DIR=$(call TREE_UCESB_OR_HOME_SRC_DIR,landdaq_/vidsel/siderem)
-$(eval $(call CHECK_DIRECTORY_EXIST,$(DSPCODE_DIR)))
+DSPCODE_DIR :=$(call TREE_UCESB_OR_HOME_SRC_DIR_OR_DIE,landdaq_/vidsel/siderem)
 
 SRC_DIRS += $(UCESB_BASE_DIR)/dets/sst
 
