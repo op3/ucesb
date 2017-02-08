@@ -1,6 +1,8 @@
 # -*- Makefile -*-
 
-TREE_UCESB_OR_HOME_SRC_DIR = $(firstword $(wildcard $(addsuffix /$(1),$(shell pwd)/.. $(UCESB_BASE_DIR)/.. $(HOME))))
+TREE_UCESB_OR_HOME_SRC_DIR = \
+  $(firstword $(wildcard $(addsuffix /$(1),\
+                             $(shell pwd)/.. $(UCESB_BASE_DIR)/.. $(HOME))))
 
 define CHECK_DIRECTORY_EXIST
 DIR_EXISTS:=$(shell test -d '$(1)' && echo exists)
@@ -12,4 +14,8 @@ endef
 
 $(eval $(call CHECK_DIRECTORY_EXIST,$(UCESB_BASE_DIR)))
 
-TREE_UCESB_OR_HOME_SRC_DIR_OR_DIE = $(if $(shell test -d '$(call TREE_UCESB_OR_HOME_SRC_DIR,$(1))'), $(call TREE_UCESB_OR_HOME_SRC_DIR, $(1)), $(error Directory '$(1)' does not exist))
+DIR_EXIST_OR_DIE = \
+  $(if $(shell test -d '$1'), $1, $(error Directory '$(2)' could not be found))
+
+TREE_UCESB_OR_HOME_SRC_DIR_OR_DIE = \
+  $(call DIR_EXIST_OR_DIE, $(call TREE_UCESB_OR_HOME_SRC_DIR,$(1)), $1)
