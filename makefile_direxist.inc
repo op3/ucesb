@@ -15,7 +15,7 @@ endef
 $(eval $(call CHECK_DIRECTORY_EXIST,$(UCESB_BASE_DIR)))
 
 DIR_EXIST_OR_DIE = \
-  $(if $(shell test -d '$1'), $1, $(error Directory '$(2)' could not be found))
+  $(if $(shell test -d '$(1)' && echo Found),$(1),$(error Directory $(1) '$(2)' could not be found))
 
 TREE_UCESB_OR_HOME_SRC_DIR_OR_DIE = \
-  $(call DIR_EXIST_OR_DIE, $(call TREE_UCESB_OR_HOME_SRC_DIR,$(1)), $1)
+  $(call DIR_EXIST_OR_DIE,$(call TREE_UCESB_OR_HOME_SRC_DIR,$(1)),$(1))
