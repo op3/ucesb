@@ -1,11 +1,13 @@
 # Editor fall-out.
 *~
 *.swp
+\#*\#
 
 # Generated
 *.d
 *.dep
 */gen/
+*/gen_*/
 gen/
 */generated/
 */mc_gen/

@@ -31,7 +31,7 @@ export UCESB_BASE_DIR
 #CXX=g++-3.2
 export CXX
 
-GENDIR=gen_$(UNPACKER)
+GENDIR=gen
 
 #########################################################
 
