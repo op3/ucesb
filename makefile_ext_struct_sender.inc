@@ -6,7 +6,7 @@ EXTWRITE = $(UCESB_BASE_DIR)/hbook/make_external_struct_sender.pl
 
 EXTWRITE_GENDIR := $(BUILD_DIR)/$(GENDIR)
 
-$(GENDIR)/extwrite_%.hh: $(EXTWRITE) $(EXTWRITE_SOURCES)
+$(GENDIR)/extwrite_%.hh: $(EXTWRITE) $(EXTWRITE_SOURCES) | $(GENDIR)/gen
 	@echo "EXTWRSTR $@" # $(ASMGENFLAGS)
 	@perl $(EXTWRITE) --struct=extwrite_$* < $(EXTWRITE_SOURCES) > $@ || \
 	  rm $@
