@@ -41,7 +41,7 @@
 
 // struct md_ident_fl;
 
-#include "mc_gen/mc_parser.hh"
+#include "mc_parser.hh"
 #include "file_line.hh"
 
 void yyerror(const char *);

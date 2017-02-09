@@ -112,8 +112,9 @@ include $(UCESB_BASE_DIR)/makefile_direxist.inc
 
 #########################################################
 
-MC_GENDIR=mc_gen
+OBJDIR=obj_$(UNPACKER)
 GENDIR=gen_$(UNPACKER)
+MC_GENDIR=mc_gen_$(UNPACKER)
 
 CXXFLAGS += -I$(GENDIR)
 
@@ -158,7 +159,7 @@ OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	map_info.o calib_info.o mc_def.o \
 	mille_output.o \
 	set_thread_name.o \
-	$(MC_GENDIR)/mc_parser.o $(MC_GENDIR)/mc_lexer.o
+	mc_parser.o mc_lexer.o
 GENOBJS =
 
 all: $(GENDIR)/$(UNPACKER).uce $(GENDIR)/$(UNPACKER).pre \
@@ -168,6 +169,7 @@ all: $(GENDIR)/$(UNPACKER).uce $(GENDIR)/$(UNPACKER).pre \
 #########################################################
 
 include $(UCESB_BASE_DIR)/makefile_gendir.inc
+include $(UCESB_BASE_DIR)/makefile_objdir.inc
 
 #########################################################
 
@@ -541,7 +543,7 @@ include $(UCESB_BASE_DIR)/makefile_filter_warnings.inc
 #########################################################
 
 ifneq (clean,$(MAKECMDGOALS))
--include $(UNPACKER).spec.d
+-include $(OBJDIR)/$(UNPACKER).spec.d
 endif
 
 #########################################################
@@ -549,21 +551,23 @@ endif
 $(foreach dir,$(SRC_DIRS),$(eval $(call CHECK_DIRECTORY_EXIST,$(dir))))
 $(foreach dir,$(INCLUDE_DIRS),$(eval $(call CHECK_DIRECTORY_EXIST,$(dir))))
 
+SRC_DIRS += $(MC_GENDIR)
+
 #########################################################
 
-$(UNPACKER).spec.d:
+$(OBJDIR)/$(UNPACKER).spec.d: | $(OBJDIR)
 	@echo "  DEPS   $@"
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -MM -MG $(UNPACKER).spec | \
-	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' | \
+	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(OBJDIR)/$(UNPACKER).spec.d : ,g' | \
 	  sed -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
-	> $(UNPACKER).spec.d
+	> $(OBJDIR)/$(UNPACKER).spec.d
 
-$(GENDIR)/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN) | $(GENDIR)/gen
+$(GENDIR)/$(UNPACKER).uce: $(OBJDIR)/$(UNPACKER).spec.d $(UCESBGEN) | $(GENDIR)/gen
 	@echo "UCESBGEN $@"
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
-$(GENDIR)/$(UNPACKER).pre: $(UNPACKER).spec.d | $(GENDIR)/gen
+$(GENDIR)/$(UNPACKER).pre: $(OBJDIR)/$(UNPACKER).spec.d | $(GENDIR)/gen
 	@echo "   CPP   $@"
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec > $@.tmp
 	@mv $@.tmp $@
@@ -725,7 +729,7 @@ $(GENDIR)/cal_struct_mirror.hh: $(GENDIR)/cal_struct_dump.psd $(GENDIR)/default_
 # The dependency on user_struct.o is to a) make sure the file is
 # compilable (the compiler) has better error messages than psdc, and
 # b) make sure we depend on all included files
-$(GENDIR)/user_struct_dump.psd: $(USER_STRUCT_FILE) user_struct.o $(PSDC)
+$(GENDIR)/user_struct_dump.psd: $(USER_STRUCT_FILE) $(OBJDIR)/user_struct.o $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ $(PSDC_CPP_FLAGS) -D__PSDC__ $(addprefix -I,$(INCLUDE_DIRS)) -D'USER_STRUCT_FCNS_DECL=' $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
@@ -740,7 +744,7 @@ $(GENDIR)/user_struct_mirror.hh: $(GENDIR)/user_struct_dump.psd $(GENDIR)/defaul
 	@$(EXTRACT) MIRROR_STRUCT < $< > $@
 
 # The dependency on user_struct.o ... see above
-$(GENDIR)/calib_struct_dump.psd: $(CALIB_STRUCT_FILE) user_struct.o $(PSDC)
+$(GENDIR)/calib_struct_dump.psd: $(CALIB_STRUCT_FILE) $(OBJDIR)/user_struct.o $(PSDC)
 	@echo "  PSDC   $@"
 	$(QUIET)$(CPP) -x c++ $(PSDC_CPP_FLAGS) -D__PSDC__ $(addprefix -I,$(INCLUDE_DIRS)) -D'CALIB_STRUCT_FCNS_DECL=' $< | \
 	  $(PSDC) --ignore-missing-corr-struct > $@.tmp
@@ -776,7 +780,7 @@ $(VERIFYPSDC): $(GENDIR)/reparse_raw.psd $(GENDIR)/verify_reparse_raw.psd
 
 #########################################################
 
-unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh $(GENDIR)/packer.hh \
+$(OBJDIR)/unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh $(GENDIR)/packer.hh \
 	$(GENDIR)/locations.hh $(GENDIR)/structures.hh $(GENDIR)/data_mapping.hh
 
 #########################################################
@@ -834,7 +838,7 @@ $(MC_GENDIR)/mc_lexer.cc: $(UCESB_BASE_DIR)/mapcalib/mc_lexer.lex $(MC_GENDIR)/m
 	@cat $@.lex.tmp | $(FLEX_PATCH_PIPELINE) > $@.tmp
 	@mv $@.tmp $@
 
-$(MC_GENDIR)/mc_lexer.d: $(MC_GENDIR)/mc_parser.hh
+$(OBJDIR)/mc_lexer.d: $(MC_GENDIR)/mc_parser.hh
 
 CXXFLAGS     += -I$(UCESB_BASE_DIR)/mapcalib
 
@@ -849,12 +853,12 @@ define COMPILE_FROM_DIR_template
 #$$(info cxx $$(CXX))
 #$$(info cxxflags $$(CXXFLAGS))
 #$$(info optflags $$(OPTFLAGS))
-%.o: $(1)/%.cc %.d
+$(OBJDIR)/%.o: $(1)/%.cc $(OBJDIR)/%.d
 	@echo "   CXX   $$@"
 	$(QUIET)$$(CXX) -I. -I$$(UCESB_BASE_DIR)/eventloop -I$(1) $(2) \
 	  $$(call FILTER_WARNINGS,$$@,$$(CXXFLAGS)) $$(OPTFLAGS) -o $$@ -c $$<
 
-%.d: $(1)/%.cc makefile_additional.inc
+$(OBJDIR)/%.d: $(1)/%.cc makefile_additional.inc
 	@echo "  DEPS   $$@"
 	$(QUIET)$$(CXX) -I. -I$$(UCESB_BASE_DIR)/eventloop -I$(1) $(2) \
 	    $$(call FILTER_WARNINGS,$$@,$$(CXXFLAGS)) -MM -MG $$< -DDEPSRUN | \
@@ -867,12 +871,12 @@ endef
 $(foreach dir,$(SRC_DIRS),$(eval $(call COMPILE_FROM_DIR_template,$(dir),)))
 $(foreach dir,$(SRC_DIRS_LAND02_CODE),$(eval $(call COMPILE_FROM_DIR_template,$(dir), -D__LAND02_CODE__ )))
 
-%.o: %.cc %.d
+$(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) -I. -I$(UCESB_BASE_DIR)/eventloop \
 	  $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) $(OPTFLAGS) -o $@ -c $<
 
-%.d: %.cc makefile_additional.inc
+$(OBJDIR)/%.d: %.cc makefile_additional.inc
 	@echo "  DEPS   $@"
 	$(QUIET)$(CXX) -I. -I$(UCESB_BASE_DIR)/eventloop \
 	    $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< -DDEPSRUN | \
@@ -882,11 +886,17 @@ $(foreach dir,$(SRC_DIRS_LAND02_CODE),$(eval $(call COMPILE_FROM_DIR_template,$(
 
 #########################################################
 
+OBJS:=$(addprefix $(OBJDIR)/,$(OBJS))
+
+$(OBJS) : | $(OBJDIR)
+
 $(UNPACKER): $(OBJS)
 
 ALL_OBJS = $(OBJS) $(GENOBJS)
 
 AUTO_DEPS = $(ALL_OBJS:%.o=%.d) $(MORE_DEPS)
+
+$(AUTO_DEPS): | $(OBJDIR)
 
 $(UNPACKER).dep: $(AUTO_DEPS)
 	@echo " FULLDEP $@"
@@ -981,13 +991,13 @@ endif
 #########################################################
 
 clean::
-	rm -f *.o
-	rm -f *.d
+	rm -f *.o                        # clean old style objects
+	rm -f *.d                        # clean old style deps
 	rm -f $(UNPACKER).dep
 	rm -f $(UNPACKER)
-	rm -f $(UNPACKER).spec.d
-	rm -rf $(MC_GENDIR)
-	rm -rf gen                 # clean old style directories
-	rm -rf gen/acc_auto_def    # clean old style directories
+	rm -f $(UNPACKER).spec.d         # clean old style deps
+	rm -rf gen                       # clean old style directories
+	rm -rf mc_gen                    # clean old style directories
+	rm -rf $(OBJDIR)
 	rm -rf $(GENDIR)
-	rm -rf $(GENDIR)/acc_auto_def
+	rm -rf $(MC_GENDIR)

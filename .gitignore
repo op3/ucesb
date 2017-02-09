@@ -11,6 +11,7 @@
 gen/
 */generated/
 */mc_gen/
+*/mc_gen_*/
 generated/
 ext_test/
 *.pcm
