@@ -170,7 +170,8 @@ XTST_REGRESS_MORE=UNPACK,EVENTNO,TRIGGER,regress,regressextra,ID=xtst_regress
 XTST_REGRESS_LESS=UNPACK,EVENTNO,regress,ID=xtst_regress
 
 # We depend on empty (full ext_reader stuff, as it is simpler)
-$(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_reader_h101.runstamp
+# Remove empty dependency, caused rebuild of empty on expensive arm/ppc target
+$(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_reader_h101.runstamp
 	@echo "  XTST   $@"
 	@xtst/xtst /dev/null \
 	  --ntuple=$(XTST_REGRESS),STRUCT_HH,$@ \
