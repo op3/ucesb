@@ -42,4 +42,5 @@ $(EMPTY_FILE): $(EMPTY_FILE).cc
 	  -I$(UCESB_BASE_DIR)/eventloop \
 	  -I$(UCESB_BASE_DIR)/acc_def \
 	  -I$(UCESB_BASE_DIR) \
+	  -I$(GENDIR) \
 	  -o $@ $< $(LIB_LRT)

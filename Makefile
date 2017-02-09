@@ -44,6 +44,7 @@ all: $(UNPACKERS)
 #########################################################
 # Submakefiles that the programs depend on
 
+include $(UCESB_BASE_DIR)/makefile_gendir.inc
 include $(UCESB_BASE_DIR)/makefile_acc_def.inc
 include $(UCESB_BASE_DIR)/makefile_ucesbgen.inc
 include $(UCESB_BASE_DIR)/makefile_psdc.inc

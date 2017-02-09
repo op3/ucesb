@@ -92,7 +92,7 @@ void read_map_calib_info()
 
   char *filename;
 
-  filename = argv0_replace("gen/data_mapping.hh");
+  filename = argv0_replace(GENDIR "/data_mapping.hh");
   read_map_calib_info_file(filename,true);
   free (filename);
 

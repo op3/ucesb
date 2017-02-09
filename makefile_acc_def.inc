@@ -23,7 +23,7 @@
 
 MAKE_ACC_AUTO_DEF=$(UCESB_BASE_DIR)/lu_common/make_acc_auto_def.sh
 
-$(GENDIR)/acc_auto_def/%.h: $(UCESB_BASE_DIR)/acc_def/%.h $(MAKE_ACC_AUTO_DEF)
+$(GENDIR)/gen/acc_auto_def/%.h $(GENDIR)/acc_auto_def/%.h: $(UCESB_BASE_DIR)/acc_def/%.h $(MAKE_ACC_AUTO_DEF) | $(GENDIR)/gen
 	@echo " AUTODEF $@"
 	@mkdir -p $(dir $@)
 	@$(MAKE_ACC_AUTO_DEF) \

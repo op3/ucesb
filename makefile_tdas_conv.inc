@@ -35,6 +35,7 @@ $(TDAS_CONV): $(TDAS_CONV).cc
 	  -I$(UCESB_BASE_DIR)/lu_common \
 	  -I$(UCESB_BASE_DIR)/acc_def \
 	  -I$(UCESB_BASE_DIR) \
+	  -I$(GENDIR) \
 	  -o $@ $<
 
 .PHONY: tdas_conv

@@ -115,7 +115,9 @@ include $(UCESB_BASE_DIR)/makefile_direxist.inc
 MC_GENDIR=mc_gen
 GENDIR=gen_$(UNPACKER)
 
-CXXFLAGS += -I$(UCESB_BASE_DIR)/$(GENDIR)
+CXXFLAGS += -I$(GENDIR)
+
+CXXFLAGS += -DGENDIR=\"$(GENDIR)\"
 
 GENERATED = $(GENDIR)/clean_structures.hh \
 	$(GENDIR)/clean_raw_structure.hh \
@@ -162,6 +164,10 @@ GENOBJS =
 all: $(GENDIR)/$(UNPACKER).uce $(GENDIR)/$(UNPACKER).pre \
 	$(UNPACKER) $(GENDIR)/$(UNPACKER).runstamps \
 	generated
+
+#########################################################
+
+include $(UCESB_BASE_DIR)/makefile_gendir.inc
 
 #########################################################
 
@@ -343,13 +349,13 @@ endif
 ifneq (,$(USER_STRUCT_FILE))
 CXXFLAGS += -D'USER_STRUCT_FILE="$(USER_STRUCT_FILE)"'
 
-GENERATED = $(GENDIR)/user_struct_fcncall.hh
+GENERATED += $(GENDIR)/user_struct_fcncall.hh
 endif
 
 ifneq (,$(CALIB_STRUCT_FILE))
 CXXFLAGS += -D'CALIB_STRUCT_FILE="$(CALIB_STRUCT_FILE)"'
 
-GENERATED = $(GENDIR)/calib_struct_fcncall.hh
+GENERATED += $(GENDIR)/calib_struct_fcncall.hh
 endif
 
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
@@ -552,21 +558,18 @@ $(UNPACKER).spec.d:
 	  sed -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
 	> $(UNPACKER).spec.d
 
-$(GENDIR)/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN)
+$(GENDIR)/$(UNPACKER).uce: $(UNPACKER).spec.d $(UCESBGEN) | $(GENDIR)/gen
 	@echo "UCESBGEN $@"
-	@mkdir -p $(GENDIR)
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
-$(GENDIR)/$(UNPACKER).pre: $(UNPACKER).spec.d
+$(GENDIR)/$(UNPACKER).pre: $(UNPACKER).spec.d | $(GENDIR)/gen
 	@echo "   CPP   $@"
-	@mkdir -p $(GENDIR)
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec > $@.tmp
 	@mv $@.tmp $@
 
-$(GENDIR)/verify.uce: $(GENDIR)/reparse.uce $(UCESBGEN)
+$(GENDIR)/verify.uce: $(GENDIR)/reparse.uce $(UCESBGEN) | $(GENDIR)/gen
 	@echo "UCESBGEN $@"
-	@mkdir -p $(GENDIR)
 	$(QUIET)$(CPP) -x c++ $(GENDIR)/reparse.uce | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
@@ -640,9 +643,8 @@ $(GENDIR)/verify_reparse.uce: $(GENDIR)/verify.uce
 $(GENDIR)/default_fcncall_define.hh \
 $(GENDIR)/default_fcncall_undef.hh \
 $(GENDIR)/default_mirror_define.hh \
-$(GENDIR)/default_mirror_undef.hh: $(UCESB_BASE_DIR)/eventloop/default_fcncall_mirror.pl
+$(GENDIR)/default_mirror_undef.hh: $(UCESB_BASE_DIR)/eventloop/default_fcncall_mirror.pl | $(GENDIR)/gen
 	@echo "   GEN   $@"
-	@mkdir -p $(dir $@)
 	@perl $< $@ > $@
 
 #########################################################
@@ -856,7 +858,9 @@ define COMPILE_FROM_DIR_template
 	@echo "  DEPS   $$@"
 	$(QUIET)$$(CXX) -I. -I$$(UCESB_BASE_DIR)/eventloop -I$(1) $(2) \
 	    $$(call FILTER_WARNINGS,$$@,$$(CXXFLAGS)) -MM -MG $$< -DDEPSRUN | \
-	  sed -e 's,\($$(*F)\)\.o[ :]*,$$*.o $$@ : ,g' > $$@
+	  sed -e 's,\($$(*F)\)\.o[ :]*,$$*.o $$@ : ,g' \
+	      -e 's,gen/gen,gen,g' -e 's, gen/, $$(GENDIR)/,g' \
+	> $$@
 endef
 
 #$(info $(SRC_DIRS_LAND02_CODE))
@@ -873,6 +877,7 @@ $(foreach dir,$(SRC_DIRS_LAND02_CODE),$(eval $(call COMPILE_FROM_DIR_template,$(
 	$(QUIET)$(CXX) -I. -I$(UCESB_BASE_DIR)/eventloop \
 	    $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< -DDEPSRUN | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
+	      -e 's,gen/gen,gen,g' -e 's, gen/, $(GENDIR)/,g' \
 	> $@
 
 #########################################################
