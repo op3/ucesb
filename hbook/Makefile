@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA  02110-1301  USA
 
+ifndef QUIET
+QUIET=@
+endif
+
 all:
 
 include ../makefile_deps.inc
@@ -173,17 +177,17 @@ AUTO_DEPS += ext_hbook_writer.d
 
 ext_hbook_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -MM -MG $< | \
+	$(QUIET)$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 ext_hbook_writer.o: ext_file_writer.cc ext_hbook_writer.d
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -o $@ -c $<
 
 hbook_writer: ext_hbook_writer.o hbook_writer.base.dep
 	@echo "  LINK   $@"
-	@$(CXX) $(LDFLAGS) $(HBOOK_CXXLINKFLAGS) -o $@ $< \
+	$(QUIET)$(CXX) $(LDFLAGS) $(HBOOK_CXXLINKFLAGS) -o $@ $< \
 	  $(HBOOK_CXXLIBS) $(CXXLIBS) || \
 	  echo "Linking $@ failed, perhaps not using CERNLIB" \
 	  "installation correctly.  If not needed, try to make with" \
@@ -191,8 +195,8 @@ hbook_writer: ext_hbook_writer.o hbook_writer.base.dep
 
 hbook_writer.dep: ext_hbook_writer.d
 	@echo " FULLDEP $@"
-	@echo "$@ hbook_writer: \\" > $@
-	@cat ext_hbook_writer.d | sed -e 's,^.*:,,g' |\
+	$(QUIET)echo "$@ hbook_writer: \\" > $@
+	$(QUIET)cat ext_hbook_writer.d | sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
 	  $(SPACE_TO_NEWLINE) |\
@@ -202,8 +206,8 @@ hbook_writer.dep: ext_hbook_writer.d
 
 hbook_writer.base.dep: hbook_writer.dep
 	@echo " BASEDEP $@"
-	@echo '$(DEP_BASE_DIR)/hbook/hbook_writer: \' > $@
-	@cat $< | grep -v ' \\' | grep -v $(CERN_ROOT) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/hbook_writer: \' > $@
+	$(QUIET)cat $< | grep -v ' \\' | grep -v $(CERN_ROOT) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 endif # CERN_ROOT
 endif # $(MAKECMDGOALS) has hbook_writer
@@ -246,23 +250,23 @@ AUTO_DEPS += ext_root_writer.d
 
 ext_root_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -MM -MG $< | \
+	$(QUIET)$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 ext_root_writer.o: ext_file_writer.cc ext_root_writer.d
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -o $@ -c $<
 
 root_writer: ext_root_writer.o root_writer.base.dep
 	@echo "  LINK   $@"
-	@$(CXX) $(LDFLAGS) $(ROOT_CXXLINKFLAGS) -o $@ $< \
+	$(QUIET)$(CXX) $(LDFLAGS) $(ROOT_CXXLINKFLAGS) -o $@ $< \
 	  $(ROOT_CXXLIBS) $(CXXLIBS)
 
 root_writer.dep: ext_root_writer.d
 	@echo " FULLDEP $@"
-	@echo "$@ root_writer: \\" > $@
-	@cat ext_root_writer.d | sed -e 's,^.*:,,g' |\
+	$(QUIET)echo "$@ root_writer: \\" > $@
+	$(QUIET)cat ext_root_writer.d | sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
 	  $(SPACE_TO_NEWLINE) |\
@@ -272,8 +276,8 @@ root_writer.dep: ext_root_writer.d
 
 root_writer.base.dep: root_writer.dep
 	@echo " BASEDEP $@"
-	@echo '$(DEP_BASE_DIR)/hbook/root_writer: \' > $@
-	@cat $< | grep -v ' \\' | grep -v $(ROOT_INC_DIR) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/root_writer: \' > $@
+	$(QUIET)cat $< | grep -v ' \\' | grep -v $(ROOT_INC_DIR) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 endif
 endif # $(MAKECMDGOALS) has root_writer
@@ -293,33 +297,33 @@ AUTO_DEPS += ext_struct_writer.d ext_struct_net_io.d
 
 ext_struct_writer.d: ext_file_writer.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
+	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 ext_struct_writer.o: ext_file_writer.cc ext_struct_writer.d
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
 
 ext_struct_net_io.d: ext_file_net_io.cc
 	@echo "  DEPS   $@"
-	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
+	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 ext_struct_net_io.o: ext_file_net_io.cc ext_struct_net_io.d
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
 
 struct_writer: ext_struct_writer.o ext_struct_net_io.o struct_writer.base.dep
 	@echo "  LINK   $@"
-	@$(CXX) $(LDFLAGS) $(STRUCT_CXXLINKFLAGS) -o $@ \
+	$(QUIET)$(CXX) $(LDFLAGS) $(STRUCT_CXXLINKFLAGS) -o $@ \
 	  ext_struct_writer.o ext_struct_net_io.o $(STRUCT_CXXLIBS) $(CXXLIBS)
 
 struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d
 	@echo " FULLDEP $@"
-	@echo "$@ struct_writer: \\" > $@
-	@cat ext_struct_writer.d ext_struct_net_io.d ext_data_client.d | \
+	$(QUIET)echo "$@ struct_writer: \\" > $@
+	$(QUIET)cat ext_struct_writer.d ext_struct_net_io.d ext_data_client.d | \
 	  sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
@@ -330,8 +334,8 @@ struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d
 
 struct_writer.base.dep: struct_writer.dep
 	@echo " BASEDEP $@"
-	@echo '$(DEP_BASE_DIR)/hbook/struct_writer: \' > $@    # emacs-dummy: '
-	@cat $< | grep -v ' \\' | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/struct_writer: \' > $@    # emacs-dummy: '
+	$(QUIET)cat $< | grep -v ' \\' | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 #
 
@@ -339,13 +343,13 @@ AUTO_DEPS += ext_data_client.d
 
 ext_data_client.d: ext_data_client.c
 	@echo "  DEPS   $@"
-	@$(CC) $(CFLAGS) -MM -MG $< | \
+	$(QUIET)$(CC) $(CFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
 ext_data_client.o: ext_data_client.c ext_data_client.d
 	@echo "   CC    $@"
-	@$(CC) $(CFLAGS) -fPIC -o $@ -c $<
+	$(QUIET)$(CC) $(CFLAGS) -fPIC -o $@ -c $<
 
 struct_writer: ext_data_client.o
 
@@ -353,17 +357,17 @@ ifneq (,$(FILE_ROOT_CONFIG))
 
 %_dict.cc: %.hh
 	@echo "ROOTCINT $@"
-	@rootcint -f $@ -c $<
+	$(QUIET)rootcint -f $@ -c $<
 
 # Would be ext_data_clnt% , but the % wants at least one letter...
 ext_data_cln%.o: ext_data_cln%.cc
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
 
 # Same rule as previous (share?)
 online_chai%.o: online_chai%.cc
 	@echo "   CXX   $@"
-	@$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
+	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
 
 .PRECIOUS: ext_data_clnt_dict.cc ext_data_clnt_stderr_dict.cc online_chain_dict.cc
 
@@ -371,7 +375,7 @@ libext_data_clnt.so: ext_data_client.o ext_data_clnt.o \
 	ext_data_clnt_dict.o ext_data_clnt_stderr_dict.o \
 	online_chain.o online_chain_dict.o
 	@echo "  LINK   $@"
-	@$(CXX) -g -shared $(ROOT_CXXLINKFLAGS) -o $@ $+ \
+	$(QUIET)$(CXX) -g -shared $(ROOT_CXXLINKFLAGS) -o $@ $+ \
 	  $(ROOT_CXXLIBS)
 
 struct_writer: libext_data_clnt.so
