@@ -107,11 +107,9 @@ void usage()
   printf ("  --calib=FILE      Extra input file with mapping/calibration parameters.\n");
 
   printf ("  --max-events=N    Limit number of events processed to N.\n");
-#if 0
   printf ("  --skip-events=N   Skip initial N events.\n");
   printf ("  --first-event=N   Skip initial events until event # N.\n");
   printf ("  --last-event=N    Stop processing at (before) event # N.\n");
-#endif
   printf ("  --downscale=N     Only process every Nth event.");
 #if 0
   printf ("  --rate=real|NHz   Process events at original or given rate.");
@@ -478,6 +476,9 @@ int main(int argc, char **argv)
   main_argv0 = argv[0];
 
   memset (&_conf,0,sizeof(_conf));
+  _conf._max_events = -1;
+  _conf._first_event = -1;
+  _conf._last_event = -1;
 
   if(argc == 1)
     {
@@ -579,24 +580,34 @@ int main(int argc, char **argv)
 	_conf_calib.push_back(post);
       }
       else if (MATCH_PREFIX("--max-events=",post)) {
-	_conf._max_events = (uint64_t) atol(post);
+	char *end;
+	_conf._max_events = strtoul(post, &end, 10);
+        if (*end != 0 || end == post)
+          ERROR("Invalid number for --max-events.");
       }
-#if 0
       else if (MATCH_PREFIX("--skip-events=",post)) {
-	_conf._skip_events = atol(post);
+	char *end;
+	_conf._skip_events = strtoul(post, &end, 10);
+        if (*end != 0 || end == post)
+          ERROR("Invalid number for --skip-events.");
       }
       else if (MATCH_PREFIX("--first-event=",post)) {
-	_conf._first_event = atol(post);
+	char *end;
+	_conf._first_event = strtoul(post, &end, 10);
+        if (*end != 0 || end == post)
+          ERROR("Invalid number for --first-event.");
       }
       else if (MATCH_PREFIX("--last-event=",post)) {
-	_conf._last_event = atol(post);
+	char *end;
+	_conf._last_event = strtoul(post, &end, 10);
+        if (*end != 0 || end == post)
+          ERROR("Invalid number for --last-event.");
       }
-#endif
       else if (MATCH_PREFIX("--downscale=",post)) {
-	_conf._downscale = atoi(post);
-        if (_conf._downscale <= 0) {
-          ERROR("Downscale parameter must be a positive number.");
-        }
+	char *end;
+	_conf._downscale = strtoul(post, &end, 10);
+        if (*end != 0 || end == post)
+          ERROR("Invalid number for --downscale.");
       }
       else if (MATCH_ARG("--print-buffer")) {
 	_conf._print_buffer = 1;
@@ -726,11 +737,20 @@ int main(int argc, char **argv)
 #ifdef USE_MERGING
   if (_conf._merge_concurrent_files < 1)
     _conf._merge_concurrent_files = 1;
+  else if (_conf._skip_events > 0)
+    ERROR("You can only do one of --skip-events and --merge, not both!");
+  else if (_conf._first_event >= 0)
+    ERROR("You can only do one of --first-event and --merge, not both!");
+  else if (_conf._last_event >= 0)
+    ERROR("You can only do one of --last-event and --merge, not both!");
   else if (_conf._downscale > 0)
     ERROR("You can only do one of --downscale and --merge, not both!");
   if (!_conf._merge_event_mode)
     _conf._merge_event_mode = MERGE_EVENTS_MODE_EVENTNO;
 #endif
+  if (_conf._last_event >= 0 &&
+      _conf._first_event > _conf._last_event)
+    ERROR("--first-event must be <= --last-event!");
 
   /******************************************************************/
 
@@ -1052,7 +1072,11 @@ int main(int argc, char **argv)
     stitch._combine = false;
 #endif
 
+    int skip_events_counter = 0;
+    bool printed_skipped = false;
+    bool printed_skipped_eventno = false;
     int downscale_counter = 0;
+    int64_t prev_multi_events = 0;
 
     for (config_input_vect::iterator input = _inputs.begin();
 	 input != _inputs.end()
@@ -1117,7 +1141,7 @@ int main(int argc, char **argv)
 
 	for( ; ; )
 	  {
-downscale_event:
+get_next_event:
 #ifdef USE_MERGING
 	    // For each source that we have no events ready, we must
 	    // get the next event.  (if it's the last event, we'll
@@ -1196,16 +1220,44 @@ downscale_event:
 	      goto no_more_events;
 	    }
 
-            /* Downscale immediately after we have an event. */
-            ++downscale_counter;
-            if (downscale_counter < _conf._downscale) {
+            // Determine event skipping right after we have an event.
+            bool do_skip = false;
+            if (skip_events_counter < _conf._skip_events)
+	      {
+		skip_events_counter++;
+		do_skip = true;
+		if (!printed_skipped ||
+		    (skip_events_counter % 1000) == 0 ||
+		    skip_events_counter == _conf._skip_events)
+		  {
+		    fprintf(stderr, "Skipped events: %s%d%s\r",
+			    CT_OUT(BOLD_GREEN),
+			    skip_events_counter,
+			    CT_OUT(NORM_DEF_COL));
+		    printed_skipped = true;
+		  }
+	      }
+            else
+	      {
+		downscale_counter++;
+		if (downscale_counter < _conf._downscale)
+		  do_skip = true;
+	      }
+            if (do_skip)
+	      {
 #ifdef USE_MERGING
-	      loop._sources_need_event.push_back(seb);
-	      _current_event = NULL;
+		loop._sources_need_event.push_back(seb);
+		_current_event = NULL;
 #endif
-              goto downscale_event;
-            }
+		goto get_next_event;
+	      }
             downscale_counter = 0;
+            if (printed_skipped)
+	      {
+		// For keeping the "Skipped:" output.
+		fprintf(stderr, "\n");
+		printed_skipped = false;
+	      }
 
 	    /* note that ps_bufhe and ps_filhe might be NULL */
 
@@ -1421,6 +1473,39 @@ downscale_event:
 	      unpack_event *unpack_event = &_static_event._unpack;
 #endif
 
+              // Now we have the event no, let's see if we should skip.
+              if (_conf._first_event >= 0 &&
+                  unpack_event->event_no < _conf._first_event)
+		{
+		  if (!printed_skipped_eventno ||
+		      (unpack_event->event_no % 1000) == 0 ||
+		      unpack_event->event_no + 1 == _conf._first_event)
+		    {
+		      fprintf(stderr, "Skipped event #: %s%d%s\r",
+			      CT_OUT(BOLD_GREEN),
+			      unpack_event->event_no,
+			      CT_OUT(NORM_DEF_COL));
+		      printed_skipped_eventno = true;
+		    }
+		  // This is not pretty...
+		  _status._multi_events = 0;
+		  goto get_next_event;
+		}
+              if (_conf._last_event >= 0 &&
+                  unpack_event->event_no > _conf._last_event)
+		{
+		  // We don't want the ones from the current event.
+		  _status._multi_events = prev_multi_events;
+		  goto no_more_files;
+		}
+              prev_multi_events = _status._multi_events;
+              if (printed_skipped_eventno)
+		{
+		  // For keeping the "Skipped event #:" output.
+		  fprintf (stderr, "\n");
+		  printed_skipped_eventno = false;
+		}
+
 #if defined(USE_LMD_INPUT)
 	      try {
 	      if (check_new_file_header)
@@ -1573,8 +1658,9 @@ downscale_event:
 	    }
 	    _status._events++;
 
-	    if (_conf._max_events &&
-		_status._events >= _conf._max_events)
+            // Casting is never great, but, 63-bits for event counters...
+	    if (_conf._max_events >= 0 &&
+		_status._events >= (uint64_t)_conf._max_events)
 	      goto no_more_files;
 
 #ifndef USE_MERGING

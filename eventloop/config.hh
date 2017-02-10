@@ -68,11 +68,11 @@ struct config_opts
   int _show_calib;
   int _ts_align_hist_mode;
 
-  uint64_t _max_events;
-  int _skip_events;
-  int _first_event;
-  int _last_event;
-  int _downscale;
+  int64_t _max_events;
+  int64_t _skip_events;
+  int64_t _first_event;
+  int64_t _last_event;
+  int64_t _downscale;
 
 #ifdef USE_LMD_INPUT
   int _scramble;
