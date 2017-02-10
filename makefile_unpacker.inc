@@ -557,19 +557,20 @@ SRC_DIRS += $(MC_GENDIR)
 
 $(OBJDIR)/$(UNPACKER).spec.d: | $(OBJDIR)
 	@echo "  DEPS   $@"
-	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -MM -MG $(UNPACKER).spec | \
-	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(OBJDIR)/$(UNPACKER).spec.d : ,g' | \
-	  sed -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
+	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -I$(GENDIR) -MM -MG $(UNPACKER).spec | \
+	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(OBJDIR)/$(UNPACKER).spec.d : ,g' \
+	      -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
+	      -e 's,gen/gen,gen,g' -e 's, gen/, $(GENDIR)/,g' \
 	> $(OBJDIR)/$(UNPACKER).spec.d
 
 $(GENDIR)/$(UNPACKER).uce: $(OBJDIR)/$(UNPACKER).spec.d $(UCESBGEN) | $(GENDIR)/gen
 	@echo "UCESBGEN $@"
-	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
+	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -I$(GENDIR) $(UNPACKER).spec | $(UCESBGEN) > $@.tmp
 	@mv $@.tmp $@
 
 $(GENDIR)/$(UNPACKER).pre: $(OBJDIR)/$(UNPACKER).spec.d | $(GENDIR)/gen
 	@echo "   CPP   $@"
-	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) $(UNPACKER).spec > $@.tmp
+	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -I$(GENDIR) $(UNPACKER).spec > $@.tmp
 	@mv $@.tmp $@
 
 $(GENDIR)/verify.uce: $(GENDIR)/reparse.uce $(UCESBGEN) | $(GENDIR)/gen
