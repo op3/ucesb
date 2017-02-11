@@ -102,6 +102,9 @@ void usage()
 #if defined(USE_LMD_INPUT)
   printf ("  --time-stitch=style,N   Combine events with timestamps with difference <= N,\n"
 	  "                          style: wr, titris.\n");
+  printf ("  --time-slope=[proc=d,][ctrl=d,][crate=d,][tsid=h,][mult=d,][add=d]\n"
+          "                          Perform t'=mult*t+add for matching 10/1 sub-events.\n"
+          "                          At least one of 'mult' and 'add' must be specified.\n");
   printf ("  --tstamp-hist=style  Histogram of time stamp diffs, style: wr, titris.\n");
 #endif
   printf ("  --calib=FILE      Extra input file with mapping/calibration parameters.\n");
@@ -415,6 +418,49 @@ void parse_time_stitch_options(const char *command)
     ERROR("Time stamp style not specified.");
 }
 
+void parse_time_slope_options(const char *command)
+{
+  time_slope ts;
+  char const *p = command;
+  for (;;) {
+    char *end;
+#define TIME_SLOPE_COMPONENT(name, base)\
+    do {\
+      char const *opt = #name"=";\
+      size_t optlen = strlen(opt);\
+      if (0 == strncmp(p, opt, optlen)) {\
+        int value = (int)strtol(p + optlen, &end, base);\
+        if (end == p) {\
+          ERROR("Invalid number in time-slope \"%s\".", command);\
+        }\
+        ts.name = value;\
+        goto parse_time_slope_options_next;\
+      }\
+    } while (0)
+    TIME_SLOPE_COMPONENT(proc, 10);
+    TIME_SLOPE_COMPONENT(ctrl, 10);
+    TIME_SLOPE_COMPONENT(crate, 10);
+    TIME_SLOPE_COMPONENT(tsid, 16);
+    TIME_SLOPE_COMPONENT(mult, 10);
+    TIME_SLOPE_COMPONENT(add, 10);
+    ERROR("Unknown time-slope option in \"%s\".", command);
+parse_time_slope_options_next:
+    p = end;
+    if ('\0' == *p) {
+      break;
+    }
+    if (',' == *p) {
+      ++p;
+      continue;
+    }
+    ERROR("Garbage in time-slope \"%s\".", command);
+  }
+  if (-1 == ts.mult && -1 == ts.add) {
+    ERROR("Time-slope has no parameters \"%s\".", command);
+  }
+  _conf._time_slope_vector.push_back(ts);
+}
+
 void parse_time_stamp_hist_options(const char *command)
 {
   int mode;
@@ -540,6 +586,9 @@ int main(int argc, char **argv)
       }
       else if (MATCH_PREFIX("--time-stitch=",post)) {
 	parse_time_stitch_options(post);
+      }
+      else if (MATCH_PREFIX("--time-slope=",post)) {
+	parse_time_slope_options(post);
       }
       else if (MATCH_PREFIX("--tstamp-hist=",post)) {
 	parse_time_stamp_hist_options(post);

@@ -351,6 +351,34 @@ void ucesb_event_loop::close_output()
 #include "wr_stamp.hh"
 
 #if defined(USE_LMD_INPUT)
+void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header, int a_tsid,
+    uint64_t &a_timestamp)
+{
+  bool found_hit = false;
+  for (std::vector<time_slope>::const_iterator it =
+      _conf._time_slope_vector.begin(); it != _conf._time_slope_vector.end();
+      ++it) {
+#define APPLY_TIMESTAMP_SLOPE_SKIP(ts_part, event_part)\
+    (-1 != it->ts_part && it->ts_part != event_part)
+    if (APPLY_TIMESTAMP_SLOPE_SKIP(proc, a_header.i_procid)) continue;
+    if (APPLY_TIMESTAMP_SLOPE_SKIP(ctrl, a_header.h_control)) continue;
+    if (APPLY_TIMESTAMP_SLOPE_SKIP(crate, a_header.h_subcrate)) continue;
+    if (APPLY_TIMESTAMP_SLOPE_SKIP(tsid, a_tsid)) continue;
+    if (found_hit) {
+      ERROR("Several time-slope matches for event, please be more specific.");
+    }
+    found_hit = true;
+    if (-1 != it->mult) {
+      a_timestamp *= it->mult;
+    }
+    if (-1 != it->add) {
+      a_timestamp += it->add;
+    }
+    // TODO: This cannot check the reverse, i.e. when different sub-events
+    // match to one time-slope. Would require some clever book-keeping.
+  }
+}
+
 bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
 			  uint64_t *timestamp,
 			  ssize_t *ts_align_index)
@@ -405,6 +433,7 @@ bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
     ERROR("First subevent does not have data enough for TITRIS time stamp "
 	"values.");
 
+  uint32_t id     = SWAPPING_BSWAP_32(data[0]);
   uint32_t ts_l16 = SWAPPING_BSWAP_32(data[1]);
   uint32_t ts_m16 = SWAPPING_BSWAP_32(data[2]);
   uint32_t ts_h16 = SWAPPING_BSWAP_32(data[3]);
@@ -416,9 +445,10 @@ bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
 	  ts_l16, ts_m16, ts_h16);
 
   *timestamp =
-    (             ts_l16 & TITRIS_STAMP_LMH_TIME_MASK)         |
-    (            (ts_m16 & TITRIS_STAMP_LMH_TIME_MASK)  << 16) |
-    (((uint64_t) (ts_h16 & TITRIS_STAMP_LMH_TIME_MASK)) << 32);
+      (             ts_l16 & TITRIS_STAMP_LMH_TIME_MASK)         |
+      (            (ts_m16 & TITRIS_STAMP_LMH_TIME_MASK)  << 16) |
+      (((uint64_t) (ts_h16 & TITRIS_STAMP_LMH_TIME_MASK)) << 32);
+  apply_timestamp_slope(subevent_info->_header, id, *timestamp);
 
   return true;
 }
@@ -479,6 +509,7 @@ bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
     ERROR("First subevent does not have data enough "
 	  "for WR time stamp values.");
 
+  uint32_t id      = SWAPPING_BSWAP_32(data[0]);
   uint32_t ts_0_16 = SWAPPING_BSWAP_32(data[1]);
   uint32_t ts_1_16 = SWAPPING_BSWAP_32(data[2]);
   uint32_t ts_2_16 = SWAPPING_BSWAP_32(data[3]);
@@ -493,10 +524,11 @@ bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
 	  ts_0_16, ts_1_16, ts_2_16, ts_3_16);
 
   *timestamp =
-    (             ts_0_16 & WR_STAMP_DATA_TIME_MASK)         |
-    ((            ts_1_16 & WR_STAMP_DATA_TIME_MASK)  << 16) |
-    (((uint64_t) (ts_2_16 & WR_STAMP_DATA_TIME_MASK)) << 32) |
-    (((uint64_t) (ts_3_16 & WR_STAMP_DATA_TIME_MASK)) << 48);
+      (             ts_0_16 & WR_STAMP_DATA_TIME_MASK)         |
+      ((            ts_1_16 & WR_STAMP_DATA_TIME_MASK)  << 16) |
+      (((uint64_t) (ts_2_16 & WR_STAMP_DATA_TIME_MASK)) << 32) |
+      (((uint64_t) (ts_3_16 & WR_STAMP_DATA_TIME_MASK)) << 48);
+  apply_timestamp_slope(subevent_info->_header, id, *timestamp);
 
   return true;
 }

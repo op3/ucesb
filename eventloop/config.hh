@@ -38,6 +38,17 @@ struct config_output
   const char *_name;
 };
 
+struct time_slope
+{
+  time_slope(): proc(-1), ctrl(-1), crate(-1), tsid(-1), mult(-1), add(-1) {}
+  int proc;
+  int ctrl;
+  int crate;
+  int tsid;
+  int mult;
+  int add;
+};
+
 typedef std::vector<config_input> config_input_vect;
 
 typedef std::vector<config_output> config_output_vect;
@@ -81,6 +92,10 @@ struct config_opts
 #ifdef USE_LMD_INPUT
   int _event_stitch_mode;
   int _event_stitch_value;
+#endif
+
+#ifdef USE_LMD_INPUT
+  std::vector<time_slope> _time_slope_vector;
 #endif
 
 #ifdef USE_LMD_INPUT
