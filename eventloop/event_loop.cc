@@ -1150,30 +1150,52 @@ void ucesb_event_loop::stitch_event(event_base &eb,
   if (!good_stamp)
     {
       WARNING("Error set in time-stamp.  Dumping event by itself.");
+      // printf("!good -> bad !combine\n");
+      stitch->_has_stamp = false;
       return;
     }
 
-  if (timestamp < stitch->_last_stamp)
-    {
-      // Unordered, dump!
-    }
-  else
-    {
-      // So, we look good!
-      stitch->_badstamp = false;
+  // This event has a good timestamp.  Even if unordered it is good
+  // (unordered may be due to other (previous) stamp being wrong).
+  stitch->_badstamp = false;
 
-      if ((int64_t) (timestamp - stitch->_last_stamp) <
-	  _conf._event_stitch_value)
-	stitch->_combine = true;
+  if (stitch->_has_stamp)
+    {
+      if (timestamp < stitch->_last_stamp)
+	{
+	  // Unordered, dump!
+	  // printf("unordered -> !bad !combine\n");
+	  // Since it may have been 'previous' stamp that was bad,
+	  // we fall through and set our new stamp.
+	}
+      else
+	{
+	  if ((int64_t) (timestamp - stitch->_last_stamp) <
+	      _conf._event_stitch_value)
+	    {
+	      stitch->_combine = true;
+	      // printf("ordered -> !bad combine\n");
+	      // Do not change stitch->_last_stamp, we are combining
+	      // against the stamp of the first event in this new event.
+	    }
+	  else
+	    {
+	      // printf("ordered -> !bad !combine\n");
+	    }
+	}
     }
-
   /*
   printf ("%012lx (%d %d)\n",
          timestamp,
          stitch->_combine,stitch->_badstamp);
   */
 
-  stitch->_last_stamp = timestamp;
+  if (!stitch->_combine)
+    {
+      stitch->_last_stamp = timestamp;
+      stitch->_has_stamp = true;
+    }
+  // printf("stitch->_last_stamp = timestamp\n");
 }
 #endif
 

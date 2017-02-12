@@ -1067,6 +1067,7 @@ int main(int argc, char **argv)
     stitch_info stitch;
 
     stitch._last_stamp = 0;
+    stitch._has_stamp = false;
     // init in case we are not stitching:
     stitch._badstamp = false;
     stitch._combine = false;

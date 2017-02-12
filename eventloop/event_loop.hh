@@ -114,6 +114,7 @@ struct output_info
 struct stitch_info
 {
   uint64_t _last_stamp;
+  bool     _has_stamp;
   bool     _combine;
   bool     _badstamp;
 };
