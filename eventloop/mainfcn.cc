@@ -102,9 +102,8 @@ void usage()
 #if defined(USE_LMD_INPUT)
   printf ("  --time-stitch=style,N   Combine events with timestamps with difference <= N,\n"
 	  "                          style: wr, titris.\n");
-  printf ("  --time-slope=[proc=d,][ctrl=d,][crate=d,][tsid=h,][mult=d,][add=d]\n"
-          "                          Perform t'=mult*t+add for matching 10/1 sub-events.\n"
-          "                          At least one of 'mult' and 'add' must be specified.\n");
+  printf ("  --time-slope=[help],[filter],[mult],[add]\n"
+          "                    Transform timestamps before they are evaluated.\n");
   printf ("  --tstamp-hist=style  Histogram of time stamp diffs, style: wr, titris.\n");
 #endif
   printf ("  --calib=FILE      Extra input file with mapping/calibration parameters.\n");
@@ -424,13 +423,39 @@ void parse_time_slope_options(const char *command)
   char const *p = command;
   for (;;) {
     char *end;
+    if (strncmp(p, "help", 4) == 0) {
+      printf ("\n");
+      printf ("%s --time-slope=[help],[filter],[mult],[add]\n", main_argv0);
+      printf ("\n");
+      printf ("Every timestamped 10/1 sub-event that matches [filter] will have its timestamp\n");
+      printf ("transformed as \"t' = mult * t + add\" before being evaluated for merging or time\n");
+      printf ("stitching. An error will be emitted if a sub-event matches several given\n");
+      printf ("time-slopes.\n");
+      printf ("\n");
+      printf ("[filter] is a comma-separated list of the following:\n");
+      printf (" proc=dec  - matches against sub-event procid.\n");
+      printf (" ctrl=dec  - matches against sub-event control.\n");
+      printf (" crate=dec - matches against sub-event sub-crate.\n");
+      printf (" tsid=hex  - matches against timestamp ID in sub-event payload,\n");
+      printf ("             this is in base 16, e.g. 0x100 is 100.\n");
+      printf (" mult=dec  - timestamp multiplier, 1 if omitted.\n");
+      printf (" add=dec   - timestamp additive offset, 0 if omitted.\n");
+      printf ("Note that at least one of \"mult\" or \"add\" must be specified.\n");
+      printf ("\n");
+      printf ("Example:\n");
+      printf (" --time-slope=proc=12,ctrl=5,tsid=200,add=100\n");
+      printf ("For every 10/1 subevent with procid=12, control=5, timestamp ID=0x200 in the\n");
+      printf ("payload, the timestamp will be transformed as \"t'=t+100\".\n");
+      printf ("\n");
+      exit(EXIT_SUCCESS);
+    }
 #define TIME_SLOPE_COMPONENT(name, base)\
     do {\
       char const *opt = #name"=";\
       size_t optlen = strlen(opt);\
-      if (0 == strncmp(p, opt, optlen)) {\
+      if (strncmp(p, opt, optlen) == 0) {\
         int value = (int)strtol(p + optlen, &end, base);\
-        if (end == p) {\
+        if (p == end) {\
           ERROR("Invalid number in time-slope \"%s\".", command);\
         }\
         ts.name = value;\
@@ -446,17 +471,17 @@ void parse_time_slope_options(const char *command)
     ERROR("Unknown time-slope option in \"%s\".", command);
 parse_time_slope_options_next:
     p = end;
-    if ('\0' == *p) {
+    if (*p == '\0') {
       break;
     }
-    if (',' == *p) {
+    if (*p == ',') {
       ++p;
       continue;
     }
     ERROR("Garbage in time-slope \"%s\".", command);
   }
-  if (-1 == ts.mult && -1 == ts.add) {
-    ERROR("Time-slope has no parameters \"%s\".", command);
+  if (ts.mult == -1 && ts.add == -1) {
+    ERROR("Time-slope has no modifiers \"%s\".", command);
   }
   _conf._time_slope_vector.push_back(ts);
 }

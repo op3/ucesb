@@ -359,7 +359,7 @@ void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header, int a_tsid,
       _conf._time_slope_vector.begin(); it != _conf._time_slope_vector.end();
       ++it) {
 #define APPLY_TIMESTAMP_SLOPE_SKIP(ts_part, event_part)\
-    (-1 != it->ts_part && it->ts_part != event_part)
+    (it->ts_part != -1 && it->ts_part != event_part)
     if (APPLY_TIMESTAMP_SLOPE_SKIP(proc, a_header.i_procid)) continue;
     if (APPLY_TIMESTAMP_SLOPE_SKIP(ctrl, a_header.h_control)) continue;
     if (APPLY_TIMESTAMP_SLOPE_SKIP(crate, a_header.h_subcrate)) continue;
@@ -368,10 +368,10 @@ void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header, int a_tsid,
       ERROR("Several time-slope matches for event, please be more specific.");
     }
     found_hit = true;
-    if (-1 != it->mult) {
+    if (it->mult != -1) {
       a_timestamp *= it->mult;
     }
-    if (-1 != it->add) {
+    if (it->add != -1) {
       a_timestamp += it->add;
     }
     // TODO: This cannot check the reverse, i.e. when different sub-events
