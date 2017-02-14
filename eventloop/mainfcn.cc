@@ -433,41 +433,46 @@ void parse_time_slope_options(const char *command)
       printf ("time-slopes.\n");
       printf ("\n");
       printf ("[filter] is a comma-separated list of the following:\n");
-      printf (" proc=dec  - matches against sub-event procid.\n");
-      printf (" ctrl=dec  - matches against sub-event control.\n");
-      printf (" crate=dec - matches against sub-event sub-crate.\n");
-      printf (" tsid=hex  - matches against timestamp ID in sub-event payload,\n");
-      printf ("             this is in base 16, e.g. 0x100 is 100.\n");
-      printf (" mult=dec  - timestamp multiplier, 1 if omitted.\n");
-      printf (" add=dec   - timestamp additive offset, 0 if omitted.\n");
+      printf (" proc=num  - matches against sub-event procid.\n");
+      printf (" ctrl=num  - matches against sub-event control.\n");
+      printf (" crate=num - matches against sub-event sub-crate.\n");
+      printf (" tsid=num  - matches against timestamp ID in sub-event payload.\n");
+      printf (" mult=num  - timestamp multiplier, 1 if omitted.\n");
+      printf (" add=num   - timestamp additive offset, 0 if omitted.\n");
       printf ("Note that at least one of \"mult\" or \"add\" must be specified.\n");
       printf ("\n");
       printf ("Example:\n");
-      printf (" --time-slope=proc=12,ctrl=5,tsid=200,add=100\n");
+      printf (" --time-slope=proc=12,ctrl=5,tsid=0x200,add=100\n");
       printf ("For every 10/1 subevent with procid=12, control=5, timestamp ID=0x200 in the\n");
       printf ("payload, the timestamp will be transformed as \"t'=t+100\".\n");
       printf ("\n");
       exit(EXIT_SUCCESS);
     }
-#define TIME_SLOPE_COMPONENT(name, base)\
+#define TIME_SLOPE_COMPONENT(name)\
     do {\
       char const *opt = #name"=";\
       size_t optlen = strlen(opt);\
       if (strncmp(p, opt, optlen) == 0) {\
-        int value = (int)strtol(p + optlen, &end, base);\
+        p += optlen;\
+        int base = 10;\
+        if (strncmp(p, "0x", 2) == 0) {\
+          base = 16;\
+          p += 2;\
+        }\
+        int value = (int)strtol(p, &end, base);\
         if (p == end) {\
-          ERROR("Invalid number in time-slope \"%s\".", command);\
+          ERROR("Invalid number for \""#name"\" in time-slope \"%s\".", command);\
         }\
         ts.name = value;\
         goto parse_time_slope_options_next;\
       }\
     } while (0)
-    TIME_SLOPE_COMPONENT(proc, 10);
-    TIME_SLOPE_COMPONENT(ctrl, 10);
-    TIME_SLOPE_COMPONENT(crate, 10);
-    TIME_SLOPE_COMPONENT(tsid, 16);
-    TIME_SLOPE_COMPONENT(mult, 10);
-    TIME_SLOPE_COMPONENT(add, 10);
+    TIME_SLOPE_COMPONENT(proc);
+    TIME_SLOPE_COMPONENT(ctrl);
+    TIME_SLOPE_COMPONENT(crate);
+    TIME_SLOPE_COMPONENT(tsid);
+    TIME_SLOPE_COMPONENT(mult);
+    TIME_SLOPE_COMPONENT(add);
     ERROR("Unknown time-slope option in \"%s\".", command);
 parse_time_slope_options_next:
     p = end;
