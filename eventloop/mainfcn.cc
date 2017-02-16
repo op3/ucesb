@@ -104,7 +104,8 @@ void usage()
 	  "                          style: wr, titris.\n");
   printf ("  --time-slope=[help],[filter],[mult],[add]\n"
           "                    Transform timestamps before they are evaluated.\n");
-  printf ("  --tstamp-hist=style  Histogram of time stamp diffs, style: wr, titris.\n");
+  printf ("  --tstamp-hist=[help],[style],[props]\n");
+  printf ("                    Histogram of time stamp diffs, style: wr, titris.\n");
 #endif
   printf ("  --calib=FILE      Extra input file with mapping/calibration parameters.\n");
 
@@ -417,6 +418,32 @@ void parse_time_stitch_options(const char *command)
     ERROR("Time stamp style not specified.");
 }
 
+void parse_time_slope_usage()
+{
+  printf ("\n");
+  printf ("%s --time-slope=[help],[filter],[mult],[add]\n", main_argv0);
+  printf ("\n");
+  printf ("Every timestamped 10/1 sub-event that matches [filter] will have its timestamp\n");
+  printf ("transformed as \"t' = mult * t + add\" before being evaluated for merging or time\n");
+  printf ("stitching. An error will be emitted if a sub-event matches several given\n");
+  printf ("time-slopes.\n");
+  printf ("\n");
+  printf ("[filter] is a comma-separated list of the following:\n");
+  printf (" proc=num  - matches against sub-event procid.\n");
+  printf (" ctrl=num  - matches against sub-event control.\n");
+  printf (" crate=num - matches against sub-event sub-crate.\n");
+  printf (" tsid=num  - matches against timestamp ID in sub-event payload.\n");
+  printf (" mult=num  - timestamp multiplier, 1 if omitted.\n");
+  printf (" add=num   - timestamp additive offset, 0 if omitted.\n");
+  printf ("Note that at least one of \"mult\" or \"add\" must be specified.\n");
+  printf ("\n");
+  printf ("Example:\n");
+  printf (" --time-slope=proc=12,ctrl=5,tsid=0x200,add=100\n");
+  printf ("For every 10/1 subevent with procid=12, control=5, timestamp ID=0x200 in the\n");
+  printf ("payload, the timestamp will be transformed as \"t'=t+100\".\n");
+  printf ("\n");
+}
+
 void parse_time_slope_options(const char *command)
 {
   time_slope ts;
@@ -424,28 +451,7 @@ void parse_time_slope_options(const char *command)
   for (;;) {
     char *end;
     if (strncmp(p, "help", 4) == 0) {
-      printf ("\n");
-      printf ("%s --time-slope=[help],[filter],[mult],[add]\n", main_argv0);
-      printf ("\n");
-      printf ("Every timestamped 10/1 sub-event that matches [filter] will have its timestamp\n");
-      printf ("transformed as \"t' = mult * t + add\" before being evaluated for merging or time\n");
-      printf ("stitching. An error will be emitted if a sub-event matches several given\n");
-      printf ("time-slopes.\n");
-      printf ("\n");
-      printf ("[filter] is a comma-separated list of the following:\n");
-      printf (" proc=num  - matches against sub-event procid.\n");
-      printf (" ctrl=num  - matches against sub-event control.\n");
-      printf (" crate=num - matches against sub-event sub-crate.\n");
-      printf (" tsid=num  - matches against timestamp ID in sub-event payload.\n");
-      printf (" mult=num  - timestamp multiplier, 1 if omitted.\n");
-      printf (" add=num   - timestamp additive offset, 0 if omitted.\n");
-      printf ("Note that at least one of \"mult\" or \"add\" must be specified.\n");
-      printf ("\n");
-      printf ("Example:\n");
-      printf (" --time-slope=proc=12,ctrl=5,tsid=0x200,add=100\n");
-      printf ("For every 10/1 subevent with procid=12, control=5, timestamp ID=0x200 in the\n");
-      printf ("payload, the timestamp will be transformed as \"t'=t+100\".\n");
-      printf ("\n");
+      parse_time_slope_usage();
       exit(EXIT_SUCCESS);
     }
 #define TIME_SLOPE_COMPONENT(name)\
@@ -489,17 +495,6 @@ parse_time_slope_options_next:
     ERROR("Time-slope has no modifiers \"%s\".", command);
   }
   _conf._time_slope_vector.push_back(ts);
-}
-
-void parse_time_stamp_hist_options(const char *command)
-{
-  int mode;
-
-  if ((mode = get_time_stamp_mode(command)) != -1)
-    _conf._ts_align_hist_mode = mode;
-  else {
-    ERROR("Unknown time stamp histogram option: %s",command);
-  }
 }
 #endif
 
@@ -621,7 +616,7 @@ int main(int argc, char **argv)
 	parse_time_slope_options(post);
       }
       else if (MATCH_PREFIX("--tstamp-hist=",post)) {
-	parse_time_stamp_hist_options(post);
+        _conf._ts_align_hist_command = post;
       }
 #endif//USE_LMD_INPUT
 #ifdef USE_MERGING
@@ -1014,15 +1009,14 @@ int main(int argc, char **argv)
   uint32_t output_eventno = 0;
 #endif
 
-  if (_conf._ts_align_hist_mode
+  if (_conf._ts_align_hist_command
 #ifdef USE_MERGING
       || _conf._merge_concurrent_files
 #endif
       )
     {
 #ifdef USE_LMD_INPUT
-      _ts_align_hist = new tstamp_alignment();
-      _ts_align_hist->init();
+      _ts_align_hist = new tstamp_alignment(_conf._ts_align_hist_command);
 #endif
     }
 

@@ -109,6 +109,7 @@ struct output_info
 #ifdef USE_LMD_INPUT
 #define EVENT_STITCH_MODE_TITRIS_TIME   TIMESTAMP_TYPE_TITRIS
 #define EVENT_STITCH_MODE_WR_TIME       TIMESTAMP_TYPE_WR
+int get_time_stamp_mode(const char *);
 #endif
 
 struct stitch_info

@@ -1491,12 +1491,13 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 #endif
 
       bool good_stamp =
-	get_timestamp(_conf._ts_align_hist_mode, src_event,
+	get_timestamp(_ts_align_hist->get_style(), src_event,
 		      &timestamp, &ts_align_index);
 
       if (!good_stamp)
 	timestamp = 0;
 
+      // TODO: if (!good_stamp) { do we want to account 0 at all? }
       _ts_align_hist->account(ts_align_index, timestamp);
     }
 #endif
