@@ -4564,20 +4564,20 @@ int main(int argc,char *argv[])
 	  ERR_MSG("Bad fd description '%s' for --forked.", post);
       }
       else if (MATCH_PREFIX("--colour=",post)) {
-#ifdef USE_CURSES
 	int force = 0;
 
 	if (strcmp(post,"yes") == 0)
+#ifdef USE_CURSES	  
 	  force = 1;
+#else
+	ERR_MSG("No colour support since ncurses not compiled in.");
+#endif
 	else if (strcmp(post,"no") == 0)
 	  force = -1;
 	else if (strcmp(post,"auto") != 0)
 	  ERR_MSG("Bad option '%s' for --colour=",post);
 
 	colourtext_setforce(force);
-#else
-	ERR_MSG("No colour support since ncurses not compiled in.");
-#endif
       }
 #if USING_CERNLIB || USING_ROOT
       else if (MATCH_PREFIX("--outfile=",post)) {

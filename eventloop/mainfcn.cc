@@ -718,20 +718,22 @@ int main(int argc, char **argv)
       }
 #endif
       else if (MATCH_PREFIX("--colour=",post)) {
-#ifdef USE_CURSES
 	int force = 0;
 
 	if (strcmp(post,"yes") == 0)
+#ifdef USE_CURSES	  
 	  force = 1;
+#else
+	ERROR("No colour support since ncurses not compiled in.  Compile using 'make USE_CURSES=1'");
+#endif	
 	else if (strcmp(post,"no") == 0)
 	  force = -1;
 	else if (strcmp(post,"auto") != 0)
 	  ERROR("Bad option '%s' for --colour=",post);
 
 	colourtext_setforce(force);
-#else
-	ERROR("No colour support since ncurses not compiled in.  Compile using 'make USE_CURSES=1'");
-#endif
+
+
       }
       else if (MATCH_ARG("--watcher")) {
 #ifdef USE_CURSES
