@@ -71,6 +71,15 @@ HAVE_CURSES := $(shell gcc -o /dev/null $(CURSES_CFLAGS) \
 	$(LU_COMMON_DIR)/curses_test.c $(CURSES_LIBS) \
 	2> /dev/null && echo -DHAVE_CURSES)
 
+# Ugly hack: some systems also need an explicit -ltermcap
+ifeq (,$(HAVE_CURSES))
+CURSES_LIBS += -ltermcap
+# Try again
+HAVE_CURSES := $(shell gcc -o /dev/null $(CURSES_CFLAGS) \
+	$(LU_COMMON_DIR)/curses_test.c $(CURSES_LIBS) \
+	2> /dev/null && echo -DHAVE_CURSES)
+endif
+
 # If, then we are good
 ifneq (,$(HAVE_CURSES))
 USE_CURSES = 1
