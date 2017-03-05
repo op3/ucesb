@@ -312,17 +312,17 @@ endif
 # And then to verify (also in case ncurses5-config was there, because
 # sometimes installations are broken (no symbol-names / .a-files)
 
-HAVE_CURSES := $(shell gcc -o /dev/null $(CURSES_CFLAGS) \
+TEST_CURSES = gcc -o /dev/null $(CURSES_CFLAGS) \
 	$(UCESB_BASE_DIR)/lu_common/curses_test.c $(CURSES_LIBS) \
-	2> /dev/null && echo -DHAVE_CURSES)
+	2> /dev/null && echo -DHAVE_CURSES
+
+HAVE_CURSES := $(shell $(TEST_CURSES))
 
 # Ugly hack: some systems also need an explicit -ltermcap
 ifeq (,$(HAVE_CURSES))
 CURSES_LIBS += -ltermcap
 # Try again
-HAVE_CURSES := $(shell gcc -o /dev/null $(CURSES_CFLAGS) \
-	$(UCESB_BASE_DIR)/lu_common/curses_test.c $(CURSES_LIBS) \
-	2> /dev/null && echo -DHAVE_CURSES)
+HAVE_CURSES := $(shell $(TEST_CURSES))
 endif
 
 # If, then we are good
