@@ -460,16 +460,18 @@ void write_data_lmd()
   // (First) subevent size
   ssize_t min_subevent_total_size = 0;
   
-  // And any payload data (in first subevent)
+  // Payload timestamps (in first subevent)
   if (_conf._titris_stamp)
     min_subevent_total_size += 4 * sizeof(uint32_t);
   if (_conf._wr_stamp)
     min_subevent_total_size += 5 * sizeof(uint32_t);
 
+  // Separators
   if (_conf._caen_v775 || _conf._caen_v1290 ||
       _conf._sticky_fraction)
-    min_subevent_total_size += 2 * sizeof(uint32_t);
+    min_subevent_total_size += 3 * sizeof(uint32_t);
 
+  // Payload ADCs
   if (_conf._caen_v775)
     min_subevent_total_size +=
       _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
@@ -477,6 +479,7 @@ void write_data_lmd()
     min_subevent_total_size +=
       _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
 
+  // Active and mark words
   if (_conf._sticky_fraction)
     min_subevent_total_size += 3 * sizeof(uint32_t);
 
@@ -739,6 +742,7 @@ void write_data_lmd()
 
 		  uint32_t *p = (uint32_t *) sevp_write;
 
+		  *(p++) = 0;
 		  *(p++) = seed;
 
 		  sevp_write = (char *) p;

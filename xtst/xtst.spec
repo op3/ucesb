@@ -238,8 +238,51 @@ STICKY_ACTIVE()
   UINT32 mark;
 }
 
+WR_STAMP(id)
+{
+  UINT32 header NOENCODE
+  {
+    8_11: id = MATCH(id);
+    16:   error;
+  }
+  UINT32 data0 NOENCODE
+  {
+    0_15: v;
+    16_31: 0x03e1;
+  };
+  UINT32 data1 NOENCODE
+  {
+    0_15: v;
+    16_31: 0x04e1;
+  };
+  UINT32 data2 NOENCODE
+  {
+    0_15: v;
+    16_31: 0x05e1;
+  };
+  UINT32 data3 NOENCODE
+  {
+    0_15: v;
+    16_31: 0x06e1;
+  };
+}
+
 SUBEVENT(XTST_REGRESS)
 {
+  select several
+  {
+    wr[1] = WR_STAMP(id=1);
+    wr[2] = WR_STAMP(id=2);
+    wr[3] = WR_STAMP(id=3);
+    wr[4] = WR_STAMP(id=4);
+    wr[5] = WR_STAMP(id=5);
+  }
+  
+  UINT32 separator1 NOENCODE
+  {
+    0_31: 0;
+  }
+
   UINT32 seed;
 
   select several
@@ -248,7 +291,7 @@ SUBEVENT(XTST_REGRESS)
     v775mod[1] = VME_CAEN_V775(geom=2,crate=0x7e);
   }
 
-  UINT32 separator NOENCODE
+  UINT32 separator2 NOENCODE
   {
     0_31: 0;
   }
