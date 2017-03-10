@@ -53,8 +53,11 @@ void sticky_event_user_function(unpack_event *event,
 	  sev_header->h_control,
 	  sev_header->_header.l_dlen);
   */
-  int crate = sev_header->h_subcrate;
+  if (sev_header->_header.i_type == 10 &&
+      sev_header->_header.i_subtype == 1)
+    return; // Timestamp subevent (not real sticky)
 
+  int crate = sev_header->h_subcrate;
   int isev = sev_header->h_control;
   
   if (sev_header->_header.l_dlen == LMD_SUBEVENT_STICKY_DLEN_REVOKE)
