@@ -163,26 +163,26 @@ int main(int argc,char *argv[])
 	  /* */
 
 	  ok &= fill_caen_v775_data(&v775a,
-				    event.regress_v775mod1n,
-				    event.regress_v775mod1nI,
-				    event.regress_v775mod1data,
-				    event.regress_v775mod1eob);
+				    event.regress1v775mod1n,
+				    event.regress1v775mod1nI,
+				    event.regress1v775mod1data,
+				    event.regress1v775mod1eob);
 
 	  ok &= fill_caen_v775_data(&v775b,
-				    event.regress_v775mod2n,
-				    event.regress_v775mod2nI,
-				    event.regress_v775mod2data,
-				    event.regress_v775mod2eob);
+				    event.regress1v775mod2n,
+				    event.regress1v775mod2nI,
+				    event.regress1v775mod2data,
+				    event.regress1v775mod2eob);
 
 	  create_caen_v775_event(&v775a_good,
 				 1, 0x80 - 1,
 				 event.EVENTNO + 0xdef,
-				 event.regress_seed);
+				 event.regress1seed);
 
 	  create_caen_v775_event(&v775b_good,
 				 2, 0x80 - 2,
 				 event.EVENTNO + 0xdef,
-				 event.regress_seed);
+				 event.regress1seed);
 
 	  ok &= compare_caen_v775_event(&v775a_good, &v775a);
 	  ok &= compare_caen_v775_event(&v775b_good, &v775b);
@@ -190,32 +190,32 @@ int main(int argc,char *argv[])
 	  /* */
 
 	  ok &= fill_caen_v1290_data(&v1290a,
-				     event.regress_v1290mod1nM,
-				     event.regress_v1290mod1nMI,
-				     event.regress_v1290mod1nME,
-				     event.regress_v1290mod1n,
-				     event.regress_v1290mod1data,
-				     event.regress_v1290mod1header,
-				     event.regress_v1290mod1trigger);
+				     event.regress1v1290mod1nM,
+				     event.regress1v1290mod1nMI,
+				     event.regress1v1290mod1nME,
+				     event.regress1v1290mod1n,
+				     event.regress1v1290mod1data,
+				     event.regress1v1290mod1header,
+				     event.regress1v1290mod1trigger);
 
 	  ok &= fill_caen_v1290_data(&v1290b,
-				     event.regress_v1290mod2nM,
-				     event.regress_v1290mod2nMI,
-				     event.regress_v1290mod2nME,
-				     event.regress_v1290mod2n,
-				     event.regress_v1290mod2data,
-				     event.regress_v1290mod2header,
-				     event.regress_v1290mod2trigger);
+				     event.regress1v1290mod2nM,
+				     event.regress1v1290mod2nMI,
+				     event.regress1v1290mod2nME,
+				     event.regress1v1290mod2n,
+				     event.regress1v1290mod2data,
+				     event.regress1v1290mod2header,
+				     event.regress1v1290mod2trigger);
 
 	  create_caen_v1290_event(&v1290a_good,
 				  1,
 				  event.EVENTNO + 0xdef,
-				  event.regress_seed);
+				  event.regress1seed);
 
 	  create_caen_v1290_event(&v1290b_good,
 				  2,
 				  event.EVENTNO + 0xdef,
-				  event.regress_seed);
+				  event.regress1seed);
 
 	  ok &= compare_caen_v1290_event(&v1290a_good, &v1290a);
 	  ok &= compare_caen_v1290_event(&v1290b_good, &v1290b);
@@ -225,10 +225,10 @@ int main(int argc,char *argv[])
 	  if (ok)
 	    {
 	      num_good++;
-	      num_good_data += event.regress_v775mod1n;
-	      num_good_data += event.regress_v775mod2n;
-	      num_good_data += event.regress_v1290mod1n;
-	      num_good_data += event.regress_v1290mod2n;
+	      num_good_data += event.regress1v775mod1n;
+	      num_good_data += event.regress1v775mod2n;
+	      num_good_data += event.regress1v1290mod1n;
+	      num_good_data += event.regress1v1290mod2n;
 	    }
 	  else
 	    {

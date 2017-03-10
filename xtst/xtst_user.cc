@@ -24,17 +24,21 @@
 #include "lmd_event.hh"
 #include <stdint.h>
 
-static uint32_t _sticky_active = 0;
-static uint32_t _sticky_mark = 0;
+#define NUM_CRATES  16
 
-static uint32_t _sticky_last_ev[32] = {
-  0, 0, 0, 0,  0, 0, 0, 0,
-  0, 0, 0, 0,  0, 0, 0, 0,
-  0, 0, 0, 0,  0, 0, 0, 0,
-  0, 0, 0, 0,  0, 0, 0, 0,
-};
+static uint32_t _sticky_active[NUM_CRATES];
+static uint32_t _sticky_mark[NUM_CRATES];
+
+static uint32_t _sticky_last_ev[NUM_CRATES][32];
 
 uint64_t _spurious_revokes = 0;
+
+void init_function()
+{
+  memset(_sticky_active, 0, sizeof (_sticky_active));
+  memset(_sticky_mark, 0, sizeof (_sticky_mark));
+  memset(_sticky_last_ev, 0, sizeof (_sticky_last_ev));
+}
 
 void sticky_event_user_function(unpack_event *event,
 				const void *header,
@@ -49,12 +53,13 @@ void sticky_event_user_function(unpack_event *event,
 	  sev_header->h_control,
 	  sev_header->_header.l_dlen);
   */
+  int crate = sev_header->h_subcrate;
 
   int isev = sev_header->h_control;
   
   if (sev_header->_header.l_dlen == LMD_SUBEVENT_STICKY_DLEN_REVOKE)
     {
-      if (!(_sticky_active & (1 << isev)))
+      if (!(_sticky_active[crate] & (1 << isev)))
 	{
 	  /* Revoking markers may be spurious, so just count them, do
 	   * not inform.
@@ -67,11 +72,11 @@ void sticky_event_user_function(unpack_event *event,
 		  isev);
 	  */
 	}
-      _sticky_active &= ~(1 << isev);
+      _sticky_active[crate] &= ~(1 << isev);
     }
   else
     {
-      _sticky_active |= 1 << isev;
+      _sticky_active[crate] |= 1 << isev;
 
       if (end > start)
 	{
@@ -79,53 +84,57 @@ void sticky_event_user_function(unpack_event *event,
 
 	  uint32_t payload = *p;
 
-	  _sticky_mark = (_sticky_mark & ~(1 << isev)) |
+	  _sticky_mark[crate] = (_sticky_mark[crate] & ~(1 << isev)) |
 	    ((payload & 1) << isev);
 	}
     }
 
   if (isev < 32)
     {
-      if (_sticky_last_ev[isev] == event->event_no)
+      if (_sticky_last_ev[crate][isev] == event->event_no)
 	{
-	  WARNING("Event %d: "
+	  WARNING("Event %d: crate %d: "
 		  "Sticky subevent (%d) seen for same event no.",
-		  event->event_no,
+		  event->event_no, crate,
 		  isev);
 	}      
-      _sticky_last_ev[isev] = event->event_no;
+      _sticky_last_ev[crate][isev] = event->event_no;
     }
 }
 
 int user_function(unpack_event *event)
 {
-  (void) _sticky_mark;
-
-  if (_sticky_active != event->regress.sticky_active.active)
+  for (int crate = 0; crate < NUM_CRATES; crate++)
     {
-      for (int isev = 0; isev < 8; isev++)
-	WARNING("Event %d: Sticky subevent (%d) from event: %d.",
-		event->event_no,
-		isev,
-		_sticky_last_ev[isev]);
+      if (_sticky_active[crate] != event->regress[crate].sticky_active.active)
+	{
+	  for (int isev = 0; isev < 8; isev++)
+	    WARNING("Event %d: crate %d: "
+		    "Sticky subevent (%d) from event: %d.  (%s)",
+		    event->event_no, crate,
+		    isev,
+		    _sticky_last_ev[crate][isev],
+		    _sticky_active[crate] & (1 << isev) ? "active" : "inactive");
 
-      ERROR("Event %d: "
-	    "Wrong sticky events active (active: %08x, event says: %08x).",
-	    event->event_no,
-	    _sticky_active, event->regress.sticky_active.active);
+	  ERROR("Event %d: crate %d: "
+		"Wrong sticky events active (active: %08x, event says: %08x).",
+		event->event_no, crate,
+		_sticky_active[crate],
+		event->regress[crate].sticky_active.active);
+	}
+
+      if ((_sticky_mark[crate] & _sticky_active[crate]) !=
+	  (event->regress[crate].sticky_active.mark & _sticky_active[crate]))
+	{
+	  ERROR("Event %d: crate %d: "
+		"Wrong sticky events payload (mark: %08x, event says: %08x).",
+		event->event_no, crate,
+		_sticky_mark[crate] & _sticky_active[crate],
+		event->regress[crate].sticky_active.active &
+		_sticky_active[crate]);
+	}
+      // printf ("%02x %02x\n", _sticky_active[crate], _sticky_mark[crate]);
     }
-
-  if ((_sticky_mark & _sticky_active) !=
-      (event->regress.sticky_active.mark & _sticky_active))
-    {
-      ERROR("Event %d: "
-	    "Wrong sticky events payload (mark: %08x, event says: %08x).",
-	    event->event_no,
-	    _sticky_mark & _sticky_active,
-	    event->regress.sticky_active.active & _sticky_active);
-    }
-
-  // printf ("%02x %02x\n", _sticky_active, _sticky_mark);
 
   return 1;
 }

@@ -289,7 +289,22 @@ EVENT
 
   plain = XTST_PLAIN(type=12);
 
-  regress = XTST_REGRESS(type=0x0cae,subtype=0x0cae);
+  regress[ 0] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 0);
+  regress[ 1] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 1);
+  regress[ 2] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 2);
+  regress[ 3] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 3);
+  regress[ 4] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 4);
+  regress[ 5] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 5);
+  regress[ 6] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 6);
+  regress[ 7] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 7);
+  regress[ 8] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 8);
+  regress[ 9] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate= 9);
+  regress[10] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=10);
+  regress[11] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=11);
+  regress[12] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=12);
+  regress[13] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=13);
+  regress[14] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=14);
+  regress[15] = XTST_REGRESS(type=0x0cae,subtype=0x0cae,subcrate=15);
 
   regressextra = XTST_REGRESSEXTRA(type=0x0de0,subtype=0x0ad0);
 }

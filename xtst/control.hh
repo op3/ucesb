@@ -21,6 +21,8 @@
 #ifndef __CONTROL_HH__
 #define __CONTROL_HH__
 
+#define INIT_USER_FUNCTION    init_function
+
 #define STICKY_SUBEVENT_USER_FUNCTION    sticky_event_user_function
 
 #define UNPACK_EVENT_USER_FUNCTION    user_function

@@ -166,9 +166,9 @@ xtst/xtst: xtst_real
 
 XTST_EMPTY_FILE=--lmd --random-trig --caen-v775=2 --caen-v1290=2 \
    --sticky-fraction=29 --events=1036
-XTST_REGRESS=UNPACK,EVENTNO,TRIGGER,regress,ID=xtst_regress
-XTST_REGRESS_MORE=UNPACK,EVENTNO,TRIGGER,regress,regressextra,ID=xtst_regress
-XTST_REGRESS_LESS=UNPACK,EVENTNO,regress,ID=xtst_regress
+XTST_REGRESS=UNPACK,EVENTNO,TRIGGER,regress1,ID=xtst_regress
+XTST_REGRESS_MORE=UNPACK,EVENTNO,TRIGGER,regress1,regressextra,ID=xtst_regress
+XTST_REGRESS_LESS=UNPACK,EVENTNO,regress1,ID=xtst_regress
 
 # We depend on empty (full ext_reader stuff, as it is simpler)
 # Remove empty dependency, caused rebuild of empty on expensive arm/ppc target
