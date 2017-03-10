@@ -109,6 +109,9 @@ int user_function(unpack_event *event)
 {
   for (int crate = 0; crate < NUM_CRATES; crate++)
     {
+      if (!event->regress[crate].sticky_active.separator.u32)
+	continue;
+
       if (_sticky_active[crate] != event->regress[crate].sticky_active.active)
 	{
 	  for (int isev = 0; isev < 8; isev++)
@@ -136,7 +139,10 @@ int user_function(unpack_event *event)
 		event->regress[crate].sticky_active.active &
 		_sticky_active[crate]);
 	}
-      // printf ("%02x %02x\n", _sticky_active[crate], _sticky_mark[crate]);
+      /*
+      printf ("%d: %02x %02x\n",
+	      crate, _sticky_active[crate], _sticky_mark[crate]);
+      */
     }
 
   return 1;

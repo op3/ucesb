@@ -230,7 +230,7 @@ SUBEVENT(XTST_PLAIN)
 
 STICKY_ACTIVE()
 {
-  UINT32 separator NOENCODE {
+  UINT32 separator { /* We encode this, tells if event is here. */
     0_31: 7;
   }
 
