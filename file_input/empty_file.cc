@@ -83,7 +83,8 @@ void usage(char *cmdname)
   printf ("  --bad-stamp=N     Write bad stamps every so often.\n");
   printf ("  --caen-v775=N     Write CAEN V775 subevent.\n");
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
-  printf ("  --sticky=N        Write sticky events every ~N events.\n");
+  printf ("  --sticky-fraction=N  Write sticky events every ~N events.\n");
+  printf ("  --crate=N         Mark all subevents with this crate number.\n");
   printf ("  --empty-buffers   No events.\n");
   printf ("  --rate=N          At most, output N events/s.\n");
 
@@ -116,6 +117,8 @@ struct config
 
   int  _caen_v775;
   int  _caen_v1290;
+
+  int  _crate;
 
   int  _sticky_fraction;
 
@@ -181,6 +184,9 @@ int main(int argc,char *argv[])
       }
       else if (MATCH_PREFIX("--caen-v1290=",post)) {
 	_conf._caen_v1290 = atol(post);
+      }
+      else if (MATCH_PREFIX("--crate=",post)) {
+	_conf._crate = atol(post);
       }
       else if (MATCH_PREFIX("--sticky-fraction=",post)) {
 	_conf._sticky_fraction = atol(post);
@@ -596,7 +602,7 @@ void write_data_lmd()
 		  sev->_header.i_type    = 0x789a; // test value
 		  sev->_header.i_subtype = 0xbad0;
 		  sev->h_control  = isev;
-		  sev->h_subcrate = 1 << isev;
+		  sev->h_subcrate = _conf._crate;
 		  sev->i_procid   = 0;
 
 		  char *sev_start = (char*) (sev + 1);
@@ -708,7 +714,7 @@ void write_data_lmd()
 	      sev->_header.i_type    = 1234; // dummy (I refuse 10/1: nuts)
 	      sev->_header.i_subtype = 5678;
 	      sev->h_control  = 0;
-	      sev->h_subcrate = 0;
+	      sev->h_subcrate = _conf._crate;
 	      sev->i_procid   = 0;
 
 	      if (write_titris_stamp)
@@ -777,7 +783,7 @@ void write_data_lmd()
 
 		      *(p++) = 7; /* separator */
 		      /* Tell which sticky subevents should be active
-		       * during this event.  If wrong,t hen the guaranteed
+		       * during this event.  If wrong, then the guaranteed
 		       * delivery mechanism has failed.
 		       */
 		      *(p++) = sticky_active;
