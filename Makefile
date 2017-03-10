@@ -164,7 +164,8 @@ xtst_real: $(DEPENDENCIES)
 
 xtst/xtst: xtst_real
 
-XTST_EMPTY_FILE=--lmd --random-trig --caen-v775=2 --caen-v1290=2 --events=1000
+XTST_EMPTY_FILE=--lmd --random-trig --caen-v775=2 --caen-v1290=2 \
+   --sticky-fraction=29 --events=1036
 XTST_REGRESS=UNPACK,EVENTNO,TRIGGER,regress,ID=xtst_regress
 XTST_REGRESS_MORE=UNPACK,EVENTNO,TRIGGER,regress,regressextra,ID=xtst_regress
 XTST_REGRESS_LESS=UNPACK,EVENTNO,regress,ID=xtst_regress
