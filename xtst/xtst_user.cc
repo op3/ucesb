@@ -40,10 +40,10 @@ void init_function()
   memset(_sticky_last_ev, 0, sizeof (_sticky_last_ev));
 }
 
-void sticky_event_user_function(unpack_event *event,
-				const void *header,
-				const char *start, const char *end,
-				bool swapping)
+void sticky_subevent_user_function(unpack_event *event,
+				   const void *header,
+				   const char *start, const char *end,
+				   bool swapping)
 {
   lmd_subevent_10_1_host *sev_header = (lmd_subevent_10_1_host *) header;
   /*
