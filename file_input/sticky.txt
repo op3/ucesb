@@ -7,25 +7,33 @@ Write-up 2017-03-13,   Håkan T Johansson,   f96hajo@chalmers.se
 Introduction
 ------------
 
-Along normal events, it would also be interesting to be able to
-propagate and record slow-control set-values in the data streams.
-Typical examples would be magnet or HV settings, that are used by
-calibration and reconstruction routines.  With the changes appearing
-in the data flow at the point where they happened, their use would
-become easier.
+We need efficient information on slow-control parameters in the
+analysis, in a scheme that works for a distributed setup.  A log book
+or even a regular 'stand-alone' dump of values is either not reliable,
+readable or correlatable to list-mode data.  This ends sometimes up in
+either a lot of archeology and mystery-solving during the analysis.
+In the best of circumstances this costs 'only' time but sometimes
+results are not correct.  We can and should do better.  Thus this
+sticky event concept, which is part of the NuSTAR DAQ TDR.
+
+Along normal events, it is necessary to be able to propagate and
+record slow-control set-values in the data streams.  Typical examples
+are magnet and HV settings, that are used by calibration and
+reconstruction routines.  With the changes appearing in the data flow
+at the point where they happened, using them becomes much easier.
 
 Since normal events just flow through, they do not provide a suitable
 storage mechanism for such values, as e.g. a file or network transport
 opened long after the last time a settings was changed, would not have
-any information about that value.
+the information about that value.
 
 This is solved by introducing so called sticky events, that have the
 property that they are delivered to each data consumer, irrespective
 of how long ago they were produced.
 
-The notion of sticky events has been brought forward as a key concept
-in the NuSTAR DAQ TDR, and did gain broad approval during discussions
-in the writing group!
+The notion of sticky events was brought forward as a key concept in
+the NuSTAR DAQ TDR, and did gain broad unanimous approval during
+discussions in the writing group!
 
 
 Simplicity for analysis and readout
@@ -164,6 +172,7 @@ decided) ST:KY (as opposed to 10:1).  In order for the buffer
 processing to be able to fast skip past data if needed, buffers that
 contain sticky events, shall be named also ST:KY.  They may however
 also contain normal events!
+
 
 Fan-in - merging and time sorting
 ---------------------------------
