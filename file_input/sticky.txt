@@ -19,23 +19,44 @@ It thus requires particular knowledge of what has been stored to
 recover the time-stamps of the appended subevents.  Usually not
 needed, as the stitching 'uses up' that information.)
 
-Sticky (sub)events:
--------------------
 
-The sticky thing is the subevents.  They have a guarantee of delivery:
+Sticky subevents in brief:
+--------------------------
+
+- Sticky events have type:subtype (to be finally decided) ST:KY.
+
+- Each sticky subevent is 'active' until replaced (with same
+  type:subtype:ctrl:crate:procid).
+
+- Sticky subevents with length -1 means removal.
+
+- Sticky delivery guarantee:
+
+  Before each normal event, the correct set of sticky subevents
+  have been presented.
+
+- Sticky subevents (packaged in sticky events) can be repeated.
+
+
+Sticky considerations
+---------------------
+
+The sticky thing is the subevents.  The guarantee of delivery applies
+to them:
 
 The guarantee of delivery applies at the spot when the next *normal*
 event is received.  At that point, exactly the correct set of sticky
-subevents shall be present.  Be present by having been delivered.  In
-what order or how many times they have been received does not matter.
-This also means that e.g. an completely empty file would not matter at
-all.
+subevents shall be present/active, by having been delivered.  In what
+order or how many times they have been received does not matter.  This
+also means that e.g. an completely empty file (or with only sticky
+events) would be valid/correct.
 
 Thus, each file will begin with the set of sticky events active before
 the first normal event it contains.  Likewise, network clients first
-get a similar dump.  Also, if events are for some reason not written
-to a file (or network client), changed sticky subevents that are still
-active will be delivered before the next normal event.
+get a similar dump.  Also, if some sequence of events are for some
+reason not written to a file (or network client), sticky subevents
+that changed in the meantime and are still active will be delivered
+before the next normal event.  This includes sticky revoke subevents.
 
 Note that the guarantee of delivery does not mean that all sticky
 subevents are delivered, and in particular that an sticky event that
@@ -44,17 +65,17 @@ have not been superceeded by later sticky subevents.
 
 The mechanics is that a sticky subevent is replaced when a new sticky
 subevent with the same identifier type:subtype:ctrl:crate:procid
-arrives.  If the new subevent has the length set to -1, then it
+arrives.  If the new subevent has the length set to -1, then it is
 removed completely.  (The length set to -1 for removal is such that
 sticky subevents of size 0 are allowed entities.)  The new empty
 revoke marking subevent thus need to be sent along to all systems
 once, but can then be forgotten.
 
-(For checking, one may consider it an error to receive a revoking
+(For checking, one could consider it an error to receive a revoking
 sticky subevent with nothing to revoke.  However, in practice this
 turns out to complicate matters - it would make it necessary for each
 multi-output transmitters to keep track of which sticky subevents have
-been sent to each receiver.  Such that it only send the necessary
+been sent to each receiver.  Such that it only sends the necessary
 revokes to each receiver when a replay is forced due to a lagging
 receiver.)
 
@@ -79,11 +100,11 @@ the time stamp).  This also means that sticky events should not really
 be merged, as we would loose the timestamps.
 
 For systems merging multiple data sources, as long as the sticky
-events have different ids, they do not interfere.  If the sources are
-sorted together however, any sticky subevents which are active from
-several sources at once must match exactly - bit for bit.  Otherwise,
-it matters which is the last, or it would be ambiguous which is to be
-the active one.
+events have different identifiers, they do not interfere.  If the
+sources are sorted together however, any sticky subevents which are
+active from several sources at once must match exactly - bit for bit.
+Otherwise, it would matter which is the last, i.e. it would be ambiguous
+which is to be the active one.
 
 Also note that sticky events may be delivered multiple times.  This
 applies to online clients, as well as the replay at the beginning of a
@@ -91,10 +112,10 @@ new file.  The reason for an online client to receive a replay is when
 the client has not managed to keep up with the server (may also be due
 to the server output bandwidth being saturated; but the reason does
 not matter - same end result: replay).  Before sending further (later)
-data, the server need to ensure that the client receives the sticky
-data before that point.  Which means that the server must keep track
-of what has been sent to that particular client.  In order to not have
-to do that (with full granularity), it may instead send some
+normal data, the server need to ensure that the client receives the
+sticky data before that point.  Which means that the server must keep
+track of what has been sent to that particular client.  In order to
+not have to do that (with full granularity), it may instead send some
 additional (earlier sent) sticky data, that thus will reach the client
 twice.
 
@@ -102,26 +123,29 @@ When a data source ends (either it is a network server or an input
 file), the sticky events that it provided must be discarded/revoked by
 the receiver.  Note: the source (server or file writer) *shall not*
 produce the revoke events at the end of the data, as that would
-prevent the receiving end from avoiding the resend of the sticky
+prevent the receiving end from ignoring the resend of the sticky
 events in case their next occurence (in the next file) match the
 already active sticky subevents.
+
 
 Not a solution for everything
 -----------------------------
 
 Beware that sticky events do not solve all calibration issues.  :-)
 They contain information known at data-taking time, and also cannot be
-changed afterwards.  This means that only information which is known
-to be correct should be stored in sticky events.  Information which is
-likely to change during the course of analysis work (like calibration
-parameters) are better not stored in sticky events at all, since that
-is just confusing.  It is strongly suggested to store data by hardware
+changed afterwards, as they are part of the event stream.  This means
+that only information which is known to be correct should be stored in
+sticky events.  Information which is likely to change during the
+course of analysis work (like calibration parameters) are better not
+stored in sticky events at all, since that is just confusing.
+
+It is strongly suggested to store data organised by hardware
 (physical) name, and not logical name.  This since detector name
 mappings during experiment tend to have mistakes that are easier
 addressed during analysis by simply doing all mappings during
 (on/off-line) analysis, instead of having to have partial overrides.
 
-Also, do not prompt the user to enter values to be stored in the data
-files, as this is just stressful and likely leads to information which
-has to be partially overridden afterwards anyhow.  Alas, the sticky
-events are not a replacement for an experimental log.
+Also, prompting the user to enter values to be stored in the data
+files, is just stressful and likely leads to information which has to
+be partially overridden afterwards anyhow.  Alas, the sticky events
+are not a replacement for an experimental log.
