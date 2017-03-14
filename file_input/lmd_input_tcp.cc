@@ -782,6 +782,7 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   // Well, before that, the swapping has to make sense...
 
   uint32 l_dlen = (uint32) buffer_header->l_dlen;
+  uint32 l_evt = (uint32) buffer_header->l_evt;
 
   switch(buffer_header->l_free[0])
     {
@@ -789,6 +790,7 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
       break;
     case 0x01000000:
       l_dlen = bswap_32(l_dlen);
+      l_evt = bswap_32(l_evt);
       break;
     default:
       ERROR("Buffer header endian marker broken: %08x",_info.testbit);
@@ -815,12 +817,14 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   *nbufs = 1;
 
   if (((sint32*) buffer_header)[2] == 0 && // used, end, begin
-      buffer_header->l_evt == 0)
+      l_evt == 0)
     {
       return 0;
     }
 
-  if (((sint32) buffer_header->l_evt) < 0)
+  // And again - be very careful to use the byteswapped value!
+
+  if (((sint32) l_evt) < 0)
     *nbufs = -1;
 
   return _info.bufsize;
