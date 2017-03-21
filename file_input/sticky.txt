@@ -7,101 +7,94 @@ Write-up 2017-03-13,   Håkan T Johansson,   f96hajo@chalmers.se
 Introduction
 ------------
 
-We need efficient information on slow-control parameters in the
-analysis, in a scheme that works for a distributed setup.  A log book
-or even a regular 'stand-alone' dump of values is either not reliable,
-readable or correlatable to list-mode data.  This ends sometimes up in
-either a lot of archeology and mystery-solving during the analysis.
-In the best of circumstances this costs 'only' time but sometimes
-results are not correct.  We can and should do better.  Thus this
-sticky event concept, which is part of the NuSTAR DAQ TDR.
+In discussions with our collaborators we learned that there is an
+unanimous demand for the ability to correlate slow-control information
+with list-mode data during analysis.  Typical examples are magnet and
+HV settings, that are used by calibration and reconstruction routines.
+Hence, it is natural to insert this information into the list-mode
+data stream.  A scheme for this that works in a distributed setup
+(which is typical for NuSTAR) is outlined in the following document.
+The core concept of this approach is called sticky events.
 
-Along normal events, it is necessary to be able to propagate and
-record slow-control set-values in the data streams.  Typical examples
-are magnet and HV settings, that are used by calibration and
-reconstruction routines.  With the changes appearing in the data flow
-at the point where they happened, using them becomes much easier.
-
-Since normal events just flow through, they do not provide a suitable
-storage mechanism for such values, as e.g. a file or network transport
-opened long after the last time a settings was changed, would not have
-the information about that value.
-
-This is solved by introducing so called sticky events, that have the
-property that they are delivered to each data consumer, irrespective
-of how long ago they were produced.
+Normal events just flow through the data acquisition and analysis
+codes.  They do not provide a suitable storage mechanism for
+slow-control values.  A file or network transport opened long after
+the last change of a setting, would not get the relevant information.
+In contrast, sticky events have the property that they are delivered
+to each data consumer, irrespective of how long ago they were produced
+(guaranteed delivery).
 
 The notion of sticky events was brought forward as a key concept in
-the NuSTAR DAQ TDR, and did gain broad unanimous approval during
-discussions in the writing group!
+the NuSTAR DAQ TDR, and did gain broad approval during discussions in
+the writing group!
 
 
-Simplicity for analysis and readout
------------------------------------
+Key concepts and overview
+-------------------------
 
-The sticky subevents envisioned would have a very simple semantics
-from the point of view of both analysis tools and readout programs:
+The sticky subevents envisioned need to have a simple semantics from
+the point of view of both analysis tools and readout programs:
 
-- A consumer that just eat data, get the updates in the data stream
-  in-between the events they happened.
+- A consumer that just eats data (i.e. normal analysis), receives
+  updates on slow-control parameters as sticky events in the data
+  stream in-between normal events.
 
-- Similarly, readout systems can emit such updates along with the
+- Similarly, readout systems simply emit such updates along with the
   normal events they produce.
 
 Achieving this simplicity however requires all data fan-in and fan-out
 software to cache and keep track of the sticky events that flow
-through them.  Essentially fan-out parts must be able to replay old
+through them.  Fan-in systems would be the event builder / time sorter
+of a data acquisition (e.g. MBS or equivalent), as well as analysis
+stages that handle multiple sources.  Fan-out systems are network
+servers and file writers of a data acquisition, or later proxy servers
+(m_revserv etc).  Essentially fan-out parts must be able to replay
 sticky events when new connections (or files) are made.  And fan-in
 parts must remember which sticky events came from which source, such
-that when a source connection is lost, the associated events are
-revoked.
+that when a source connection is lost, the associated sticky events
+are revoked.
 
-Fan-in systems would be the event builder / time sorter of a data
-acquisition (e.g. MBS or equivalent), as well as analysis stages that
-handle multiple sources.  Fan-out systems are network servers and file
-writers of a data acquisition, or later proxy servers (m_revserv etc).
-
-Put in another way: a few standard programs are taught how to absorb
-the bookkeeping complications, on behalf of many more end-user
-programs that can rely on simple semantics for slow-control data
-embedded in the data stream.
+Thus a few standard programs are taught how to absorb the bookkeeping
+complications, on behalf of many more end-user programs that can then
+rely on simple semantics for slow-control data embedded in the data
+stream.
 
 
-Status   ## (better heading?)
+Status
 ------
 
-This document outlines one approach to introducing sticky events that
-integrate with the existing LMD data format.  
+The approach outlined in this document introduces sticky events that
+integrate with the existing LMD data format.
 
-It has been checked for feasibility by actual implementation.  First
-the fan-out part in the UCESB network and file output stages.  Both
-fan-out and fan-in have with some exceptions also been implemented in
-a data acquisition (drasi).
-
-The following give more technical details, as well as issues to
-consider.
+It has been checked for feasibility by actual implementation, using as
+a first test for the fan-out handling the network and file output
+stages of UCESB [http://fy.chalmers.se/~f96hajo/ucesb/].  Both the
+fan-out and fan-in have, with some exceptions, also been implemented
+in a data acquisition system called drasi.
 
 
-Normal events
--------------
+Setting the stage: Normal events
+--------------------------------
 
-For reference, a short summary of normal data:
+For reference, a short summary of normal LMD events:
 
 - Packed in type:subtype 10:1 buffers.
 
-- The events have type:subtype 10:1.
+- All events have type:subtype 10:1.
 
 - Inside the events are subevents, identified by 64 bits in 5 fields:
   type:subtype:ctrl:crate:procid.
 
-- When time-sorting, the first subevent of the event holds the timestamp.
+- When time-sorting the first subevent of each event holds the timestamp.
 
 
-Sticky subevents in brief
--------------------------
+Sticky events in brief
+----------------------
 
-The sticky thing is the subevents.  The guarantee of delivery applies
-to them.  Overview:
+Like normal events, sticky events have subevents.  The guarantee of
+delivery applies to the subevents, making them 'sticky'.
+
+Overview:
 
 - Sticky subevents are identified by their
   type:subtype:ctrl:crate:procid.
@@ -113,37 +106,11 @@ to them.  Overview:
 
 - Sticky subevents with length -1 means removal.
 
-- Sticky delivery guarantee:
-
-  Before each normal event, the correct set of sticky subevents
-  have been presented.
+- The sticky delivery guarantee applies at the point before each
+  normal event.
 
 - Sticky subevents (packaged in sticky events) can be repeated.
   (Effectively replacing themselves).
-
-
-Sticky delivery
----------------
-
-The guarantee of delivery applies at the spot when the next *normal*
-event is received.  At that point, exactly the correct set of sticky
-subevents shall be present/active (by having been delivered).  In what
-order or how many times they have been received does not matter.  This
-also means that e.g. an completely empty file (or with only sticky
-events) would be valid/correct.
-
-Thus, each file will begin with the set of sticky events active before
-the first normal event it contains.  Likewise, network clients first
-get a similar dump.  If some internal sequence of events are for some
-reason not written to a file (or network client), sticky subevents
-that changed in the meantime and are still active before the next
-normal event will be delivered at that point.  This includes sticky
-revoke subevents.
-
-Note that the guarantee of delivery does not mean that all sticky
-subevents are delivered, and in particular that an sticky event that
-is replayed may be changed to only deliver those sticky subevents that
-have not been superceeded by later sticky subevents.
 
 
 Packaging
@@ -152,75 +119,74 @@ Packaging
 The mechanics is that a sticky subevent is replaced when a new sticky
 subevent with the same identifier type:subtype:ctrl:crate:procid
 arrives.  If the new subevent has the length set to -1, then it is
-removed completely.  (The length marker -1 for removal is to make
-sticky subevents of size 0 allowed entities, the payload size is 0.)
-The (empty) revoke marking subevent need to be sent along to all
-systems once, but can then be forgotten.  (Special cases apply, must
-be kept for replay in some designs.)
-
-(For checking, one could consider it an error to receive a revoking
-sticky subevent with nothing to revoke.  However, in practice this
-turns out to complicate matters - it would make it necessary for each
-multi-output transmitter to keep track of which sticky subevents have
-been sent to each receiver.  Such that it only sends the necessary
-revokes to each receiver when a replay is forced due to a lagging
-receiver.)
+completely removed.  (The length marker -1 for removal is to make
+sticky subevents of size 0 allowed entities.)
 
 The way to distinguish sticky subevents from normal (sub)events is
 that they are packaged in special events, of type (to be finally
-decided) ST:KY (as opposed to 10:1).  In order for the buffer
-processing to be able to fast skip past data if needed, buffers that
-contain sticky events, shall be named also ST:KY.  They may however
-also contain normal events!
+decided) ST:KY (as opposed to 10:1).
+
+
+Delivery of sticky events
+-------------------------
+
+The guarantee of delivery applies at the spot when the next *normal*
+event is received.  At that point, exactly the correct set of sticky
+subevents shall be present/active (by having been delivered).  In what
+order or how many times they have been received does not matter.  This
+also means that, e.g. a completely empty file (or with only sticky
+events) would be valid/correct.
+
+Thus, each file will begin with the set of sticky events active before
+the first normal event it contains.  Likewise, network clients first
+get the active sticky events that contains all read slow-control
+parameters.  For various reasons, events may be omitted from network
+clients (or files).  In these cases, sticky subevents that changed in
+the meantime and are still active before the next normal event, will
+be delivered at that point.  This includes sticky revoke subevents.
+
+Note that the guarantee of delivery does not mean that all sticky
+subevents are delivered, if events are omitted.  In particular, when a
+sticky event is replayed, it may be changed to deliver only those
+sticky subevents that will not be immediately superceeded by later
+sticky subevents of the same id.
 
 
 Fan-in - merging and time sorting
 ---------------------------------
 
-We need to be able to also time-sort sticky (sub)events.  Especially
-if data is written by multiple event builders, and then are to be
-joined together again.  (One file might have start that is much older,
-and then we need to be able to figure out which is the later sticky
-subevents.)  For the time being, we do it such that the first subevent
-of the sticky event may hold the timestamp.  We also require this to
-have type:subtype 10:1 (and reject 10:1 as actual sticky subevents).
-This means that if one of many (but not all) sticky subevents are
-removed or superseded, then only those are removed, but the remainder
-of the event can be kept (in particular, the first subevent holding
-the time stamp).  This also means that sticky events should not really
-be merged, as we would loose the timestamps.
+It must be possibly to time-sort sticky events, along with normal
+events.  For the time being, this is implemented in the usual manner:
+the first subevent of the sticky event may hold a timestamp.  We also
+require this subevent to have type:subtype 10:1 (and reject 10:1 as
+other sticky subevents).
 
 For systems merging multiple data sources, as long as the sticky
-events have different identifiers, they do not interfere.  If the
-sources are sorted together however, any sticky subevents which are
-active from several sources at once must match exactly - bit for bit.
-Otherwise, it would matter which is the last, i.e. it would be
-ambiguous which is to be the active one.
+events have different identifiers, they do not interfere.  Otherwise,
+any sticky subevents which originate from several sources
+simultaneously must match exactly - bit for bit.
 
 
 Fan-out considerations
 ----------------------
 
-Also note that sticky events may be delivered multiple times.  This
-applies to online clients, as well as the replay at the beginning of a
-new file.  The reason for an online client to receive a replay is when
-the client has not managed to keep up with the server (may also be due
-to the server output bandwidth being saturated; but the reason does
-not matter - same end result: replay).  Before sending further (later)
-normal data, the server need to ensure that the client receives the
-sticky data before that point.  Which means that the server must keep
-track of what has been sent to that particular client.  In order to
-not have to do that (with full granularity), it may instead send some
-additional (earlier sent) sticky data, that thus will reach the client
-twice.
+Note that sticky events may be delivered multiple times.  This applies
+to online clients, as well as to the replay at the beginning of a new
+file.  The reason for an online client to receive a replay is when the
+client has not managed to keep up with the server.  Before sending
+further normal data, the server need to ensure that the client
+receives the sticky data active at that point.  Which means that the
+server must keep track of what has been sent to that particular
+client.  In order to not have to do that (with full granularity), it
+may instead send some additional sticky data, that thus will reach the
+client twice.
 
-When a data source ends (either it is a network server or an input
-file), the sticky events that it provided must be discarded/revoked by
-the receiver.  Note: the source (server or file writer) *shall not*
-produce the revoke events at the end of the data, as that would
-prevent the receiving end from ignoring the resend of the sticky
-events in cases where their next occurrence (in the next file) match
-the already active sticky subevents.
+When a data stream ends, the sticky events that it provided must be
+discarded/revoked by the receiver.  Note: the source (server or file
+writer) shall *not* produce the revoke events at the end of the data
+stream.  Explicit revoke events would prevent a receiver that
+reconnects or reads the next file from recognising unchanged sticky
+events that are delivered at the beginning of the new stream.
 
 
 Not a solution for everything
