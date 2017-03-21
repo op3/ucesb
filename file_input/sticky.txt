@@ -1,7 +1,7 @@
 Sticky subevents
 ================
 
-Write-up 2017-03-13,   Håkan T Johansson,   f96hajo@chalmers.se
+Write-up 2017-03-21,   Håkan T Johansson,   f96hajo@chalmers.se
 
 
 Introduction
@@ -85,7 +85,8 @@ For reference, a short summary of normal LMD events:
 - Inside the events are subevents, identified by 64 bits in 5 fields:
   type:subtype:ctrl:crate:procid.
 
-- When time-sorting the first subevent of each event holds the timestamp.
+- When time-sorting the first subevent of each event holds the
+  timestamp.
 
 
 Sticky events in brief
@@ -139,16 +140,16 @@ events) would be valid/correct.
 
 Thus, each file will begin with the set of sticky events active before
 the first normal event it contains.  Likewise, network clients first
-get the active sticky events that contains all read slow-control
-parameters.  For various reasons, events may be omitted from network
-clients (or files).  In these cases, sticky subevents that changed in
-the meantime and are still active before the next normal event, will
-be delivered at that point.  This includes sticky revoke subevents.
+get the active sticky events.  For various reasons, events may be
+omitted from network clients (or files).  In these cases, sticky
+subevents that changed in the meantime and are still active before the
+next normal event, will be delivered at that point.  This includes
+sticky revoke subevents.
 
 Note that the guarantee of delivery does not mean that all sticky
 subevents are delivered, if events are omitted.  In particular, when a
 sticky event is replayed, it may be changed to deliver only those
-sticky subevents that will not be immediately superceeded by later
+sticky subevents that will not be immediately superseded by later
 sticky subevents of the same id.
 
 
