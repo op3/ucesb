@@ -1452,6 +1452,7 @@ get_next_event:
 		      {
 			WARNING("Too many (%" PRIu64 ") errors, aborting...",
 				_status._errors);
+			had_broken = true;
 			goto no_more_files;
 		      }
 		  }
