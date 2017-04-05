@@ -947,7 +947,11 @@ $(GENDIR)/$(UNPACKER).runemptystamp: $(UNPACKER) $(EMPTY_FILE)
 	@rm $@.out $@.err $@.err2
 	@touch $@
 
+ifneq (fa192mar09,$(UNPACKER))
+# This test is broken for the fa192mar09 unpacker, because the empty_file does
+# not properly generate the multi-event flag in the data.
 $(GENDIR)/$(UNPACKER).runstamps: $(GENDIR)/$(UNPACKER).runemptystamp
+endif
 endif
 
 #########################################################
