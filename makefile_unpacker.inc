@@ -938,7 +938,8 @@ $(GENDIR)/$(UNPACKER).runemptystamp: $(UNPACKER) $(EMPTY_FILE)
 	@echo "  TEST   $@"
 	@$(EMPTY_FILE) $(EMPTY_FILE_FORMAT) --events=10 2> $@.err2 | \
 	  ./$< --file=- > $@.out 2> $@.err || \
-	  ( echo "Failure while running: 'empty_file | ./$<':" ; \
+	  ( echo "Failure while running: '$(EMPTY_FILE) $(EMPTY_FILE_FORMAT) \
+		  --events=10 | ./$(UNPACKER)/$< --file=-':" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr (empty_file): ---"; cat $@.err2 ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
