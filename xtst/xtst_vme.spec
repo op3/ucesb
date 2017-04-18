@@ -77,4 +77,8 @@ SUBEVENT(XTST_VME)
       qdc0 = VME_CAEN_V775(geom=21,crate=40);
       qdc1 = VME_CAEN_V775(geom=21,crate=40);
     }
+  select several
+    {
+      mdpp16 = VME_MESYTEC_MDPP16(geom=31);
+    }
 }
