@@ -142,6 +142,7 @@ typedef calib_map<DATA14> DATA14_calib_map;
 typedef calib_map<DATA14_OVERFLOW> DATA14_OVERFLOW_calib_map;
 typedef calib_map<DATA14_RANGE> DATA14_RANGE_calib_map;
 typedef calib_map<DATA16> DATA16_calib_map;
+typedef calib_map<DATA16_OVERFLOW> DATA16_OVERFLOW_calib_map;
 typedef calib_map<DATA24> DATA24_calib_map;
 typedef calib_map<DATA32> DATA32_calib_map;
 typedef calib_map<float>  float_calib_map;

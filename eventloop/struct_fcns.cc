@@ -46,6 +46,8 @@ void rawdata24::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata24>(id,unit); }
 void rawdata16::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata16>(id,unit); }
+void rawdata16plus::show_members(const signal_id &id,const char *unit) const
+{ ::show_members<rawdata16plus>(id,unit); }
 void rawdata14::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata14>(id,unit); }
 void rawdata12::show_members(const signal_id &id,const char *unit) const
@@ -300,6 +302,18 @@ void rawdata16::dump(const signal_id &id,pretty_dump_info &pdi) const
   pretty_dump(id,buf,pdi);
 }
 
+void rawdata16plus::dump(const signal_id &id,pretty_dump_info &pdi) const
+{
+  char buf[32];
+  sprintf(buf,"0x%04x=%d%c%c%c%c",
+          value,value,
+	  underflow ? 'U' : ' ',
+	  range ?     'R' : ' ',
+	  pileup ?    'P' : ' ',
+	  overflow ?  'O' : ' ');
+  pretty_dump(id,buf,pdi);
+}
+
 void rawdata14::dump(const signal_id &id,pretty_dump_info &pdi) const
 {
   char buf[32];
@@ -316,7 +330,7 @@ void rawdata12::dump(const signal_id &id,pretty_dump_info &pdi) const
   sprintf(buf,"0x%03x=%d%c%c",
 	  value,value,
 	  range ?    'R' : ' ',
-	  overflow ? 'O' : ' ';
+	  overflow ? 'O' : ' ');
   pretty_dump(id,buf,pdi);
 }
 

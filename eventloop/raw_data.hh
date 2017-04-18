@@ -215,6 +215,68 @@ public:
   void map_members(const data_map<rawdata16> &map MAP_MEMBERS_PARAM) const;
 };
 
+// rawdata16 plus has additional range / over / underflow / pileup fields.
+// Is therefore stored in 32 bit wide struct.
+struct rawdata16plus
+{
+public:
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  uint16  value    : 16;
+  uint16  underflow : 1;
+  uint16  range    : 1;
+  uint16  pileup   : 1;
+  uint16  overflow : 1;
+  uint16  dummy1   : 12;
+#endif
+#if __BYTE_ORDER == __BIG_ENDIAN
+  uint16  dummy1   : 12;
+  uint16  overflow : 1;
+  uint16  pileup   : 1;
+  uint16  range    : 1;
+  uint16  underflow : 1;
+  uint16  value    : 16;
+#endif
+
+public:
+  void show_members(const signal_id &id, const char *unit) const;
+
+  void enumerate_members(const signal_id &id,
+			 const enumerate_info &info,
+			 enumerate_fcn callback, void *extra) const
+  {
+    // We actually have 20 bits, due to overrange and range bits...
+    callback(id,
+	     enumerate_info(info, this, ENUM_TYPE_DATA16PLUS, 0, 0x000fffff),
+             extra);
+  }
+
+  void dump()
+  {
+    printf ("0x%04x%c%c%c%c",
+	    value,
+	    underflow ? 'U' : ' ',
+	    range ?     'R' : ' ',
+	    pileup ?    'P' : ' ',
+	    overflow ?  'O' : ' ');
+  }
+
+  void dump(const signal_id &id, pretty_dump_info &pdi) const;
+
+  void __clean()
+  {
+    uint32* pthis = (uint32 *) (this);
+    *pthis = 0;
+  }
+
+  void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
+  {
+    insert_zero_suppress_info_ptrs(this, used_info);
+  }
+
+public:
+  void map_members(const data_map<rawdata16plus> &map MAP_MEMBERS_PARAM) const;
+};
+
 struct rawdata12
 {
 public:
@@ -375,6 +437,7 @@ public:
 #define DATA32           rawdata32
 #define DATA24           rawdata24
 #define DATA16           rawdata16
+#define DATA16_OVERFLOW  rawdata16plus
 #define DATA12           rawdata12
 #define DATA12_OVERFLOW  rawdata12
 #define DATA12_RANGE     rawdata12

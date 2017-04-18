@@ -39,6 +39,7 @@
 #define ENUM_TYPE_DATA24    0x000d
 #define ENUM_TYPE_DATA32    0x000e
 #define ENUM_TYPE_DATA64    0x000f
+#define ENUM_TYPE_DATA16PLUS 0x0010
 #define ENUM_TYPE_MASK      0x001f
 #define ENUM_HAS_INT_LIMIT  0x0020
 #define ENUM_IS_LIST_LIMIT  0x0040
@@ -156,6 +157,7 @@ struct rawdata8;
 struct rawdata12;
 struct rawdata14;
 struct rawdata16;
+struct rawdata16plus;
 struct rawdata24;
 struct rawdata32;
 struct rawdata64;
@@ -164,6 +166,7 @@ inline int get_enum_type(rawdata8  *) { return ENUM_TYPE_DATA8; }
 inline int get_enum_type(rawdata12 *) { return ENUM_TYPE_DATA12; }
 inline int get_enum_type(rawdata14 *) { return ENUM_TYPE_DATA14; }
 inline int get_enum_type(rawdata16 *) { return ENUM_TYPE_DATA16; }
+inline int get_enum_type(rawdata16plus *) { return ENUM_TYPE_DATA16PLUS; }
 inline int get_enum_type(rawdata24 *) { return ENUM_TYPE_DATA24; }
 inline int get_enum_type(rawdata32 *) { return ENUM_TYPE_DATA32; }
 inline int get_enum_type(rawdata64 *) { return ENUM_TYPE_DATA64; }

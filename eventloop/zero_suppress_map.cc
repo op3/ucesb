@@ -378,6 +378,7 @@ void get_enum_type_name(int type,char *dest,size_t length)
     case ENUM_TYPE_DATA12: SNPRINTF_NAME("DATA12"); break;
     case ENUM_TYPE_DATA14: SNPRINTF_NAME("DATA14"); break;
     case ENUM_TYPE_DATA16: SNPRINTF_NAME("DATA16"); break;
+    case ENUM_TYPE_DATA16PLUS: SNPRINTF_NAME("DATA16PLUS"); break;
     case ENUM_TYPE_DATA24: SNPRINTF_NAME("DATA24"); break;
     case ENUM_TYPE_DATA32: SNPRINTF_NAME("DATA32"); break;
     case ENUM_TYPE_DATA64: SNPRINTF_NAME("DATA64"); break;

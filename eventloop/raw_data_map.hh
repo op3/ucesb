@@ -70,6 +70,7 @@ typedef data_map<DATA64> DATA64_map;
 typedef data_map<DATA32> DATA32_map;
 typedef data_map<DATA24> DATA24_map;
 typedef data_map<DATA16> DATA16_map;
+typedef data_map<DATA16_OVERFLOW> DATA16_OVERFLOW_map;
 typedef data_map<DATA12> DATA12_map;
 typedef data_map<DATA12_OVERFLOW> DATA12_OVERFLOW_map;
 typedef data_map<DATA12_RANGE> DATA12_RANGE_map;

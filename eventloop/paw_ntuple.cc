@@ -248,6 +248,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
     case ENUM_TYPE_UCHAR:
       item = new ntuple_item(name,(unsigned char*) info._addr,ptr_offset);
       break;
+    case ENUM_TYPE_DATA16PLUS:
+      // Stores only value? Then could go to 16 bits.
     case ENUM_TYPE_DATA24:
       // could be cut down to 24 bits limits...
     case ENUM_TYPE_DATA32:

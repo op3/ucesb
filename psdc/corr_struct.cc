@@ -65,6 +65,8 @@ void corr_find_members(const char *type,
 	"DATA14",
 	"DATA14_RANGE",
 	"DATA14_OVERFLOW",
+	"DATA16",
+	"DATA16_OVERFLOW"
       };
 
       const char *no_corr_types[] = {
@@ -80,7 +82,7 @@ void corr_find_members(const char *type,
 	"unpack_subevent_base",
 	"unpack_event_base",
 	"raw_event_base",
-	"cal_event_base",
+	"cal_event_base"
       };
 
       for (unsigned int i = 0; i < countof(corr_types); i++)
