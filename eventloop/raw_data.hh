@@ -249,8 +249,8 @@ public:
   {
     printf ("0x%03x%c%c",
 	    value,
-	    overflow ? 'O' : ' ',
-	    range ? 'R'    : ' ');
+	    range    ? 'R' : ' ',
+	    overflow ? 'O' : ' ');
   }
 
   void dump(const signal_id &id,pretty_dump_info &pdi) const;
@@ -307,8 +307,8 @@ public:
   {
     printf ("0x%04x%c%c",
 	    value,
-	    overflow ? 'O' : ' ',
-	    range ? 'R'    : ' ');
+	    range ?    'R' : ' ',
+	    overflow ? 'O' : ' ');
   }
 
   void dump(const signal_id &id,pretty_dump_info &pdi) const;

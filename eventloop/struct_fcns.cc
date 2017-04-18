@@ -305,8 +305,8 @@ void rawdata14::dump(const signal_id &id,pretty_dump_info &pdi) const
   char buf[32];
   sprintf(buf,"0x%04x=%d%c%c",
 	  value,value,
-	  overflow ? 'O' : ' ',
-	  range ? 'R'    : ' ');
+	  range ?    'R' : ' ',
+	  overflow ? 'O' : ' ');
   pretty_dump(id,buf,pdi);
 }
 
@@ -315,8 +315,8 @@ void rawdata12::dump(const signal_id &id,pretty_dump_info &pdi) const
   char buf[32];
   sprintf(buf,"0x%03x=%d%c%c",
 	  value,value,
-	  overflow ? 'O' : ' ',
-	  range ? 'R'    : ' ');
+	  range ?    'R' : ' ',
+	  overflow ? 'O' : ' ';
   pretty_dump(id,buf,pdi);
 }
 
