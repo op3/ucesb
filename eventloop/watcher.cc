@@ -652,7 +652,7 @@ bool raw_array_watcher_2<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n,
 #define FCNCALL_MULTI_MEMBER(name) name
 #define FCNCALL_MULTI_ARG(name) name
 #define FCNCALL_CALL_CTRL_WRAP(ctrl,call) ctrl##_active = (call)
-#define FCNCALL_CALL_CTRL_WRAP_ARRAY(ctrl_name,ctrl_non_last_index,ctrl_last_index,call) __active |= ((call) ? (ctrl_name##_active ctrl_non_last_index.set(ctrl_last_index)) , true : false)
+#define FCNCALL_CALL_CTRL_WRAP_ARRAY(ctrl_name,ctrl_non_last_index,ctrl_last_index,call) __active |= ((call) ? (ctrl_name##_active ctrl_non_last_index.set((unsigned int) ctrl_last_index)) , true : false)
 #define FCNCALL_RET_TYPE bool
 #define FCNCALL_INIT     bool __active = false;
 #define FCNCALL_RET      return __active;
