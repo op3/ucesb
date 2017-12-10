@@ -81,6 +81,8 @@ int colourtext_getforce(void);
  */
 size_t colourtext_prepare(void);
 
+void colourpair_prepare(void);
+
 typedef struct colourtext_prepared_item_t
 {
   const char *_str;
@@ -124,6 +126,10 @@ size_t colourtext_setforce(int force_colour);
 int colourtext_getforce(void);
 
 size_t colourtext_prepare(void);
+
+void colourpair_prepare(void);
+
+#define COLOURTEXT_GET(fd,request) ""
 
 #define CT_OUT(request) ""
 #define CT_ERR(request) ""
