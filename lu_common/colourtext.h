@@ -18,8 +18,8 @@
  * MA  02110-1301  USA
  */
 
-#ifndef __COLOURTEXT_HH__
-#define __COLOURTEXT_HH__
+#ifndef __COLOURTEXT_H__
+#define __COLOURTEXT_H__
 
 #include <stddef.h>
 
@@ -139,4 +139,4 @@ void colourpair_prepare(void);
 
 #endif
 
-#endif//__COLOURTEXT_HH__
+#endif/*__COLOURTEXT_H__*/

@@ -18,8 +18,8 @@
  * MA  02110-1301  USA
  */
 
-#ifndef __MARKCONVBOLD_HH__
-#define __MARKCONVBOLD_HH__
+#ifndef __MARKCONVBOLD_H__
+#define __MARKCONVBOLD_H__
 
 /* %-conversions in error/warning/info-strings are automatically
  * boldified
@@ -41,4 +41,4 @@ char *markconvbold(const char *fmt);
 
 void markconvbold_output(const char *fmt,int linemarkup);
 
-#endif//__MARKCONVBOLD_HH__
+#endif/*__MARKCONVBOLD_H__*/

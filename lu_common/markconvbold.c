@@ -18,8 +18,8 @@
  * MA  02110-1301  USA
  */
 
-#include "markconvbold.hh"
-#include "colourtext.hh"
+#include "markconvbold.h"
+#include "colourtext.h"
 
 #include <stdio.h>
 

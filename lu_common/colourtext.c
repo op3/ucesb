@@ -18,9 +18,9 @@
  * MA  02110-1301  USA
  */
 
-#ifdef USE_CURSES
+#include "colourtext.h"
 
-#include "colourtext.hh"
+#ifdef USE_CURSES
 
 #include <curses.h>
 #include <term.h>
@@ -304,8 +304,6 @@ void colourpair_prepare()
 }
 
 #else
-
-#include <stdlib.h>
 
 size_t colourtext_init() { return 0; }
 
