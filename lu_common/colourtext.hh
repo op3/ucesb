@@ -70,16 +70,16 @@
 #include <curses.h>
 #include <time.h>
 
-size_t colourtext_init();
+size_t colourtext_init(void);
 
 size_t colourtext_setforce(int force_colour); /* -1 = never, 0 = auto, 1 = always */
 
-int colourtext_getforce();
+int colourtext_getforce(void);
 
 /* Call whenever stdout or stderr might have been remapped
  * (checks isatty status).
  */
-size_t colourtext_prepare();
+size_t colourtext_prepare(void);
 
 typedef struct colourtext_prepared_item_t
 {
@@ -117,13 +117,13 @@ char *escapeashash(const char *text);  /* For debugging */
  * itself.
  */
 
-size_t colourtext_init();
+size_t colourtext_init(void);
 
 size_t colourtext_setforce(int force_colour);
 
-int colourtext_getforce();
+int colourtext_getforce(void);
 
-size_t colourtext_prepare();
+size_t colourtext_prepare(void);
 
 #define CT_OUT(request) ""
 #define CT_ERR(request) ""
