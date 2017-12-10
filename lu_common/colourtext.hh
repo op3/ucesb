@@ -32,35 +32,38 @@
 
 #define CTR_NONE                0 /* used in markconvbold_output */
 #define CTR_WHITE_BG_RED        1
-#define CTR_BLACK_BG_YELLOW     2
-#define CTR_YELLOW_BG_BLUE      3
-#define CTR_BLUE_BG_YELLOW      4
-#define CTR_WHITE_BG_MAGENTA    5
-#define CTR_RED_BG_GREEN        6
-#define CTR_NORM_DEF_COL        7
-#define CTR_DEF_COL             8
-#define CTR_NORM                9
-#define CTR_BOLD               10
-#define CTR_UL                 11
-#define CTR_RED                12
-#define CTR_GREEN              13
-#define CTR_BLUE               14
-#define CTR_MAGENTA            15
-#define CTR_CYAN               16
-#define CTR_BOLD_RED           17
-#define CTR_BOLD_GREEN         18
-#define CTR_BOLD_BLUE          19
-#define CTR_BOLD_MAGENTA       20
-#define CTR_BOLD_CYAN          21
-#define CTR_UL_RED             22
-#define CTR_UL_GREEN           23
-#define CTR_UL_BLUE            24
-#define CTR_UL_MAGENTA         25
-#define CTR_UL_CYAN            26
-#define CTR_WHITE              27 /* not for general use!!! */
-#define CTR_BLACK              28 /* not for general use!!! */
-#define CTR_UP1LINE            29
-#define CTR_NUM_REQUEST        30
+#define CTR_YELLOW_BG_RED       2
+#define CTR_RED_BG_GREEN        3
+#define CTR_YELLOW_BG_BLUE      4
+#define CTR_BLACK_BG_YELLOW     5
+#define CTR_BLUE_BG_YELLOW      6
+#define CTR_WHITE_BG_MAGENTA    7
+#define CTR_RED                 8
+#define CTR_GREEN               9
+#define CTR_BLUE               10
+#define CTR_MAGENTA            11
+#define CTR_CYAN               12
+#define CTR_WHITE              13 /* not for general use!!! */
+#define CTR_BLACK              14 /* not for general use!!! */
+#define CTR_NUM_COLORS         15 /* end of colors */
+
+#define CTR_BOLD_RED           15
+#define CTR_BOLD_GREEN         16
+#define CTR_BOLD_BLUE          17
+#define CTR_BOLD_MAGENTA       18
+#define CTR_BOLD_CYAN          19
+#define CTR_UL_RED             20
+#define CTR_UL_GREEN           21
+#define CTR_UL_BLUE            22
+#define CTR_UL_MAGENTA         23
+#define CTR_UL_CYAN            24
+#define CTR_NORM_DEF_COL       25
+#define CTR_DEF_COL            26
+#define CTR_NORM               27
+#define CTR_BOLD               28
+#define CTR_UL                 29
+#define CTR_UP1LINE            30
+#define CTR_NUM_REQUEST        31
 
 #ifdef USE_CURSES
 

@@ -199,26 +199,25 @@ size_t colourtext_prepare()
 	{ 0, },                                 /* CTR_NONE */
 	{ CTR_PART_FGCOL(COLOR_WHITE),
 	  CTR_PART_BGCOL(COLOR_RED), 0 },       /* CTR_WHITE_BG_RED */
-	{ CTR_PART_FGCOL(COLOR_BLACK),
-	  CTR_PART_BGCOL(COLOR_YELLOW), 0, 0 }, /* CTR_BLACK_BG_YELLOW */
+	{ CTR_PART_FGCOL(COLOR_YELLOW),
+	  CTR_PART_BGCOL(COLOR_RED), 0 },       /* CTR_YELLOW_BG_RED */
+	{ CTR_PART_FGCOL(COLOR_RED),
+	  CTR_PART_BGCOL(COLOR_GREEN), 0 },     /* CTR_RED_BG_GREEN */
 	{ CTR_PART_FGCOL(COLOR_YELLOW),
 	  CTR_PART_BGCOL(COLOR_BLUE), 0, 0 },   /* CTR_YELLOW_BG_BLUE */
+	{ CTR_PART_FGCOL(COLOR_BLACK),
+	  CTR_PART_BGCOL(COLOR_YELLOW), 0, 0 }, /* CTR_BLACK_BG_YELLOW */
 	{ CTR_PART_FGCOL(COLOR_BLUE),
 	  CTR_PART_BGCOL(COLOR_YELLOW), 0, 0 }, /* CTR_BLUE_BG_YELLOW */
 	{ CTR_PART_FGCOL(COLOR_WHITE),
 	  CTR_PART_BGCOL(COLOR_MAGENTA), 0 },   /* CTR_WHITE_BG_MAGENTA */
-	{ CTR_PART_FGCOL(COLOR_RED),
-	  CTR_PART_BGCOL(COLOR_GREEN), 0 },     /* CTR_RED_BG_GREEN */
- 	{ CTR_PART_SGR0, CTR_PART_OP, 0, 0 },   /* CTR_NORM_DEF_COL */
-	{ CTR_PART_OP, 0, 0, 0 },               /* CTR_DEF_COL */
-	{ CTR_PART_SGR0, 0, 0, 0 },             /* CTR_NORM */
-	{ CTR_PART_BOLD, 0, 0, 0 },             /* CTR_BOLD */
-	{ CTR_PART_UNDERLINE, 0, 0, 0 },        /* CTR_UL */
 	{ CTR_PART_FGCOL(COLOR_RED),     0, 0, 0 }, /* CTR_RED */
 	{ CTR_PART_FGCOL(COLOR_GREEN),   0, 0, 0 }, /* CTR_GREEN */
 	{ CTR_PART_FGCOL(COLOR_BLUE),    0, 0, 0 }, /* CTR_BLUE */
 	{ CTR_PART_FGCOL(COLOR_MAGENTA), 0, 0, 0 }, /* CTR_MAGENTA */
 	{ CTR_PART_FGCOL(COLOR_CYAN),    0, 0, 0 }, /* CTR_CYAN */
+	{ CTR_PART_FGCOL(COLOR_WHITE),   0, 0, 0 }, /* CTR_WHITE */
+	{ CTR_PART_FGCOL(COLOR_BLACK),   0, 0, 0 }, /* CTR_BLACK */
 	{ CTR_PART_BOLD,
 	  CTR_PART_FGCOL(COLOR_RED),     0, 0 }, /* CTR_BOLD_RED */
 	{ CTR_PART_BOLD,
@@ -239,8 +238,11 @@ size_t colourtext_prepare()
 	  CTR_PART_FGCOL(COLOR_MAGENTA), 0, 0 }, /* CTR_UL_MAGENTA */
 	{ CTR_PART_UNDERLINE,
 	  CTR_PART_FGCOL(COLOR_CYAN),    0, 0 }, /* CTR_UL_CYAN */
-	{ CTR_PART_FGCOL(COLOR_WHITE),   0, 0, 0 }, /* CTR_WHITE */
-	{ CTR_PART_FGCOL(COLOR_BLACK),   0, 0, 0 }, /* CTR_BLACK */
+	{ CTR_PART_SGR0, CTR_PART_OP, 0, 0 },   /* CTR_NORM_DEF_COL */
+	{ CTR_PART_OP, 0, 0, 0 },               /* CTR_DEF_COL */
+	{ CTR_PART_SGR0, 0, 0, 0 },             /* CTR_NORM */
+	{ CTR_PART_BOLD, 0, 0, 0 },             /* CTR_BOLD */
+	{ CTR_PART_UNDERLINE, 0, 0, 0 },        /* CTR_UL */
 	{ CTR_PART_CUU1,                 0, 0, 0 }, /* CTR_UP1LINE */
       };
 
@@ -273,6 +275,34 @@ size_t colourtext_prepare()
   return maxlen;
 }
 
+void colourpair_prepare()
+{
+  short j;
+
+  const signed char _colourpairs[CTR_NUM_COLORS][2] = {
+    { -1, -1 },
+    { COLOR_WHITE,  COLOR_RED },
+    { COLOR_YELLOW, COLOR_RED },
+    { COLOR_RED,    COLOR_GREEN },
+    { COLOR_YELLOW, COLOR_BLUE },
+    { COLOR_BLACK,  COLOR_YELLOW },
+    { COLOR_BLUE,   COLOR_YELLOW },
+    { COLOR_WHITE,  COLOR_MAGENTA },
+    { COLOR_RED,     -1 },
+    { COLOR_GREEN,   -1 },
+    { COLOR_BLUE,    -1 },
+    { COLOR_MAGENTA, -1 },
+    { COLOR_CYAN,    -1 },
+    { COLOR_WHITE,   -1 },
+    { COLOR_BLACK,   -1 },
+  };
+
+  use_default_colors();
+
+  for (j = 1; j < CTR_NUM_COLORS; j++)
+    init_pair(j, _colourpairs[j][0], _colourpairs[j][1]);
+}
+
 #else
 
 #include <stdlib.h>
@@ -284,5 +314,7 @@ size_t colourtext_setforce(int force_colour) { (void) force_colour; return 0; }
 int colourtext_getforce() { return 0; }
 
 size_t colourtext_prepare() { return 0; }
+
+void colourpair_prepare() { }
 
 #endif/*USE_CURSES*/
