@@ -34,7 +34,7 @@
 
 VME_MESYTEC_MDPP16(geom)
 {
-  MEMBER(DATA16_OVERFLOW data[34] ZERO_SUPPRESS);
+  MEMBER(DATA16_OVERFLOW data[34] ZERO_SUPPRESS_MULTI(20));
 
   MARK_COUNT(start);
   UINT32 header NOENCODE
@@ -57,6 +57,11 @@ VME_MESYTEC_MDPP16(geom)
     28_31: 0b0001;
 
     ENCODE(data[channel], (value = value, overflow = overflow, pileup = pileup));
+  }
+
+  several UINT32 fill_word NOENCODE
+  {
+    0_31: 0x0;
   }
 
   UINT32 end_of_event
