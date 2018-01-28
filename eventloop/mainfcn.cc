@@ -1403,7 +1403,7 @@ get_next_event:
 		;
 	      else
 #endif
-		loop.handle_event(*event,&num_multi);
+		write_ok = loop.handle_event(*event,&num_multi);
 
 	      _status._multi_events += (uint64_t) num_multi;
 
