@@ -68,10 +68,10 @@ void ext_data_struct_info_free(struct ext_data_structure_info *struct_info);
  *                  in bytes (use offsetof()).
  * @size            Size (in bytes) of the item (use sizeof()).
  *                  When array, size of the entire array.
- * @type            Type of the item, one of ...
+ * @type            Type of the item, one of EXT_DATA_ITEM_TYPE_...
  * @prename         First part of name (when several similar structure
  *                  items exist.  Set to NULL or "" when unused.
- *                  The actual name will a concatenation of prename,
+ *                  The actual name will be a concatenation of prename,
  *                  preindex(as a string) and name.
  * @preindex        Index part of prename, set to -1 when unused.
  * @name            Name of the item.
@@ -276,13 +276,13 @@ int ext_data_setup(struct ext_data_client *client,
  * After this call, ext_data_fetch_event() may return failure (-1) with
  * errno set to EAGAIN.
  *
- * Note that if the user fails to verify that
- * some data is available before calling ext_data_fetch_event() again
- * after such using e.g. select() or poll(), then the program will
- * butn CPU uselessly.
+ * Note that if the user fails to check if any data is available
+ * before calling ext_data_fetch_event() again, using e.g. select() or
+ * poll(), then the program will burn CPU uselessly in a busy-wait
+ * loop.
  *
  * Note that for the time being, this function must be called after
- * ext_data_setup() (which currently requiers blocking access).
+ * ext_data_setup() (which currently requires blocking access).
  *
  * Return value:
  *  n  file descriptor.
