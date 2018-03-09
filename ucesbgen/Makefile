@@ -188,7 +188,7 @@ ucesbgen.dep: $(AUTO_DEPS)
 ucesbgen.base.dep: ucesbgen.dep
 	@echo " BASEDEP $@"
 	@echo '$$(UCESB_BASE_DIR)/ucesbgen/$(MAKECMDGOALS): \' > $@
-	$(QUIET)cat $< | grep -v ' \\' | \
+	$(QUIET)cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
 	  sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/ucesbgen/,g' | sort -u >> $@
 
 #

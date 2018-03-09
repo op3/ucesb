@@ -216,7 +216,8 @@ hbook_writer.dep: ext_hbook_writer.d
 hbook_writer.base.dep: hbook_writer.dep
 	@echo " BASEDEP $@"
 	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/hbook_writer: \' > $@
-	$(QUIET)cat $< | grep -v ' \\' | grep -v $(CERN_ROOT) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
+	  sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 endif # CERN_ROOT
 endif # $(MAKECMDGOALS) has hbook_writer
@@ -286,7 +287,8 @@ root_writer.dep: ext_root_writer.d
 root_writer.base.dep: root_writer.dep
 	@echo " BASEDEP $@"
 	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/root_writer: \' > $@
-	$(QUIET)cat $< | grep -v ' \\' | grep -v $(ROOT_INC_DIR) | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
+	  sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 endif
 endif # $(MAKECMDGOALS) has root_writer
@@ -344,7 +346,8 @@ struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d
 struct_writer.base.dep: struct_writer.dep
 	@echo " BASEDEP $@"
 	$(QUIET)echo '$(DEP_BASE_DIR)/hbook/struct_writer: \' > $@    # emacs-dummy: '
-	$(QUIET)cat $< | grep -v ' \\' | grep -v '/sw/include/' | sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
+	$(QUIET)cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
+	  sed -e 's,  ,  $(DEP_BASE_DIR_ESC)/hbook/,g' | sort -u >> $@
 
 #
 

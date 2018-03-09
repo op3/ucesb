@@ -172,7 +172,8 @@ psdc.dep: $(AUTO_DEPS)
 psdc.base.dep: psdc.dep
 	@echo " BASEDEP $@"
 	@echo '$$(UCESB_BASE_DIR)/psdc/$(MAKECMDGOALS): \' > $@
-	@cat $< | grep -v ' \\' | sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/psdc/,g' | sort -u >> $@
+	@cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
+	  sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/psdc/,g' | sort -u >> $@
 
 #
 # Link
