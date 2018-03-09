@@ -108,6 +108,13 @@ stages:
     - make install
     - cd ..
 
+.prepare-opensuse: &opensuse
+  <<: *common
+  before_script:
+  - zypper --non-interactive install git bison flex ncurses-devel
+      make gcc gcc-c++ clang perl which > /dev/null
+  <<: *build
+
 .qemu-common: &qemu
   stage: build
   script:
@@ -332,6 +339,16 @@ debian etch gcc g++ all:
   variables:
     EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *old-debian
+
+opensuse latest gcc g++ all:
+  stage: build
+  image: opensuse:latest
+  <<: *opensuse
+
+opensuse latest clang clang++ all:
+  stage: build
+  image: opensuse:latest
+  <<: *opensuse
 
 freebsd 10 gcc g++ all:
   stage: build
