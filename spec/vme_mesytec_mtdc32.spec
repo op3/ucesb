@@ -22,7 +22,7 @@
 
 VME_MESYTEC_MTDC32(geom)
 {
-  MEMBER(DATA16 data[32] ZERO_SUPPRESS);
+  MEMBER(DATA16 data[34] ZERO_SUPPRESS);
 
   MARK_COUNT(start);
   UINT32 header NOENCODE
@@ -43,7 +43,7 @@ VME_MESYTEC_MTDC32(geom)
       22_29: 0b00010000;
       30_31: 0b00;
 
-      ENCODE(data[channel], (value = value));
+      ENCODE(data[trig*32 + channel], (value = value));
   }
 
   optional UINT32 fill NOENCODE
