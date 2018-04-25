@@ -177,7 +177,7 @@ void apply_calib_param(calib_param *item)
   assert(item->_dest->_addr);
 
   if (!item->_src->_set_dest(item,NULL))
-    ERROR_LOC(item->_loc,"Mapping already specified for source item.");
+    ERROR_LOC(item->_loc,"Calib mapping already specified for source item.");
 }
 
 void apply_calib_param(user_calib_param *item)
