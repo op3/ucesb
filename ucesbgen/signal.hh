@@ -141,6 +141,8 @@ public:
 
 #define SIGNAL_TAG_FIRST_EVENT 0x0001
 #define SIGNAL_TAG_LAST_EVENT  0x0002
+#define SIGNAL_TAG_TOGGLE_1    0x0004
+#define SIGNAL_TAG_TOGGLE_2    0x0008
 
 // Temporary for parsing.
 struct signal_spec_ident_var

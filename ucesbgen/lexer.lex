@@ -126,6 +126,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 "EVENT"       { return EVENT; }
 "SUBEVENT"    { return SUBEVENT; }
 "SIGNAL"      { return SIGNAL; }
+"TOGGLE"      { return TOGGLE; }
 "UINT64"      { return UINT64; }
 "UINT32"      { return UINT32; }
 "UINT16"      { return UINT16; }

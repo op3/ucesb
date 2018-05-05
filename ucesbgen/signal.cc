@@ -45,10 +45,23 @@ void signal_spec::dump_tag(dumper &d) const
   if (!_tag)
     return;
 
-  if (_tag & SIGNAL_TAG_FIRST_EVENT)
-    d.text("FIRST_EVENT");
-  if (_tag & SIGNAL_TAG_LAST_EVENT)
-    d.text("LAST_EVENT");
+  int tag = _tag;
+
+#define DUMP_TAG(x, str) if (tag & (x)) { tag &= ~(x); d.text(str); goto handled; }
+
+  while (tag)
+    {
+      DUMP_TAG(SIGNAL_TAG_FIRST_EVENT,"FIRST_EVENT");
+      DUMP_TAG(SIGNAL_TAG_LAST_EVENT, "LAST_EVENT");
+      DUMP_TAG(SIGNAL_TAG_TOGGLE_1,   "TOGGLE 1");
+      DUMP_TAG(SIGNAL_TAG_TOGGLE_2,   "TOGGLE 2");
+
+      ERROR("Internal error, bad tag %d.", tag);
+
+    handled:
+      if (tag)
+	d.text(", ");      
+    }
   d.text(":");
 }
 

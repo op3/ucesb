@@ -152,6 +152,7 @@ int _signal_spec_order_index = 0;
 %token EVENT
 %token SUBEVENT
 %token SIGNAL
+%token TOGGLE
 %token UINT64
 %token UINT32
 %token UINT16
@@ -277,6 +278,8 @@ int _signal_spec_order_index = 0;
 
 %type <sig>         signal
 %type <sig_info>    signal_info
+%type <iValue>      signal_tags
+%type <iValue>      signal_tag_list
 %type <iValue>      signal_tag
 
 %type <sig_id_var>  signal_ident_var
@@ -659,12 +662,12 @@ signal:
                                                                                      $3->_name,$3->_ident,
                                                                                      $5->_name,$5->_ident,$7,0);
                                                              delete $3; delete $5; $$ = signal; }
-	| SIGNAL '(' signal_tag
+	| SIGNAL '(' signal_tags
                      signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
                                                                                $4->_name,$4->_ident,$6,$3);
                                                              delete $4; $$ = signal; }
-        | SIGNAL '(' signal_tag
+        | SIGNAL '(' signal_tags
                      signal_ident_var ','
                      signal_ident_var ',' signal_types ')' { signal_spec* signal =
                                                                new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
@@ -699,9 +702,25 @@ signal_type_unit:
 	| signal_type STRING  { insert_prefix_units_exp(CURR_FILE_LINE,$2); $$ = new signal_spec_type_unit($1,$2); }
 	;
 
+signal_tags:
+	  signal_tag_list ':' { $$ = $1; }
+	;
+
+signal_tag_list:
+          signal_tag                     { $$ = $1; }
+        | signal_tag_list ',' signal_tag { $$ = $1 | $3; }
+        ;
+
 signal_tag:
-	  FIRST_EVENT ':' { $$ = SIGNAL_TAG_FIRST_EVENT; }
-        | LAST_EVENT ':'  { $$ = SIGNAL_TAG_LAST_EVENT; }
+	  FIRST_EVENT    { $$ = SIGNAL_TAG_FIRST_EVENT; }
+        | LAST_EVENT     { $$ = SIGNAL_TAG_LAST_EVENT; }
+        | TOGGLE INTEGER { 
+	    if ($2 == 1)      { $$ = SIGNAL_TAG_TOGGLE_1; }
+	    else if ($2 == 2) { $$ = SIGNAL_TAG_TOGGLE_2; }
+	    else {	    
+	      ERROR_LOC(CURR_FILE_LINE, "Toggle # must be 1 or 2.");
+	    }
+	  }
 	;
 
 signal_info:
