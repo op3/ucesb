@@ -158,6 +158,12 @@ stages:
 
 # Fast build (only empty or xtst) to quickly see if there is some chance.
 
+# Has test files.
+Trusty root5 gcc g++ is446:
+  stage: fast-build
+  image: munken/root:trusty-root5
+  <<: *debian
+
 Trusty root5 gcc g++ empty:
   stage: fast-build
   image: munken/root:trusty-root5
