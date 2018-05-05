@@ -960,7 +960,9 @@ endif
 #########################################################
 # Test to unpack example files
 
-TESTFILES:= $(notdir $(wildcard ../testfiles/$(UNPACKER)__*))
+TESTFILES:= $(notdir $(wildcard testfiles/$(UNPACKER)__*))
+
+TESTFILES:=$(filter-out %.good,$(TESTFILES))
 
 HAS_GUNZIP=$(shell which gunzip 2> /dev/null)
 HAS_BUNZIP2=$(shell which bunzip2 2> /dev/null)
@@ -978,12 +980,18 @@ endif
 
 $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "  TEST   $@"
-	@./$< ../testfiles/$* > $@.out 2> $@.err || \
-	  ( echo "Failure while running: './$< ../testfiles/$*':" ; \
-	    echo "--- stdout: ---" ; cat $@.out ; \
-	    echo "--- stderr: ---"; cat $@.err ; \
+	@(./$< testfiles/$* \
+	    --ntuple=UNPACK,STRUCT,- > $@.struct 2> $@.unpack.err && \
+	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
+	    > $@.dump 2> $@.dump.err && \
+	  diff -u testfiles/$*.dump.good $@.dump ) || \
+	  ( echo "Failure while running: './$< testfiles/$*':" ; \
+	    echo "--- stdout: ---" ; cat $@.unpack.err ; \
+	    echo "--- stderr: ---" ; cat $@.dump.err ; \
+	    echo "---------------" ; \
+	    echo "$@.dump" ; \
 	    echo "---------------" ; false)
-	@rm $@.out $@.err
+	@rm $@.unpack.err $@.dump.err $@.dump $@.struct
 	@touch $@
 
 $(GENDIR)/$(UNPACKER).runstamps: $(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTFILES))
