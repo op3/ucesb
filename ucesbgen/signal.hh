@@ -218,8 +218,15 @@ public:
 	      int tag)
     : signal_spec_base(loc,signal_count,name)
   {
-    _ident[0] = ident;
-    _ident[1] = NULL;
+    _ident[0] = _ident[1] = NULL;
+
+    int toggle_i = 0;
+    
+    if (tag & SIGNAL_TAG_TOGGLE_2)
+      toggle_i = 1;
+
+    _ident[toggle_i] = ident;
+
     _types = types;
     _tag = tag;
   }
