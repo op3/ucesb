@@ -40,14 +40,15 @@ char *strndup(const char *src,size_t length)
 }
 #endif
 
-void signal_spec::dump_tag(dumper &d) const
+void signal_spec::dump_tag(dumper &d, int toggle_tag_hide) const
 {
   if (!_tag)
     return;
 
-  int tag = _tag;
+  int tag = _tag & ~toggle_tag_hide;
 
-#define DUMP_TAG(x, str) if (tag & (x)) { tag &= ~(x); d.text(str); goto handled; }
+#define DUMP_TAG(x, str) \
+  if (tag & (x)) { tag &= ~(x); d.text(str); goto handled; }
 
   while (tag)
     {
@@ -88,12 +89,12 @@ void signal_spec_types::dump(dumper &d) const
     }
 }
 
-void signal_spec::dump_idents(dumper &d) const
+void signal_spec::dump_idents(dumper &d, int toggle_i_hide) const
 {
   int n = 0;
 
   for (int i = 0; i < MAX_NUM_TOGGLE; i++)
-    if (_ident[i])
+    if (_ident[i] && i != toggle_i_hide)
       n++;
 
   int comma = n;
@@ -101,7 +102,7 @@ void signal_spec::dump_idents(dumper &d) const
   if (n > 1)
     d.text("(");
   for (int i = 0; i < MAX_NUM_TOGGLE; i++)
-    if (_ident[i])
+    if (_ident[i] && i != toggle_i_hide)
       {
 	_ident[i]->dump(d);
 	if (--comma)
@@ -111,26 +112,38 @@ void signal_spec::dump_idents(dumper &d) const
     d.text(")");
 }
 
-void signal_spec::dump(dumper &d) const
+void signal_spec::dump_one_toggle(dumper &d, int tag_hide, int i_hide) const
 {
   d.text("SIGNAL(");
-  dump_tag(d);
+  dump_tag(d, tag_hide);
   d.text(_name);
   d.text(",");
-  dump_idents(d);
+  dump_idents(d, i_hide);
   d.text(",");
   _types->dump(d);
   d.text(");");
   d.nl();
 }
 
+void signal_spec::dump(dumper &d) const
+{
+  if ((_tag & (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2)) ==
+      (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2))
+    {
+      dump_one_toggle(d, SIGNAL_TAG_TOGGLE_2, 1);
+      dump_one_toggle(d, SIGNAL_TAG_TOGGLE_1, 0);
+    }
+  else
+    dump_one_toggle(d, 0, -1);
+}
+
 void signal_spec_range::dump(dumper &d) const
 {
   d.text("SIGNAL(");
-  dump_tag(d);
+  dump_tag(d, 0);
   d.text(_name);
   d.text(",");
-  dump_idents(d);
+  dump_idents(d, -1);
   d.text(",");
   d.text(_name_last);
   d.text(",");

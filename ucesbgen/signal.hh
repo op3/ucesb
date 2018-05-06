@@ -247,8 +247,9 @@ public:
   virtual void dump(dumper &d) const;
 
 public:
-  void dump_tag(dumper &d) const;
-  void dump_idents(dumper &d) const;
+  void dump_one_toggle(dumper &d, int toggle_tag_hide, int toggle_i_hide) const;
+  void dump_tag(dumper &d, int toggle_tag_hide) const;
+  void dump_idents(dumper &d, int toggle_i_hide) const;
 };
 
 class signal_spec_range

@@ -93,11 +93,11 @@ void insert_signal_to_all(signal_spec *signal)
 			 signal->_name, found->_tag, signal->_tag);
 
 	/* We have additional toggles.  So insert them. */
-
+	/*
 	fprintf (stderr, "%p %p %p %p\n",
 		 found->_ident[0],found->_ident[1],
 		 signal->_ident[0],signal->_ident[1]);
-
+	*/
 	for (int i = 0; i < MAX_NUM_TOGGLE; i++)
 	  if (signal->_ident[i])
 	    {
