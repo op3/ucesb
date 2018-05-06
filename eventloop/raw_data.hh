@@ -448,4 +448,77 @@ public:
 #define DATA14_RANGE     rawdata14
 #define DATA8            rawdata8
 
+
+
+template<typename T>
+class toggle_item
+{
+public:
+  typedef T item_t;
+
+public:
+  T _item;
+
+  int _toggle_i;
+  T _toggle_v[2];
+
+public:
+  void show_members(const signal_id &id,const char *unit) const
+  {
+    _item.show_members(id, unit);
+  }
+
+  void enumerate_members(const signal_id &id,
+			 const enumerate_info &info,
+			 enumerate_fcn callback,void *extra) const
+  {
+    _item.enumerate_members(id, info, callback, extra);
+  }
+
+  void dump()
+  {
+    _item.dump();
+  }
+
+  void dump(const signal_id &id,pretty_dump_info &pdi) const
+  {
+    _item.dump(id, pdi);
+  }
+
+  void __clean()
+  {
+    _item.__clean();
+    _toggle_i = -1;
+    _toggle_v[0].__clean();
+    _toggle_v[1].__clean();
+  }
+
+  void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
+  {
+    _item.zero_suppress_info_ptrs(used_info);
+  }
+
+  void map_members(const data_map<T> &map MAP_MEMBERS_PARAM) const;  
+
+};
+
+/*
+#define toggle_uint8            toggle_item<uint8>
+#define toggle_uint16           toggle_item<uint16>
+#define toggle_uint32           toggle_item<uint32>
+#define toggle_uint64           toggle_item<uint64>
+*/
+#define toggle_DATA64           toggle_item<DATA64>
+#define toggle_DATA32           toggle_item<DATA32>
+#define toggle_DATA24           toggle_item<DATA24>
+#define toggle_DATA16           toggle_item<DATA16>
+#define toggle_DATA16_OVERFLOW  toggle_item<DATA16_OVERFLOW>
+#define toggle_DATA12           toggle_item<DATA12>
+#define toggle_DATA12_OVERFLOW  toggle_item<DATA12_OVERFLOW>
+#define toggle_DATA12_RANGE     toggle_item<DATA12_RANGE>
+#define toggle_DATA14           toggle_item<DATA14>
+#define toggle_DATA14_OVERFLOW  toggle_item<DATA14_OVERFLOW>
+#define toggle_DATA14_RANGE     toggle_item<DATA14_RANGE>
+#define toggle_DATA8            toggle_item<DATA8>
+
 #endif//__RAW_DATA_HH__
