@@ -73,6 +73,11 @@ public:
   void event(float  value,watcher_event_info *watch_info);
   void event(double value,watcher_event_info *watch_info);
   //void event(uint32 value);
+
+  void event(toggle_item<T> value, watcher_event_info *watch_info)
+  {
+    event(value._item, watch_info);
+  }
 };
 
 template<typename T,typename Twatcher_channel>
@@ -100,6 +105,7 @@ public:
 
 public:
   void watch_members(const T &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
+  void watch_members(const toggle_item<T> &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
   bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info);
 
 };

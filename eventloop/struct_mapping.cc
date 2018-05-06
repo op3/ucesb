@@ -278,6 +278,12 @@ void data_map<T>::map_members(const T &src MAP_MEMBERS_PARAM) const
   ::map_members(*this,src MAP_MEMBERS_ARG);
 }
 
+template<typename T>
+void data_map<T>::map_members(const toggle_item<T> &src MAP_MEMBERS_PARAM) const
+{
+  ::map_members(*this,src._item MAP_MEMBERS_ARG);
+}
+
 /*
 template<typename T_src>
 void map_members(const data_map<T_src> &map,const T_src &src MAP_MEMBERS_PARAM)

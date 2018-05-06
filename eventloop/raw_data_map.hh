@@ -60,6 +60,7 @@ public:
 
 public:
   void map_members(const T &src MAP_MEMBERS_PARAM) const;
+  void map_members(const toggle_item<T> &src MAP_MEMBERS_PARAM) const;
 };
 
 #define DECL_PRIMITIVE_TYPE(type)			\

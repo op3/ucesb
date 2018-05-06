@@ -113,6 +113,7 @@ public:
 
 public:
   void map_members(const T &src) const;
+  void map_members(const toggle_item<T> &src) const;
 
 public:
   void show(const signal_id &id);

@@ -285,6 +285,16 @@ void calib_map<T>::map_members(const T &src) const
     }
 }
 
+template<typename T>
+void calib_map<T>::map_members(const toggle_item<T> &src) const
+{
+  //printf("%f...\n",(double) src.value);
+  if (_calib)
+    {
+      _calib->_convert(_calib,&src._item);
+    }
+}
+
 
 
 template<typename T_src>

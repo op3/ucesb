@@ -193,6 +193,12 @@ void data_correlation<T>::add_corr_members(const T &src,correlation_list *list W
   ::add_corr_members(src,*this,list WATCH_MEMBERS_ARG);
 }
 
+template<typename T>
+void data_correlation<T>::add_corr_members(const toggle_item<T> &src,correlation_list *list WATCH_MEMBERS_PARAM) const
+{
+  ::add_corr_members(src._item,*this,list WATCH_MEMBERS_ARG);
+}
+
 template<typename Tsingle_correlation,typename Tsingle,typename T_correlation,typename T,int n>
 void raw_array_correlation<Tsingle_correlation,Tsingle,T_correlation,T,n>::add_corr_item(const T &src,const T_correlation &corr,correlation_list *list WATCH_MEMBERS_PARAM)
 {

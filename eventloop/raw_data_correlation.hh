@@ -50,6 +50,7 @@ public:
 
 public:
   void add_corr_members(const T &src,correlation_list *list WATCH_MEMBERS_PARAM) const;
+  void add_corr_members(const toggle_item<T> &src,correlation_list *list WATCH_MEMBERS_PARAM) const;
   bool enumerate_correlations(const signal_id &id,enumerate_correlations_info *info);
 };
 
