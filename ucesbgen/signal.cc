@@ -178,6 +178,7 @@ event_signal::event_signal(signal_spec_base *decl,
   _name = name;
   _decl = decl;
   _multi_size = -1;
+  _tag = 0;
 }
 
 
@@ -485,6 +486,8 @@ void insert_signal(event_signal &top,
 	    }
 	}
 
+      node->_tag |= s_spec->_tag & SIGNAL_TAG_TOGGLE_MASK;
+
       /* Check that the node (leaf node) does not yet have
        * anyone reaching here with the same index structure.
        */
@@ -625,6 +628,9 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       if (level == 0)
 	d.text("class ");
 
+      const char *toggle =
+	(_tag & SIGNAL_TAG_TOGGLE_MASK ? "toggle_" : "");
+
       if (level != 0 && (zero_suppress_index || _multi_size != -1))
 	{
 	  // d.text("typedef ");
@@ -646,13 +652,13 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	    d.text_fmt("raw_%s_zero_suppress<",zero_suppress_type);
 
 	  if (_children.empty())
-	    d.text_fmt("%s,",_type);
+	    d.text_fmt("%s%s,",toggle,_type);
 	  else
 	    d.text_fmt("%s%s,",prefix.c_str(),_name);
 	}
 
       if (level != 0 && _children.empty())
-	d.text_fmt("%s",_type);
+	d.text_fmt("%s%s",toggle,_type);
       else
 	{
 	  d.text_fmt("%s%s",prefix.c_str(),_name);

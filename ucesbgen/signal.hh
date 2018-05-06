@@ -88,6 +88,8 @@ public:
   int              _multi_size;
   file_line        _multi_loc;
 
+  int              _tag;
+
 public:
   signal_spec_base *_decl;
   signal_spec_base *_decl_unit;
