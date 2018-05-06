@@ -134,17 +134,20 @@ public:
 typedef calib_map<uint8>  uint8_calib_map;
 typedef calib_map<uint16> uint16_calib_map;
 typedef calib_map<uint32> uint32_calib_map;
-typedef calib_map<DATA8>  DATA8_calib_map;
+typedef calib_map<uint64> uint64_calib_map;
+
+typedef calib_map<DATA64> DATA64_calib_map;
+typedef calib_map<DATA32> DATA32_calib_map;
+typedef calib_map<DATA24> DATA24_calib_map;
+typedef calib_map<DATA16> DATA16_calib_map;
+typedef calib_map<DATA16_OVERFLOW> DATA16_OVERFLOW_calib_map;
 typedef calib_map<DATA12> DATA12_calib_map;
 typedef calib_map<DATA12_OVERFLOW> DATA12_OVERFLOW_calib_map;
 typedef calib_map<DATA12_RANGE> DATA12_RANGE_calib_map;
 typedef calib_map<DATA14> DATA14_calib_map;
 typedef calib_map<DATA14_OVERFLOW> DATA14_OVERFLOW_calib_map;
 typedef calib_map<DATA14_RANGE> DATA14_RANGE_calib_map;
-typedef calib_map<DATA16> DATA16_calib_map;
-typedef calib_map<DATA16_OVERFLOW> DATA16_OVERFLOW_calib_map;
-typedef calib_map<DATA24> DATA24_calib_map;
-typedef calib_map<DATA32> DATA32_calib_map;
+typedef calib_map<DATA8>  DATA8_calib_map;
 typedef calib_map<float>  float_calib_map;
 
 // TODO: Make sure that the user cannot specify source array indices
