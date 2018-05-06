@@ -162,7 +162,8 @@ void insert_signal(event_signal &top,
 
       if (part->_type != SIG_PART_NAME)
 	ERROR_LOC(s->_loc,
-		  "Cannot insert signal %s into list (index/name) mismatch to previous entries.",
+		  "Cannot insert signal %s into list "
+		  "(index/name) mismatch to previous entries.",
 		  s->_name);
 
       // So, find the node with the correct name
@@ -255,13 +256,17 @@ void insert_signal(event_signal &top,
 
 			  if (!node->_children.empty() ||
 			      i != indices.end())
-			    ERROR_LOC(s_info->_loc,"Multi-entry can only be leaf node.");
+			    ERROR_LOC(s_info->_loc,
+				      "Multi-entry can only be leaf node.");
 
 			  if (node->_multi_size != -1 &&
 			      node->_multi_size != s_info->_multi_size)
 			    {
-			      WARNING_LOC(s_info->_loc,"Different multi-entry sizes specified.");
-			      ERROR_LOC(node->_multi_loc,"Previous declaration was here.");
+			      WARNING_LOC(s_info->_loc,
+					  "Different multi-entry sizes "
+					  "specified.");
+			      ERROR_LOC(node->_multi_loc,
+					"Previous declaration was here.");
 			    }
 			  node->_multi_size = s_info->_multi_size;
 			  node->_multi_loc  = s_info->_loc;
@@ -271,8 +276,10 @@ void insert_signal(event_signal &top,
 		      if (ii->_info != 0 &&
 			  ii->_info != s_info->_info)
 			{
-			  WARNING_LOC(s_info->_loc,"Different zero-suppression specified.");
-			  ERROR_LOC(ii->_info_loc,"Previous declaration was here.");
+			  WARNING_LOC(s_info->_loc,
+				      "Different zero-suppression specified.");
+			  ERROR_LOC(ii->_info_loc,
+				    "Previous declaration was here.");
 			}
 
 		      ii->_info |= s_info->_info;
@@ -295,9 +302,15 @@ void insert_signal(event_signal &top,
 	  if (part != id._parts.end() &&
 	      part->_type == SIG_PART_INDEX)
 	    {
-#define WARNING_DECL_SIGNAL(decl) { if (decl) WARNING_LOC((decl)->_loc,"Declaring signal %s was here.",(decl)->_name); }
+#define WARNING_DECL_SIGNAL(decl) {					\
+		if (decl)						\
+		  WARNING_LOC((decl)->_loc,"Declaring signal %s was here.", \
+			      (decl)->_name);				\
+	      }
+	      
 	      WARNING_DECL_SIGNAL(node->_decl);
-	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list (index mismatch).",
+	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			"(index mismatch).",
 			s->_name);
 	    }
 	  else if (part == id._parts.end())
@@ -307,7 +320,8 @@ void insert_signal(event_signal &top,
 	      if (i != indices.end())
 		{
 		  WARNING_DECL_SIGNAL(node->_decl);
-		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list (index mismatch).",
+		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			    "(index mismatch).",
 			    s->_name);
 		}
 
@@ -316,7 +330,9 @@ void insert_signal(event_signal &top,
 	      if (!node->_children.empty())
 		{
 		  WARNING_DECL_SIGNAL(node->_decl);
-		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list (named child mismatch, request empty).",
+		  ERROR_LOC(s->_loc,
+			    "Cannot insert signal %s into list "
+			    "(named child mismatch, request empty).",
 			    s->_name);
 		}
 
@@ -329,13 +345,16 @@ void insert_signal(event_signal &top,
 		      assert (s_info->_multi_size != -1);
 
 		      if (!node->_children.empty())
-			ERROR_LOC(s_info->_loc,"Multi-entry can only be leaf node.");
+			ERROR_LOC(s_info->_loc,
+				  "Multi-entry can only be leaf node.");
 
 		      if (node->_multi_size != -1 &&
 			  node->_multi_size != s_info->_multi_size)
 			{
-			  WARNING_LOC(s_info->_loc,"Different multi-entry sizes specified.");
-			  ERROR_LOC(node->_multi_loc,"Previous declaration was here.");
+			  WARNING_LOC(s_info->_loc,
+				      "Different multi-entry sizes specified.");
+			  ERROR_LOC(node->_multi_loc,
+				    "Previous declaration was here.");
 			}
 		      node->_multi_size = s_info->_multi_size;
 		      node->_multi_loc  = s_info->_loc;
@@ -360,14 +379,16 @@ void insert_signal(event_signal &top,
 	      if (i != indices.end())
 		{
 		  WARNING_DECL_SIGNAL(node->_decl);
-		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list (index mismatch).",
+		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			    "(index mismatch).",
 			    s->_name);
 		}
 
 	      if (node->_children.empty())
 		{
 		  WARNING_DECL_SIGNAL(node->_decl);
-		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list (named child mismatch, prev empty).",
+		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			    "(named child mismatch, prev empty).",
 			    s->_name);
 		}
 	    }
@@ -387,8 +408,10 @@ void insert_signal(event_signal &top,
 	  if (node->_type != s_spec->_types->_tu[type_no]->_type)
 	    {
 	      WARNING_DECL_SIGNAL(node->_decl);
-	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list (type mismatch, %s != %s).",
-			s->_name,s_spec->_types->_tu[type_no]->_type,node->_type);
+	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			"(type mismatch, %s != %s).",
+			s->_name,
+			s_spec->_types->_tu[type_no]->_type,node->_type);
 	    }
 	}
       else
@@ -401,8 +424,10 @@ void insert_signal(event_signal &top,
 	      if (node->_unit != s_spec->_types->_tu[type_no]->_unit)
 		{
 		  WARNING_DECL_SIGNAL(node->_decl_unit);
-		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list (unit mismatch, %s != %s).",
-			    s->_name,s_spec->_types->_tu[type_no]->_unit,node->_unit);
+		  ERROR_LOC(s->_loc,"Cannot insert signal %s into list "
+			    "(unit mismatch, %s != %s).",
+			    s->_name,
+			    s_spec->_types->_tu[type_no]->_unit, node->_unit);
 		}
 	    }
 	  else
@@ -419,7 +444,8 @@ void insert_signal(event_signal &top,
       if (s_spec->_ident)
 	{
 	  std::pair<event_index_item::iterator,bool> known =
-	    node->_items.insert(event_index_item::value_type(all_indices,s_spec));
+	    node->_items.insert(event_index_item::value_type(all_indices,
+							     s_spec));
 
 	  if (known.second == false)
 	    {
@@ -431,7 +457,8 @@ void insert_signal(event_signal &top,
 		fprintf (stderr,"\n");
 	      */
 	      WARNING_DECL_SIGNAL(known.first->second);
-	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list, same entry already in use (all indices same).",
+	      ERROR_LOC(s->_loc,"Cannot insert signal %s into list, "
+			"same entry already in use (all indices same).",
 			s->_name);
 	    }
 	}
