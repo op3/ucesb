@@ -412,6 +412,11 @@ SIGNAL(N10_19_2_T,,(DATA12 "ch", float "#ns"));
 
 SIGNAL(ZERO_SUPPRESS: N10_20);
 
+SIGNAL(QQQ1_1_E_1,vme.qdc1.data[2],DATA12);
+SIGNAL(ZERO_SUPPRESS: QQQ1_1_E_10);
+SIGNAL(TOGGLE 2: QQQ1_1_T_1,vme.tdc2.data[2],DATA12);
+SIGNAL(ZERO_SUPPRESS: QQQ1_1_T_10);
+
 SIGNAL(MAPA1_1,vme.tdc1.data[0],
        MAPA1_3,vme.tdc1.data[2],
        DATA12);
