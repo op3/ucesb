@@ -88,15 +88,36 @@ void signal_spec_types::dump(dumper &d) const
     }
 }
 
+void signal_spec::dump_idents(dumper &d) const
+{
+  int n = 0;
+
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (_ident[i])
+      n++;
+
+  int comma = n;
+
+  if (n > 1)
+    d.text("(");
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (_ident[i])
+      {
+	_ident[i]->dump(d);
+	if (--comma)
+	  d.text(",");
+      }
+  if (n > 1)
+    d.text(")");
+}
+
 void signal_spec::dump(dumper &d) const
 {
   d.text("SIGNAL(");
   dump_tag(d);
   d.text(_name);
   d.text(",");
-  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
-    if (_ident[i])
-      _ident[i]->dump(d);
+  dump_idents(d);
   d.text(",");
   _types->dump(d);
   d.text(");");
@@ -109,9 +130,7 @@ void signal_spec_range::dump(dumper &d) const
   dump_tag(d);
   d.text(_name);
   d.text(",");
-  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
-    if (_ident[i])
-      _ident[i]->dump(d);
+  dump_idents(d);
   d.text(",");
   d.text(_name_last);
   d.text(",");

@@ -248,6 +248,7 @@ public:
 
 public:
   void dump_tag(dumper &d) const;
+  void dump_idents(dumper &d) const;
 };
 
 class signal_spec_range
