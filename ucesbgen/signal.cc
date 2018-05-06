@@ -751,6 +751,82 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
   d.text(";\n");
 }
 
+void generate_signal(dumper &d, signal_spec *s,
+		     int toggle_tag_hide, int toggle_i_hide)
+{
+  (void) toggle_tag_hide;
+
+  d.text("SIGNAL_MAPPING(");
+  d.text(s->_types->_tu[0]->_type);
+  d.text(",");
+  d.text(s->_name);
+  d.text(",");
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (s->_ident[i] && i != toggle_i_hide)
+      s->_ident[i]->dump(d);
+  d.text(",");
+  int num_zero_suppress = 0;
+  {
+    sig_part_vector::iterator part = s->_id._parts.begin();
+    for (part = s->_id._parts.begin(); part != s->_id._parts.end(); ++part)
+      {
+	if (part->_type == SIG_PART_NAME)
+	  {
+	    if (part != s->_id._parts.begin())
+	      d.text(".");
+	    d.text(part->_id._name);
+	  }
+	else
+	  {
+	    d.text_fmt("[%d]",part->_id._index);
+	  }
+	if (part->_index_info &&
+	    (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS))
+	  num_zero_suppress++;
+	if (part->_index_info &&
+	    (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS_MULTI))
+	  {
+	    // We add a (dummy?) index [0] for multi-entry
+	    // zero-suppressed destinations.
+	    d.text_fmt("/*multi:*/[0]");
+	  }
+      }
+  }
+  d.text(");");
+  for (int zzp = 0; zzp < num_zero_suppress; zzp++)
+    {
+      d.text("/*,ZERO_SUPPRESS_ITEM(");
+
+      int zzp_seen = 0;
+
+      sig_part_vector::iterator part = s->_id._parts.begin();
+      for (part = s->_id._parts.begin(); part != s->_id._parts.end(); ++part)
+	{
+	  if (part->_index_info &&
+	      (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS))
+	    {
+	      if (zzp_seen == zzp)
+		{
+		  d.text_fmt(",%d)*/",part->_id._index);
+		  break;
+		}
+	      zzp_seen++;
+	    }
+	  if (part->_type == SIG_PART_NAME)
+	    {
+	      if (part != s->_id._parts.begin())
+		d.text(".");
+	      d.text(part->_id._name);
+	    }
+	  else
+	    {
+	      d.text_fmt("[%d]",part->_id._index);
+	    }
+	}
+    }
+  d.text("\n");
+}
+
 void generate_signals()
 {
   // Now, we need to figure out what kind of structure names are
@@ -844,75 +920,16 @@ void generate_signals()
       {
 	signal_spec *s = i->second;
 
-	d.text("SIGNAL_MAPPING(");
-	d.text(s->_types->_tu[0]->_type);
-	d.text(",");
-	d.text(s->_name);
-	d.text(",");
-	for (int i = 0; i < MAX_NUM_TOGGLE; i++)
-	  if (s->_ident[i])
-	    s->_ident[i]->dump(d);
-	d.text(",");
-	int num_zero_suppress = 0;
-	{
-	  sig_part_vector::iterator part = s->_id._parts.begin();
-	  for (part = s->_id._parts.begin(); part != s->_id._parts.end(); ++part)
-	    {
-	      if (part->_type == SIG_PART_NAME)
-		{
-		  if (part != s->_id._parts.begin())
-		    d.text(".");
-		  d.text(part->_id._name);
-		}
-	      else
-		{
-		  d.text_fmt("[%d]",part->_id._index);
-		}
-	      if (part->_index_info &&
-		  (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS))
-		num_zero_suppress++;
-	      if (part->_index_info &&
-		  (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS_MULTI))
-		{
-		  // We add a (dummy?) index [0] for multi-entry
-		  // zero-suppressed destinations.
-		  d.text_fmt("/*multi:*/[0]");
-		}
-	    }
-	}
-	d.text(");");
-	for (int zzp = 0; zzp < num_zero_suppress; zzp++)
+	if ((s->_tag & (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2)) ==
+	    (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2))
 	  {
-	    d.text("/*,ZERO_SUPPRESS_ITEM(");
-
-	    int zzp_seen = 0;
-
-	    sig_part_vector::iterator part = s->_id._parts.begin();
-	    for (part = s->_id._parts.begin(); part != s->_id._parts.end(); ++part)
-	      {
-		if (part->_index_info &&
-		    (part->_index_info->_info & SIGNAL_INFO_ZERO_SUPPRESS))
-		  {
-		    if (zzp_seen == zzp)
-		      {
-			d.text_fmt(",%d)*/",part->_id._index);
-			break;
-		      }
-		    zzp_seen++;
-		  }
-		if (part->_type == SIG_PART_NAME)
-		  {
-		    if (part != s->_id._parts.begin())
-		      d.text(".");
-		    d.text(part->_id._name);
-		  }
-		else
-		  {
-		    d.text_fmt("[%d]",part->_id._index);
-		  }
-	      }
+	    generate_signal(d, s, SIGNAL_TAG_TOGGLE_2, 1);
+	    generate_signal(d, s, SIGNAL_TAG_TOGGLE_1, 0);
 	  }
-	d.text("\n");
+	else
+	  {
+	    generate_signal(d, s, 0, -1);
+	  }
       }
 
     print_footer("EVENT_DATA_MAPPING");

@@ -392,7 +392,7 @@ SIGNAL(SST1_Y384,,DATA12);
 SIGNAL(TOGGLE 2: POS3_1_E,vme.qdc1.data[17],DATA12);
 SIGNAL(TOGGLE 1: POS3_1_E,vme.qdc1.data[1],DATA12);
 
-SIGNAL(TOGGLE 2: POS3_2_E,vme.qdc1.data[1],DATA12);
+SIGNAL(TOGGLE 2: POS3_2_E,vme.qdc1.data[0],DATA12);
 
 SIGNAL(TOGGLE 1:
        POS3_3_E,vme.qdc1.data[3],
