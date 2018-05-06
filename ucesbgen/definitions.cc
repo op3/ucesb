@@ -144,9 +144,15 @@ void map_definitions()
 	  signal_spec_range *signal_range =
 	    dynamic_cast<signal_spec_range *>(signal);
 
+	  bool has_ident = false;
+
+	  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+	    if (signal->_ident[i])
+	      has_ident = true;	  
+
 	  if (signal_range)
 	    expand_insert_signal_to_all(signal_range);
-	  else if (signal->_ident)
+	  else if (has_ident)
 	    insert_signal_to_all(signal);
 	  else
 	    insert_signal_to_no_ident(signal);

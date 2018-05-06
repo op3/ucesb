@@ -139,6 +139,8 @@ public:
   virtual void dump(dumper &d) const = 0;
 };
 
+#define MAX_NUM_TOGGLE  2
+
 #define SIGNAL_TAG_FIRST_EVENT 0x0001
 #define SIGNAL_TAG_LAST_EVENT  0x0002
 #define SIGNAL_TAG_TOGGLE_1    0x0004
@@ -216,13 +218,14 @@ public:
 	      int tag)
     : signal_spec_base(loc,signal_count,name)
   {
-    _ident = ident;
+    _ident[0] = ident;
+    _ident[1] = NULL;
     _types = types;
     _tag = tag;
   }
 
 public:
-  const var_name *_ident;
+  const var_name *_ident[MAX_NUM_TOGGLE];
   const signal_spec_types *_types;
 
   signal_id       _id;

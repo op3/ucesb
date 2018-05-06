@@ -362,8 +362,7 @@ SIGNAL(POS2_1_T,vme.tdc0.data[4],DATA12);
 SIGNAL(POS2_2_T,vme.tdc0.data[5],DATA12);
 SIGNAL(POS2_3_T,vme.tdc0.data[6],DATA12);
 SIGNAL(POS2_4_T,vme.tdc0.data[7],DATA12);
-SIGNAL(TOGGLE 1: POS2_1_E,vme.qdc0.data[4],DATA12);
-/*SIGNAL(TOGGLE 2: POS2_1_E,vme.qdc0.data[4],DATA12);*/
+SIGNAL(POS2_1_E,vme.qdc0.data[4],DATA12);
 SIGNAL(POS2_2_E,vme.qdc0.data[5],DATA12);
 SIGNAL(POS2_3_E,vme.qdc0.data[6],DATA12);
 SIGNAL(POS2_4_E,vme.qdc0.data[7],(DATA12,float));
@@ -389,6 +388,16 @@ SIGNAL(GFI1_U18E,,DATA12);
 SIGNAL(GFI1_V16E,,DATA12);
 SIGNAL(SST1_X640,,DATA12);
 SIGNAL(SST1_Y384,,DATA12);
+
+SIGNAL(TOGGLE 1: POS3_1_E,vme.qdc1.data[0],DATA12);
+/*SIGNAL(TOGGLE 2: POS2_1_E,vme.qdc0.data[4],DATA12);*/
+SIGNAL(TOGGLE 2: POS3_2_E,vme.qdc1.data[1],DATA12);
+SIGNAL(TOGGLE 1:
+       POS3_3_E,vme.qdc1.data[3],
+       POS3_4_E,vme.qdc1.data[4],DATA12);
+SIGNAL(TOGGLE 2:
+       POS3_3_T,vme.tdc2.data[3],
+       POS3_4_T,vme.tdc2.data[4],DATA12);
 
 SIGNAL(N10_20_1_T,,DATA12 "ch");
 

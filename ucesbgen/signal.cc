@@ -94,8 +94,9 @@ void signal_spec::dump(dumper &d) const
   dump_tag(d);
   d.text(_name);
   d.text(",");
-  if (_ident)
-    _ident->dump(d);
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (_ident[i])
+      _ident[i]->dump(d);
   d.text(",");
   _types->dump(d);
   d.text(");");
@@ -108,7 +109,9 @@ void signal_spec_range::dump(dumper &d) const
   dump_tag(d);
   d.text(_name);
   d.text(",");
-  _ident->dump(d);
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (_ident[i])
+      _ident[i]->dump(d);
   d.text(",");
   d.text(_name_last);
   d.text(",");
@@ -454,7 +457,13 @@ void insert_signal(event_signal &top,
        * anyone reaching here with the same index structure.
        */
 
-      if (s_spec->_ident)
+      bool has_ident = false;
+
+      for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+	if (s_spec->_ident[i])
+	  has_ident = true;	  
+
+      if (has_ident)
 	{
 	  std::pair<event_index_item::iterator,bool> known =
 	    node->_items.insert(event_index_item::value_type(all_indices,
@@ -808,7 +817,9 @@ void generate_signals()
 	d.text(",");
 	d.text(s->_name);
 	d.text(",");
-	s->_ident->dump(d);
+	for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+	  if (s->_ident[i])
+	    s->_ident[i]->dump(d);
 	d.text(",");
 	int num_zero_suppress = 0;
 	{
@@ -912,7 +923,18 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
   int ident_diff_index;
   int ident_diff_length;
 
-  if (!difference(signal->_ident,signal->_ident_last,
+  int toggle_i = -1;
+
+  for (int i = 0; i < MAX_NUM_TOGGLE; i++)
+    if (signal->_ident[i])
+      {
+	if (toggle_i != -1)
+	  ERROR_LOC(signal->_loc,"Internal error.  Multiple toggle set?");
+	
+	toggle_i = i;
+      }
+
+  if (!difference(signal->_ident[toggle_i],signal->_ident_last,
 		  ident_diff_index,ident_diff_length))
     ERROR_LOC(signal->_loc,"The signal identifiers cannot make a range.");
 
@@ -938,7 +960,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
       name  = id_first.generate_indexed(name_diff_index,
 					i1);
 
-      ident = generate_indexed(signal->_ident,
+      ident = generate_indexed(signal->_ident[toggle_i],
 			       ident_diff_index,i2);
 
       signal_spec *new_spec = new signal_spec(signal->_loc,
