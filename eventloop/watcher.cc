@@ -48,6 +48,7 @@
   void watch_members(const multi_chunks<T,T_map> &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const \
   { src.watch_members(*this,watch_info WATCH_MEMBERS_ARG); }
 #define STRUCT_MIRROR_TYPE(type)         type##_watcher
+#define STRUCT_MIRROR_TYPE_TOGGLE(type)  STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TYPE_TEMPLATE      Twatcher_channel,
 #define STRUCT_MIRROR_TYPE_TEMPLATE_FULL < Twatcher_channel >
 #define STRUCT_MIRROR_NAME(name)         name
@@ -55,6 +56,8 @@
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)<Twatcher_channel>
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_watcher<Twatcher_channel>,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_watcher<Twatcher_channel> array,arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_watcher<Twatcher_channel>,toggle_##arg
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_watcher<Twatcher_channel> array,toggle_##arg array
 #define STRUCT_MIRROR_ITEM_CTRL_BASE(name) bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL(name)      bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL_ARRAY(name,non_last_index,last_index) bitsone<last_index> name##_active non_last_index
@@ -70,6 +73,7 @@
 #undef  STRUCT_MIRROR_TEMPLATE
 #undef  STRUCT_MIRROR_FCNS_DECL
 #undef  STRUCT_MIRROR_TYPE
+#undef  STRUCT_MIRROR_TYPE_TOGGLE
 #undef  STRUCT_MIRROR_TYPE_TEMPLATE
 #undef  STRUCT_MIRROR_TYPE_TEMPLATE_FULL
 #undef  STRUCT_MIRROR_NAME
@@ -77,6 +81,8 @@
 #undef  STRUCT_MIRROR_BASE
 #undef  STRUCT_MIRROR_TEMPLATE_ARG
 #undef  STRUCT_MIRROR_TEMPLATE_ARG_N
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N
 #undef  STRUCT_MIRROR_ITEM_CTRL_BASE
 #undef  STRUCT_MIRROR_ITEM_CTRL
 #undef  STRUCT_MIRROR_ITEM_CTRL_ARRAY
@@ -283,6 +289,12 @@ template<typename T,typename Twatcher_channel>
 void data_watcher<T,Twatcher_channel>::watch_members(const T &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const
 {
   ::watch_members(src,*this,watch_info WATCH_MEMBERS_ARG);
+}
+
+template<typename T,typename Twatcher_channel>
+void data_watcher<T,Twatcher_channel>::watch_members(const toggle_item<T> &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const
+{
+  ::watch_members(src._item,*this,watch_info WATCH_MEMBERS_ARG);
 }
 
 template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>

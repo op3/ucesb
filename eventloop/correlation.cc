@@ -83,11 +83,14 @@ public:
   void add_corr_members(const multi_chunks<T,T_map> &src,correlation_list *list WATCH_MEMBERS_PARAM) const \
   { src.add_corr_members(*this,list WATCH_MEMBERS_ARG); }
 #define STRUCT_MIRROR_TYPE(type)         type##_correlation
+#define STRUCT_MIRROR_TYPE_TOGGLE(type)  STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_NAME(name)         name
 #define STRUCT_MIRROR_STRUCT(type)       STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_correlation,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_correlation array,arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_correlation,toggle_##arg
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_correlation array,toggle_##arg array
 #define STRUCT_MIRROR_ITEM_CTRL_BASE(name) bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL(name)      bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL_ARRAY(name,non_last_index,last_index) bitsone<last_index> name##_active non_last_index
@@ -102,11 +105,14 @@ public:
 
 #undef  STRUCT_MIRROR_FCNS_DECL
 #undef  STRUCT_MIRROR_TYPE
+#undef  STRUCT_MIRROR_TYPE_TOGGLE
 #undef  STRUCT_MIRROR_NAME
 #undef  STRUCT_MIRROR_STRUCT
 #undef  STRUCT_MIRROR_BASE
 #undef  STRUCT_MIRROR_TEMPLATE_ARG
 #undef  STRUCT_MIRROR_TEMPLATE_ARG_N
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N
 #undef  STRUCT_MIRROR_ITEM_CTRL_BASE
 #undef  STRUCT_MIRROR_ITEM_CTRL
 #undef  STRUCT_MIRROR_ITEM_CTRL_ARRAY

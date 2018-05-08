@@ -39,22 +39,28 @@ void do_calib_map();
                              const enumerate_info &info, \
                              enumerate_fcn callback,void *extra) const;
 #define STRUCT_MIRROR_TYPE(type)         type##_calib_map
+#define STRUCT_MIRROR_TYPE_TOGGLE(type)  STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_NAME(name)         name
 #define STRUCT_MIRROR_STRUCT(type)       STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_calib_map,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_calib_map array,arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_calib_map,toggle_##arg
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_calib_map array,toggle_##arg array
 #define STRUCT_ONLY_LAST_UNION_MEMBER    1
 
 #include "gen/raw_struct_mirror.hh"
 
 #undef  STRUCT_MIRROR_FCNS_DECL
 #undef  STRUCT_MIRROR_TYPE
+#undef  STRUCT_MIRROR_TYPE_TOGGLE
 #undef  STRUCT_MIRROR_NAME
 #undef  STRUCT_MIRROR_STRUCT
 #undef  STRUCT_MIRROR_BASE
 #undef  STRUCT_MIRROR_TEMPLATE_ARG
 #undef  STRUCT_MIRROR_TEMPLATE_ARG_N
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE
+#undef  STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N
 #undef  STRUCT_ONLY_LAST_UNION_MEMBER
 
 extern raw_event_calib_map the_raw_event_calib_map;
