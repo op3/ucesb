@@ -523,7 +523,9 @@ void insert_signal(event_signal &top,
 }
 
 void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
-			const std::string &prefix,const char *base_suffix) const
+			const std::string &prefix,
+			const char *base_suffix,
+			bool toggle) const
 {
   // Before we dump ourselves, we should make sure all our contained
   // data structures have been dumped
@@ -546,7 +548,8 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 
       for (di = dump_map.begin(); di != dump_map.end(); ++di)
 	{
-	  di->second->dump(d,0,zero_suppress_type,prefix+_name+"_",NULL);
+	  di->second->dump(d,0,
+			   zero_suppress_type,prefix+_name+"_",NULL,toggle);
 	  d.nl();
 	}
     }
@@ -714,7 +717,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	    {
 	      // sd.text_fmt("/*%d*/",di->first);
 	      di->second->dump(sd,level+1,zero_suppress_type,
-			       prefix+_name+"_",NULL);
+			       prefix+_name+"_",NULL,toggle);
 	    }
 
 	  if (level == 0)
@@ -906,7 +909,8 @@ void generate_signals()
       dumper_dest_file d_dest(stdout);
       dumper d(&d_dest);
 
-      signal_head[type_no]->dump(d,0,type_no == 0 ? "array" : "list","","_base");
+      signal_head[type_no]->dump(d,0,type_no == 0 ? "array" : "list",
+				 "","_base", type_no == 0);
 
       print_footer(header_name);
     }

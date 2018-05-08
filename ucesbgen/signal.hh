@@ -103,7 +103,9 @@ public:
 
 public:
   virtual void dump(dumper &d,int level,const char *zero_suppress_type,
-		    const std::string &prefix,const char *base_suffix) const;
+		    const std::string &prefix,
+		    const char *base_suffix,
+		    bool toggle) const;
 };
 
 class signal_spec_base
