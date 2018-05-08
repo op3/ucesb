@@ -632,9 +632,9 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	d.text("class ");
 
       const char *toggle1 =
-	(_tag & SIGNAL_TAG_TOGGLE_MASK ? "TOGGLE(" : "");
+	(toggle && (_tag & SIGNAL_TAG_TOGGLE_MASK) ? "TOGGLE(" : "");
       const char *toggle2 =
-	(_tag & SIGNAL_TAG_TOGGLE_MASK ? ")" : "");
+	(toggle && (_tag & SIGNAL_TAG_TOGGLE_MASK) ? ")" : "");
 
       if (level != 0 && (zero_suppress_index || _multi_size != -1))
 	{
