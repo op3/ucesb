@@ -106,8 +106,6 @@ public:
 
   //void map_members(const raw_array_calib_map<Tsingle,T,n> &map) const;
 
-  //void watch_members(const raw_array_watcher<Tsingle,T,n> &watcher WATCH_MEMBERS_PARAM) const;
-
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
 
@@ -245,8 +243,6 @@ public:
   //void map_members(const /*raw_array_zero_suppress_map*/raw_array_map<Tsingle,T,n> &map MAP_MEMBERS_PARAM) const;
 
   //void map_members(const raw_array_calib_map<Tsingle,T,n> &map) const;
-
-  //void watch_members(const raw_array_watcher<Tsingle,T,n> &watcher WATCH_MEMBERS_PARAM) const;
 
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
@@ -526,8 +522,6 @@ public:
 
   //void map_members(const raw_array_calib_map<Tsingle,T,n> &map) const;
 
-  //void watch_members(const raw_array_watcher<Tsingle,T,n> &watcher WATCH_MEMBERS_PARAM) const;
-
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 
 };
@@ -790,8 +784,6 @@ public:
 
   //void map_members(const raw_array_calib_map<Tsingle,T,n> &map) const;
 
-  //void watch_members(const raw_array_watcher<Tsingle,T,n> &watcher WATCH_MEMBERS_PARAM) const;
-
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
 
@@ -1045,8 +1037,6 @@ public:
   //void map_members(const /*raw_array_zero_suppress_map*/raw_list_ii_map<Tsingle,T,n> &map MAP_MEMBERS_PARAM) const;
 
   //void map_members(const raw_array_calib_map<Tsingle,T,n> &map) const;
-
-  //void watch_members(const raw_array_watcher<Tsingle,T,n> &watcher WATCH_MEMBERS_PARAM) const;
 
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 };
