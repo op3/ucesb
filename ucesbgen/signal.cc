@@ -631,8 +631,10 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       if (level == 0)
 	d.text("class ");
 
-      const char *toggle =
-	(_tag & SIGNAL_TAG_TOGGLE_MASK ? "toggle_" : "");
+      const char *toggle1 =
+	(_tag & SIGNAL_TAG_TOGGLE_MASK ? "TOGGLE(" : "");
+      const char *toggle2 =
+	(_tag & SIGNAL_TAG_TOGGLE_MASK ? ")" : "");
 
       if (level != 0 && (zero_suppress_index || _multi_size != -1))
 	{
@@ -655,13 +657,13 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	    d.text_fmt("raw_%s_zero_suppress<",zero_suppress_type);
 
 	  if (_children.empty())
-	    d.text_fmt("%s%s,",toggle,_type);
+	    d.text_fmt("%s%s%s,",toggle1,_type,toggle2);
 	  else
 	    d.text_fmt("%s%s,",prefix.c_str(),_name);
 	}
 
       if (level != 0 && _children.empty())
-	d.text_fmt("%s%s",toggle,_type);
+	d.text_fmt("%s%s%s",toggle1,_type,toggle2);
       else
 	{
 	  d.text_fmt("%s%s",prefix.c_str(),_name);
