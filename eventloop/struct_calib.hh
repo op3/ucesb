@@ -45,8 +45,8 @@ void do_calib_map();
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_calib_map,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_calib_map array,arg array
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_calib_map,toggle_##arg
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_calib_map array,toggle_##arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_calib_map,TOGGLE(arg)
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_calib_map array,TOGGLE(arg) array
 #define STRUCT_ONLY_LAST_UNION_MEMBER    1
 
 #include "gen/raw_struct_mirror.hh"

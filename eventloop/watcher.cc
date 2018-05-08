@@ -56,8 +56,8 @@
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)<Twatcher_channel>
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_watcher<Twatcher_channel>,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_watcher<Twatcher_channel> array,arg array
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_watcher<Twatcher_channel>,toggle_##arg
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_watcher<Twatcher_channel> array,toggle_##arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_watcher<Twatcher_channel>,TOGGLE(arg)
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_watcher<Twatcher_channel> array,TOGGLE(arg) array
 #define STRUCT_MIRROR_ITEM_CTRL_BASE(name) bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL(name)      bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL_ARRAY(name,non_last_index,last_index) bitsone<last_index> name##_active non_last_index

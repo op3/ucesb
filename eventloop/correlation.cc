@@ -89,8 +89,8 @@ public:
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_correlation,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_correlation array,arg array
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_correlation,toggle_##arg
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_correlation array,toggle_##arg array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_correlation,TOGGLE(arg)
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_correlation array,TOGGLE(arg) array
 #define STRUCT_MIRROR_ITEM_CTRL_BASE(name) bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL(name)      bool name##_active
 #define STRUCT_MIRROR_ITEM_CTRL_ARRAY(name,non_last_index,last_index) bitsone<last_index> name##_active non_last_index

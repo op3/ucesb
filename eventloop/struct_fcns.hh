@@ -53,7 +53,7 @@ struct pretty_dump_info;
 
 #define UNIT(x)   // replace with nothing, handled by PSDC
 
-#define TOGGLE(x) toggle_##x
+#define TOGGLE(x) toggle_item<x>
 
 #endif//__STRUCT_FCNS_HH__
 
