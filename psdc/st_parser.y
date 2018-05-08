@@ -113,6 +113,7 @@ struct md_ident_fl
 %token PUBLIC
 %token MULTI
 %token UNIT
+%token TOGGLE
 
 /* Operands for simple calculations */
 
@@ -141,6 +142,7 @@ struct md_ident_fl
 
 %type <strValue>   unit
 
+%type <item_type>  item_toggle_typename
 %type <item_type>  item_typename
 %type <item_type>  typename_null
 %type <item_type>  typename
@@ -243,8 +245,8 @@ struct_item:
         ;
 
 struct_member:
-          item_typename IDENTIFIER        { $$ = new c_struct_member(CURR_FILE_LINE,$1,$2,NULL,0,0); }
-        | MULTI item_typename IDENTIFIER  { $$ = new c_struct_member(CURR_FILE_LINE,$2,$3,NULL,0,1); }
+          item_toggle_typename IDENTIFIER        { $$ = new c_struct_member(CURR_FILE_LINE,$1,$2,NULL,0,0); }
+        | MULTI item_toggle_typename IDENTIFIER  { $$ = new c_struct_member(CURR_FILE_LINE,$2,$3,NULL,0,1); }
         ;
 
 unit:
@@ -260,6 +262,11 @@ typename:
 	  IDENTIFIER   { $$ = new c_typename(CURR_FILE_LINE,$1); }
 	;
 
+item_toggle_typename:
+          item_typename                { $$ = $1; }
+        | TOGGLE '(' item_typename ')' { $3->set_toggle(); $$ = $3; }
+        ;
+
 item_typename:
 	  IDENTIFIER                   { $$ = new c_typename(CURR_FILE_LINE,$1); }
         | IDENTIFIER '<' argument_list '>'  { $$ = new c_typename_template(CURR_FILE_LINE,$1,$3); }
@@ -271,7 +278,8 @@ argument_list:
         ;
 
 argument:
-	  IDENTIFIER array_spec_list_null { $$ = new c_arg_named(CURR_FILE_LINE,$1,$2); }
+          IDENTIFIER array_spec_list_null { $$ = new c_arg_named(CURR_FILE_LINE,$1,$2,false); }
+        | TOGGLE '(' IDENTIFIER ')' array_spec_list_null { $$ = new c_arg_named(CURR_FILE_LINE,$3,$5,true); }
 	| INTEGER                         { $$ = new c_arg_const(CURR_FILE_LINE,$1); }
         ;
 

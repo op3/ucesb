@@ -35,7 +35,10 @@ def_node_list *all_definitions;
 
 void c_arg_named::dump(dumper &d,bool /*recursive*/) const
 {
-  d.text_fmt("%s",_name);
+  d.text_fmt("%s%s%s",
+	     _toggle ? "TOGGLE(" : "",
+	     _name,
+	     _toggle ? ")" : "");
   if (_array_ind)
     for (unsigned int i = 0; i < _array_ind->size(); i++)
       d.text_fmt("[%d]",(*_array_ind)[i]);
@@ -48,12 +51,15 @@ void c_arg_const::dump(dumper &d,bool /*recursive*/) const
 
 void c_typename::dump(dumper &d,bool /*recursive*/) const
 {
-  d.text_fmt("%s",_name);
+  d.text_fmt("%s%s%s",
+	     _toggle ? "TOGGLE(" : "",
+	     _name,
+	     _toggle ? ")" : "");
 }
 
-void c_typename_template::dump(dumper &d,bool /*recursive*/) const
+void c_typename_template::dump(dumper &d,bool recursive) const
 {
-  d.text_fmt("%s",_name);
+  c_typename::dump(d, recursive);
   dump_list_paren(_args,d,"<>");
 }
 
@@ -104,7 +110,9 @@ void c_struct_def::dump(dumper &d,bool recursive) const
 
 void c_typename::mirror_struct(dumper &d,bool full_template) const
 {
-  d.text_fmt("STRUCT_MIRROR_TYPE(%s) ",_name);
+  d.text_fmt("STRUCT_MIRROR_TYPE%s(%s) ",
+	     _toggle ? "_TOGGLE" : "",
+	     _name);
   if (full_template)
     d.text_fmt("STRUCT_MIRROR_TYPE_TEMPLATE_FULL");
 }
@@ -116,10 +124,14 @@ void dump_mirror_template_arg(const c_arg *arg,dumper &d)
   if (named)
     {
       if (!named->_array_ind)
-	d.text_fmt("STRUCT_MIRROR_TEMPLATE_ARG(%s)",named->_name);
+	d.text_fmt("STRUCT_MIRROR_TEMPLATE_ARG%s(%s)",
+		   named->_toggle ? "_TOGGLE" : "",
+		   named->_name);
       else
 	{
-	  d.text_fmt("STRUCT_MIRROR_TEMPLATE_ARG_N(%s,",named->_name);
+	  d.text_fmt("STRUCT_MIRROR_TEMPLATE_ARG%s_N(%s,",
+		     named->_toggle ? "_TOGGLE" : "",
+		     named->_name);
 	  for (unsigned int i = 0; i < named->_array_ind->size(); i++)
 	    d.text_fmt("[%d]",(*named->_array_ind)[i]);
 	  d.text(")");

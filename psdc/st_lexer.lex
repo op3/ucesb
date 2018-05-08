@@ -122,6 +122,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 "public"      { return PUBLIC; }
 "__MULTI__"   { return MULTI; }
 "UNIT"        { return UNIT; }
+"TOGGLE"      { return TOGGLE; }
 
 [_a-zA-Z][_a-zA-Z0-9]* {
                 yylval.strValue = find_str_identifiers(yytext);
