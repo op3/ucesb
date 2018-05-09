@@ -562,7 +562,7 @@ $(OBJDIR)/$(UNPACKER).spec.d: | $(OBJDIR)
 	$(QUIET)$(CPP) -x c++ $(UCESB_CPP_FLAGS) -I$(UCESB_BASE_DIR) -I$(GENDIR) -MM -MG $(UNPACKER).spec | \
 	  sed -e 's,$(UNPACKER).spec.o[ :]*,$(GENDIR)/$(UNPACKER).uce $(OBJDIR)/$(UNPACKER).spec.d : ,g' \
 	      -e 's,$(UNPACKER).o[ :]*,$(GENDIR)/$(UNPACKER).uce $(UNPACKER).spec.d : ,g' \
-	      -e 's,gen/gen,gen,g' -e 's,gen_.*/gen,gen,g' \
+	      -e 's,gen/gen,gen,g' -e 's,gen_[^ ]*/gen,gen,g' \
 	      -e 's, gen/, $(GENDIR)/,g' \
 	> $(OBJDIR)/$(UNPACKER).spec.d
 
@@ -867,7 +867,7 @@ $(OBJDIR)/%.d: $(1)/%.cc makefile_additional.inc
 	$(QUIET)$$(CXX) -I. -I$$(UCESB_BASE_DIR)/eventloop -I$(1) $(2) \
 	    $$(call FILTER_WARNINGS,$$@,$$(CXXFLAGS)) -MM -MG $$< -DDEPSRUN | \
 	  sed -e 's,\($$(*F)\)\.o[ :]*,$$*.o $$@ : ,g' \
-	      -e 's,gen/gen,gen,g' -e 's,gen_.*/gen,gen,g' \
+	      -e 's,gen/gen,gen,g' -e 's,gen_[^ ]*/gen,gen,g' \
 	      -e 's, gen/, $$(GENDIR)/,g' \
 	> $$@
 endef
@@ -886,7 +886,7 @@ $(OBJDIR)/%.d: %.cc makefile_additional.inc
 	$(QUIET)$(CXX) -I. -I$(UCESB_BASE_DIR)/eventloop \
 	    $(call FILTER_WARNINGS,$@,$(CXXFLAGS)) -MM -MG $< -DDEPSRUN | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
-	      -e 's,gen/gen,gen,g' -e 's,gen_.*/gen,gen,g' \
+	      -e 's,gen/gen,gen,g' -e 's,gen_[^ ]*/gen,gen,g' \
 	      -e 's, gen/, $(GENDIR)/,g' \
 	> $@
 
