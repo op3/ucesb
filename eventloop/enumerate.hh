@@ -162,20 +162,20 @@ struct rawdata24;
 struct rawdata32;
 struct rawdata64;
 
-inline int get_enum_type(rawdata8  *) { return ENUM_TYPE_DATA8; }
-inline int get_enum_type(rawdata12 *) { return ENUM_TYPE_DATA12; }
-inline int get_enum_type(rawdata14 *) { return ENUM_TYPE_DATA14; }
-inline int get_enum_type(rawdata16 *) { return ENUM_TYPE_DATA16; }
-inline int get_enum_type(rawdata16plus *) { return ENUM_TYPE_DATA16PLUS; }
-inline int get_enum_type(rawdata24 *) { return ENUM_TYPE_DATA24; }
-inline int get_enum_type(rawdata32 *) { return ENUM_TYPE_DATA32; }
-inline int get_enum_type(rawdata64 *) { return ENUM_TYPE_DATA64; }
-inline int get_enum_type(uint64    *) { return ENUM_TYPE_UINT64; }
-inline int get_enum_type(uint32    *) { return ENUM_TYPE_UINT; }
-inline int get_enum_type(uint16    *) { return ENUM_TYPE_USHORT; }
-inline int get_enum_type(uint8     *) { return ENUM_TYPE_UCHAR; }
-inline int get_enum_type(float     *) { return ENUM_TYPE_FLOAT; }
-inline int get_enum_type(double    *) { return ENUM_TYPE_DOUBLE; }
+inline int get_enum_type(const rawdata8  *) { return ENUM_TYPE_DATA8; }
+inline int get_enum_type(const rawdata12 *) { return ENUM_TYPE_DATA12; }
+inline int get_enum_type(const rawdata14 *) { return ENUM_TYPE_DATA14; }
+inline int get_enum_type(const rawdata16 *) { return ENUM_TYPE_DATA16; }
+inline int get_enum_type(const rawdata16plus *) { return ENUM_TYPE_DATA16PLUS;}
+inline int get_enum_type(const rawdata24 *) { return ENUM_TYPE_DATA24; }
+inline int get_enum_type(const rawdata32 *) { return ENUM_TYPE_DATA32; }
+inline int get_enum_type(const rawdata64 *) { return ENUM_TYPE_DATA64; }
+inline int get_enum_type(const uint64    *) { return ENUM_TYPE_UINT64; }
+inline int get_enum_type(const uint32    *) { return ENUM_TYPE_UINT; }
+inline int get_enum_type(const uint16    *) { return ENUM_TYPE_USHORT; }
+inline int get_enum_type(const uint8     *) { return ENUM_TYPE_UCHAR; }
+inline int get_enum_type(const float     *) { return ENUM_TYPE_FLOAT; }
+inline int get_enum_type(const double    *) { return ENUM_TYPE_DOUBLE; }
 
 void enumerate_member(const signal_id &id,const enumerate_info &info,
 		      void *extra);
