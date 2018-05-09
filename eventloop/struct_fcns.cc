@@ -22,6 +22,8 @@
 #include "error.hh"
 #include "util.hh"
 
+#include "simple_data_ops.hh"
+
 #include "../common/prefix_unit.hh"
 
 #include <math.h>
@@ -54,6 +56,22 @@ void rawdata12::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata12>(id,unit); }
 void rawdata8::show_members(const signal_id &id,const char *unit) const
 { ::show_members<rawdata8>(id,unit); }
+
+#define IMPL_CALL_SHOW_MEMBERS(type)					\
+  void call_show_members(const type &us,				\
+			 const signal_id &id,const char* unit)		\
+  {									\
+    ::show_members<type>(id,unit);					\
+  }
+
+IMPL_CALL_SHOW_MEMBERS(float);
+IMPL_CALL_SHOW_MEMBERS(double);
+IMPL_CALL_SHOW_MEMBERS(uint64);
+IMPL_CALL_SHOW_MEMBERS(uint32);
+IMPL_CALL_SHOW_MEMBERS(uint16);
+IMPL_CALL_SHOW_MEMBERS(uint8);
+
+////////////////////////////////////////////////////////////////////
 
 void enumerate_members_double(const double *ptr,const signal_id &id,
 			      const enumerate_info &info,

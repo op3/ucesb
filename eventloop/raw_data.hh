@@ -28,6 +28,8 @@
 
 #include "../common/signal_id.hh"
 
+#include "simple_data_ops.hh"
+
 #include "enumerate.hh"
 #include "pretty_dump.hh"
 

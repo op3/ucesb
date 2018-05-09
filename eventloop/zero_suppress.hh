@@ -27,6 +27,8 @@
 #include "enumerate.hh"
 #include "multi_chunk.hh"
 
+#include "simple_data_ops.hh"
+
 ////////////////////////////////////////////////////////////////////
 
 struct zero_suppress_info;
@@ -57,14 +59,14 @@ public:
   {
     // If we go object oriented with the items:
     for (int i = 0; i < n; ++i)
-      _items[i].__clean();
+      call___clean(_items[i]);
     // memset(_items,0,sizeof(_items));
   }
 
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
     for (int i = 0; i < n; ++i)
-      _items[i].dump(signal_id(id,i),pdi);
+      call_dump(_items[i],signal_id(id,i),pdi);
   }
 
   const item_t &operator[](size_t i) const
@@ -86,7 +88,7 @@ public:
 public:
   void show_members(const signal_id &id,const char* unit) const
   {
-    _items[0].show_members(signal_id(id,n,SIG_PART_INDEX_LIMIT),unit);
+    call_show_members(_items[0],signal_id(id,n,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -94,10 +96,10 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      _items[0].enumerate_members(signal_id(id,0),info,callback,extra);
+      call_enumerate_members(&_items[0],signal_id(id,0),info,callback,extra);
     else
       for (int i = 0; i < n; ++i)
-	_items[i].enumerate_members(signal_id(id,i),info,callback,extra);
+	call_enumerate_members(&_items[i],signal_id(id,i),info,callback,extra);
   }
 
   //void map_members(const raw_array_map<Tsingle,T,n> &map MAP_MEMBERS_PARAM) const;
@@ -146,7 +148,7 @@ public:
     ssize_t i;
 
     while ((i = _valid.next(iter)) >= 0)
-      _items[i].dump(signal_id(id,(int) i),pdi);
+      call_dump(_items[i],signal_id(id,(int) i),pdi);
   }
 
 public:
@@ -170,7 +172,7 @@ public:
     Tsingle *p = (Tsingle *) &item;
 
     for (size_t i = sizeof(T)/sizeof(Tsingle); i; --i, ++p)
-      p->__clean();
+      call___clean(*p);
   }
 
   item_t &insert_index(int loc,uint32 i)
@@ -208,8 +210,8 @@ public:
 public:
   void show_members(const signal_id &id,const char* unit) const
   {
-    _items[0].show_members(signal_id(id,n,SIG_PART_INDEX_LIMIT |
-				     SIG_PART_INDEX_ZZP),unit);
+    call_show_members(_items[0],signal_id(id,n,SIG_PART_INDEX_LIMIT |
+					  SIG_PART_INDEX_ZZP),unit);
   }
 
   void enumerate_members_mask(const signal_id &id,
@@ -226,14 +228,16 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      _items[0].enumerate_members(signal_id(id,0),
-				  enumerate_info(info,id._parts.size()),
-				  callback,extra);
+      call_enumerate_members(&_items[0],
+			     signal_id(id,0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	enumerate_members_mask(id,info,callback,extra);
 	for (int i = 0; i < n; ++i)
-	  _items[i].enumerate_members(signal_id(id,i),info,callback,extra);
+	  call_enumerate_members(&_items[i],
+				 signal_id(id,i),info,callback,extra);
       }
   }
 
@@ -261,18 +265,19 @@ public:
 
     while ((i = raw_array_zero_suppress<Tsingle,T,n>::_valid.next(iter)) >= 0)
       for (int i1 = 0; i1 < n1; ++i1)
-	(raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1].
-	  dump(signal_id(signal_id(id,(int) i),i1),pdi);
+	call_dump((raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1],
+		  signal_id(signal_id(id,(int) i),i1),pdi);
   }
 
   void show_members(const signal_id &id,const char* unit) const
   {
     // item_t &items = _items;
 
-    (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0].
-      show_members(signal_id(signal_id(id,n,SIG_PART_INDEX_LIMIT |
-				       SIG_PART_INDEX_ZZP),
-			     n1,SIG_PART_INDEX_LIMIT),unit);
+    call_show_members((raw_array_zero_suppress<Tsingle,T,n>::
+		       _items[0])[0],
+		      signal_id(signal_id(id,n,SIG_PART_INDEX_LIMIT |
+					  SIG_PART_INDEX_ZZP),
+				n1,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -280,19 +285,20 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0].
-	enumerate_members(signal_id(signal_id(id,0),0),
-			  enumerate_info(info,id._parts.size()),
-			  callback,extra);
+      call_enumerate_members(&(raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0],
+			     signal_id(signal_id(id,0),0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	raw_array_zero_suppress<Tsingle,T,n>::
 	  enumerate_members_mask(id,info,callback,extra);
 	for (int i = 0; i < n; ++i)
 	  for (int i1 = 0; i1 < n1; ++i1)
-	    (raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1].
-	      enumerate_members(signal_id(signal_id(id,i),i1),
-				info,callback,extra);
+	    call_enumerate_members(&(raw_array_zero_suppress<Tsingle,T,n>::
+				    _items[i])[i1],
+				   signal_id(signal_id(id,i),i1),
+				   info,callback,extra);
       }
   }
 
@@ -316,17 +322,17 @@ public:
     while ((i = raw_array_zero_suppress<Tsingle,T,n>::_valid.next(iter)) >= 0)
       for (int i1 = 0; i1 < n1; ++i1)
 	for (int i2 = 0; i2 < n2; ++i2)
-	  (raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1][i2].
-	    dump(signal_id(signal_id(signal_id(id,(int) i),i1),i2),pdi);
+	  call_dump((raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1][i2],
+		    signal_id(signal_id(signal_id(id,(int) i),i1),i2),pdi);
   }
 
   void show_members(const signal_id &id,const char* unit) const
   {
-    (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0][0].
-      show_members(signal_id(signal_id(signal_id(id,n,SIG_PART_INDEX_LIMIT |
-						 SIG_PART_INDEX_ZZP),
-				       n1,SIG_PART_INDEX_LIMIT),
-			     n2,SIG_PART_INDEX_LIMIT),unit);
+    call_show_members((raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0][0],
+		      signal_id(signal_id(signal_id(id,n,SIG_PART_INDEX_LIMIT |
+						    SIG_PART_INDEX_ZZP),
+					  n1,SIG_PART_INDEX_LIMIT),
+				n2,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -334,10 +340,11 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      (raw_array_zero_suppress<Tsingle,T,n>::_items[0])[0][0].
-	enumerate_members(signal_id(signal_id(signal_id(id,0),0),0),
-			  enumerate_info(info,id._parts.size()),
-			  callback,extra);
+      call_enumerate_members(&(raw_array_zero_suppress<Tsingle,T,n>::
+			      _items[0])[0][0],
+			     signal_id(signal_id(signal_id(id,0),0),0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	raw_array_zero_suppress<Tsingle,T,n>::
@@ -345,9 +352,11 @@ public:
 	for (int i = 0; i < n; ++i)
 	  for (int i1 = 0; i1 < n1; ++i1)
 	    for (int i2 = 0; i2 < n2; ++i2)
-	      (raw_array_zero_suppress<Tsingle,T,n>::_items[i])[i1][i2].
-		enumerate_members(signal_id(signal_id(signal_id(id,i),i1),i2),
-				  info,callback,extra);
+	      call_enumerate_members(&(raw_array_zero_suppress<Tsingle,T,n>::
+				      _items[i])[i1][i2],
+				     signal_id(signal_id(signal_id(id,
+								   i),i1),i2),
+				     info,callback,extra);
       }
   }
 
@@ -400,7 +409,7 @@ public:
     while ((i = _valid.next(iter)) >= 0)
       {
 	for (uint32 j = 0; j < _num_entries[i]; j++)
-	  _items[i][j].dump(signal_id(id,(int) i),pdi);
+	  call_dump(_items[i][j],signal_id(id,(int) i),pdi);
       }
   }
 
@@ -410,7 +419,7 @@ public:
     Tsingle *p = (Tsingle *) &item;
 
     for (size_t i = sizeof(T)/sizeof(Tsingle); i; --i, ++p)
-      p->__clean();
+      call___clean(*p);
   }
 
   item_t &insert_index(int loc,uint32 i)
@@ -460,12 +469,13 @@ public:
 public:
   void show_members(const signal_id &id,const char* unit) const
   {
-    _items[0][0].show_members(signal_id(signal_id(id,n,
-						  SIG_PART_INDEX_LIMIT |
-						  SIG_PART_INDEX_ZZP),
-					max_entries,
-					SIG_PART_INDEX_LIMIT |
-					SIG_PART_MULTI_ENTRY),unit);
+    call_show_members(_items[0][0],
+		      signal_id(signal_id(id,n,
+					  SIG_PART_INDEX_LIMIT |
+					  SIG_PART_INDEX_ZZP),
+				max_entries,
+				SIG_PART_INDEX_LIMIT |
+				SIG_PART_MULTI_ENTRY),unit);
   }
 
   void enumerate_members_mask(const signal_id &id,
@@ -483,9 +493,10 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      _items[0][0].enumerate_members(signal_id(signal_id(id,0),0),
-				     enumerate_info(info,id._parts.size()),
-				     callback,extra);
+      call_enumerate_members(&_items[0][0],
+			     signal_id(signal_id(id,0),0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	enumerate_members_mask(id,info,callback,extra);
@@ -501,8 +512,9 @@ public:
 	    enumerate_info info2 = info;
 	    for (int j = 0; j < max_entries; j++)
 	      {
-		_items[i][j].enumerate_members(signal_id(id_i,j),
-					       info2,callback,extra);
+		call_enumerate_members(&_items[i][j],
+				       signal_id(id_i,j),
+				       info2,callback,extra);
 		info2._type |= ENUM_NO_INDEX_DEST; // on non-first items
 	      }
 	  }
@@ -537,13 +549,13 @@ public:
     Tsingle *p = (Tsingle *) &_item;
 
     for (size_t i = sizeof(T)/sizeof(Tsingle); i; --i, ++p)
-      p->__clean();
+      call___clean(*p);
     // memset(&_item,0,sizeof(_item));
   }
 
   void show_members(const signal_id &id,const char* unit) const
   {
-    _item.show_members(id,unit);
+    call_show_members(_item,id,unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -554,7 +566,7 @@ public:
     callback(id,enumerate_info(info,&_index,
 			       ENUM_TYPE_INT | ENUM_IS_LIST_INDEX,1,n),
 	     extra);
-    _item.enumerate_members(id,info,callback,extra);
+    call_enumerate_members(&_item,id,info,callback,extra);
   }
 
 public:
@@ -567,23 +579,25 @@ public:
   */
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
-    _item.dump(signal_id(id,_index),pdi);
+    call_dump(_item,signal_id(id,_index),pdi);
   }
 
   void dump_1(const signal_id &id,int i1,pretty_dump_info &pdi) const
   {
-    _item[i1].dump(signal_id(signal_id(id,_index),i1),pdi);
+    call_dump(_item[i1],signal_id(signal_id(id,_index),i1),pdi);
   }
 
   void dump_2(const signal_id &id,int i1,int i2,pretty_dump_info &pdi) const
   {
-    _item[i1][i2].dump(signal_id(signal_id(signal_id(id,_index),i1),i2),pdi);
+    call_dump(_item[i1][i2],
+	      signal_id(signal_id(signal_id(id,_index),i1),i2),pdi);
   }
 
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
   {
     ::zero_suppress_info_ptrs(&_index,used_info);
-    _item.zero_suppress_info_ptrs(used_info);
+    //_item.zero_suppress_info_ptrs(used_info);
+    call_zero_suppress_info_ptrs(&_item,used_info);
   }
 
 };
@@ -615,7 +629,7 @@ public:
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
     for (uint32 i = 0; i < _num_items; i++)
-      _items[i].dump(id,pdi);
+      call_dump(_items[i],id,pdi);
   }
 
 public:
@@ -739,9 +753,9 @@ public:
 public:
   void show_members(const signal_id &id,const char* unit) const
   {
-    _items[0].show_members(signal_id(id,n,
-				     SIG_PART_INDEX_LIMIT |
-				     SIG_PART_INDEX_ZZP),unit);
+    call_show_members(_items[0],signal_id(id,n,
+					  SIG_PART_INDEX_LIMIT |
+					  SIG_PART_INDEX_ZZP),unit);
   }
 
   void enumerate_members_limit(const signal_id &id,
@@ -758,14 +772,16 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      _items[0].enumerate_members(signal_id(id,0),
-				  enumerate_info(info,id._parts.size()),
-				  callback,extra);
+      call_enumerate_members(&_items[0],
+			     signal_id(id,0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	enumerate_members_limit(id,info,callback,extra);
 	for (int i = 0; i < n; ++i)
-	  _items[i].enumerate_members(signal_id(id,i),info,callback,extra);
+	  call_enumerate_members(&_items[i],
+				 signal_id(id,i),info,callback,extra);
       }
   }
 
@@ -788,7 +804,8 @@ class raw_list_zero_suppress_1 :
 public:
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
-    for (uint32 i = 0; i < raw_list_zero_suppress<Tsingle,T,n>::_num_items; i++)
+    for (uint32 i = 0;
+	 i < raw_list_zero_suppress<Tsingle,T,n>::_num_items; i++)
       for (int i1 = 0; i1 < n1; ++i1)
 	(raw_list_zero_suppress<Tsingle,T,n>::_items[i]).dump_1(id,i1,pdi);
   }
@@ -797,11 +814,12 @@ public:
   {
     // item_t &items = _items;
 
-    (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0].
-      show_members(signal_id(signal_id(id,n,
-				       SIG_PART_INDEX_LIMIT |
-				       SIG_PART_INDEX_ZZP),
-			     n1,SIG_PART_INDEX_LIMIT),unit);
+    call_show_members((raw_list_zero_suppress<Tsingle,T,n>::
+		       _items[0])._item[0],
+		      signal_id(signal_id(id,n,
+					  SIG_PART_INDEX_LIMIT |
+					  SIG_PART_INDEX_ZZP),
+				n1,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -809,19 +827,21 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0].
-	enumerate_members(signal_id(signal_id(id,0),0),
-			  enumerate_info(info,id._parts.size()),
-			  callback,extra);
+      call_enumerate_members(&(raw_list_zero_suppress<Tsingle,T,n>::
+			      _items[0])._item[0],
+			     signal_id(signal_id(id,0),0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	raw_list_zero_suppress<Tsingle,T,n>::
 	  enumerate_members_limit(id,info,callback,extra);
 	for (int i = 0; i < n; ++i)
 	  for (int i1 = 0; i1 < n1; ++i1)
-	    (raw_list_zero_suppress<Tsingle,T,n>::_items[i])._item[i1].
-	      enumerate_members(signal_id(signal_id(id,i),i1),
-				info,callback,extra);
+	    call_enumerate_members(&(raw_list_zero_suppress<Tsingle,T,n>::
+				    _items[i])._item[i1],
+				   signal_id(signal_id(id,i),i1),
+				   info,callback,extra);
       }
   }
 
@@ -847,12 +867,13 @@ public:
   {
     // item_t &items = _items;
 
-    (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0][0].
-      show_members(signal_id(signal_id(signal_id(id,n,
-						 SIG_PART_INDEX_LIMIT |
-						 SIG_PART_INDEX_ZZP),
-				       n1,SIG_PART_INDEX_LIMIT),
-			     n2,SIG_PART_INDEX_LIMIT),unit);
+    call_show_members((raw_list_zero_suppress<Tsingle,T,n>::
+		       _items[0])._item[0][0],
+		      signal_id(signal_id(signal_id(id,n,
+						    SIG_PART_INDEX_LIMIT |
+						    SIG_PART_INDEX_ZZP),
+					  n1,SIG_PART_INDEX_LIMIT),
+				n2,SIG_PART_INDEX_LIMIT),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -860,10 +881,11 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      (raw_list_zero_suppress<Tsingle,T,n>::_items[0])._item[0][0].
-	enumerate_members(signal_id(signal_id(signal_id(id,0),0),0),
-			  enumerate_info(info,id._parts.size()),
-			  callback,extra);
+      call_enumerate_members(&(raw_list_zero_suppress<Tsingle,T,n>::
+			      _items[0])._item[0][0],
+			     signal_id(signal_id(signal_id(id,0),0),0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	raw_list_zero_suppress<Tsingle,T,n>::
@@ -871,9 +893,11 @@ public:
 	for (int i = 0; i < n; ++i)
 	  for (int i1 = 0; i1 < n1; ++i1)
 	    for (int i2 = 0; i2 < n2; ++i2)
-	      (raw_list_zero_suppress<Tsingle,T,n>::_items[i])._item[i1][i2].
-		enumerate_members(signal_id(signal_id(signal_id(id,i),i1),i2),
-				  info,callback,extra);
+	      call_enumerate_members(&(raw_list_zero_suppress<Tsingle,T,n>::
+				      _items[i])._item[i1][i2],
+				     signal_id(signal_id(signal_id(id,
+								   i),i1),i2),
+				     info,callback,extra);
       }
   }
 
@@ -929,7 +953,7 @@ public:
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
     for (uint32 i = 0; i < _num_items; i++)
-      _items[i].dump(id,pdi);
+      call_dump(_items[i],id,pdi);
   }
 
 public:
@@ -958,7 +982,7 @@ public:
       ERROR("Attempt to append too many items (%d>=%d)",_num_items,n);
     item_t &item = _items[_num_items++];
 
-    item.__clean();
+    call___clean(item);
     return item;
   }
 
@@ -988,9 +1012,9 @@ public:
 public:
   void show_members(const signal_id &id,const char* unit) const
   {
-    _items[0].show_members(signal_id(id,n,
-				     SIG_PART_INDEX_LIMIT |
-				     SIG_PART_MULTI_ENTRY),unit);
+    call_show_members(_items[0],signal_id(id,n,
+					  SIG_PART_INDEX_LIMIT |
+					  SIG_PART_MULTI_ENTRY),unit);
   }
 
   void enumerate_members(const signal_id &id,
@@ -998,9 +1022,10 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
     if (info._only_index0)
-      _items[0].enumerate_members(signal_id(id,0),
-				  enumerate_info(info,id._parts.size()),
-				  callback,extra);
+      call_enumerate_members(&_items[0],
+			     signal_id(id,0),
+			     enumerate_info(info,id._parts.size()),
+			     callback,extra);
     else
       {
 	callback(id,enumerate_info(info,&_num_items,
@@ -1009,7 +1034,8 @@ public:
 	enumerate_info info2 = info;
 	for (int i = 0; i < n; ++i)
 	  {
-	    _items[i].enumerate_members(signal_id(id,i),info2,callback,extra);
+	    call_enumerate_members(&_items[i],
+				   signal_id(id,i),info2,callback,extra);
 	    info2._type |= ENUM_NO_INDEX_DEST; // on non-first items
 	  }
       }
