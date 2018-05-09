@@ -87,7 +87,8 @@ public:
       void                    *_item;
       uint                     _index;
 
-      size_t                   _dest_offset; // to be subtracted from _dest before use/insert
+      // to be subtracted from _dest before use/insert
+      size_t                   _dest_offset;
 
       uint32                  *_limit;
     } _list;
@@ -103,7 +104,8 @@ public:
     void                    *_item;
     uint                     _index;
 
-    size_t                   _dest_offset; // to be subtracted from _dest before use/insert
+    // to be subtracted from _dest before use/insert
+    size_t                   _dest_offset;
 
     uint32                  *_limit;
   } _list_ii;
@@ -115,10 +117,12 @@ public:
 //void zero_suppress_info_ptrs(T* us,used_zero_suppress_info &used_info);
 void zero_suppress_info_ptrs(void* us,used_zero_suppress_info &used_info);
 
-void insert_zero_suppress_info_ptrs(void *us,used_zero_suppress_info &used_info);
+void insert_zero_suppress_info_ptrs(void *us,
+				    used_zero_suppress_info &used_info);
 
 template<typename Tsingle,typename T,int n>
-void raw_array<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
+void raw_array<Tsingle,T,n>::
+zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -136,7 +140,8 @@ void call_on_insert_array_index(void *container,uint i)
 }
 
 template<typename Tsingle,typename T,int n>
-void raw_array_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
+void raw_array_zero_suppress<Tsingle,T,n>::
+zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -153,7 +158,8 @@ void raw_array_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint3
 
   assert (!(info._type & ZZP_INFO_MASK));
   info._type |= ZZP_INFO_CALL_ARRAY_INDEX;
-  info._array._call = call_on_insert_array_index< raw_array_zero_suppress<Tsingle,T,n> >;
+  info._array._call =
+    call_on_insert_array_index< raw_array_zero_suppress<Tsingle,T,n> >;
   info._array._item = this;
   info._array._index = i;
 
@@ -168,7 +174,8 @@ size_t call_on_insert_list_index(void *container,uint i)
 }
 
 template<typename Tsingle,typename T,int n>
-void raw_list_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
+void raw_list_zero_suppress<Tsingle,T,n>::
+zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -176,7 +183,8 @@ void raw_list_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32
 
   assert (!(info._type & ZZP_INFO_MASK));
   info._type |= ZZP_INFO_CALL_LIST_INDEX;
-  info._list._call = call_on_insert_list_index< raw_list_zero_suppress<Tsingle,T,n> >;
+  info._list._call =
+    call_on_insert_list_index< raw_list_zero_suppress<Tsingle,T,n> >;
   info._list._item = this;
   info._list._index = i;
   info._list._limit = &_num_items;
@@ -188,7 +196,8 @@ void raw_list_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32
 }
 
 template<typename Tsingle,typename T,int n,int max_entries>
-void raw_array_multi_zero_suppress<Tsingle,T,n,max_entries>::zzp_on_insert_index(/*int loc,*/uint32 i,uint32 j,zero_suppress_info &info)
+void raw_array_multi_zero_suppress<Tsingle,T,n,max_entries>::
+zzp_on_insert_index(/*int loc,*/uint32 i,uint32 j,zero_suppress_info &info)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -208,7 +217,9 @@ void raw_array_multi_zero_suppress<Tsingle,T,n,max_entries>::zzp_on_insert_index
 
   assert (!(info._type & ZZP_INFO_MASK));
   info._type |= ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
-  info._array._call_multi = call_on_insert_list_index< raw_array_multi_zero_suppress<Tsingle,T,n,max_entries> >;
+  info._array._call_multi =
+    call_on_insert_list_index< raw_array_multi_zero_suppress<Tsingle,T,
+							     n,max_entries> >;
   info._array._item = this;
   info._array._index = i;
 
@@ -231,7 +242,8 @@ size_t call_on_insert_list_ii_item(void *container)
 }
 
 template<typename Tsingle,typename T,int n>
-void raw_list_ii_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info,int new_type)
+void raw_list_ii_zero_suppress<Tsingle,T,n>::
+zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info,int new_type)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -239,7 +251,8 @@ void raw_list_ii_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uin
 
   assert (!(info._type & ZZP_INFO_MASK));
   info._type |= new_type;
-  info._list_ii._call_ii = call_on_insert_list_ii_item< raw_list_ii_zero_suppress<Tsingle,T,n> >;
+  info._list_ii._call_ii =
+    call_on_insert_list_ii_item< raw_list_ii_zero_suppress<Tsingle,T,n> >;
   info._list_ii._item = this;
   info._list_ii._index = i;
   info._list_ii._limit = &_num_items;
@@ -250,7 +263,9 @@ void raw_list_ii_zero_suppress<Tsingle,T,n>::zzp_on_insert_index(/*int loc,*/uin
   info._list_ii._dest_offset = (size_t) (((char*) ptr) - ((char*) first));
 }
 
-const zero_suppress_info *get_ptr_zero_suppress_info(void *us,const void *const *ptr_offset,bool allow_missing);
+const zero_suppress_info *
+get_ptr_zero_suppress_info(void *us,const void *const *ptr_offset,
+			   bool allow_missing);
 
 void setup_zero_suppress_info_ptrs();
 
