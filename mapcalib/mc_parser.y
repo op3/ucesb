@@ -204,21 +204,27 @@ calib_param:
           {
 	    signal_id id;
 	    dissect_name(CURR_FILE_LINE,$3,id);
-	    const signal_id_info *src_info  = get_signal_id_info(&id,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
-	    const signal_id_info *dest_info = get_signal_id_info(&id,SID_MAP_CAL);
+	    const signal_id_info *src_info  =
+	      get_signal_id_info(&id,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info(&id,SID_MAP_CAL);
 	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
           }
 	| CALIB_PARAM_C '(' var_or_name ',' calib_type ',' value_vector_np ')' ';'
           {
-	    const signal_id_info *src_info  = get_signal_id_info($3,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
-	    const signal_id_info *dest_info = get_signal_id_info($3,SID_MAP_CAL);
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($3,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($3,SID_MAP_CAL);
 	    delete $3;
 	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
           }
         | var_or_name '=' calib_type '(' value_vector_np ')' ';'
           {
-	    const signal_id_info *src_info  = get_signal_id_info($1,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
-	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CAL);
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($1,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($1,SID_MAP_CAL);
 	    delete $1;
 	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$3,$5);
           }
@@ -229,24 +235,28 @@ user_calib_param:
           {
 	    signal_id id;
 	    dissect_name(CURR_FILE_LINE,$3,id);
-	    const signal_id_info *dest_info = get_signal_id_info(&id,SID_MAP_CALIB);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info(&id,SID_MAP_CALIB);
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$5);
           }
 	| CALIB_PARAM_C '(' var_or_name ',' value_vector_np ')' ';'
           {
-	    const signal_id_info *dest_info = get_signal_id_info($3,SID_MAP_CALIB);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($3,SID_MAP_CALIB);
 	    delete $3;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$5);
           }
         | var_or_name '=' value_vector_np_single ';'
           {
-	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CALIB);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($1,SID_MAP_CALIB);
 	    delete $1;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$3);
           }
         | var_or_name '=' '{' value_vector_np '}' ';'
           {
-	    const signal_id_info *dest_info = get_signal_id_info($1,SID_MAP_CALIB);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($1,SID_MAP_CALIB);
 	    delete $1;
 	    $$ = new user_calib_param(CURR_FILE_LINE,dest_info,$4);
           }
@@ -261,7 +271,8 @@ user_calib_param:
 /*******************************************************/
 
 calib_type:
-	  IDENTIFIER { $$ = calib_param_type($1); if (!$$) { yyerror("Unknown calibration type."); YYERROR; } }
+	  IDENTIFIER { $$ = calib_param_type($1);
+	    if (!$$) { yyerror("Unknown calibration type."); YYERROR; } }
         ;
 
 /*******************************************************/

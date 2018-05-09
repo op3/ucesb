@@ -131,7 +131,8 @@ void verify_units_match(const prefix_units_exponent *dest,
       format_unit_str(dest,str_unit_dest,sizeof(str_unit_dest));
 
       ERROR_LOC(loc,
-		"Unit mismatch: '%s' (unit '%s' of value does not match destination unit '%s').",
+		"Unit mismatch: '%s' "
+		"(unit '%s' of value does not match destination unit '%s').",
 		descr,str_unit_src,str_unit_dest);
     }
 }
@@ -160,7 +161,9 @@ void apply_map_item(const map_info *item)
     ERROR_LOC(item->_loc,"Mapping between incompatible types!");
 
   if (item->_dest->_type & ENUM_NO_INDEX_DEST)
-    ERROR_LOC(item->_loc,"Mapping destination is non-first index in unindexed array.  (use (dummy)index 0/1)");
+    ERROR_LOC(item->_loc,
+	      "Mapping destination is non-first index in unindexed array.  "
+	      "(use (dummy)index 0/1)");
 
   // Ugly hack: we must discard the const qualifier on the src and
   // dest pointer
@@ -197,15 +200,18 @@ void apply_calib_param(user_calib_param *item)
 		     item->_loc,"param",factor);
 
   if (item->_dest->_type == ENUM_TYPE_FLOAT) {
-    *((float *) item->_dest->_addr) = (float) (item->_param[0][0]._value * factor);
+    *((float *) item->_dest->_addr) =
+      (float) (item->_param[0][0]._value * factor);
     return;
   }
   if (item->_dest->_type == ENUM_TYPE_DOUBLE) {
-    *((double *) item->_dest->_addr) = item->_param[0][0]._value * factor;
+    *((double *) item->_dest->_addr) =
+      item->_param[0][0]._value * factor;
     return;
   }
 
-  ERROR_LOC(item->_loc,"Unhandled type of calibration parameter destination (%d).",
+  ERROR_LOC(item->_loc,"Unhandled type of calibration parameter destination "
+	    "(%d).",
 	    item->_dest->_type);
 
   /*

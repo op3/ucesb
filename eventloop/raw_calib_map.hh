@@ -107,7 +107,8 @@ public:
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
   {
-    callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).set_dest(set_raw_to_tcal<T>),extra);
+    callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).
+	     set_dest_function(set_raw_to_tcal<T>),extra);
   }
 
 public:
