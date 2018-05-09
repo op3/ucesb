@@ -142,38 +142,43 @@ void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 	  break;
 	case ZZP_INFO_CALL_ARRAY_MULTI_INDEX:
 	  {
-	    size_t offset = (*map._zzp_info->_array._call_multi)(map._zzp_info->_array._item,
-								 map._zzp_info->_array._index);
+	    size_t offset =
+	      (*map._zzp_info->_array._call_multi)(map._zzp_info->_array._item,
+						   map._zzp_info->_array._index);
 	    dest = (T *) (((char *) dest) + offset);
 	    // printf ("%d - %d\n",zzp_info->_array._index,offset);
 	    break;
 	  }
 	case ZZP_INFO_CALL_LIST_INDEX:
 	  {
-	    size_t offset = (*map._zzp_info->_list._call)(map._zzp_info->_list._item,
-							  map._zzp_info->_list._index);
+	    size_t offset =
+	      (*map._zzp_info->_list._call)(map._zzp_info->_list._item,
+					    map._zzp_info->_list._index);
 	    dest = (T *) (((char *) dest) + offset);
 	    // printf ("%d - %d\n",zzp_info->_array._index,offset);
 	    break;
 	  }
 	case ZZP_INFO_CALL_ARRAY_LIST_II_INDEX:
 	  {
-	    size_t offset = (*map._zzp_info->_array._call_multi)(map._zzp_info->_array._item,
-								 map._zzp_info->_array._index);
+	    size_t offset =
+	      (*map._zzp_info->_array._call_multi)(map._zzp_info->_array._item,
+						   map._zzp_info->_array._index);
 	    dest = (T *) (((char *) dest) + offset);
 	    goto call_list_ii_index;
 	  }
 	case ZZP_INFO_CALL_LIST_LIST_II_INDEX:
 	  {
-	    size_t offset = (*map._zzp_info->_list._call)(map._zzp_info->_list._item,
-							  map._zzp_info->_list._index);
+	    size_t offset =
+	      (*map._zzp_info->_list._call)(map._zzp_info->_list._item,
+					    map._zzp_info->_list._index);
 	    dest = (T *) (((char *) dest) + offset);
 	    goto call_list_ii_index;
 	  }
 	case ZZP_INFO_CALL_LIST_II_INDEX:
 	call_list_ii_index:
 	  {
-	    size_t offset = (*map._zzp_info->_list_ii._call_ii)(map._zzp_info->_list_ii._item);
+	    size_t offset =
+	      (*map._zzp_info->_list_ii._call_ii)(map._zzp_info->_list_ii._item);
 	    dest = (T *) (((char *) dest) + offset);
 	    // printf ("%d - %d\n",map._zzp_info->_array._index,offset);
 	    break;
