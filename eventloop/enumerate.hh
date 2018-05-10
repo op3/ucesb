@@ -53,7 +53,7 @@
 
 #define ENUM_HAS_PTR_OFFSET 0x0800
 
-typedef bool(*set_dest_fcn)(void *,void *);
+typedef bool(*set_dest_fcn)(void *void_src_map, void *void_dest);
 
 class prefix_units_exponent;
 
@@ -131,7 +131,7 @@ public:
   }
 
 public:
-  enumerate_info &set_dest(set_dest_fcn sd)
+  enumerate_info &set_dest_function(set_dest_fcn sd)
   {
     _set_dest = sd;
     return *this;

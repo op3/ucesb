@@ -46,7 +46,8 @@ public:
 			     const enumerate_info &info,
 			     enumerate_fcn callback,void *extra) const
   {
-    callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).set_dest(do_set_dest<T>),extra);
+    callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).
+	     set_dest_function(do_set_dest<T>),extra);
   }
 
 public:
