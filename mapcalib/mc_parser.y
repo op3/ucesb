@@ -188,8 +188,10 @@ stmt:
 signal_mapping:
 	  SIGNAL_MAPPING '(' data_type ',' data_name ',' var_or_name ',' var_or_name ')' ';'
           {
-	    const signal_id_info *src_info  = get_signal_id_info($7,SID_MAP_UNPACK | SID_MAP_MIRROR_MAP);
-	    const signal_id_info *dest_info = get_signal_id_info($9,SID_MAP_RAW);
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($7,SID_MAP_UNPACK | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($9,SID_MAP_RAW);
 	    /*const signal_id_info *rev_src_info  = get_signal_id_info($9,SID_MAP_RAW | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE);*/
 	      /*const signal_id_info *rev_dest_info = get_signal_id_info($7,SID_MAP_UNPACK);*/
 	    delete $7;
@@ -381,10 +383,14 @@ unit_part_many:
 
 unit_part_block:
 	  IDENTIFIER             { $$ = $1; }
-        | IDENTIFIER INTEGER     { char tmp[32]; sprintf (tmp,"%d",$2); $$ = find_concat_str_strings($1,tmp,""); }
-        | IDENTIFIER '-' INTEGER { char tmp[32]; sprintf (tmp,"%d",$3); $$ = find_concat_str_strings($1,"-",tmp); }
-        | IDENTIFIER '^' INTEGER     { char tmp[32]; sprintf (tmp,"%d",$3); $$ = find_concat_str_strings($1,"^",tmp); }
-        | IDENTIFIER '^' '-' INTEGER { char tmp[32]; sprintf (tmp,"%d",$4); $$ = find_concat_str_strings($1,"^-",tmp); }
+        | IDENTIFIER INTEGER     { char tmp[32];
+	    sprintf (tmp,"%d",$2); $$ = find_concat_str_strings($1,tmp,""); }
+        | IDENTIFIER '-' INTEGER { char tmp[32];
+	    sprintf (tmp,"%d",$3); $$ = find_concat_str_strings($1,"-",tmp); }
+        | IDENTIFIER '^' INTEGER     { char tmp[32];
+	    sprintf (tmp,"%d",$3); $$ = find_concat_str_strings($1,"^",tmp); }
+        | IDENTIFIER '^' '-' INTEGER { char tmp[32];
+	    sprintf (tmp,"%d",$4); $$ = find_concat_str_strings($1,"^-",tmp); }
         ;
 
 %%
