@@ -483,6 +483,9 @@ public:
   void dump(const signal_id &id,pretty_dump_info &pdi) const
   {
     _item.dump(id, pdi);
+    dump_uint32((uint32) _toggle_i,signal_id(id,"tgl_i"),pdi);
+    _toggle_v[0].dump(signal_id(signal_id(id,"tgl_v"),0),pdi);
+    _toggle_v[1].dump(signal_id(signal_id(id,"tgl_v"),1),pdi);
   }
 
   void __clean()
