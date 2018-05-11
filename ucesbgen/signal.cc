@@ -42,10 +42,10 @@ char *strndup(const char *src,size_t length)
 
 void signal_spec::dump_tag(dumper &d, int toggle_tag_hide) const
 {
-  if (!_tag)
-    return;
-
   int tag = _tag & ~toggle_tag_hide;
+
+  if (!tag)
+    return;
 
 #define DUMP_TAG(x, str) \
   if (tag & (x)) { tag &= ~(x); d.text(str); goto handled; }
@@ -765,8 +765,6 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 void generate_signal(dumper &d, signal_spec *s,
 		     int toggle_tag_hide, int toggle_i_hide)
 {
-  (void) toggle_tag_hide;
-
   d.text("SIGNAL_MAPPING(");
   d.text(s->_types->_tu[0]->_type);
   d.text(",");
@@ -776,6 +774,9 @@ void generate_signal(dumper &d, signal_spec *s,
     if (s->_ident[i] && i != toggle_i_hide)
       s->_ident[i]->dump(d);
   d.text(",");
+  s->dump_tag(d,
+	      toggle_tag_hide |
+	      SIGNAL_TAG_FIRST_EVENT | SIGNAL_TAG_LAST_EVENT);
   int num_zero_suppress = 0;
   {
     sig_part_vector::iterator part = s->_id._parts.begin();

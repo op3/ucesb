@@ -36,7 +36,8 @@ public:
 public:
   map_info(const file_line &loc,
 	   const signal_id_info *src,const signal_id_info *dest,
-	   const signal_id_info *rev_src,const signal_id_info *rev_dest)
+	   const signal_id_info *rev_src,const signal_id_info *rev_dest,
+	   int toggle_i)
   {
     _loc  = loc;
 
@@ -45,6 +46,8 @@ public:
 
     _rev_src  = rev_src;
     _rev_dest = rev_dest;
+
+    _toggle_i = toggle_i;
   }
 
 public:
@@ -53,6 +56,8 @@ public:
 
   const signal_id_info   *_rev_src;
   const signal_id_info   *_rev_dest;
+
+  int                     _toggle_i;
 
 public:
   file_line _loc;

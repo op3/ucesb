@@ -112,6 +112,7 @@ struct md_ident_fl
 %token SIGNAL_MAPPING
 %token CALIB_PARAM
 %token CALIB_PARAM_C
+%token TOGGLE
 %token UINT32
 %token UINT16
 %token UINT8
@@ -135,6 +136,8 @@ struct md_ident_fl
 
 %type <iValue>     data_type
 %type <iValue>     calib_type
+
+%type <iValue>     toggle_null
 
 %type <var>        var_or_name
 %type <var>        data_name
@@ -186,18 +189,19 @@ stmt:
         ;
 
 signal_mapping:
-	  SIGNAL_MAPPING '(' data_type ',' data_name ',' var_or_name ',' var_or_name ')' ';'
+	  SIGNAL_MAPPING '(' data_type ',' data_name ',' var_or_name ',' toggle_null var_or_name ')' ';'
           {
 	    const signal_id_info *src_info  =
 	      get_signal_id_info($7,SID_MAP_UNPACK | SID_MAP_MIRROR_MAP);
 	    const signal_id_info *dest_info =
-	      get_signal_id_info($9,SID_MAP_RAW);
+	      get_signal_id_info($10,SID_MAP_RAW);
 	    /*const signal_id_info *rev_src_info  = get_signal_id_info($9,SID_MAP_RAW | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE);*/
 	      /*const signal_id_info *rev_dest_info = get_signal_id_info($7,SID_MAP_UNPACK);*/
 	    delete $7;
-	    delete $9;
+	    delete $10;
 	    $$ = new map_info(CURR_FILE_LINE,src_info,dest_info,
-			      NULL,NULL/*,rev_src_info,rev_dest_info*/);
+			      NULL,NULL/*,rev_src_info,rev_dest_info*/,
+			      $9);
           }
         ;
 
@@ -281,6 +285,11 @@ calib_type:
 
 data_type:
 	  IDENTIFIER { $$ = 0; /* $$ = data_type($1); if (!$$) { yyerror("Unknown data type."); YYERROR; } */ }
+        ;
+
+toggle_null:
+          /* empty */ { $$ = 0; }
+        | TOGGLE INTEGER ':' { $$ = $2; }
         ;
 
 var_or_name:
