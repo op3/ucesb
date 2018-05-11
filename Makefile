@@ -37,7 +37,8 @@ GENDIR=gen
 
 UNPACKERS=land xtst rpc2006 is446 is430_05 is445_08 labbet1 mwpclab \
 	gamma_k8 hacky empty sid_genf madrid ebye i123 s107 tacquila \
-	fa192mar09 is507 sampler ridf #tagtest
+	fa192mar09 is507 sampler ridf \
+	is446_toggle #tagtest
 
 all: $(UNPACKERS)
 
@@ -319,6 +320,13 @@ is445_08: $(DEPENDENCIES)
 .PHONY: is446
 is446: $(DEPENDENCIES)
 	@$(MAKE) -C $@ -f ../makefile_unpacker.inc UNPACKER=$@
+
+#########################################################
+
+.PHONY: is446_toggle
+is446_toggle: $(DEPENDENCIES)
+	@$(MAKE) -C $(firstword $(subst _, ,$@)) \
+	  -f ../makefile_unpacker.inc UNPACKER=$@
 
 #########################################################
 
