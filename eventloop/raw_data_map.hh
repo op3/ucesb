@@ -29,7 +29,8 @@
 
 template<typename T>
 bool do_set_dest(void *void_src_map,
-		 void *void_dest);
+		 void *void_dest,
+		 int toggle_i);
 
 template<typename T>
 class data_map
@@ -54,9 +55,10 @@ public:
   // T *src;
   T                        *_dest;
   const zero_suppress_info *_zzp_info;
+  int                       _toggle_i;
 
 public:
-  bool set_dest(T *dest);
+  bool set_dest(T *dest,int toggle);
 
 public:
   void map_members(const T &src MAP_MEMBERS_PARAM) const;

@@ -26,6 +26,8 @@
 
 #include "signal_id_map.hh"
 
+#include <stddef.h>
+
 /*
 #define STRUCT_MIRROR_FCNS_DECL(name)
 #define STRUCT_MIRROR_TYPE(type)         type##_map
@@ -54,7 +56,7 @@ raw_event_map the_raw_event_reverse_map;
 #endif
 
 template<typename T>
-bool data_map<T>::set_dest(T *dest)
+bool data_map<T>::set_dest(T *dest, int toggle_i)
 {
   if (_dest)
     return false;
@@ -74,17 +76,39 @@ bool data_map<T>::set_dest(T *dest)
   _dest     = dest;
   _zzp_info = info;
 
+  if (!_zzp_info->_toggle_max && toggle_i)
+    ERROR("Trying to map non-toggle destination with toggle index.");
+  if (_zzp_info->_toggle_max)
+    {
+      if (!toggle_i)
+	{
+	  // It is valid to map toggle items without a toggle source.
+	  // We may have a toggling module for some of the channels,
+	  // but not all.
+	  // ERROR("Trying to map toggle destination without toggle index.");
+	}
+      else
+	{
+	  if (toggle_i > _zzp_info->_toggle_max)
+	    ERROR("Trying to map toggle destination with "
+		  "too large toggle index, (%d > %d). ",
+		  toggle_i, _zzp_info->_toggle_max);
+	  _toggle_i = toggle_i;
+	}
+    }
+
   return true;
 }
 
 template<typename T>
 bool do_set_dest(void *void_src_map,
-		 void *void_dest)
+		 void *void_dest,
+		 int toggle_i)
 {
   data_map<T> *src_map = (data_map<T> *) void_src_map;
   T           *dest    = (T *) void_dest;
 
-  return src_map->set_dest(dest);
+  return src_map->set_dest(dest, toggle_i);
 }
 
 //#define SIGNAL_MAPPING(type,name,src,dest) { the_unpack_event_map.src.set_dest(the_raw_event.dest.get_dest_info()); }
@@ -120,14 +144,18 @@ template<typename T>
 void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 {
   /*
-  printf("type: %d (call %p  item %p  index %d  dest %p)\n",
-	 map._zzp_info._type,
-	 map._zzp_info._call,
-	 map._zzp_info._item,
-	 map._zzp_info._index,
-	 map._dest);
+  printf("type: %d ("
+	 //"call %p  item %p  index %d  "
+	 "dest %p) 0x%x\n",
+	 map._dest ? map._zzp_info->_type : 0,
+	 //map._zzp_info->_call,
+	 //map._zzp_info->_item,
+	 //map._zzp_info->_index,
+	 map._dest,
+	 *((uint32*) &src));
   fflush(stdout);
   */
+  
   if (map._dest)
     {
       T *dest = map._dest;
@@ -189,7 +217,28 @@ void map_members(const data_map<T> &map,const T &src MAP_MEMBERS_PARAM)
 	  ERROR("Internal error in data mapping!");
 	  break;
 	}
-      *dest = src;
+      if (!map._toggle_i)
+	*dest = src;
+      else
+	{
+	  // We are an toggle item.
+
+	  toggle_item<T> *toggle_dest =
+	    (toggle_item<T> *) (((char *) dest) -
+				offsetof(toggle_item<T>,_item));
+
+	  // Copy the value to the dedicated slot for this toggle
+	  toggle_dest->_toggle_v[map._toggle_i - 1] = src;
+
+	  // And copy to the main slot if no value has been so far, or
+	  // we are the lowest toggle
+	  if (!toggle_dest->_toggle_i ||
+	      map._toggle_i < toggle_dest->_toggle_i)
+	    {
+	      toggle_dest->_toggle_i = map._toggle_i;
+	      toggle_dest->_item = src;
+	    }
+	}
     }
   //char buf[256];
   //id.format(buf,sizeof(buf));

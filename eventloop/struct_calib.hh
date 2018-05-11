@@ -67,7 +67,7 @@ extern raw_event_calib_map the_raw_event_calib_map;
 
 template<typename T_src>
 template<typename T_dest>
-void raw_to_cal<T_src>::set_dest(T_dest *dest)
+void raw_to_cal<T_src>::set_dest(T_dest *dest, int toggle_i)
 {
   const zero_suppress_info *info;
 
@@ -79,6 +79,7 @@ void raw_to_cal<T_src>::set_dest(T_dest *dest)
 
   _dest = dest;
   _zzp_info = info;
+  (void) toggle_i;
 }
 
 #endif//__STRUCT_CALIB_HH__

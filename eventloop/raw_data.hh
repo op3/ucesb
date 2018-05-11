@@ -491,15 +491,12 @@ public:
   void __clean()
   {
     _item.__clean();
-    _toggle_i = -1;
+    _toggle_i = 0;
     _toggle_v[0].__clean();
     _toggle_v[1].__clean();
   }
 
-  void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
-  {
-    _item.zero_suppress_info_ptrs(used_info);
-  }
+  void zero_suppress_info_ptrs(used_zero_suppress_info &used_info);
 
   void map_members(const data_map<T> &map MAP_MEMBERS_PARAM) const;  
 

@@ -29,7 +29,8 @@
 
 template<typename T>
 bool set_raw_to_tcal(void *info,
-		     void *dummy);
+		     void *dummy,
+		     int toggle_i_dummy);
 
 struct mix_rnd_seed
 {

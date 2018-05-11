@@ -42,17 +42,22 @@ typedef size_t(*call_on_list_ii_insert_fcn)(void *);
 struct zero_suppress_info
 {
 public:
-  zero_suppress_info(const zero_suppress_info* src,int type_mask_away = ~0)
+  zero_suppress_info(const zero_suppress_info* src,
+		     int type_mask_away = ~0,
+		     bool ignore_none_check = false)
   {
     _type       = src->_type;
+    _toggle_max = src->_toggle_max;
     _ptr_offset = src->_ptr_offset;
 
-    if ((_type & ZZP_INFO_MASK) != ZZP_INFO_NONE)
+    if (!ignore_none_check &&
+	(_type & ZZP_INFO_MASK) != ZZP_INFO_NONE)
       {
 	// If you reach this point, then you have not protected the
 	// code enough!  This is a consequence of us not being able to
 	// handle several levels or zero suppress info
-	ERROR("Internal error in zero_suppress_info constructor.");
+	ERROR("Internal error in zero_suppress_info constructor (%x).",
+	      _type);
       }
   }
 
@@ -60,11 +65,13 @@ public:
   zero_suppress_info()
   {
     _type       = ZZP_INFO_NONE;
+    _toggle_max = 0;
     _ptr_offset = NULL;
   }
 
 public:
   int   _type;
+  int   _toggle_max;
 
   union
   {

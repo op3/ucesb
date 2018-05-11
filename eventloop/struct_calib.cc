@@ -607,7 +607,8 @@ raw_to_tcal_base *new_raw_to_tcal(const calib_param *param)
 
 template<typename T>
 bool set_raw_to_tcal(void *info,
-		     void *dummy)
+		     void *dummy,
+		     int /*toggle_i_dummy*/)
 {
   // We know the source type (via T)
 

@@ -121,6 +121,22 @@ void zero_suppress_info_ptrs(void* us,used_zero_suppress_info &used_info)
   ::insert_zero_suppress_info_ptrs(us,used_info);
 }
 
+template<typename T>
+void toggle_item<T>::
+zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
+{
+  /* Since we may be below a zero-suppress structure, we ignore the
+   * check that no flags have been set so far.
+   */  
+  zero_suppress_info *info = new zero_suppress_info(used_info._info,~0,true);
+  info->_toggle_max = 2; /* Needs to have toggle set. */
+  used_zero_suppress_info sub_used_info(info);
+
+  _item.zero_suppress_info_ptrs(sub_used_info);
+}
+
+
+
 template<typename Tsingle,typename T,int n>
 void raw_array<Tsingle,T,n>::
 zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
