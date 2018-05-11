@@ -46,12 +46,14 @@
 #define ENUM_IS_LIST_LIMIT2 0x0080 // second-level limit (multi-hit)
 #define ENUM_IS_ARRAY_MASK  0x0100
 #define ENUM_IS_LIST_INDEX  0x0200
+#define ENUM_IS_TOGGLE_I    0x0400
+#define ENUM_IS_TOGGLE_V    0x0800
 
 // item is (non-first) part of indexed list, may not be used as mapping
 // destination
-#define ENUM_NO_INDEX_DEST  0x0400
+#define ENUM_NO_INDEX_DEST  0x1000
 
-#define ENUM_HAS_PTR_OFFSET 0x0800
+#define ENUM_HAS_PTR_OFFSET 0x2000
 
 typedef bool(*set_dest_fcn)(void *void_src_map, void *void_dest, int toggle_i);
 

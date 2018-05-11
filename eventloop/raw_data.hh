@@ -470,10 +470,7 @@ public:
 
   void enumerate_members(const signal_id &id,
 			 const enumerate_info &info,
-			 enumerate_fcn callback,void *extra) const
-  {
-    _item.enumerate_members(id, info, callback, extra);
-  }
+			 enumerate_fcn callback,void *extra) const;
 
   void dump()
   {

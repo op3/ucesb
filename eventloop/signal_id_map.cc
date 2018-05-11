@@ -295,19 +295,22 @@ void enumerate_member_signal_id(const signal_id &id,
 
   // Due to it ending up at other levels as other data, and also not
   // having any proper names, it caused clashes in the map
+  /*
+  {
+    char str[64];
+    id.format(str,sizeof(str));
 
+    INFO("Enumerate for member %d: %s ... (0x%x)",
+         extra_info->_map_no,str,info._type);
+  }
+  */
+  // NOTE: unsure why ENUM_IS_TOGGLE_I has to be omitted
   if (info._type & (ENUM_IS_ARRAY_MASK |
 		    ENUM_IS_LIST_LIMIT |
 		    ENUM_IS_LIST_LIMIT2 |
-		    ENUM_IS_LIST_INDEX))
+		    ENUM_IS_LIST_INDEX |
+		    ENUM_IS_TOGGLE_I))
     return;
-  /*
-  char str[64];
-
-  id.format(str,sizeof(str));
-
-  printf ("Enum: %p %s\n",info._addr,str);
-  */
 
   sid_leaf *leaf;
 
@@ -368,11 +371,21 @@ void enumerate_member_signal_id_zzp_part(const signal_id &id,
 
   // Due to it ending up at other levels as other data, and also not
   // having any proper names, it caused clashes in the map
+  /*
+  {
+    char str[64];
+    id.format(str,sizeof(str));
 
+    INFO("Enumerate for zzp part %d: %s ... (0x%x)",
+         extra_info->_map_no,str,info._type);
+  }
+  */
+  // NOTE: unsure why ENUM_IS_TOGGLE_I has to be omitted
   if (info._type & (ENUM_IS_ARRAY_MASK |
 		    ENUM_IS_LIST_LIMIT |
 		    ENUM_IS_LIST_LIMIT2 |
-		    ENUM_IS_LIST_INDEX))
+		    ENUM_IS_LIST_INDEX |
+		    ENUM_IS_TOGGLE_I))
     return;
 
   signal_id_zzp_info_map *map = &_signal_id_zzp_info_map[extra_info->_map_no];

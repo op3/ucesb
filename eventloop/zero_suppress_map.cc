@@ -125,14 +125,29 @@ template<typename T>
 void toggle_item<T>::
 zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
 {
-  /* Since we may be below a zero-suppress structure, we ignore the
-   * check that no flags have been set so far.
-   */  
-  zero_suppress_info *info = new zero_suppress_info(used_info._info,~0,true);
-  info->_toggle_max = 2; /* Needs to have toggle set. */
-  used_zero_suppress_info sub_used_info(info);
+  /* This is a bit ugly...
+   *
+   * Since we may be below a zero-suppress structure, we ignore the
+   * check that no flags have been set so far.  We must also make sure
+   * that all members get copied, since they contain the zero-suppress
+   * information needed.
+   */
+
+  zero_suppress_info *sub_info = new zero_suppress_info;
+
+  *sub_info = *used_info._info;
+  sub_info->_toggle_max = 2; /* Needs to have toggle set. */
+  
+  used_zero_suppress_info sub_used_info(sub_info);
 
   _item.zero_suppress_info_ptrs(sub_used_info);
+
+  /* We also need to set info up for the index. */
+
+  zero_suppress_info *sub_info_i = new zero_suppress_info;
+  *sub_info_i = *used_info._info;
+  used_zero_suppress_info sub_used_info_i(sub_info_i);
+  call_zero_suppress_info_ptrs((uint32 *) &_toggle_i, sub_used_info_i);
 }
 
 

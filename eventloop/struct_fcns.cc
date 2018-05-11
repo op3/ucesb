@@ -127,6 +127,20 @@ void enumerate_members_int(const int *ptr,const signal_id &id,
   callback(id,enumerate_info(info,ptr,ENUM_TYPE_INT),extra);
 }
 
+template<typename T>
+void toggle_item<T>::
+enumerate_members(const signal_id &id,
+		  const enumerate_info &info,
+		  enumerate_fcn callback,void *extra) const
+{
+  call_enumerate_members(&_item, id, info, callback, extra);
+  
+  callback(signal_id(id, "tgl_i"),
+	   enumerate_info(info, &_toggle_i,
+			  ENUM_TYPE_UINT |
+			  ENUM_IS_TOGGLE_I),extra);
+}
+
 #define FCNCALL_CLASS_NAME(name) name
 #define FCNCALL_NAME(name) \
   show_members(const signal_id &__id,const char *__unit) const
