@@ -92,8 +92,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 					  ptr_offset,
 					  false);
 
-  // printf ("paw_ntuple item: %s (%p)  (zzp:%d)\n",
-  //         name,info._addr,zzp_info ? zzp_info->_type : -1);
+  // printf ("paw_ntuple item: "/*"%s"*/" (%p)  (zzp:%d)\n",
+  //         /*name,*/info._addr,zzp_info ? zzp_info->_type : -1);
 
   const void  *limit_addr = NULL;
   uint         limit_index = (uint) -1;
@@ -160,6 +160,9 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 
   if (limit_addr)
     {
+      // printf ("paw_ntuple limit_addr: %p\n",
+      //	      limit_addr);
+
       // Find limiting item
 
       map_ntuple_limits::const_iterator i;
@@ -278,8 +281,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 
   if (info._type & (ENUM_IS_LIST_LIMIT | ENUM_IS_ARRAY_MASK))
     {
-      //printf ("paw_ntuple item limit: %s (%p) (%d)\n",
-      //name,info._addr,id._parts.size());
+      //printf ("paw_ntuple item limit: %s (%p) (%zd)\n",
+      //	      name,info._addr,id._parts.size());
 
       ntuple_limit_item limit_item;
 
@@ -292,6 +295,11 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 
   if (limit_addr)
     {
+      //printf ("paw_ntuple limit_addr: %s %p (%s : %d)\n",
+      //	      name,limit_addr,
+      //	      (const char *) limit_item->_name.c_str(),
+      //	      limit_index);
+
       // item->_index_var = ;
       item->_index_var = limit_item->_name;
       item->_index     = (uint) limit_index;
@@ -324,6 +332,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
     item->_flags |= NTUPLE_ITEM_OMIT;
 
   ntuple->_listing->push_back(item);
+
+  //printf ("\n");
 }
 
 #define NTUPLE_WRITER_UNPACK 0x0001
