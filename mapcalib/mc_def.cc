@@ -64,6 +64,7 @@ void read_map_calib_info_file(const char *filename,bool must_exist)
 #else
 	"cpp",
 #endif
+	"-DUNPACKER_IS_" stringify(UNPACKERNAME),
 	/*arg,*/ filename, NULL };
 
   fork.fork(argv[0],argv,&lexer_read_fd,NULL);
