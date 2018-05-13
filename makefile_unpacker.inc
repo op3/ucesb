@@ -960,9 +960,12 @@ endif
 #########################################################
 # Test to unpack example files
 
-TESTFILES:= $(notdir $(wildcard testfiles/$(UNPACKER)__*))
+# Figure out which source files exist
 
-TESTFILES:=$(filter-out %.good,$(TESTFILES))
+TESTFILES := $(notdir $(wildcard testfiles/$(UNPACKER)__*))
+TESTFILES := $(filter-out %.good,$(TESTFILES))
+
+# Figure out which we cannot handle, due to missing decompressors
 
 HAS_GUNZIP=$(shell which gunzip 2> /dev/null)
 HAS_BUNZIP2=$(shell which bunzip2 2> /dev/null)
@@ -978,14 +981,24 @@ ifeq (,$(HAS_UNXZ))
 TESTFILES:=$(filter-out %.xz,$(TESTFILES))
 endif
 
+# Figure out which good results we know
+
+TESTRESULTS := $(notdir $(wildcard testfiles/$(UNPACKER)__*.dump.good))
+
+# Only keep those where we can treat the source file
+
+TESTRESULTS := $(filter $(addsuffix %,$(TESTFILES)),$(TESTRESULTS))
+
 $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "  TEST   $@"
-	@(./$< testfiles/$* \
+	@(./$< testfiles/$(*:.dump.good=) \
 	    --ntuple=UNPACK,STRUCT,- > $@.struct 2> $@.unpack.err && \
 	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
 	    > $@.dump 2> $@.dump.err && \
-	  diff -u testfiles/$*.dump.good $@.dump ) || \
-	  ( echo "Failure while running: './$< testfiles/$*':" ; \
+	echo diff -u testfiles/$* $@.dump && \
+	  diff -u testfiles/$* $@.dump ) || \
+	  ( echo "Failure while running: './$< testfiles/$(*:.dump.good=)" ; \
+	    echo "Comparing to 'testfiles/$*':" ; \
 	    echo "--- stdout: ---" ; cat $@.unpack.err ; \
 	    echo "--- stderr: ---" ; cat $@.dump.err ; \
 	    echo "---------------" ; \
@@ -994,7 +1007,7 @@ $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@rm $@.unpack.err $@.dump.err $@.dump $@.struct
 	@touch $@
 
-$(GENDIR)/$(UNPACKER).runstamps: $(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTFILES))
+$(GENDIR)/$(UNPACKER).runstamps: $(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTRESULTS))
 
 #########################################################
 # Link
