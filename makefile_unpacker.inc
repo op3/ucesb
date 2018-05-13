@@ -991,11 +991,14 @@ TESTRESULTS := $(filter $(addsuffix %,$(TESTFILES)),$(TESTRESULTS))
 
 $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "  TEST   $@"
-	@(./$< testfiles/$(*:.dump.good=) \
-	    --ntuple=UNPACK,STRUCT,- > $@.struct 2> $@.unpack.err && \
+	@#echo "FULL: $*"
+	@#echo "SRC.: $(firstword $(subst .ntupleopt., ,$*))"
+	@#echo "OPT.: $(lastword $(subst .ntupleopt., ,$(*:.dump.good=)))"
+	@#echo "$(*:.dump.good=)"
+	@(./$< testfiles/$(firstword $(subst .ntupleopt., ,$*)) \
+	    --ntuple=$(lastword $(subst .ntupleopt., ,$(*:.dump.good=))),STRUCT,- > $@.struct 2> $@.unpack.err && \
 	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
 	    > $@.dump 2> $@.dump.err && \
-	echo diff -u testfiles/$* $@.dump && \
 	  diff -u testfiles/$* $@.dump ) || \
 	  ( echo "Failure while running: './$< testfiles/$(*:.dump.good=)" ; \
 	    echo "Comparing to 'testfiles/$*':" ; \
