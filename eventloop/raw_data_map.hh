@@ -62,24 +62,13 @@ public:
   void map_members(const T &src MAP_MEMBERS_PARAM) const;
 };
 
-typedef data_map<uint8>  uint8_map;
-typedef data_map<uint16> uint16_map;
-typedef data_map<uint32> uint32_map;
-typedef data_map<uint64> uint64_map;
+#define DECL_PRIMITIVE_TYPE(type)			\
+  typedef data_map<type>  type##_map;
 
-typedef data_map<DATA64> DATA64_map;
-typedef data_map<DATA32> DATA32_map;
-typedef data_map<DATA24> DATA24_map;
-typedef data_map<DATA16> DATA16_map;
-typedef data_map<DATA16_OVERFLOW> DATA16_OVERFLOW_map;
-typedef data_map<DATA12> DATA12_map;
-typedef data_map<DATA12_OVERFLOW> DATA12_OVERFLOW_map;
-typedef data_map<DATA12_RANGE> DATA12_RANGE_map;
-typedef data_map<DATA14> DATA14_map;
-typedef data_map<DATA14_OVERFLOW> DATA14_OVERFLOW_map;
-typedef data_map<DATA14_RANGE> DATA14_RANGE_map;
-typedef data_map<DATA8>  DATA8_map;
-typedef data_map<float>  float_map;
+#include "decl_primitive_types.hh"
+
+#undef DECL_PRIMITIVE_TYPE
+
 
 // TODO: Make sure that the user cannot specify source array indices
 // in SIGNAL which are outside the available items.  Bad names get
