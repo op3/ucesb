@@ -135,7 +135,7 @@ enumerate_members(const signal_id &id,
 {
   call_enumerate_members(&_item, id, info, callback, extra);
   
-  callback(signal_id(id, "tgl_i"),
+  callback(signal_id(id, "tgli"),
 	   enumerate_info(info, &_toggle_i,
 			  ENUM_TYPE_UINT |
 			  ENUM_IS_TOGGLE_I),extra);
