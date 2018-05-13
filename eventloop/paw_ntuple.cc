@@ -56,6 +56,7 @@ struct enumerate_ntuple_info
   map_ntuple_limits  _limits;
   int                _level;
   bool               _detailed_only;
+  int                _toggle_include;
   const char        *_block;
   const char        *_block_prefix;
 };
@@ -70,6 +71,11 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 	is_channel_requested(id,info._type & (ENUM_IS_LIST_LIMIT |
 					      ENUM_IS_ARRAY_MASK),
 			     ntuple->_level, ntuple->_detailed_only)))
+    return;
+
+  if (info._type & (ENUM_IS_TOGGLE_I |
+		    ENUM_IS_TOGGLE_V) &&
+      !(info._type & ntuple->_toggle_include))
     return;
 
   const zero_suppress_info *zzp_info = NULL;
@@ -362,6 +368,8 @@ void paw_ntuple_usage()
   printf ("UNPACK,RAW,CAL,USER         Include requested level data.\n");
   printf ("[UNPACK|RAW|CAL|USER]:name  Include 'name'd member of level data.\n");
   printf ("UR,URC,URCUS        Prefix UNPACK,RAW,(CAL),(USER) level data with U,R,C,U.\n");
+  printf ("TGLV                Include both toggle values.\n");
+  printf ("NOTGLI              Do not include toggle index.\n");
   printf ("CWN                 Produce columnwise HBOOK ntuple (default with .nt*/.hb*).\n");
   printf ("ROOT                Produce ROOT tree (default with .root).\n");
   printf ("STRUCT|SERVER       Run STRUCT server to send data.\n");
@@ -419,6 +427,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #if defined(USE_LMD_INPUT)
   uint64_t max_raw_size = 0;
 #endif
+  int toggle_include = ENUM_IS_TOGGLE_I;
 
   paw_ntuple *ntuple = new paw_ntuple;
 
@@ -466,6 +475,10 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	request_level |= NTUPLE_WRITER_CAL;
       else if (MATCH_ARG("USER"))
 	request_level |= NTUPLE_WRITER_USER;
+      else if (MATCH_ARG("NOTGLI"))
+	toggle_include &= ~ENUM_IS_TOGGLE_I;
+      else if (MATCH_ARG("TGLV"))
+	toggle_include |= ENUM_IS_TOGGLE_V;
       else if (MATCH_PREFIX("UNPACK:",post))
 	{
 	  request_level_detailed |= NTUPLE_WRITER_UNPACK;
@@ -611,6 +624,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   extra._requests = &requests;
   extra._block = "";
   extra._level = 0;
+  extra._toggle_include = toggle_include;
 
   if (!request_level && !request_level_detailed)
     {

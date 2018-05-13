@@ -74,11 +74,13 @@ public:
 public:
   enumerate_info(const enumerate_info &src,const void *addr,int type)
   {
-    if ((src._type & ~(ENUM_NO_INDEX_DEST | ENUM_HAS_PTR_OFFSET)) != 0)
+    if ((src._type & ~(ENUM_NO_INDEX_DEST | ENUM_HAS_PTR_OFFSET |
+		       ENUM_IS_TOGGLE_V)) != 0)
       {
 	// If you reach this point, you have not protected the code enough.
 	// We can only handle one level of ptr_offset
-	ERROR("Internal error in enumerate_info constructor (1).");
+	ERROR("Internal error in enumerate_info constructor (1) (%x).",
+	      src._type);
       }
 
     _addr = addr;
@@ -96,11 +98,13 @@ public:
   enumerate_info(const enumerate_info &src,const void *addr,int type,
 		 unsigned int min,unsigned int max)
   {
-    if ((src._type & ~(ENUM_NO_INDEX_DEST | ENUM_HAS_PTR_OFFSET)) != 0)
+    if ((src._type & ~(ENUM_NO_INDEX_DEST | ENUM_HAS_PTR_OFFSET |
+		       ENUM_IS_TOGGLE_V)) != 0)
       {
 	// If you reach this point, you have not protected the code enough.
 	// We can only handle one level of ptr_offset
-	ERROR("Internal error in enumerate_info constructor (2).");
+	ERROR("Internal error in enumerate_info constructor (2) (%x).",
+	      src._type);
       }
 
     _addr = addr;
@@ -122,7 +126,8 @@ public:
       {
 	// If you reach this point, you have not protected the code enough.
 	// We can only handle one level of zero suppression.
-	ERROR("Internal error in enumerate_info constructor (3).");
+	ERROR("Internal error in enumerate_info constructor (3) (%x).",
+	      src._type);
       }
 
     _type = src._type;

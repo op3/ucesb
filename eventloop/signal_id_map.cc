@@ -304,12 +304,13 @@ void enumerate_member_signal_id(const signal_id &id,
          extra_info->_map_no,str,info._type);
   }
   */
-  // NOTE: unsure why ENUM_IS_TOGGLE_I has to be omitted
+  // NOTE: unsure why ENUM_IS_TOGGLE_I/V has to be omitted
   if (info._type & (ENUM_IS_ARRAY_MASK |
 		    ENUM_IS_LIST_LIMIT |
 		    ENUM_IS_LIST_LIMIT2 |
 		    ENUM_IS_LIST_INDEX |
-		    ENUM_IS_TOGGLE_I))
+		    ENUM_IS_TOGGLE_I |
+		    ENUM_IS_TOGGLE_V))
     return;
 
   sid_leaf *leaf;
@@ -380,12 +381,13 @@ void enumerate_member_signal_id_zzp_part(const signal_id &id,
          extra_info->_map_no,str,info._type);
   }
   */
-  // NOTE: unsure why ENUM_IS_TOGGLE_I has to be omitted
+  // NOTE: unsure why ENUM_IS_TOGGLE_I/V has to be omitted
   if (info._type & (ENUM_IS_ARRAY_MASK |
 		    ENUM_IS_LIST_LIMIT |
 		    ENUM_IS_LIST_LIMIT2 |
 		    ENUM_IS_LIST_INDEX |
-		    ENUM_IS_TOGGLE_I))
+		    ENUM_IS_TOGGLE_I |
+		    ENUM_IS_TOGGLE_V))
     return;
 
   signal_id_zzp_info_map *map = &_signal_id_zzp_info_map[extra_info->_map_no];

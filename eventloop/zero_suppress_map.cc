@@ -148,6 +148,16 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
   *sub_info_i = *used_info._info;
   used_zero_suppress_info sub_used_info_i(sub_info_i);
   call_zero_suppress_info_ptrs((uint32 *) &_toggle_i, sub_used_info_i);
+
+  /* And for the two value-carrying items. */
+
+  for (int i = 0; i < 2; i++)
+    {
+      zero_suppress_info *sub_info_v = new zero_suppress_info;
+      *sub_info_v = *used_info._info;
+      used_zero_suppress_info sub_used_info_v(sub_info_v);
+      call_zero_suppress_info_ptrs(&_toggle_v[i], sub_used_info_v);
+    }
 }
 
 

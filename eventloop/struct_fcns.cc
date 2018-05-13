@@ -139,6 +139,13 @@ enumerate_members(const signal_id &id,
 	   enumerate_info(info, &_toggle_i,
 			  ENUM_TYPE_UINT |
 			  ENUM_IS_TOGGLE_I),extra);
+
+  for (int i = 0; i < 2; i++)
+    call_enumerate_members(&_toggle_v[i],
+			   signal_id(id, i == 0 ? "tglv1" : "tglv2"),
+			   enumerate_info(info, NULL,
+					  ENUM_IS_TOGGLE_V),
+			   callback, extra);
 }
 
 #define FCNCALL_CLASS_NAME(name) name
