@@ -52,7 +52,9 @@ void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM);
 #define STRUCT_ONLY_LAST_UNION_MEMBER    1
 
 #include "gen/struct_mirror.hh"
+#if THIS_SEEMS_UNUSED
 #include "gen/raw_struct_mirror.hh"
+#endif
 
 #undef  STRUCT_MIRROR_FCNS_DECL
 #undef  STRUCT_MIRROR_TYPE
@@ -64,6 +66,8 @@ void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM);
 #undef  STRUCT_ONLY_LAST_UNION_MEMBER
 
 extern unpack_event_map the_unpack_event_map;
+#if THIS_SEEMS_UNUSED
 extern raw_event_map the_raw_event_reverse_map;
+#endif
 
 #endif//__STRUCT_MAPPING_HH__

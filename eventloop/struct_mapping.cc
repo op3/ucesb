@@ -49,7 +49,9 @@
 */
 
 unpack_event_map the_unpack_event_map;
+#if THIS_SEEMS_UNUSED
 raw_event_map the_raw_event_reverse_map;
+#endif
 
 template<typename T>
 bool data_map<T>::set_dest(T *dest)
@@ -297,7 +299,9 @@ void map_members(const data_map<T_src> &map,const T_src &src MAP_MEMBERS_PARAM)
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/struct_fcncall.hh"
+#if THIS_SEEMS_UNUSED
 #include "gen/raw_struct_fcncall.hh"
+#endif
 
 #undef  FCNCALL_CLASS_NAME
 #undef  FCNCALL_NAME
@@ -327,7 +331,9 @@ void do_unpack_map(MAP_MEMBERS_SINGLE_PARAM)
 void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM)
 {
   //_static_event._unpack.map_members(the_unpack_event_map MAP_MEMBERS_ARG);
+#if THIS_SEEMS_UNUSED
   the_raw_event_reverse_map.map_members(_static_event._raw MAP_MEMBERS_ARG);
+#endif
 }
 
 #endif
@@ -355,7 +361,9 @@ void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM)
 #define STRUCT_ONLY_LAST_UNION_MEMBER 1
 
 #include "gen/struct_fcncall.hh"
+#if THIS_SEEMS_UNUSED
 #include "gen/raw_struct_fcncall.hh"
+#endif
 
 #undef  FCNCALL_CLASS_NAME
 #undef  FCNCALL_NAME
@@ -392,13 +400,17 @@ void enumerate_member_signal_id_map_unpack(const signal_id &id,
 
 void setup_signal_id_map_unpack_map(void *extra)
 {
-  the_unpack_event_map.enumerate_map_members(signal_id(),enumerate_info(),
-					     enumerate_member_signal_id_map_unpack,extra);
+  the_unpack_event_map.
+    enumerate_map_members(signal_id(),enumerate_info(),
+			  enumerate_member_signal_id_map_unpack,extra);
 }
 
 void setup_signal_id_map_raw_reverse_map(void *extra)
 {
-  the_raw_event_reverse_map.enumerate_map_members(signal_id(),enumerate_info(),
-						  enumerate_member_signal_id_map_unpack,extra);
+#if THIS_SEEMS_UNUSED
+  the_raw_event_reverse_map.
+    enumerate_map_members(signal_id(),enumerate_info(),
+			  enumerate_member_signal_id_map_unpack,extra);
+#endif
 }
 
