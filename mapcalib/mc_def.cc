@@ -171,7 +171,7 @@ void apply_map_item(const map_info *item)
 
   if (!item->_src->_set_dest((void *) item->_src->_addr,
 			     (void *) item->_dest->_addr,
-			     item->_toggle_i))
+			     item->_toggle_i /* applies to dest */))
     ERROR_LOC(item->_loc,"Mapping already specified for source item.");
 }
 
@@ -181,7 +181,8 @@ void apply_calib_param(calib_param *item)
   assert(item->_src->_addr);
   assert(item->_dest->_addr);
 
-  if (!item->_src->_set_dest(item,NULL,0))
+  if (!item->_src->_set_dest(item,NULL,
+			     item->_toggle_i /* applies to src */))
     ERROR_LOC(item->_loc,"Calib mapping already specified for source item.");
 }
 

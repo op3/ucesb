@@ -32,25 +32,35 @@
 
 raw_event_calib_map the_raw_event_calib_map;
 
-template<typename T>
-void calib_map<T>::show(const signal_id &id)
+template<typename T,int n_toggle>
+void calib_map_base<T,n_toggle>::show(const signal_id &id)
 {
-  if (_calib)
+  for (int i = 0; i < n_toggle; i++)
     {
-      char buf[256];
-      id.format(buf,sizeof(buf));
-      printf ("%s : ",buf);
-      _calib->show();
-      printf ("\n");
-    }
-  else
-    {
-      /*
-      char buf[256];
-      id.format(buf,sizeof(buf));
-      printf ("%s : --\n",buf);
-      fflush(stdout);
-      */
+      if (_calib[i])
+	{
+	  char buf[256];
+	  id.format(buf,sizeof(buf));
+	  if (n_toggle == 1 ||
+	      (i == 0 && _calib[0] == _calib[n_toggle-1]))
+	    printf ("%s : ",buf);
+	  else
+	    printf ("%s tgl %d : ",buf,i+1);
+	  _calib[i]->show();
+	  printf ("\n");
+	}
+      else
+	{
+	  /*
+	    char buf[256];
+	    id.format(buf,sizeof(buf));
+	    printf ("%s : --\n",buf);
+	    fflush(stdout);
+	  */
+	}
+      if (n_toggle != 1 &&
+	  (i == 0 && _calib[0] == _calib[n_toggle-1]))
+	break;
     }
 }
 
@@ -278,20 +288,29 @@ void clear_calib_map()
 template<typename T>
 void calib_map<T>::map_members(const T &src) const
 {
+  raw_to_tcal_base *calib = calib_map_base<T,1>::get_calib(0);
+  
   //printf("%f...\n",(double) src.value);
-  if (_calib)
+  if (calib)
     {
-      _calib->_convert(_calib,&src);
+      calib->_convert(calib,&src);
     }
 }
 
 template<typename T>
-void calib_map<T>::map_members(const toggle_item<T> &src) const
+void toggle_calib_map<T>::map_members(const toggle_item<T> &src) const
 {
+  int toggle_i = 0;
+
+  if (src._toggle_i)
+    toggle_i = src._toggle_i - 1;
+
+  raw_to_tcal_base *calib = calib_map_base<T,2>::get_calib(toggle_i);
+    
   //printf("%f...\n",(double) src.value);
-  if (_calib)
+  if (calib)
     {
-      _calib->_convert(_calib,&src._item);
+      calib->_convert(calib,&src._item);
     }
 }
 
@@ -605,10 +624,10 @@ raw_to_tcal_base *new_raw_to_tcal(const calib_param *param)
   return NULL;
 }
 
-template<typename T>
+template<typename T, int n_toggle>
 bool set_raw_to_tcal(void *info,
 		     void *dummy,
-		     int /*toggle_i_dummy*/)
+		     int toggle_i)
 {
   // We know the source type (via T)
 
@@ -617,9 +636,32 @@ bool set_raw_to_tcal(void *info,
 
   const calib_param *param = (const calib_param *) info;
 
-  calib_map<T>* src = (calib_map<T>*) (void*) param->_src->_addr;
+  calib_map_base<T,n_toggle>* src =
+    (calib_map_base<T,n_toggle>*) (void*) param->_src->_addr;
 
-  if (src->_calib)
+  if (src->get_n_toggle() == 1 && toggle_i)
+    {
+      WARNING("Trying to map toggle calibration for non-toggle source.");
+      return false;
+    }
+
+  /* For non-toggle items, use0 and use1 will be the same (0).
+   * For toggle items, they will by defult be different, and thus
+   * check and (at bottom) assign both slots.
+   * Unless toggle is given, in which case they only deal with the
+   * wanted item.
+   */
+
+  int use0 = 0;
+  int use1 = n_toggle-1;
+
+  if (toggle_i == 1)
+    use1 = use0;
+  else if (toggle_i == 2)
+    use0 = use1;
+
+  if (src->_calib[use0] ||
+      src->_calib[use1])
     return false;   // one could try to merge!!!
 
   // info->_src   _addr  _type
@@ -667,7 +709,8 @@ bool set_raw_to_tcal(void *info,
       return false;
     }
 
-  src->_calib = r2c;
+  src->_calib[use0] = r2c;
+  src->_calib[use1] = r2c;
 
   return true;
 }

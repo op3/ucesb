@@ -39,14 +39,14 @@ void do_calib_map();
                              const enumerate_info &info, \
                              enumerate_fcn callback,void *extra) const;
 #define STRUCT_MIRROR_TYPE(type)         type##_calib_map
-#define STRUCT_MIRROR_TYPE_TOGGLE(type)  STRUCT_MIRROR_TYPE(type)
+#define STRUCT_MIRROR_TYPE_TOGGLE(type)  toggle_##type##_calib_map
 #define STRUCT_MIRROR_NAME(name)         name
 #define STRUCT_MIRROR_STRUCT(type)       STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_BASE(type)         STRUCT_MIRROR_TYPE(type)
 #define STRUCT_MIRROR_TEMPLATE_ARG(arg)  arg##_calib_map,arg
 #define STRUCT_MIRROR_TEMPLATE_ARG_N(arg,array)  arg##_calib_map array,arg array
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  arg##_calib_map,TOGGLE(arg)
-#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  arg##_calib_map array,TOGGLE(arg) array
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE(arg)  toggle_##arg##_calib_map,TOGGLE(arg)
+#define STRUCT_MIRROR_TEMPLATE_ARG_TOGGLE_N(arg,array)  toggle_##arg##_calib_map array,TOGGLE(arg) array
 #define STRUCT_ONLY_LAST_UNION_MEMBER    1
 
 #include "gen/raw_struct_mirror.hh"

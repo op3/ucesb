@@ -27,7 +27,7 @@
 
 #include "enumerate.hh"
 
-template<typename T>
+template<typename T,int n_toggle>
 bool set_raw_to_tcal(void *info,
 		     void *dummy,
 		     int toggle_i_dummy);
@@ -60,16 +60,17 @@ public:
   uint64 get() const;
 };
 
-template<typename T>
-class calib_map
+template<typename T,int n_toggle>
+class calib_map_base
 {
 public:
-  calib_map()
+  calib_map_base()
   {
     // src  = NULL;
     // _dest = NULL;
 
-    _calib = NULL;
+    for (int i = 0; i < n_toggle; i++)
+      _calib[i] = NULL;
     // _dest  = NULL;
     // _zzp_info = NULL;
 
@@ -84,7 +85,7 @@ public:
 
 public:
   // r2c_union<T>              _calib;
-  raw_to_tcal_base            *_calib;
+  raw_to_tcal_base            *_calib[n_toggle];
   // void                     *_dest;
   // const zero_suppress_info *_zzp_info;
   /*
@@ -109,12 +110,12 @@ public:
 			     enumerate_fcn callback,void *extra) const
   {
     callback(id,enumerate_info(info,this,get_enum_type((T *) NULL)).
-	     set_dest_function(set_raw_to_tcal<T>),extra);
+	     set_dest_function(set_raw_to_tcal<T,n_toggle>),extra);
   }
 
 public:
-  void map_members(const T &src) const;
-  void map_members(const toggle_item<T> &src) const;
+  raw_to_tcal_base *get_calib(int i) const { return _calib[i]; }
+  int get_n_toggle() const { return n_toggle; }
 
 public:
   void show(const signal_id &id);
@@ -129,13 +130,43 @@ public:
   void clear()
   {
     // fprintf (stderr,"%p:calib_map::clear() , _calib=%p\n",this,_calib);
-    delete _calib;
-    _calib = NULL;
+    for (int i = 0; i < n_toggle; i++)
+      {
+	delete _calib[i];
+	_calib[i] = NULL;
+      }
   }
 };
 
-#define DECL_PRIMITIVE_TYPE(type)		\
-  typedef calib_map<type>  type##_calib_map;
+template<typename T>
+class calib_map :
+  public calib_map_base<T,1>
+{
+  /*
+public:
+  calib_map() : calib_map_base<T,1>()
+  {
+
+  }
+  */
+  
+public:
+  void map_members(const T &src) const;
+};
+
+template<typename T>
+class toggle_calib_map :
+  public calib_map_base<T,2>
+{
+
+
+public:
+  void map_members(const toggle_item<T> &src) const;
+};
+
+#define DECL_PRIMITIVE_TYPE(type)			\
+  typedef calib_map<type>  type##_calib_map;		\
+  typedef toggle_calib_map<type>  toggle_##type##_calib_map;
 
 #include "decl_primitive_types.hh"
 
