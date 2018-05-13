@@ -990,7 +990,7 @@ TESTRESULTS := $(notdir $(wildcard testfiles/$(UNPACKER)__*.dump.good))
 TESTRESULTS := $(filter $(addsuffix %,$(TESTFILES)),$(TESTRESULTS))
 
 $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
-	@echo "  TEST   $@"
+	@echo "TESTFILE $*"
 	@#echo "FULL: $*"
 	@#echo "SRC.: $(firstword $(subst .ntupleopt., ,$*))"
 	@#echo "OPT.: $(lastword $(subst .ntupleopt., ,$(*:.dump.good=)))"
