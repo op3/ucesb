@@ -290,10 +290,13 @@ void calib_map<T>::map_members(const T &src) const
 template<typename T_src>
 void map_members(const calib_map<T_src> &map,const T_src &src)
 {
+  map.map_members(src);
+  /*
   if (map._calib)
     {
       map._calib->_convert(map._calib,&src);
     }
+  */
 }
 
 /*
