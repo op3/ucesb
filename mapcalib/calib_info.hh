@@ -50,16 +50,21 @@ public:
 public:
   calib_param(const file_line &loc,
 	      const signal_id_info *src,const signal_id_info *dest,
-	      int type,vect_double_unit *param)
+	      int type,vect_double_unit *param,
+	      int toggle_i)
     : map_info(loc,src,dest,NULL,NULL,0)
   {
     _type   = type;
     _param  = param;
+
+    _toggle_i = toggle_i;
   }
 
 public:
   int               _type;
   vect_double_unit *_param;
+
+  int               _toggle_i;
 
 };
 

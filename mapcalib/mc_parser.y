@@ -138,6 +138,7 @@ struct md_ident_fl
 %type <iValue>     calib_type
 
 %type <iValue>     toggle_null
+%type <iValue>     toggle
 
 %type <var>        var_or_name
 %type <var>        data_name
@@ -205,6 +206,12 @@ signal_mapping:
           }
         ;
 
+/* If we were to use the toggle_null rule below before IDENTIFIER,
+ * we get shift/reduce conflicts with the rules in user_calib_param.
+ * Where also the default action of shifting is not really helpful.
+ * So, we take to ugly route of duplicating the rules...
+ */
+
 calib_param:
 	  CALIB_PARAM '(' IDENTIFIER ',' calib_type ',' value_vector_np ')' ';'
           {
@@ -214,7 +221,19 @@ calib_param:
 	      get_signal_id_info(&id,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
 	    const signal_id_info *dest_info =
 	      get_signal_id_info(&id,SID_MAP_CAL);
-	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $5,$7,0);
+          }
+	| CALIB_PARAM '(' toggle IDENTIFIER ',' calib_type ',' value_vector_np ')' ';'
+          {
+	    signal_id id;
+	    dissect_name(CURR_FILE_LINE,$4,id);
+	    const signal_id_info *src_info  =
+	      get_signal_id_info(&id,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info(&id,SID_MAP_CAL);
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $6,$8,$3);
           }
 	| CALIB_PARAM_C '(' var_or_name ',' calib_type ',' value_vector_np ')' ';'
           {
@@ -223,7 +242,18 @@ calib_param:
 	    const signal_id_info *dest_info =
 	      get_signal_id_info($3,SID_MAP_CAL);
 	    delete $3;
-	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$5,$7);
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $5,$7,0);
+          }
+	| CALIB_PARAM_C '(' toggle var_or_name ',' calib_type ',' value_vector_np ')' ';'
+          {
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($4,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($4,SID_MAP_CAL);
+	    delete $4;
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $6,$8,$3);
           }
         | var_or_name '=' calib_type '(' value_vector_np ')' ';'
           {
@@ -232,7 +262,18 @@ calib_param:
 	    const signal_id_info *dest_info =
 	      get_signal_id_info($1,SID_MAP_CAL);
 	    delete $1;
-	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,$3,$5);
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $3,$5,0);
+          }
+        | toggle var_or_name '=' calib_type '(' value_vector_np ')' ';'
+          {
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($2,SID_MAP_RAW | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($2,SID_MAP_CAL);
+	    delete $2;
+	    $$ = new calib_param(CURR_FILE_LINE,src_info,dest_info,
+				 $4,$6,$1);
           }
         ;
 
@@ -289,7 +330,17 @@ data_type:
 
 toggle_null:
           /* empty */ { $$ = 0; }
-        | TOGGLE INTEGER ':' { $$ = $2; }
+        | toggle
+        ;
+
+toggle:
+          TOGGLE INTEGER ':' {
+	    if ($2 == 1)      { $$ = 1; }
+	    else if ($2 == 2) { $$ = 2; }
+	    else {
+	      yyerror("Toggle # must be 1 or 2.");
+	    }
+	  }
         ;
 
 var_or_name:
