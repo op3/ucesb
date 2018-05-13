@@ -1,6 +1,6 @@
 /* This file is part of UCESB - a tool for data unpacking and processing.
  *
- * Copyright (C) 2016  GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+ * Copyright (C) 2018  Haakan T. Johansson  <f96hajo@chalmers.se
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
