@@ -354,7 +354,7 @@ void/*raw_to_tcal_convert_fcn*/ new_raw_to_cal(T_r2c *r2c,
   UNUSED(src);
   UNUSED(dest);
 
-  r2c->set_dest(dest, 0);
+  r2c->set_dest(dest, 0 /* the toggle for calib params applies to the src */);
   r2c->_convert = call_r2c_convert<T_r2c,T_src,T_dest>;
 }
 
