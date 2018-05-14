@@ -108,6 +108,7 @@ int _dump_request = 0;
 #define DUMP_LEVEL_UNPACK 0x01
 #define DUMP_LEVEL_RAW    0x02
 #define DUMP_LEVEL_CAL    0x04
+#define DUMP_LEVEL_USER   0x08
 
 void add_dump_item(const char *request)
 {
@@ -119,6 +120,8 @@ void add_dump_item(const char *request)
     _dump_request |= DUMP_LEVEL_RAW;
   else if (MATCH_ARG("CAL"))
     _dump_request |= DUMP_LEVEL_CAL;
+  else if (MATCH_ARG("USER"))
+    _dump_request |= DUMP_LEVEL_USER;
   else
     ERROR("Unknown level for dump: %s",request);
 }
@@ -128,7 +131,7 @@ void dump_init(const char *command)
   const char *cmd = command;
   const char *req_end;
 
-  while ((req_end = strchr(cmd,':')) != NULL)
+  while ((req_end = strpbrk(cmd,",:")) != NULL)
     {
       char *request = strndup(cmd,(size_t) (req_end-cmd));
 
@@ -1607,6 +1610,10 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 #endif
 
       level_dump(DUMP_LEVEL_CAL,"CAL",eb._cal);
+
+#ifdef USER_STRUCT
+      level_dump(DUMP_LEVEL_USER,"USER",eb._user);
+#endif
 
     map_process_done:
 
