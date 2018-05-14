@@ -104,8 +104,10 @@ public:
   // void set_dest(T *dest);
 
 public:
-  void watch_members(const T &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
-  void watch_members(const toggle_item<T> &src,watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
+  void watch_members(const T &src,
+		     watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
+  void watch_members(const toggle_item<T> &src,
+		     watcher_event_info *watch_info WATCH_MEMBERS_PARAM) const;
   bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info);
 
 };
@@ -124,7 +126,8 @@ public:
 // in SIGNAL which are outside the available items.  Bad names get
 // caught by the compiler, array indices not.
 
-template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n>
+template<typename Twatcher_channel,typename Tsingle_watcher,
+	 typename Tsingle,typename T_watcher,typename T,int n>
 class raw_array_watcher
 {
 public:
@@ -160,7 +163,8 @@ public:
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const;
   template<int max_entries>
-  void watch_members(const raw_array_multi_zero_suppress<Tsingle,T,n,max_entries> &src,
+  void watch_members(const raw_array_multi_zero_suppress<Tsingle,T,
+		     n,max_entries> &src,
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const;
   void watch_members(const raw_list_zero_suppress<Tsingle,T,n> &src,
@@ -175,17 +179,21 @@ public:
 
 };
 
-template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n,int n1>
+template<typename Twatcher_channel,typename Tsingle_watcher,
+	 typename Tsingle,typename T_watcher,typename T,int n,int n1>
 class raw_array_watcher_1 :
-  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>
+  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,
+			   Tsingle,T_watcher,T,n>
 {
 public:
   bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info);
 };
 
-template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n,int n1,int n2>
+template<typename Twatcher_channel,typename Tsingle_watcher,
+	 typename Tsingle,typename T_watcher,typename T,int n,int n1,int n2>
 class raw_array_watcher_2 :
-  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>
+  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,
+			   Tsingle,T_watcher,T,n>
 {
 public:
   bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info);
@@ -205,9 +213,11 @@ public:
 
 // The multi-entry array should eat one index
 
-template<typename Twatcher_channel,typename Tsingle_watcher,typename Tsingle,typename T_watcher,typename T,int n,int max_entries>
+template<typename Twatcher_channel,typename Tsingle_watcher,
+	 typename Tsingle,typename T_watcher,typename T,int n,int max_entries>
 class raw_array_multi_watcher :
-  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>
+  public raw_array_watcher<Twatcher_channel,Tsingle_watcher,
+			   Tsingle,T_watcher,T,n>
 {
 };
 
@@ -220,7 +230,8 @@ public:
   void watch_members(const unpack_subevent_base &src,
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const { }
-  bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info) { return false; }
+  bool enumerate_watchers(const signal_id &id,
+			  enumerate_watchers_info *info) { return false; }
 
 };
 
@@ -231,7 +242,8 @@ public:
   void watch_members(const unpack_event_base &src,
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const { }
-  bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info) { return false; }
+  bool enumerate_watchers(const signal_id &id,
+			  enumerate_watchers_info *info) { return false; }
 
 };
 
@@ -242,7 +254,8 @@ public:
   void watch_members(const raw_event_base &src,
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const { }
-  bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info) { return false; }
+  bool enumerate_watchers(const signal_id &id,
+			  enumerate_watchers_info *info) { return false; }
 
 };
 
@@ -253,7 +266,8 @@ public:
   void watch_members(const cal_event_base &src,
 		     watcher_event_info *watch_info
 		     WATCH_MEMBERS_PARAM) const { }
-  bool enumerate_watchers(const signal_id &id,enumerate_watchers_info *info) { return false; }
+  bool enumerate_watchers(const signal_id &id,
+			  enumerate_watchers_info *info) { return false; }
 
 };
 
