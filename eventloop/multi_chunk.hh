@@ -81,6 +81,35 @@ public:
   }
 };
 
+struct external_toggle_map
+{
+  unsigned int  _cnts;
+  unsigned int *_cnt_to_event;
+};
+
+template<int n_toggle>
+class external_toggle_info
+{
+public:
+  external_toggle_info()
+  {
+    _alloc_events = 0;
+    _maps[0]._cnt_to_event = NULL;
+  }
+
+  ~external_toggle_info()
+  {
+    free(_maps[0]._cnt_to_event);
+  }
+
+public:
+  void clear_alloc(uint32 events);
+
+public:
+  uint32              _alloc_events;
+  external_toggle_map _maps[n_toggle];
+};
+
 struct correlation_list;
 struct watcher_event_info;
 struct pretty_dump_info;
