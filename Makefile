@@ -37,10 +37,11 @@ GENDIR=gen
 
 UNPACKERS=land xtst rpc2006 is446 is430_05 is445_08 labbet1 mwpclab \
 	gamma_k8 hacky empty sid_genf madrid ebye i123 s107 tacquila \
-	fa192mar09 is507 sampler ridf \
-	is446_toggle is446_tglarray #tagtest
+	fa192mar09 is507 sampler ridf #tagtest
 
-all: $(UNPACKERS)
+UNPACKERS_is446=is446_toggle is446_tglarray
+
+all: $(UNPACKERS) $(UNPACKERS_is446)
 
 #########################################################
 # Submakefiles that the programs depend on
@@ -386,7 +387,8 @@ ridf: $(DEPENDENCIES)
 #########################################################
 
 clean: clean-dir-ucesbgen clean-dir-psdc clean-dir-rfiocmd clean-dir-hbook \
-	$(UNPACKERS:%=clean-unp-%) $(UNPACKERS_EXT:%=clean-unp-%)
+	$(UNPACKERS:%=clean-unp-%) $(UNPACKERS_EXT:%=clean-unp-%) \
+	$(UNPACKERS_is446:%=clean-unp-is446-%)
 	rm -rf gen/acc_auto_def gen/
 	rm -f xtst/xtst.spec.d xtst/*.o xtst/*.d xtst/*.dep
 	rm -f file_input/empty_file file_input/tdas_conv
@@ -400,6 +402,9 @@ clean-dir-%:
 
 clean-unp-%:
 	$(MAKE) -C $* -f ../makefile_unpacker.inc UNPACKER=$* clean
+
+clean-unp-is446-%:
+	$(MAKE) -C is446 -f ../makefile_unpacker.inc UNPACKER=$* clean
 
 all-clean: clean
 	rm -rf land/gen
