@@ -83,6 +83,7 @@ void usage(char *cmdname)
   printf ("  --bad-stamp=N     Write bad stamps every so often.\n");
   printf ("  --caen-v775=N     Write CAEN V775 subevent.\n");
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
+  printf ("  --trloii-mtrig    Write TRLO II multi-trigger data.\n");
   printf ("  --multi=N         Max multi-events per event.\n");
   printf ("  --sticky-fraction=N  Write sticky events every ~N events.\n");
   printf ("  --crate=N         Mark all subevents with this crate number.\n");
@@ -119,6 +120,7 @@ struct config
   int  _caen_v775;
   int  _caen_v1290;
 
+  int  _trloii_mtrig;
   int  _max_multi;
 
   int  _crate;
@@ -187,6 +189,9 @@ int main(int argc,char *argv[])
       }
       else if (MATCH_PREFIX("--caen-v1290=",post)) {
 	_conf._caen_v1290 = atol(post);
+      }
+      else if (MATCH_ARG("--trloii-mtrig")) {
+	_conf._trloii_mtrig = 1;
       }
       else if (MATCH_PREFIX("--multi=",post)) {
 	_conf._max_multi = atol(post);
@@ -493,6 +498,11 @@ void write_data_lmd()
       (_conf._max_multi ? _conf._max_multi : 1) *
       _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
 
+  // Payload TRLOII multi-trig
+  if (_conf._trloii_mtrig)
+    min_subevent_total_size +=
+      (_conf._max_multi ? _conf._max_multi : 1) * 3 * sizeof(uint32_t);
+
   // Active and mark words
   if (_conf._sticky_fraction)
     min_subevent_total_size += 3 * sizeof(uint32_t);
@@ -688,6 +698,7 @@ void write_data_lmd()
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
 	  bool write_multi_info = !!_conf._max_multi;
+	  bool write_trloii_mtrig = !!_conf._trloii_mtrig;
 	  bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
 	  bool write_sticky_mark = !!_conf._sticky_fraction;
 
@@ -766,7 +777,8 @@ void write_data_lmd()
 		  write_multi_info = false;
 		}
 	      if (write_caen_vxxx ||
-		  write_sticky_mark)
+		  write_sticky_mark ||
+		  write_trloii_mtrig)
 		{
 		  sev->_header.i_type    = 0x0cae;
 		  sev->_header.i_subtype = 0x0cae;
@@ -779,6 +791,36 @@ void write_data_lmd()
 		  *(p++) = seed;
 
 		  sevp_write = (char *) p;
+
+		  if (write_trloii_mtrig)
+		    {
+		      p = (uint32_t *) sevp_write;
+
+		      uint64_t rstate =
+			(((uint64_t) nev) << 32) | seed;
+
+		      *(p++) = 0xdf000000 | nmulti;
+
+		      for (int j = 0; j < nmulti; j++)
+			{
+			  *(p++) =
+			    (uint32_t) rxs64s(&rstate); // lo time
+			  *(p++) =
+			    (uint32_t) rxs64s(&rstate) & 0x7fffffff; // hi time
+
+			  uint32_t tpat =
+			    rxs64s(&rstate) & 0x00ffffff;
+			  uint32_t trig =
+			    j < nmulti - 1 ? 0 : ev->_info.i_trigger;
+			  uint32_t cnt = j;
+
+			  *(p++) = (cnt << 28) | (trig << 24) | tpat;
+			}
+
+		      sevp_write = (char *) p;
+
+		      write_trloii_mtrig = false;
+		    }
 
 		  for (int geom = 1; geom <= _conf._caen_v775 &&
 			 geom < 32; geom++)
