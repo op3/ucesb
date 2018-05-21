@@ -158,15 +158,24 @@ int user_function(unpack_event *event)
 
 #ifdef UNPACKER_IS_xtst_toggle
 
+/*
+  file_input/empty_file --lmd --events=200 \
+    --max-multi=20 --toggle --caen-v775=6 --trloii-mtrig \
+  | xtst/xtst_toggle --file=-
+ */
+
 external_toggle_info<2> _toggle_info;
 
 int user_function_multi(unpack_event *event)
 {
   uint32 multi_events;
   uint32 adctdc_counter0;
+  uint32 ntgl[2];
 
   multi_events = event->vme.header.multi_events;
   adctdc_counter0 = event->vme.header.multi_adctdc_counter0;
+  ntgl[0] = event->vme.header.toggle.ntgl1;
+  ntgl[1] = event->vme.header.toggle.ntgl2;
 
   map_continuous_multi_events(event->vme.multitrig.multi_events,
                               0/*scaler_counter0*/,
@@ -176,14 +185,35 @@ int user_function_multi(unpack_event *event)
 			    &_toggle_info,
 			    0, multi_events);
 
-  _toggle_info.dump();
+  for (int i = 0; i < 2; i++)
+    if (_toggle_info._maps[i]._cnts != ntgl[i])
+      {
+	ERROR("Mismatching number of toggle #%d "
+	      "events (%d) vs. toggle marks (%d).",
+	      i+1,
+	      ntgl[i], _toggle_info._maps[i]._cnts);
+      }
+
+  /* _toggle_info.dump(); */
 
   for (unsigned int i = 0; i < countof(event->vme.multi_v775mod); i++)
     map_multi_events(event->vme.multi_v775mod[i],
                      adctdc_counter0,
                      multi_events);
 
-  printf ("%d multi-events\n", multi_events);
+  for (unsigned int i = 0; i < countof(event->vme.multi_v775_tgl1); i++)
+    map_multi_events(event->vme.multi_v775_tgl1[i],
+		     &_toggle_info._maps[0],
+                     adctdc_counter0,
+                     multi_events);
+
+  for (unsigned int i = 0; i < countof(event->vme.multi_v775_tgl2); i++)
+    map_multi_events(event->vme.multi_v775_tgl2[i],
+		     &_toggle_info._maps[1],
+                     adctdc_counter0,
+                     multi_events);
+
+  /* printf ("%d multi-events\n", multi_events); */
 
   return multi_events;
 }
@@ -200,10 +230,7 @@ bool ROLLING_TRLO_EVENT_TRIGGER::good_event_counter_offset(uint32 expect) const
 
 uint32 ROLLING_TRLO_EVENT_TRIGGER::get_external_toggle_mask() const
 {
-  uint32 toggle_mask = (status.tpat & 0x03);
-
-  if (!toggle_mask)
-    toggle_mask = 1;
+  uint32 toggle_mask = (status.tpat >> 22) & 0x03;
 
   return toggle_mask;
 }

@@ -84,7 +84,8 @@ void usage(char *cmdname)
   printf ("  --caen-v775=N     Write CAEN V775 subevent.\n");
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
   printf ("  --trloii-mtrig    Write TRLO II multi-trigger data.\n");
-  printf ("  --multi=N         Max multi-events per event.\n");
+  printf ("  --max-multi=N     Max multi-events per event.\n");
+  printf ("  --toggle          Toggle mode for module geom % 3 == 1, 2.\n");
   printf ("  --sticky-fraction=N  Write sticky events every ~N events.\n");
   printf ("  --crate=N         Mark all subevents with this crate number.\n");
   printf ("  --empty-buffers   No events.\n");
@@ -122,6 +123,7 @@ struct config
 
   int  _trloii_mtrig;
   int  _max_multi;
+  int  _toggle;
 
   int  _crate;
 
@@ -193,8 +195,11 @@ int main(int argc,char *argv[])
       else if (MATCH_ARG("--trloii-mtrig")) {
 	_conf._trloii_mtrig = 1;
       }
-      else if (MATCH_PREFIX("--multi=",post)) {
+      else if (MATCH_PREFIX("--max-multi=",post)) {
 	_conf._max_multi = atol(post);
+      }
+      else if (MATCH_ARG("--toggle")) {
+	_conf._toggle = 1;
       }
       else if (MATCH_PREFIX("--crate=",post)) {
 	_conf._crate = atol(post);
@@ -486,7 +491,7 @@ void write_data_lmd()
 
   // Multi-hit headers
   if (_conf._max_multi)
-    min_subevent_total_size += 2 * sizeof(uint32_t);
+    min_subevent_total_size += 4 * sizeof(uint32_t);
 
   // Payload ADCs
   if (_conf._caen_v775)
@@ -763,6 +768,7 @@ void write_data_lmd()
 					       &rstate_badwr);
 		  write_wr_stamp = false;
 		}
+	      uint32_t *p_num_toggle_ev = NULL;
 	      if (write_multi_info)
 		{
 		  uint32_t *p = (uint32_t *) sevp_write;
@@ -771,6 +777,8 @@ void write_data_lmd()
 
 		  *(p++) = nmulti; /* num multi-events */
 		  *(p++) = nev + 0xdef; /* first adc count value */
+		  p_num_toggle_ev = p++;
+		  *p_num_toggle_ev = 0;
 		  
 		  sevp_write = (char *) p;
 
@@ -792,6 +800,12 @@ void write_data_lmd()
 
 		  sevp_write = (char *) p;
 
+		  uint32_t num_toggle_ev[3];
+
+		  num_toggle_ev[0] = nmulti;
+		  num_toggle_ev[1] = _conf._toggle ? 0 : nmulti;
+		  num_toggle_ev[2] = _conf._toggle ? 0 : nmulti;
+
 		  if (write_trloii_mtrig)
 		    {
 		      p = (uint32_t *) sevp_write;
@@ -809,25 +823,49 @@ void write_data_lmd()
 			    (uint32_t) rxs64s(&rstate) & 0x7fffffff; // hi time
 
 			  uint32_t tpat =
-			    rxs64s(&rstate) & 0x00ffffff;
+			    rxs64s(&rstate) & 0x0000ffff;
 			  uint32_t trig =
 			    j < nmulti - 1 ? 0 : ev->_info.i_trigger;
 			  uint32_t cnt = j;
 
-			  *(p++) = (cnt << 28) | (trig << 24) | tpat;
+			  uint32_t toggle_mask = 0;
+
+			  if (_conf._toggle)
+			    {
+			      uint32_t toggle_i = rxs64s(&rstate) & 1;
+
+			      toggle_mask = (1 << toggle_i);
+
+			      if (toggle_mask & 0x01)
+				num_toggle_ev[1]++;
+			      if (toggle_mask & 0x02)
+				num_toggle_ev[2]++;
+			    }
+
+			  *(p++) =
+			    (cnt << 28) | (trig << 24) |
+			    (toggle_mask << 22) | tpat;
 			}
 
 		      sevp_write = (char *) p;
 
+		      if (p_num_toggle_ev && _conf._toggle)
+			*p_num_toggle_ev =
+			  (num_toggle_ev[2] << 16) | num_toggle_ev[1];
+
 		      write_trloii_mtrig = false;
 		    }
+
+		  /* num_toggle_ev[1]++; inject error - too many events */
 
 		  for (int geom = 1; geom <= _conf._caen_v775 &&
 			 geom < 32; geom++)
 		    {
 		      int crate = 0x80 - geom; // for fun!
 
-		      for (int j = 0; j < nmulti; j++)
+		      for (int j = 0; j < num_toggle_ev[geom % 3]
+			     /*_conf._toggle ?
+			       num_toggle_ev[geom % 3] : nmulti*/; j++)
 			{
 			  caen_v775_data cev;
 

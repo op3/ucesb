@@ -93,6 +93,11 @@ XTST_TGL_STD_VME()
 
   UINT32 multi_events;
   UINT32 multi_adctdc_counter0;
+
+  UINT32 toggle {
+    0_15:  ntgl1;
+    16_31: ntgl2;
+  }
 }
 
 ROLLING_TRLO_EVENT_TRIGGER()
@@ -156,8 +161,12 @@ SUBEVENT(XTST_VME_TOGGLE)
 
   select several
     {
-      multi v775mod[0] = VME_CAEN_V775(geom=1,crate=0x7f);
-      multi v775mod[1] = VME_CAEN_V775(geom=2,crate=0x7e);
+      multi v775_tgl1[0] = VME_CAEN_V775(geom=1,crate=0x7f);
+      multi v775_tgl2[0] = VME_CAEN_V775(geom=2,crate=0x7e);
+      multi v775mod[0]   = VME_CAEN_V775(geom=3,crate=0x7d);
+      multi v775_tgl1[1] = VME_CAEN_V775(geom=4,crate=0x7c);
+      multi v775_tgl2[1] = VME_CAEN_V775(geom=5,crate=0x7b);
+      multi v775mod[1]   = VME_CAEN_V775(geom=6,crate=0x7a);
     }
 
   UINT32 separator2 NOENCODE
