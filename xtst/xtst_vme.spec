@@ -95,6 +95,47 @@ XTST_TGL_STD_VME()
   UINT32 multi_adctdc_counter0;
 }
 
+ROLLING_TRLO_EVENT_TRIGGER()
+{
+  MEMBER(DATA32 lo);
+  MEMBER(DATA32 hi);
+  MEMBER(DATA32 tpat);
+  
+  UINT32 time_lo NOENCODE
+  {
+    0_31: val; // to be similar as time_hi
+    ENCODE(lo, (value=val));
+  }
+  UINT32 time_hi NOENCODE
+  {
+    0_30: val;
+    31:   missed_event = 0; // or we had serious issues; bad event
+    ENCODE(hi, (value=val));
+  }
+  UINT32 status
+  {
+    0_23:  tpat;
+    24_27: trig;
+    28_31: count;
+
+    ENCODE(tpat, (value=tpat));
+  };
+}
+
+TRLO_SHADOW_MULTI_TRIGGERS()
+{
+  UINT32 header
+  {
+    0_16: events;
+    24_31: 0xdf;
+  }
+
+  list(0 <= index < header.events)
+    {
+      multi events = ROLLING_TRLO_EVENT_TRIGGER();
+    }
+}
+
 SUBEVENT(XTST_VME_TOGGLE)
 {
   header = XTST_TGL_STD_VME();
@@ -107,6 +148,11 @@ SUBEVENT(XTST_VME_TOGGLE)
   UINT32 seed;
 
   // UINT32 adc_cnt0;
+
+  select several
+  {
+    multitrig = TRLO_SHADOW_MULTI_TRIGGERS();
+  }
 
   select several
     {

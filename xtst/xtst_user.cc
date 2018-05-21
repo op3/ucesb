@@ -166,13 +166,28 @@ int user_function_multi(unpack_event *event)
   multi_events = event->vme.header.multi_events;
   adctdc_counter0 = event->vme.header.multi_adctdc_counter0;
 
+  map_continuous_multi_events(event->vme.multitrig.multi_events,
+                              0/*scaler_counter0*/,
+                              multi_events);
+
   for (unsigned int i = 0; i < countof(event->vme.multi_v775mod); i++)
     map_multi_events(event->vme.multi_v775mod[i],
                      adctdc_counter0,
                      multi_events);
 
+  // printf ("%d multi-events\n", multi_events);
 
   return multi_events;
+}
+
+uint32 ROLLING_TRLO_EVENT_TRIGGER::get_event_counter() const
+{
+  return status.count;
+}
+
+bool ROLLING_TRLO_EVENT_TRIGGER::good_event_counter_offset(uint32 expect) const
+{
+  return status.count <= 0xf;
 }
 
 #endif//UNPACKER_IS_xtst_toggle
