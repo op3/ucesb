@@ -158,6 +158,8 @@ int user_function(unpack_event *event)
 
 #ifdef UNPACKER_IS_xtst_toggle
 
+external_toggle_info<2> _toggle_info;
+
 int user_function_multi(unpack_event *event)
 {
   uint32 multi_events;
@@ -170,12 +172,18 @@ int user_function_multi(unpack_event *event)
                               0/*scaler_counter0*/,
                               multi_events);
 
+  build_external_toggle_map(event->vme.multitrig.multi_events,
+			    &_toggle_info,
+			    0, multi_events);
+
+  _toggle_info.dump();
+
   for (unsigned int i = 0; i < countof(event->vme.multi_v775mod); i++)
     map_multi_events(event->vme.multi_v775mod[i],
                      adctdc_counter0,
                      multi_events);
 
-  // printf ("%d multi-events\n", multi_events);
+  printf ("%d multi-events\n", multi_events);
 
   return multi_events;
 }
@@ -188,6 +196,16 @@ uint32 ROLLING_TRLO_EVENT_TRIGGER::get_event_counter() const
 bool ROLLING_TRLO_EVENT_TRIGGER::good_event_counter_offset(uint32 expect) const
 {
   return status.count <= 0xf;
+}
+
+uint32 ROLLING_TRLO_EVENT_TRIGGER::get_external_toggle_mask() const
+{
+  uint32 toggle_mask = (status.tpat & 0x03);
+
+  if (!toggle_mask)
+    toggle_mask = 1;
+
+  return toggle_mask;
 }
 
 #endif//UNPACKER_IS_xtst_toggle

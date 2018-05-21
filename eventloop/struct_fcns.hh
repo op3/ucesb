@@ -49,6 +49,7 @@ struct pretty_dump_info;
   uint32 get_event_counter() const; /* only implemented for some modules! */ \
   uint32 get_event_counter_offset(uint32 start) const; /* only implemented for some modules! */ \
   bool good_event_counter_offset(uint32 expect) const; /* only implemented for some modules! */ \
+  uint32 get_external_toggle_mask() const; /* only implemented for some modules! */ \
   ;
 
 #define UNIT(x)   // replace with nothing, handled by PSDC
