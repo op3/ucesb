@@ -39,4 +39,8 @@
 # endif
 #endif
 
+#if __LITTLE_ENDIAN == __BIG_ENDIAN
+# error __LITTLE_ENDIAN == __BIG_ENDIAN
+#endif
+
 #endif//__ENDIAN_HH__
