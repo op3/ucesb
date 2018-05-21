@@ -82,3 +82,42 @@ SUBEVENT(XTST_VME)
       mdpp16 = VME_MESYTEC_MDPP16(geom=31);
     }
 }
+
+#ifdef UNPACKER_IS_xtst_toggle
+
+XTST_TGL_STD_VME()
+{
+  UINT32 separator {
+    0_31: 9;
+  }
+
+  UINT32 multi_events;
+  UINT32 multi_adctdc_counter0;
+}
+
+SUBEVENT(XTST_VME_TOGGLE)
+{
+  header = XTST_TGL_STD_VME();
+
+  UINT32 separator1 NOENCODE
+  {
+    0_31: 0;
+  }
+
+  UINT32 seed;
+
+  // UINT32 adc_cnt0;
+
+  select several
+    {
+      multi v775mod[0] = VME_CAEN_V775(geom=1,crate=0x7f);
+      multi v775mod[1] = VME_CAEN_V775(geom=2,crate=0x7e);
+    }
+
+  UINT32 separator2 NOENCODE
+  {
+    0_31: 0;
+  }
+}
+
+#endif

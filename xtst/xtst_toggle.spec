@@ -1,6 +1,8 @@
+// -*- C++ -*-
+
 /* This file is part of UCESB - a tool for data unpacking and processing.
  *
- * Copyright (C) 2016  Haakan T. Johansson  <f96hajo@chalmers.se>
+ * Copyright (C) 2016  GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,25 +20,11 @@
  * MA  02110-1301  USA
  */
 
-#ifndef __CONTROL_HH__
-#define __CONTROL_HH__
+#include "spec/spec.spec"
 
-#ifdef UNPACKER_IS_xtst
+#include "xtst_vme.spec"
 
-#define INIT_USER_FUNCTION    init_function
-
-#define STICKY_SUBEVENT_USER_FUNCTION    sticky_subevent_user_function
-
-#define UNPACK_EVENT_USER_FUNCTION    user_function
-
-#endif//UNPACKER_IS_xtst
-
-#ifdef UNPACKER_IS_xtst_toggle
-
-#define UNPACK_EVENT_USER_FUNCTION  user_function_multi
-
-#define USING_MULTI_EVENTS 1
-
-#endif//UNPACKER_IS_xtst_toggle
-
-#endif//__CONTROL_HH__
+EVENT
+{
+  vme = XTST_VME_TOGGLE(type=0x0cae,subtype=0x0cae);
+}

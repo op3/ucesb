@@ -83,6 +83,7 @@ void usage(char *cmdname)
   printf ("  --bad-stamp=N     Write bad stamps every so often.\n");
   printf ("  --caen-v775=N     Write CAEN V775 subevent.\n");
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
+  printf ("  --multi=N         Max multi-events per event.\n");
   printf ("  --sticky-fraction=N  Write sticky events every ~N events.\n");
   printf ("  --crate=N         Mark all subevents with this crate number.\n");
   printf ("  --empty-buffers   No events.\n");
@@ -117,6 +118,8 @@ struct config
 
   int  _caen_v775;
   int  _caen_v1290;
+
+  int  _max_multi;
 
   int  _crate;
 
@@ -184,6 +187,9 @@ int main(int argc,char *argv[])
       }
       else if (MATCH_PREFIX("--caen-v1290=",post)) {
 	_conf._caen_v1290 = atol(post);
+      }
+      else if (MATCH_PREFIX("--multi=",post)) {
+	_conf._max_multi = atol(post);
       }
       else if (MATCH_PREFIX("--crate=",post)) {
 	_conf._crate = atol(post);
@@ -431,6 +437,7 @@ void write_data_lmd()
   uint64_t rstate_badtitris = 4;
   uint64_t rstate_badwr = 5;
   uint64_t rstate_sim_caen = 6;
+  uint64_t rstate_multi = 7;
 
   uint64_t timeslot_nev = 0;
   struct timeval timeslot_start;
@@ -467,16 +474,23 @@ void write_data_lmd()
     min_subevent_total_size += 5 * sizeof(uint32_t);
 
   // Separators
-  if (_conf._caen_v775 || _conf._caen_v1290 ||
+  if (_conf._max_multi ||
+      _conf._caen_v775 || _conf._caen_v1290 ||
       _conf._sticky_fraction)
-    min_subevent_total_size += 3 * sizeof(uint32_t);
+    min_subevent_total_size += 4 * sizeof(uint32_t);
+
+  // Multi-hit headers
+  if (_conf._max_multi)
+    min_subevent_total_size += 2 * sizeof(uint32_t);
 
   // Payload ADCs
   if (_conf._caen_v775)
     min_subevent_total_size +=
+      (_conf._max_multi ? _conf._max_multi : 1) *
       _conf._caen_v775 * (2 + 32) * sizeof(uint32_t);
   if (_conf._caen_v1290)
     min_subevent_total_size +=
+      (_conf._max_multi ? _conf._max_multi : 1) *
       _conf._caen_v1290 * (3 + 32 * 32) * sizeof(uint32_t);
 
   // Active and mark words
@@ -673,6 +687,7 @@ void write_data_lmd()
 
 	  bool write_titris_stamp = !!_conf._titris_stamp;
 	  bool write_wr_stamp = !!_conf._wr_stamp;
+	  bool write_multi_info = !!_conf._max_multi;
 	  bool write_caen_vxxx = !!_conf._caen_v775 || !!_conf._caen_v1290;
 	  bool write_sticky_mark = !!_conf._sticky_fraction;
 
@@ -682,6 +697,7 @@ void write_data_lmd()
 
 	  while ((write_titris_stamp ||
 		  write_wr_stamp ||
+		  write_multi_info ||
 		  write_caen_vxxx ||
 		  write_sticky_mark ||
 		  evp_end - (char*) ev < event_size) &&
@@ -720,6 +736,10 @@ void write_data_lmd()
 	      sev->h_subcrate = _conf._crate;
 	      sev->i_procid   = 0;
 
+	      uint32 nmulti =
+		_conf._max_multi > 1 ?
+		(uint32) (rxs64s(&rstate_multi) % (_conf._max_multi-1))+1 : 1;
+
 	      if (write_titris_stamp)
 		{
 		  sevp_write = create_titris_stamp(sevp_write,
@@ -731,6 +751,19 @@ void write_data_lmd()
 		  sevp_write = create_wr_stamp(sevp_write,
 					       &rstate_badwr);
 		  write_wr_stamp = false;
+		}
+	      if (write_multi_info)
+		{
+		  uint32_t *p = (uint32_t *) sevp_write;
+
+		  *(p++) = 9; /* separator */
+
+		  *(p++) = nmulti; /* num multi-events */
+		  *(p++) = nev + 0xdef; /* first adc count value */
+		  
+		  sevp_write = (char *) p;
+
+		  write_multi_info = false;
 		}
 	      if (write_caen_vxxx ||
 		  write_sticky_mark)
@@ -752,14 +785,17 @@ void write_data_lmd()
 		    {
 		      int crate = 0x80 - geom; // for fun!
 
-		      caen_v775_data cev;
+		      for (int j = 0; j < nmulti; j++)
+			{
+			  caen_v775_data cev;
 
-		      create_caen_v775_event(&cev, geom, crate,
-					     nev + 0xdef, seed);
+			  create_caen_v775_event(&cev, geom, crate,
+						 nev + j + 0xdef, seed);
 
-		      sevp_write = (char *)
-			create_caen_v775_data((uint32 *) sevp_write,
-					      &cev, geom, crate);
+			  sevp_write = (char *)
+			    create_caen_v775_data((uint32 *) sevp_write,
+						  &cev, geom, crate);
+			}
 		    }
 
 		  p = (uint32_t *) sevp_write;
@@ -771,14 +807,17 @@ void write_data_lmd()
 		  for (int geom = 1; geom <= _conf._caen_v1290 &&
 			 geom < 32; geom++)
 		    {
-		      caen_v1290_data cev;
+		      for (int j = 0; j < nmulti; j++)
+			{
+			  caen_v1290_data cev;
 
-		      create_caen_v1290_event(&cev, geom,
-					      nev + 0xdef, seed);
+			  create_caen_v1290_event(&cev, geom,
+						  nev + j + 0xdef, seed);
 
-		      sevp_write = (char *)
-			create_caen_v1290_data((uint32 *) sevp_write,
-					       &cev, geom);
+			  sevp_write = (char *)
+			    create_caen_v1290_data((uint32 *) sevp_write,
+						   &cev, geom);
+			}
 		    }
 
 		  if (write_sticky_mark)

@@ -148,7 +148,7 @@ void map_multi_events(multi_chunks<T,T_map> &module,
   map_multi_events<T,T_map,1>(module, toggle_map, counter_start, events);
 }
 
-template<typename T,typename T_map,int handle_toggle>
+template<typename T,typename T_map>
 void map_continuous_multi_events(multi_chunks<T,T_map> &module,
 				 uint32 counter_start,
 				 uint32 events)
@@ -195,14 +195,26 @@ void external_toggle_info<n_toggle>::clear_alloc(uint32 events)
 		new_size);
 	}
 
-      _alloc_events = events;
+      _alloc_events = new_size;
 
       for (int i = 1; i < n_toggle; i++)
-	_maps[i]._cnt_to_event = _maps[0]._cnt_to_event + n_toggle * i;
+	_maps[i]._cnt_to_event = _maps[0]._cnt_to_event + new_size * i;
     }
 
   for (int i = 0; i < n_toggle; i++)
     _maps[i]._cnts = 0;
+}
+
+template<int n_toggle>
+void external_toggle_info<n_toggle>::dump() const
+{
+  for (int i = 0; i < n_toggle; i++)
+    {
+      printf ("toggle %d: %d items:", i, _maps[i]._cnts);
+      for (unsigned int j = 0; j < _maps[i]._cnts; j++)
+	printf (" %d", _maps[i]._cnt_to_event[j]);
+      printf ("\n");
+    }
 }
 
 template<typename T,typename T_map,int n_toggle>
@@ -236,9 +248,11 @@ void build_external_toggle_map(multi_chunks<T,T_map> &module,
       for (int toggle_i = 0; toggle_i < n_toggle; toggle_i++)
 	if (toggle_mask & (1 << toggle_i))
 	  {
-	    int cnt = toggle_info->_maps[toggle_i]._cnts++;
+	    external_toggle_map &toggle_map = toggle_info->_maps[toggle_i];
 
-	    toggle_info->_maps[toggle_i]._cnt_to_event[cnt] = i;
+	    int cnt = toggle_map._cnts++;
+
+	    toggle_map._cnt_to_event[cnt] = i;
 	  }
     }
 }

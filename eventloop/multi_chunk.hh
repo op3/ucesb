@@ -105,6 +105,8 @@ public:
 public:
   void clear_alloc(uint32 events);
 
+  void dump() const;
+
 public:
   uint32              _alloc_events;
   external_toggle_map _maps[n_toggle];

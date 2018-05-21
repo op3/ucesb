@@ -24,6 +24,12 @@
 #include "lmd_event.hh"
 #include <stdint.h>
 
+#ifdef UNPACKER_IS_xtst_toggle
+#include "multi_chunk_fcn.hh"
+#endif
+
+#ifdef UNPACKER_IS_xtst
+
 #define NUM_CRATES  16
 
 static uint32_t _sticky_active[NUM_CRATES];
@@ -147,3 +153,26 @@ int user_function(unpack_event *event)
 
   return 1;
 }
+
+#endif//UNPACKER_IS_xtst
+
+#ifdef UNPACKER_IS_xtst_toggle
+
+int user_function_multi(unpack_event *event)
+{
+  uint32 multi_events;
+  uint32 adctdc_counter0;
+
+  multi_events = event->vme.header.multi_events;
+  adctdc_counter0 = event->vme.header.multi_adctdc_counter0;
+
+  for (unsigned int i = 0; i < countof(event->vme.multi_v775mod); i++)
+    map_multi_events(event->vme.multi_v775mod[i],
+                     adctdc_counter0,
+                     multi_events);
+
+
+  return multi_events;
+}
+
+#endif//UNPACKER_IS_xtst_toggle

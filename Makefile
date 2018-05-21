@@ -41,7 +41,9 @@ UNPACKERS=land xtst rpc2006 is446 is430_05 is445_08 labbet1 mwpclab \
 
 UNPACKERS_is446=is446_toggle is446_tglarray
 
-all: $(UNPACKERS) $(UNPACKERS_is446)
+UNPACKERS_xtst=xtst_toggle
+
+all: $(UNPACKERS) $(UNPACKERS_is446) $(UNPACKERS_xtst)
 
 #########################################################
 # Submakefiles that the programs depend on
@@ -161,6 +163,12 @@ endif
 .PHONY: xtst_real
 xtst_real: $(DEPENDENCIES)
 	@$(MAKE) -C xtst -f ../makefile_unpacker.inc UNPACKER=xtst
+
+#########################################################
+
+.PHONY: xtst_toggle
+xtst_toggle: $(DEPENDENCIES)
+	@$(MAKE) -C xtst -f ../makefile_unpacker.inc UNPACKER=$@
 
 #########################################################
 
@@ -388,7 +396,8 @@ ridf: $(DEPENDENCIES)
 
 clean: clean-dir-ucesbgen clean-dir-psdc clean-dir-rfiocmd clean-dir-hbook \
 	$(UNPACKERS:%=clean-unp-%) $(UNPACKERS_EXT:%=clean-unp-%) \
-	$(UNPACKERS_is446:%=clean-unp-is446-%)
+	$(UNPACKERS_is446:%=clean-unp-is446-%) \
+	$(UNPACKERS_xtst:%=clean-unp-xtst-%)
 	rm -rf gen/acc_auto_def gen/
 	rm -f xtst/xtst.spec.d xtst/*.o xtst/*.d xtst/*.dep
 	rm -f file_input/empty_file file_input/tdas_conv
@@ -405,6 +414,9 @@ clean-unp-%:
 
 clean-unp-is446-%:
 	$(MAKE) -C is446 -f ../makefile_unpacker.inc UNPACKER=$* clean
+
+clean-unp-xtst-%:
+	$(MAKE) -C xtst -f ../makefile_unpacker.inc UNPACKER=$* clean
 
 all-clean: clean
 	rm -rf land/gen
