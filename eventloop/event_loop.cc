@@ -359,7 +359,7 @@ void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header, int a_tsid,
 {
   bool found_hit = false;
   for (std::vector<time_slope>::const_iterator it =
-      _conf._time_slope_vector.begin(); it != _conf._time_slope_vector.end();
+      _conf_time_slope_vector.begin(); it != _conf_time_slope_vector.end();
       ++it) {
 #define APPLY_TIMESTAMP_SLOPE_SKIP(ts_part, event_part)\
     (it->ts_part != -1 && it->ts_part != event_part)

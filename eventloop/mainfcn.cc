@@ -209,6 +209,10 @@ config_calib_vect _conf_calib;
 
 config_command_vect _corr_commands;
 
+#ifdef USE_LMD_INPUT
+std::vector<time_slope> _conf_time_slope_vector;
+#endif
+
 thread_info _ti_info;
 
 thread_info_window *_ti_info_window = NULL;
@@ -494,7 +498,7 @@ parse_time_slope_options_next:
   if (ts.mult == -1 && ts.add == -1) {
     ERROR("Time-slope has no modifiers \"%s\".", command);
   }
-  _conf._time_slope_vector.push_back(ts);
+  _conf_time_slope_vector.push_back(ts);
 }
 #endif
 

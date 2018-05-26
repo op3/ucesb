@@ -96,10 +96,6 @@ struct config_opts
 #endif
 
 #ifdef USE_LMD_INPUT
-  std::vector<time_slope> _time_slope_vector;
-#endif
-
-#ifdef USE_LMD_INPUT
   // Data dest
   struct
   {
@@ -144,5 +140,9 @@ extern config_output_vect _outputs;
 extern config_calib_vect _conf_calib;
 
 extern config_command_vect _corr_commands;
+
+#ifdef USE_LMD_INPUT
+extern std::vector<time_slope> _conf_time_slope_vector;
+#endif
 
 #endif /* __CONFIG_HH__ */
