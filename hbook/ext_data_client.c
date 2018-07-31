@@ -114,6 +114,7 @@ struct ext_data_client
   uint32_t *_raw_swapped;
   uint32_t  _max_raw_words;
 
+  uint32_t _orig_xor_sum_msg;
   size_t _orig_struct_size;
   void  *_orig_array; /* for mapping */
 
@@ -812,6 +813,7 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_raw_swapped = NULL;
   client->_max_raw_words = 0;
 
+  client->_orig_xor_sum_msg = 0;
   client->_orig_struct_size = 0;
   client->_orig_array = NULL;
   client->_sort_u32_words = 0;
@@ -1734,7 +1736,6 @@ int ext_data_setup(struct ext_data_client *client,
 	case EXTERNAL_WRITER_BUF_SETUP_DONE:
 	case EXTERNAL_WRITER_BUF_SETUP_DONE_WR:
 	  {
-	    uint32_t xor_sum_msg;
 	    uint32_t *p = (uint32_t *) (header+1);
 
 	    if (ntohl(header->_length) <
@@ -1746,18 +1747,7 @@ int ext_data_setup(struct ext_data_client *client,
 		return -1;
 	      }
 
-	    xor_sum_msg = ntohl(p[0]);
-
-	    if (slo)
-	      {
-		if (xor_sum_msg != slo->_items[0]._xor)
-		  {
-		    client->_last_error =
-		      "Bad setup done message xor during setup.";
-		    errno = EPROTO;
-		    return -1;
-		  }
-	      }
+	    client->_orig_xor_sum_msg = ntohl(p[0]);
 
 	    /* Consume the message. */
 	    client->_buf_used += ntohl(header->_length);
@@ -1781,6 +1771,17 @@ int ext_data_setup(struct ext_data_client *client,
 	"Bad alloc message struct size during setup.";
       errno = EPROTO;
       return -1;
+    }
+
+  if (slo)
+    {
+      if (slo->_items[0]._xor != client->_orig_xor_sum_msg)
+	{
+	  client->_last_error =
+	    "Bad setup done message xor vs. provided during setup.";
+	  errno = EPROTO;
+	  return -1;
+	}
     }
 
   if (struct_info)
