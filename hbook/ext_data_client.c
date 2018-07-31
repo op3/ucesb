@@ -1762,45 +1762,6 @@ int ext_data_setup(struct ext_data_client *client,
 	    /* Consume the message. */
 	    client->_buf_used += ntohl(header->_length);
 
-	    if (struct_info)
-	      {
-		int ret;
-		int all_to_same_from;
-
-		/* Create mapping between the two structures. */
-
-		ret = ext_data_struct_match_items(client,
-						  client->_struct_info_msg,
-						  struct_info,
-						  &all_to_same_from);
-
-		if (ret)
-		  return ret; /* -1 ? */
-
-		/* We as an optimisation do *not* use the temporary
-		 * orig_array buffer if we have an exact structure
-		 * match.  It must also match in size.
-		 */
-
-		if (!all_to_same_from ||
-		    client->_orig_struct_size != client->_struct_size)
-		  {
-		    client->_orig_array = malloc (client->_orig_struct_size);
-
-		    if (client->_orig_array == NULL)
-		      {
-			client->_last_error =
-			  "Memory allocation failure (orig array).";
-			errno = ENOMEM;
-			return -1;
-		      }
-		  }
-	      }
-
-
-	    /* It's ok to read data. */
-	    client->_setup = 1;
-
 	    /* Goto while we develop the movement of the message handling. */
 	    goto messages_done;
 	  }
@@ -1821,6 +1782,44 @@ int ext_data_setup(struct ext_data_client *client,
       errno = EPROTO;
       return -1;
     }
+
+  if (struct_info)
+    {
+      int ret;
+      int all_to_same_from;
+
+      /* Create mapping between the two structures. */
+
+      ret = ext_data_struct_match_items(client,
+					client->_struct_info_msg,
+					struct_info,
+					&all_to_same_from);
+
+      if (ret)
+	return ret; /* -1 ? */
+
+      /* We as an optimisation do *not* use the temporary
+       * orig_array buffer if we have an exact structure
+       * match.  It must also match in size.
+       */
+
+      if (!all_to_same_from ||
+	  client->_orig_struct_size != client->_struct_size)
+	{
+	  client->_orig_array = malloc (client->_orig_struct_size);
+
+	  if (client->_orig_array == NULL)
+	    {
+	      client->_last_error =
+		"Memory allocation failure (orig array).";
+	      errno = ENOMEM;
+	      return -1;
+	    }
+	}
+    }
+
+  /* It's ok to read data. */
+  client->_setup = 1;
 
   return 0;
 }
