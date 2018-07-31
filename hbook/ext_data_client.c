@@ -1810,7 +1810,8 @@ int ext_data_setup(struct ext_data_client *client,
 	    /* It's ok to read data. */
 	    client->_setup = 1;
 
-	    return 0;
+	    /* Goto while we develop the movement of the message handling. */
+	    goto messages_done;
 	  }
 	}
 
@@ -1818,6 +1819,10 @@ int ext_data_setup(struct ext_data_client *client,
 
       client->_buf_used += ntohl(header->_length);
     }
+
+ messages_done:
+
+  return 0;
 }
 
 /* This function is for internal use.  It is shared with the
