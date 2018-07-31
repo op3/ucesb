@@ -1544,15 +1544,6 @@ int ext_data_setup(struct ext_data_client *client,
 
 	    client->_orig_struct_size = ntohl(p[0]);
 
-	    if (!struct_info &&
-		client->_struct_size != client->_orig_struct_size)
-	      {
-		client->_last_error =
-		  "Bad alloc message struct size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
 	    break;
 	  }
 
@@ -1821,6 +1812,15 @@ int ext_data_setup(struct ext_data_client *client,
     }
 
  messages_done:
+
+  if (!struct_info &&
+      client->_struct_size != client->_orig_struct_size)
+    {
+      client->_last_error =
+	"Bad alloc message struct size during setup.";
+      errno = EPROTO;
+      return -1;
+    }
 
   return 0;
 }
