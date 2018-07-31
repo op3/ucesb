@@ -131,6 +131,8 @@ struct ext_data_client
   uint32_t *_map_list;
   uint32_t *_map_list_end;
 
+  struct ext_data_structure_info *_struct_info_msg;
+
   const char *_last_error;
 
   int _setup;
@@ -782,6 +784,7 @@ static void ext_data_free(struct ext_data_client *client)
   free(client->_pack_list);
   free(client->_reverse_pack);
   free(client->_map_list);
+  ext_data_struct_info_free(client->_struct_info_msg);
   free(client); /* Note! we also free the structure itself. */
 }
 
@@ -824,6 +827,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
 
   client->_map_list = NULL;
   client->_map_list_end = NULL;
+
+  client->_struct_info_msg = NULL;
 
   client->_last_error = NULL;
 
@@ -1191,7 +1196,6 @@ int ext_data_setup(struct ext_data_client *client,
     (const struct ext_data_structure_layout *) struct_layout_info;
   const struct ext_data_structure_layout_item *slo_items;
   const uint32_t *slo_pack_list;
-  struct ext_data_structure_info *struct_info_msg = NULL;
   uint32_t i;
 
   if (!client)
@@ -1469,16 +1473,18 @@ int ext_data_setup(struct ext_data_client *client,
       return 0;
     }
 
-  if (struct_info)
-    {
-      struct_info_msg = ext_data_struct_info_alloc();
+  /* Retain the information to be able to handle multiple setups, in
+   * arbitrary order.  Todo: need to allocate per ntuple requested.
+   */
+  {
+    client->_struct_info_msg = ext_data_struct_info_alloc();
 
-      if (struct_info_msg == NULL)
-	{
-	  client->_last_error = "Memory allocation failure (struct info).";
-	  return -1; // errno already set
-	}
-    }
+    if (client->_struct_info_msg == NULL)
+      {
+	client->_last_error = "Memory allocation failure (struct info).";
+	return -1; // errno already set
+      }
+  }
 
   /* Before we're happy with the server, we want to see the magic and
    * the setup done event, so that the structure xor_sum can be
@@ -1610,9 +1616,6 @@ int ext_data_setup(struct ext_data_client *client,
 	  break;
 
 	case EXTERNAL_WRITER_BUF_CREATE_BRANCH:
-	  if (!struct_info)
-	    break;
-
 	  {
 	    uint32_t offset;
 	    uint32_t length;
@@ -1657,7 +1660,7 @@ int ext_data_setup(struct ext_data_client *client,
 
 	    //printf ("Q: %s %s %s\n",block, var_name, var_ctrl_name);
 
-	    ext_data_struct_info_item(struct_info_msg,
+	    ext_data_struct_info_item(client->_struct_info_msg,
 				      offset, length,
 				      var_type,
 				      "", -1,
@@ -1776,14 +1779,12 @@ int ext_data_setup(struct ext_data_client *client,
 		/* Create mapping between the two structures. */
 
 		ret = ext_data_struct_match_items(client,
-						  struct_info_msg,
+						  client->_struct_info_msg,
 						  struct_info,
 						  &all_to_same_from);
 
 		if (ret)
 		  return ret; /* -1 ? */
-
-		ext_data_struct_info_free(struct_info_msg);
 
 		/* We as an optimisation do *not* use the temporary
 		 * orig_array buffer if we have an exact structure
