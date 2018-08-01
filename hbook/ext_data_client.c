@@ -99,19 +99,11 @@ struct ext_data_structure_info
   const char *_last_error;
 };
 
-struct ext_data_client
+struct ext_data_client_struct
 {
-  int _fd;
-  int _fd_close; /* If using STDIN, we are not to close it, so -1. */
-
-  char  *_buf;
-  size_t _buf_alloc;
-  size_t _buf_used;
-  size_t _buf_filled;
-
-  uint32_t *_raw_ptr;
-  uint32_t  _raw_words;
-  uint32_t *_raw_swapped;
+  /* Todo: the following controls _raw_ptr in ext_data_client.  With
+   * several structures...?
+   */
   uint32_t  _max_raw_words;
 
   uint32_t _orig_xor_sum_msg;
@@ -133,6 +125,24 @@ struct ext_data_client
   uint32_t *_map_list_end;
 
   struct ext_data_structure_info *_struct_info_msg;
+};
+
+struct ext_data_client
+{
+  int _fd;
+  int _fd_close; /* If using STDIN, we are not to close it, so -1. */
+
+  char  *_buf;
+  size_t _buf_alloc;
+  size_t _buf_used;
+  size_t _buf_filled;
+
+  /* Todo: the following is never allocated?? */
+  uint32_t *_raw_ptr;
+  uint32_t  _raw_words;
+  uint32_t *_raw_swapped;
+
+  struct ext_data_client_struct _structure;
 
   const char *_last_error;
 
@@ -360,6 +370,7 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 				const struct ext_data_structure_info *to,
 				int *all_to_same_from)
 {
+  struct ext_data_client_struct *clistr = &client->_structure;
   struct ext_data_structure_item *item;
   int items, ctrl_items;
   size_t map_list_items;
@@ -522,21 +533,21 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 
   /* Allocate the map list. */
 
-  client->_map_list =
+  clistr->_map_list =
     (uint32_t *) malloc (map_list_items * sizeof(uint32_t));
 
-  if (!client->_map_list)
+  if (!clistr->_map_list)
     {
       client->_last_error = "Memory allocation failure (map list).";
       errno = ENOMEM;
       return -1;
     }
 
-  client->_map_list_end = client->_map_list + map_list_items;
+  clistr->_map_list_end = clistr->_map_list + map_list_items;
 
   /* And fill the map list. */
 
-  uint32_t *o    = client->_map_list;
+  uint32_t *o    = clistr->_map_list;
 
   item = to->_items;
 
@@ -584,11 +595,11 @@ int ext_data_struct_match_items(struct ext_data_client *client,
       item = item->_next_off_item;
     }
 
-  assert (o == client->_map_list_end);
+  assert (o == clistr->_map_list_end);
 
-  o = client->_map_list;
+  o = clistr->_map_list;
 
-  for (o = client->_map_list; o < client->_map_list_end; o++)
+  for (o = clistr->_map_list; o < clistr->_map_list_end; o++)
     DEBUG_MATCHING("0x%08x\n", *o);
 
   return 0;
@@ -604,8 +615,9 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 static void ext_data_struct_map_items(struct ext_data_client *client,
 				      char *dest, char *src)
 {
-  uint32_t *o    = client->_map_list;
-  uint32_t *oend = client->_map_list_end;
+  const struct ext_data_client_struct *clistr = &client->_structure;
+  uint32_t *o    = clistr->_map_list;
+  uint32_t *oend = clistr->_map_list_end;
 
   while (o < oend)
     {
@@ -780,18 +792,24 @@ ext_data_peek_message(struct ext_data_client *client)
 
 static void ext_data_free(struct ext_data_client *client)
 {
+  struct ext_data_client_struct *clistr = &client->_structure;
+  
   free(client->_buf);
-  free(client->_orig_array);
-  free(client->_pack_list);
-  free(client->_reverse_pack);
-  free(client->_map_list);
-  ext_data_struct_info_free(client->_struct_info_msg);
+  
+  free(clistr->_orig_array);
+  free(clistr->_pack_list);
+  free(clistr->_reverse_pack);
+  free(clistr->_map_list);
+  
+  ext_data_struct_info_free(clistr->_struct_info_msg);
+  
   free(client); /* Note! we also free the structure itself. */
 }
 
 struct ext_data_client *ext_data_create_client(size_t buf_alloc)
 {
   struct ext_data_client *client;
+  struct ext_data_client_struct *clistr;
 
   client = (struct ext_data_client *) malloc (sizeof (struct ext_data_client));
 
@@ -800,6 +818,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
       errno = ENOMEM;
       return NULL;
     }
+
+  clistr = &client->_structure;
 
   client->_fd_close = -1;
 
@@ -811,24 +831,24 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_raw_ptr = NULL;
   client->_raw_words = 0;
   client->_raw_swapped = NULL;
-  client->_max_raw_words = 0;
+  clistr->_max_raw_words = 0;
 
-  client->_orig_xor_sum_msg = 0;
-  client->_orig_struct_size = 0;
-  client->_orig_array = NULL;
-  client->_sort_u32_words = 0;
-  client->_struct_size = 0;
-  client->_max_pack_items = 0;
-  client->_static_pack_items = 0;
+  clistr->_orig_xor_sum_msg = 0;
+  clistr->_orig_struct_size = 0;
+  clistr->_orig_array = NULL;
+  clistr->_sort_u32_words = 0;
+  clistr->_struct_size = 0;
+  clistr->_max_pack_items = 0;
+  clistr->_static_pack_items = 0;
 
-  client->_pack_list = NULL;
-  client->_pack_list_end = NULL;
-  client->_reverse_pack = NULL;
+  clistr->_pack_list = NULL;
+  clistr->_pack_list_end = NULL;
+  clistr->_reverse_pack = NULL;
 
-  client->_map_list = NULL;
-  client->_map_list_end = NULL;
+  clistr->_map_list = NULL;
+  clistr->_map_list_end = NULL;
 
-  client->_struct_info_msg = NULL;
+  clistr->_struct_info_msg = NULL;
 
   client->_last_error = NULL;
 
@@ -1192,6 +1212,7 @@ const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
 
 int ext_data_setup_messages(struct ext_data_client *client)
 {
+  struct ext_data_client_struct *clistr = &client->_structure;
 
   for ( ; ; )
     {
@@ -1244,7 +1265,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
-	    client->_orig_struct_size = ntohl(p[0]);
+	    clistr->_orig_struct_size = ntohl(p[0]);
 
 	    break;
 	  }
@@ -1286,16 +1307,16 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		  }
 
 		sort_u32_words = ntohl(p[2]);
-		client->_sort_u32_words = sort_u32_words;
+		clistr->_sort_u32_words = sort_u32_words;
 
 		max_raw_words = ntohl(p[3]);
-		client->_max_raw_words = max_raw_words;
+		clistr->_max_raw_words = max_raw_words;
 
 		if (ntohl(0x01020304) != 0x01020304)
 		  {
 		    /* We need a temporary array. */
 		    client->_raw_swapped = (uint32_t *)
-		      malloc (client->_max_raw_words * sizeof (uint32_t));
+		      malloc (clistr->_max_raw_words * sizeof (uint32_t));
 		    if (!client->_raw_swapped)
 		      {
 			client->_last_error =
@@ -1353,7 +1374,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 
 	    //printf ("Q: %s %s %s\n",block, var_name, var_ctrl_name);
 
-	    ext_data_struct_info_item(client->_struct_info_msg,
+	    ext_data_struct_info_item(clistr->_struct_info_msg,
 				      offset, length,
 				      var_type,
 				      "", -1,
@@ -1447,7 +1468,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
-	    client->_orig_xor_sum_msg = ntohl(p[0]);
+	    clistr->_orig_xor_sum_msg = ntohl(p[0]);
 
 	    /* Consume the message. */
 	    client->_buf_used += ntohl(header->_length);
@@ -1472,6 +1493,7 @@ int ext_data_setup(struct ext_data_client *client,
 		   struct ext_data_structure_info *struct_info,
 		   size_t size_buf)
 {
+  struct ext_data_client_struct *clistr = &client->_structure;
   const struct ext_data_structure_layout *slo =
     (const struct ext_data_structure_layout *) struct_layout_info;
   const struct ext_data_structure_layout_item *slo_items;
@@ -1577,23 +1599,23 @@ int ext_data_setup(struct ext_data_client *client,
        * program just had it as a temporary variable).
        */
 
-      client->_pack_list =
+      clistr->_pack_list =
 	(uint32_t *) malloc (slo->_pack_list_items * sizeof(uint32_t));
 
-      if (!client->_pack_list)
+      if (!clistr->_pack_list)
 	{
 	  client->_last_error = "Memory allocation failure (pack list).";
 	  errno = ENOMEM;
 	  return -1;
 	}
 
-      client->_pack_list_end = client->_pack_list + slo->_pack_list_items;
+      clistr->_pack_list_end = clistr->_pack_list + slo->_pack_list_items;
 
       slo_items =
 	((const struct ext_data_structure_layout_item *) (slo + 1)) - 1;
       slo_pack_list = (const uint32_t *) (slo_items + slo->_num_items);
 
-      memcpy(client->_pack_list,slo_pack_list,
+      memcpy(clistr->_pack_list,slo_pack_list,
 	     slo->_pack_list_items * sizeof(uint32_t));
 
       /* Make the reverse list, to be able to quickly (directly) look any
@@ -1601,26 +1623,26 @@ int ext_data_setup(struct ext_data_client *client,
        * worst case message size.
        */
 
-      client->_reverse_pack =
+      clistr->_reverse_pack =
 	(uint32_t *) malloc (size_buf * sizeof(uint32_t));
 
-      if (!client->_reverse_pack)
+      if (!clistr->_reverse_pack)
 	{
 	  client->_last_error = "Memory allocation failure (reverse pack).";
 	  errno = ENOMEM;
 	  return -1;
 	}
 
-      memset(client->_reverse_pack,0,size_buf * sizeof(uint32_t));
+      memset(clistr->_reverse_pack,0,size_buf * sizeof(uint32_t));
 
       // Loop over the entire offset buffer...
 
       {
-	uint32_t *o    = client->_pack_list;
-	uint32_t *oend = client->_pack_list_end;
+	uint32_t *o    = clistr->_pack_list;
+	uint32_t *oend = clistr->_pack_list_end;
 
-	client->_max_pack_items = 0;
-	client->_static_pack_items = 0;
+	clistr->_max_pack_items = 0;
+	clistr->_static_pack_items = 0;
 
 	while (o < oend)
 	  {
@@ -1628,7 +1650,7 @@ int ext_data_setup(struct ext_data_client *client,
 	    uint32_t offset = offset_mark & 0x3fffffff;
 	    uint32_t mark = offset_mark & 0x80000000;
 
-	    client->_static_pack_items++;
+	    clistr->_static_pack_items++;
 
 	    if (mark)
 	      {
@@ -1639,19 +1661,19 @@ int ext_data_setup(struct ext_data_client *client,
 
 		uint32_t *onext = o + items;
 
-		client->_max_pack_items += items;
+		clistr->_max_pack_items += items;
 
-		client->_reverse_pack[offset] =
-		  (uint32_t) (o - client->_pack_list);
+		clistr->_reverse_pack[offset] =
+		  (uint32_t) (o - clistr->_pack_list);
 
 		o = onext;
 	      }
 	  }
-	client->_max_pack_items += client->_static_pack_items;
+	clistr->_max_pack_items += clistr->_static_pack_items;
       }
     }
 
-  client->_struct_size = size_buf;
+  clistr->_struct_size = size_buf;
 
   if (client->_write)
     {
@@ -1674,7 +1696,7 @@ int ext_data_setup(struct ext_data_client *client,
        * The size is limited by the pack list.  Plus the message header.
        */
 
-      size_t bufsize = client->_max_pack_items * sizeof(uint32_t) +
+      size_t bufsize = clistr->_max_pack_items * sizeof(uint32_t) +
 	sizeof(struct external_writer_buf_header) + 2 * sizeof(uint32_t);
 
       /* The other messages we send first are fixed length, and
@@ -1715,7 +1737,7 @@ int ext_data_setup(struct ext_data_client *client,
       header->_request = htonl(EXTERNAL_WRITER_BUF_ALLOC_ARRAY |
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
-      *(p++) = htonl((uint32_t) client->_struct_size);
+      *(p++) = htonl((uint32_t) clistr->_struct_size);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
       // EXTERNAL_WRITER_BUF_RESIZE      /* tell size? */
@@ -1757,9 +1779,9 @@ int ext_data_setup(struct ext_data_client *client,
    * arbitrary order.  Todo: need to allocate per ntuple requested.
    */
   {
-    client->_struct_info_msg = ext_data_struct_info_alloc();
+    clistr->_struct_info_msg = ext_data_struct_info_alloc();
 
-    if (client->_struct_info_msg == NULL)
+    if (clistr->_struct_info_msg == NULL)
       {
 	client->_last_error = "Memory allocation failure (struct info).";
 	return -1; // errno already set
@@ -1783,7 +1805,7 @@ int ext_data_setup(struct ext_data_client *client,
   /* Now do the checking. */
 
   if (!struct_info &&
-      client->_struct_size != client->_orig_struct_size)
+      clistr->_struct_size != clistr->_orig_struct_size)
     {
       client->_last_error =
 	"Bad alloc message struct size during setup.";
@@ -1793,7 +1815,7 @@ int ext_data_setup(struct ext_data_client *client,
 
   if (slo)
     {
-      if (slo->_items[0]._xor != client->_orig_xor_sum_msg)
+      if (slo->_items[0]._xor != clistr->_orig_xor_sum_msg)
 	{
 	  client->_last_error =
 	    "Bad setup done message xor vs. provided during setup.";
@@ -1810,7 +1832,7 @@ int ext_data_setup(struct ext_data_client *client,
       /* Create mapping between the two structures. */
 
       ret = ext_data_struct_match_items(client,
-					client->_struct_info_msg,
+					clistr->_struct_info_msg,
 					struct_info,
 					&all_to_same_from);
 
@@ -1823,11 +1845,11 @@ int ext_data_setup(struct ext_data_client *client,
        */
 
       if (!all_to_same_from ||
-	  client->_orig_struct_size != client->_struct_size)
+	  clistr->_orig_struct_size != clistr->_struct_size)
 	{
-	  client->_orig_array = malloc (client->_orig_struct_size);
+	  clistr->_orig_array = malloc (clistr->_orig_struct_size);
 
-	  if (client->_orig_array == NULL)
+	  if (clistr->_orig_array == NULL)
 	    {
 	      client->_last_error =
 		"Memory allocation failure (orig array).";
@@ -1931,16 +1953,18 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 				char *dest,
 				uint32_t *src,uint32_t *end_src)
 {
+  const struct ext_data_client_struct *clistr = &client->_structure;
+
   uint32_t *p    = src;
   uint32_t *pend = end_src;
 
-  uint32_t *o    = client->_pack_list;
-  uint32_t *oend = client->_pack_list_end;
+  uint32_t *o    = clistr->_pack_list;
+  uint32_t *oend = clistr->_pack_list_end;
 
-  if (pend - p < (ssize_t) client->_static_pack_items)
+  if (pend - p < (ssize_t) clistr->_static_pack_items)
     return -1;
 
-  uint32_t *pcheck = p + client->_static_pack_items;
+  uint32_t *pcheck = p + clistr->_static_pack_items;
 
   while (o < oend)
     {
@@ -1996,6 +2020,8 @@ int ext_data_fetch_event(struct ext_data_client *client,
 #endif
 			 )
 {
+  const struct ext_data_client_struct *clistr = &client->_structure;
+
   /* Data read from the source until we have an entire message. */
 
   struct external_writer_buf_header *header;
@@ -2022,7 +2048,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (size != client->_struct_size)
+  if (size != clistr->_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
@@ -2084,20 +2110,20 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	char *unpack_buf = (char *) buf;
 	size_t unpack_size = size;
 
-	if (client->_orig_array)
+	if (clistr->_orig_array)
 	  {
-	    unpack_buf = (char *) client->_orig_array;
-	    unpack_size = client->_orig_struct_size;
+	    unpack_buf = (char *) clistr->_orig_array;
+	    unpack_size = clistr->_orig_struct_size;
 	  }
 
-	if (p + (client->_sort_u32_words + 2) > end)
+	if (p + (clistr->_sort_u32_words + 2) > end)
 	  {
 	    client->_last_error = "Event message too short for headers.";
 	    errno = EBADMSG;
 	    return -1;
 	  }
 
-	p += client->_sort_u32_words;
+	p += clistr->_sort_u32_words;
 
 	ntuple_index = ntohl(*(p++));
 
@@ -2113,7 +2139,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	    return -1;
 	  }
 
-	if (client->_max_raw_words)
+	if (clistr->_max_raw_words)
 	  {
 	    client->_raw_words = ntohl(*(p++));
 
@@ -2200,7 +2226,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	      }
 	  }
 
-	if (client->_orig_array)
+	if (clistr->_orig_array)
 	  {
 	    ext_data_struct_map_items(client,
 				      (char *) buf,
@@ -2268,6 +2294,8 @@ int ext_data_get_raw_data(struct ext_data_client *client,
 int ext_data_clear_event(struct ext_data_client *client,
 			 void *buf,size_t size,int clear_zzp_lists)
 {
+  const struct ext_data_client_struct *clistr = &client->_structure;
+
   uint32_t *o, *oend;
   char *b;
 
@@ -2287,14 +2315,14 @@ int ext_data_clear_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (size != client->_struct_size)
+  if (size != clistr->_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
       return -1;
     }
 
-  if (!client->_pack_list)
+  if (!clistr->_pack_list)
     {
       /* Setup was called without struct_layout_info (i.e. only with
        * struct_info) - we have no pack list, so do not know where
@@ -2311,8 +2339,8 @@ int ext_data_clear_event(struct ext_data_client *client,
   /* Run through the offset list and clean the data structure.
    */
 
-  o    = client->_pack_list;
-  oend = client->_pack_list_end;
+  o    = clistr->_pack_list;
+  oend = clistr->_pack_list_end;
 
   b = (char*) buf;
 
@@ -2367,6 +2395,8 @@ int ext_data_clear_event(struct ext_data_client *client,
 void ext_data_clear_zzp_lists(struct ext_data_client *client,
 			      void *buf,void *item)
 {
+  const struct ext_data_client_struct *clistr = &client->_structure;
+
   uint32_t *o;
   char *b;
   uint32_t value;
@@ -2390,9 +2420,9 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 
   item_offset = (int) ((char *) item - (char *) buf);
 
-  item_info = client->_reverse_pack[item_offset];
+  item_info = clistr->_reverse_pack[item_offset];
 
-  o = client->_pack_list + item_info;
+  o = clistr->_pack_list + item_info;
 
   value = *((uint32_t *) item);
 
@@ -2433,6 +2463,8 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 int ext_data_write_event(struct ext_data_client *client,
 			 void *buf,size_t size)
 {
+  const struct ext_data_client_struct *clistr = &client->_structure;
+
   /* Data read from the source until we have an entire message. */
 
   struct external_writer_buf_header *header;
@@ -2463,7 +2495,7 @@ int ext_data_write_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (size != client->_struct_size)
+  if (size != clistr->_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
@@ -2475,7 +2507,7 @@ int ext_data_write_event(struct ext_data_client *client,
 
   if (client->_buf_alloc - client->_buf_filled <
       sizeof (struct external_writer_buf_header) + 2 * sizeof(uint32_t) +
-      client->_max_pack_items * sizeof(uint32_t))
+      clistr->_max_pack_items * sizeof(uint32_t))
     {
       if (ext_data_flush_buffer(client))
 	return -1; // errno has been set
@@ -2492,8 +2524,8 @@ int ext_data_write_event(struct ext_data_client *client,
   /* Run through the offset list and write the data to the buffer.
    */
 
-  o    = client->_pack_list;
-  oend = client->_pack_list_end;
+  o    = clistr->_pack_list;
+  oend = clistr->_pack_list_end;
 
   b = (char*) buf;
 
