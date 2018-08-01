@@ -818,8 +818,6 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_orig_array = NULL;
   client->_sort_u32_words = 0;
   client->_struct_size = 0;
-  client->_setup = 0;
-  client->_write = 0;
   client->_max_pack_items = 0;
   client->_static_pack_items = 0;
 
@@ -833,6 +831,9 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_struct_info_msg = NULL;
 
   client->_last_error = NULL;
+
+  client->_setup = 0;
+  client->_write = 0;
 
   if (buf_alloc)
     {
