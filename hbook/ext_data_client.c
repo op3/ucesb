@@ -127,6 +127,12 @@ struct ext_data_client_struct
   struct ext_data_structure_info *_struct_info_msg;
 };
 
+#define EXT_DATA_STATE_INIT          0
+#define EXT_DATA_STATE_OPEN          1 /* for read */
+#define EXT_DATA_STATE_OPEN_OUT      2 /* for write */
+#define EXT_DATA_STATE_SETUP_READ    3
+#define EXT_DATA_STATE_SETUP_WRITE   4
+
 struct ext_data_client
 {
   int _fd;
@@ -146,8 +152,7 @@ struct ext_data_client
 
   const char *_last_error;
 
-  int _setup;
-  int _write;
+  int _state;
 };
 
 /* Layout of the structure information generated.
@@ -852,8 +857,7 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
 
   client->_last_error = NULL;
 
-  client->_setup = 0;
-  client->_write = 0;
+  client->_state = EXT_DATA_STATE_INIT;
 
   if (buf_alloc)
     {
@@ -951,6 +955,7 @@ struct ext_data_client *ext_data_connect(const char *server)
       /* Read data from stdin. */
 
       client->_fd = STDIN_FILENO;
+      client->_state = EXT_DATA_STATE_OPEN;
 
       return client;
     }
@@ -1118,6 +1123,8 @@ struct ext_data_client *ext_data_connect(const char *server)
       if (!ext_data_send_magic(client))
 	goto errno_return_NULL;
 
+      client->_state = EXT_DATA_STATE_OPEN;
+
       return client;
     }
 
@@ -1147,6 +1154,7 @@ struct ext_data_client *ext_data_from_fd(int fd)
     return NULL; // errno already set
 
   client->_fd = fd;
+  client->_state = EXT_DATA_STATE_OPEN;
 
   return client;
 }
@@ -1159,7 +1167,7 @@ struct ext_data_client *ext_data_open_out()
     return NULL; // errno already set
 
   client->_fd = STDOUT_FILENO;
-  client->_write = 1;
+  client->_state = EXT_DATA_STATE_OPEN_OUT;
 
   return client;
 }
@@ -1172,7 +1180,8 @@ int ext_data_nonblocking_fd(struct ext_data_client *client)
       errno = EFAULT;
       return -1;
     }
-  if (!client->_setup)
+
+  if (client->_state < EXT_DATA_STATE_SETUP_READ)
     {
       client->_last_error = "Client context has not had setup.";
       errno = EFAULT;
@@ -1507,6 +1516,17 @@ int ext_data_setup(struct ext_data_client *client,
       return -1;
     }
 
+  if (client->_state < EXT_DATA_STATE_OPEN)
+    {
+      /* This error shall not happen, since to create a structure, it
+       * will be connected or opened.
+       */
+      client->_last_error =
+	"Client context has not been opened (internal error).";
+      errno = EFAULT;
+      return -1;
+    }
+
   if (!slo && !struct_info)
     {
       client->_last_error = "No structure layout or items info.";
@@ -1675,7 +1695,7 @@ int ext_data_setup(struct ext_data_client *client,
 
   clistr->_struct_size = size_buf;
 
-  if (client->_write)
+  if (client->_state == EXT_DATA_STATE_OPEN_OUT)
     {
       struct external_writer_buf_header *header;
       uint32_t *p;
@@ -1767,7 +1787,7 @@ int ext_data_setup(struct ext_data_client *client,
       client->_buf_filled = (size_t) (((char *) p) - ((char *) client->_buf));
 
       /* It's ok to start writing data. */
-      client->_setup = 1;
+      client->_state = EXT_DATA_STATE_SETUP_WRITE;
 
       if (ext_data_flush_buffer(client) != 0)
 	return -1; // errno already set
@@ -1860,7 +1880,7 @@ int ext_data_setup(struct ext_data_client *client,
     }
 
   /* It's ok to read data. */
-  client->_setup = 1;
+  client->_state = EXT_DATA_STATE_SETUP_READ;
 
   return 0;
 }
@@ -2033,17 +2053,9 @@ int ext_data_fetch_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (!client->_setup)
+  if (client->_state != EXT_DATA_STATE_SETUP_READ)
     {
-      client->_last_error = "Client context has not had setup.";
-      errno = EFAULT;
-      return -1;
-    }
-
-  if (client->_write)
-    {
-      client->_last_error = "Client context setup for writing "
-	"instead of reading.";
+      client->_last_error = "Client context has not had setup (for reading).";
       errno = EFAULT;
       return -1;
     }
@@ -2308,7 +2320,8 @@ int ext_data_clear_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (!client->_setup)
+  if (client->_state != EXT_DATA_STATE_SETUP_READ &&
+      client->_state != EXT_DATA_STATE_SETUP_WRITE)
     {
       client->_last_error = "Client context has not had setup.";
       errno = EFAULT;
@@ -2480,17 +2493,9 @@ int ext_data_write_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (!client->_setup)
+  if (client->_state != EXT_DATA_STATE_SETUP_WRITE)
     {
-      client->_last_error = "Client context has not had setup.";
-      errno = EFAULT;
-      return -1;
-    }
-
-  if (!client->_write)
-    {
-      client->_last_error = "Client context setup for reading "
-	"instead of writing.";
+      client->_last_error = "Client context has not had setup (for writing).";
       errno = EFAULT;
       return -1;
     }
@@ -2595,16 +2600,9 @@ int ext_data_flush_buffer(struct ext_data_client *client)
       return -1;
     }
 
-  if (!client->_setup)
+  if (client->_state != EXT_DATA_STATE_SETUP_WRITE)
     {
-      client->_last_error = "Client context has not had setup.";
-      errno = EFAULT;
-      return -1;
-    }
-
-  if (!client->_write)
-    {
-      client->_last_error = "Client context setup for reading.";
+      client->_last_error = "Client context has not had setup (for writing).";
       errno = EFAULT;
       return -1;
     }
@@ -2652,7 +2650,7 @@ int ext_data_close(struct ext_data_client *client)
       return -1;
     }
 
-  if (client->_setup && client->_write)
+  if (client->_state == EXT_DATA_STATE_SETUP_WRITE)
     {
       struct external_writer_buf_header *header;
 
