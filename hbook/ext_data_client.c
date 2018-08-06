@@ -127,11 +127,12 @@ struct ext_data_client_struct
   struct ext_data_structure_info *_struct_info_msg;
 };
 
-#define EXT_DATA_STATE_INIT          0
-#define EXT_DATA_STATE_OPEN          1 /* for read */
-#define EXT_DATA_STATE_OPEN_OUT      2 /* for write */
-#define EXT_DATA_STATE_SETUP_READ    3
-#define EXT_DATA_STATE_SETUP_WRITE   4
+#define EXT_DATA_STATE_INIT            0
+#define EXT_DATA_STATE_OPEN            1 /* for read */
+#define EXT_DATA_STATE_OPEN_OUT        2 /* for write */
+#define EXT_DATA_STATE_PARSED_HEADERS  3
+#define EXT_DATA_STATE_SETUP_READ      4
+#define EXT_DATA_STATE_SETUP_WRITE     5
 
 struct ext_data_client
 {
@@ -1813,14 +1814,17 @@ int ext_data_setup(struct ext_data_client *client,
    * verified.
    */
 
-  {
-    /* To allow handling of multiple structures, the messages are only
-     * read once, and then verified.
-     */
+  if (client->_state < EXT_DATA_STATE_PARSED_HEADERS)
+    {
+      /* To allow handling of multiple structures, the messages are only
+       * read once, and then verified.
+       */
 
-    if (ext_data_setup_messages(client) == -1)
-      return -1;
-  }
+      if (ext_data_setup_messages(client) == -1)
+	return -1;
+
+      client->_state = EXT_DATA_STATE_PARSED_HEADERS;
+    }
 
   /* Now do the checking. */
 
