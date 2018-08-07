@@ -796,20 +796,47 @@ ext_data_peek_message(struct ext_data_client *client)
   return header;
 }
 
+static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
+{
+  free(clistr->_orig_array);
+  free(clistr->_pack_list);
+  free(clistr->_reverse_pack);
+  free(clistr->_map_list);
+
+  ext_data_struct_info_free(clistr->_struct_info_msg);
+}
+
 static void ext_data_free(struct ext_data_client *client)
 {
   struct ext_data_client_struct *clistr = &client->_structure;
   
   free(client->_buf);
-  
-  free(clistr->_orig_array);
-  free(clistr->_pack_list);
-  free(clistr->_reverse_pack);
-  free(clistr->_map_list);
-  
-  ext_data_struct_info_free(clistr->_struct_info_msg);
-  
+
+  ext_data_clistr_free(clistr);
+
   free(client); /* Note! we also free the structure itself. */
+}
+
+void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
+{
+  clistr->_max_raw_words = 0;
+
+  clistr->_orig_xor_sum_msg = 0;
+  clistr->_orig_struct_size = 0;
+  clistr->_orig_array = NULL;
+  clistr->_sort_u32_words = 0;
+  clistr->_struct_size = 0;
+  clistr->_max_pack_items = 0;
+  clistr->_static_pack_items = 0;
+
+  clistr->_pack_list = NULL;
+  clistr->_pack_list_end = NULL;
+  clistr->_reverse_pack = NULL;
+
+  clistr->_map_list = NULL;
+  clistr->_map_list_end = NULL;
+
+  clistr->_struct_info_msg = NULL;
 }
 
 struct ext_data_client *ext_data_create_client(size_t buf_alloc)
@@ -837,24 +864,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_raw_ptr = NULL;
   client->_raw_words = 0;
   client->_raw_swapped = NULL;
-  clistr->_max_raw_words = 0;
 
-  clistr->_orig_xor_sum_msg = 0;
-  clistr->_orig_struct_size = 0;
-  clistr->_orig_array = NULL;
-  clistr->_sort_u32_words = 0;
-  clistr->_struct_size = 0;
-  clistr->_max_pack_items = 0;
-  clistr->_static_pack_items = 0;
-
-  clistr->_pack_list = NULL;
-  clistr->_pack_list_end = NULL;
-  clistr->_reverse_pack = NULL;
-
-  clistr->_map_list = NULL;
-  clistr->_map_list_end = NULL;
-
-  clistr->_struct_info_msg = NULL;
+  ext_data_clear_client_struct(clistr);
 
   client->_last_error = NULL;
 
