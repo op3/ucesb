@@ -852,7 +852,6 @@ void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
 struct ext_data_client *ext_data_create_client(size_t buf_alloc)
 {
   struct ext_data_client *client;
-  struct ext_data_client_struct *clistr;
 
   client = (struct ext_data_client *) malloc (sizeof (struct ext_data_client));
 
@@ -886,7 +885,7 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_raw_words = 0;
   client->_raw_swapped = NULL;
 
-  ext_data_clear_client_struct(clistr);
+  ext_data_clear_client_struct(&client->_structure[0]);
 
   client->_last_error = NULL;
 
@@ -1395,6 +1394,18 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    if (length_left)
 	      goto book_ntuple_protocol_error;
 
+	    /* Retain the information to be able to handle multiple
+	     * setups, in arbitrary order.
+	     */
+	    clistr->_struct_info_msg = ext_data_struct_info_alloc();
+
+	    if (clistr->_struct_info_msg == NULL)
+	      {
+		client->_last_error =
+		  "Memory allocation failure (struct info).";
+		return -1; // errno already set
+	      }
+
 	    break;
 	  }
 	  {
@@ -1579,6 +1590,8 @@ int ext_data_setup(struct ext_data_client *client,
   const uint32_t *slo_pack_list;
   uint32_t i;
 
+  const char *name_id = "";
+
   if (!client)
     {
       /* client->_last_error = "Client context NULL."; */
@@ -1615,6 +1628,29 @@ int ext_data_setup(struct ext_data_client *client,
       errno = EFAULT;
       return -1;
     }
+
+  /* Before we start to investigate the information given, see if we
+   * can find the requested structure at all.  First thing to do is to
+   * parse the data from the server.
+   */
+
+  if (client->_state == EXT_DATA_STATE_OPEN)
+    {
+      /* To allow handling of multiple structures, the messages are only
+       * read once, and then verified.
+       */
+
+      if (ext_data_setup_messages(client) == -1)
+	return -1;
+
+      client->_state = EXT_DATA_STATE_PARSED_HEADERS;
+    }
+
+  /* TODO: Match the name requested!!! */
+
+  (void) name_id;
+
+  /* */
 
   if (slo)
     {
@@ -1865,35 +1901,10 @@ int ext_data_setup(struct ext_data_client *client,
       return 0;
     }
 
-  /* Retain the information to be able to handle multiple setups, in
-   * arbitrary order.  Todo: need to allocate per ntuple requested.
-   */
-  {
-    clistr->_struct_info_msg = ext_data_struct_info_alloc();
-
-    if (clistr->_struct_info_msg == NULL)
-      {
-	client->_last_error = "Memory allocation failure (struct info).";
-	return -1; // errno already set
-      }
-  }
-
   /* Before we're happy with the server, we want to see the magic and
    * the setup done event, so that the structure xor_sum can be
    * verified.
    */
-
-  if (client->_state < EXT_DATA_STATE_PARSED_HEADERS)
-    {
-      /* To allow handling of multiple structures, the messages are only
-       * read once, and then verified.
-       */
-
-      if (ext_data_setup_messages(client) == -1)
-	return -1;
-
-      client->_state = EXT_DATA_STATE_PARSED_HEADERS;
-    }
 
   /* Now do the checking. */
 
