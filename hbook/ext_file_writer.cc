@@ -229,29 +229,6 @@ uint64_t          _num_events_total = 0;
 int               _num_hists = 0;
 
 typedef ext_data_structure_item stage_array_item;
-#if 0
-struct stage_array_item
-{
-#if !STRUCT_WRITER
-  uint32_t    _offset;
-#endif
-  uint32_t    _length;       // not needed, info only
-  const char *_block;        // not needed, info only
-  //const char *_branch_block; // not needed, info only
-  //const char *_hbname_vars;  // not needed, info only
-  //const char *_branch_vars;  // not needed, info only
-  const char *_var_name;
-  uint32_t    _var_array_len;
-  const char *_var_ctrl_name;
-  uint32_t    _var_type;
-  uint32_t    _limit_min;
-  uint32_t    _limit_max;
-
-#if STRUCT_WRITER
-  uint32_t    _ctrl_offset;
-#endif
-};
-#endif
 
 typedef std::map<uint32_t,stage_array_item> stage_array_item_map;
 typedef std::vector<stage_array_item> stage_array_item_vector;
