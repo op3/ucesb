@@ -101,6 +101,8 @@ struct ext_data_structure_info
 
 struct ext_data_client_struct
 {
+  const char *_id;
+
   /* Todo: the following controls _raw_ptr in ext_data_client.  With
    * several structures...?
    */
@@ -798,6 +800,8 @@ ext_data_peek_message(struct ext_data_client *client)
 
 static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
 {
+  free((char *) clistr->_id);
+
   free(clistr->_orig_array);
   free(clistr->_pack_list);
   free(clistr->_reverse_pack);
@@ -819,6 +823,8 @@ static void ext_data_free(struct ext_data_client *client)
 
 void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
 {
+  clistr->_id = NULL;
+
   clistr->_max_raw_words = 0;
 
   clistr->_orig_xor_sum_msg = 0;
@@ -1365,6 +1371,11 @@ int ext_data_setup_messages(struct ext_data_client *client)
 
 	    (void) id;
 	    (void) title;
+
+	    if (ntuple_index == 0)
+	      {
+		clistr->_id = strdup(id);
+	      }
 
 	    if (length_left)
 	      goto book_ntuple_protocol_error;
