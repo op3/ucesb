@@ -151,7 +151,8 @@ struct ext_data_client
   uint32_t  _raw_words;
   uint32_t *_raw_swapped;
 
-  struct ext_data_client_struct _structure;
+  struct ext_data_client_struct *_structure;
+  size_t                     _num_structure;
 
   const char *_last_error;
 
@@ -812,11 +813,14 @@ static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
 
 static void ext_data_free(struct ext_data_client *client)
 {
-  struct ext_data_client_struct *clistr = &client->_structure;
+  size_t i;
   
   free(client->_buf);
 
-  ext_data_clistr_free(clistr);
+  for (i = 0; i < client->_num_structure; i++)
+    ext_data_clistr_free(client->_structure+i);
+
+  free(client->_structure);
 
   free(client); /* Note! we also free the structure itself. */
 }
@@ -858,7 +862,18 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
       return NULL;
     }
 
-  clistr = &client->_structure;
+  client->_structure =
+    (struct ext_data_client_struct *)
+    malloc (sizeof (struct ext_data_client_struct));
+
+  if (!client->_structure)
+    {
+      free(client);
+      errno = ENOMEM;
+      return NULL;
+    }
+
+  client->_num_structure = 1;
 
   client->_fd_close = -1;
 
@@ -1239,7 +1254,7 @@ const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
 
 int ext_data_setup_messages(struct ext_data_client *client)
 {
-  struct ext_data_client_struct *clistr = &client->_structure;
+  struct ext_data_client_struct *clistr = &client->_structure[0];
 
   for ( ; ; )
     {
@@ -1557,7 +1572,7 @@ int ext_data_setup(struct ext_data_client *client,
 		   struct ext_data_structure_info *struct_info,
 		   size_t size_buf)
 {
-  struct ext_data_client_struct *clistr = &client->_structure;
+  struct ext_data_client_struct *clistr = &client->_structure[0];
   const struct ext_data_structure_layout *slo =
     (const struct ext_data_structure_layout *) struct_layout_info;
   const struct ext_data_structure_layout_item *slo_items;
@@ -2031,7 +2046,7 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 				char *dest,
 				uint32_t *src,uint32_t *end_src)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
+  const struct ext_data_client_struct *clistr = &client->_structure[0];
 
   uint32_t *p    = src;
   uint32_t *pend = end_src;
@@ -2098,7 +2113,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 #endif
 			 )
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
+  const struct ext_data_client_struct *clistr = &client->_structure[0];
 
   /* Data read from the source until we have an entire message. */
 
@@ -2364,7 +2379,7 @@ int ext_data_get_raw_data(struct ext_data_client *client,
 int ext_data_clear_event(struct ext_data_client *client,
 			 void *buf,size_t size,int clear_zzp_lists)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
+  const struct ext_data_client_struct *clistr = &client->_structure[0];
 
   uint32_t *o, *oend;
   char *b;
@@ -2466,7 +2481,7 @@ int ext_data_clear_event(struct ext_data_client *client,
 void ext_data_clear_zzp_lists(struct ext_data_client *client,
 			      void *buf,void *item)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
+  const struct ext_data_client_struct *clistr = &client->_structure[0];
 
   uint32_t *o;
   char *b;
@@ -2534,7 +2549,7 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 int ext_data_write_event(struct ext_data_client *client,
 			 void *buf,size_t size)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
+  const struct ext_data_client_struct *clistr = &client->_structure[0];
 
   /* Data read from the source until we have an entire message. */
 
