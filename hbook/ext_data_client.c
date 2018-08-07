@@ -1289,8 +1289,12 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    uint32_t *p = (uint32_t *) (header+1);
 
 	    uint32_t ntuple_index;
+	    uint32_t hid;
 	    uint32_t sort_u32_words;
 	    uint32_t max_raw_words;
+
+	    const char *id = NULL;
+	    const char *title = NULL;
 
 	    uint32_t length_left = ntohl(header->_length) -
 	      sizeof(struct external_writer_buf_header);
@@ -1304,11 +1308,15 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	      }
 
 	    ntuple_index = ntohl(p[0]);
-	    // hid = ntohl(p[1]);
+	    hid = ntohl(p[1]);
+	    (void) hid;
+
+	    p += 2;
+	    length_left -= 2 * sizeof(uint32_t);
 
 	    if (ntuple_index == 0)
 	      {
-		if (length_left < 4 * sizeof(uint32_t))
+		if (length_left < 2 * sizeof(uint32_t))
 		  {
 		    client->_last_error =
 		      "Bad ntuple booking message size (ii) during setup.";
@@ -1316,11 +1324,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		    return -1;
 		  }
 
-		sort_u32_words = ntohl(p[2]);
+		sort_u32_words = ntohl(p[0]);
 		clistr->_sort_u32_words = sort_u32_words;
 
-		max_raw_words = ntohl(p[3]);
+		max_raw_words = ntohl(p[1]);
 		clistr->_max_raw_words = max_raw_words;
+
+		p += 2;
+		length_left -= 2 * sizeof(uint32_t);
 
 		if (ntohl(0x01020304) != 0x01020304)
 		  {
@@ -1336,8 +1347,26 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		      }
 		  }
 	      }
+
+	    if ((id = ext_data_extr_str(&p, &length_left)) == NULL ||
+		(title = ext_data_extr_str(&p, &length_left)) == NULL)
+	      goto book_ntuple_protocol_error;
+
+	    (void) id;
+	    (void) title;
+
+	    if (length_left)
+	      goto book_ntuple_protocol_error;
+
+	    break;
 	  }
-	  break;
+	  {
+	  book_ntuple_protocol_error:
+	    client->_last_error =
+	      "Bad ntuple booking message content during setup.";
+	    errno = EPROTO;
+	    return -1;
+	  }
 
 	case EXTERNAL_WRITER_BUF_CREATE_BRANCH:
 	  {
@@ -1376,7 +1405,10 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    if ((block = ext_data_extr_str(&p, &length_left)) == NULL ||
 		(var_name = ext_data_extr_str(&p, &length_left)) == NULL ||
 		(var_ctrl_name = ext_data_extr_str(&p, &length_left)) == NULL)
-	      goto protocol_error;
+	      goto create_branch_protocol_error;
+
+	    if (length_left)
+	      goto create_branch_protocol_error;
 
 	    (void) var_array_len;
 	    (void) var_type;
@@ -1394,7 +1426,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    break;
 	  }
 	  {
-	  protocol_error:
+	  create_branch_protocol_error:
 	    client->_last_error =
 	      "Bad create branch message content during setup.";
 	    errno = EPROTO;
