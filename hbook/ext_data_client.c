@@ -374,11 +374,11 @@ int ext_data_struct_info_item(struct ext_data_structure_info *struct_info,
 }
 
 int ext_data_struct_match_items(struct ext_data_client *client,
+				struct ext_data_client_struct *clistr,
 				const struct ext_data_structure_info *from,
 				const struct ext_data_structure_info *to,
 				int *all_to_same_from)
 {
-  struct ext_data_client_struct *clistr = &client->_structure;
   struct ext_data_structure_item *item;
   int items, ctrl_items;
   size_t map_list_items;
@@ -620,10 +620,10 @@ int ext_data_struct_match_items(struct ext_data_client *client,
  * that come with the stream, but the lists are set up internally.
  */
 
-static void ext_data_struct_map_items(struct ext_data_client *client,
-				      char *dest, char *src)
+static void
+ext_data_struct_map_items(const struct ext_data_client_struct *clistr,
+			  char *dest, char *src)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure;
   uint32_t *o    = clistr->_map_list;
   uint32_t *oend = clistr->_map_list_end;
 
@@ -1909,7 +1909,7 @@ int ext_data_setup(struct ext_data_client *client,
 
       /* Create mapping between the two structures. */
 
-      ret = ext_data_struct_match_items(client,
+      ret = ext_data_struct_match_items(client, clistr,
 					clistr->_struct_info_msg,
 					struct_info,
 					&all_to_same_from);
@@ -2298,7 +2298,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
 	if (clistr->_orig_array)
 	  {
-	    ext_data_struct_map_items(client,
+	    ext_data_struct_map_items(clistr,
 				      (char *) buf,
 				      (char *) unpack_buf);
 	  }
