@@ -193,6 +193,10 @@ void ext_data_struct_info_free(struct ext_data_structure_info *struct_info)
     {
       struct ext_data_structure_item *fi = item;
 
+      free((char *) item->_block);
+      free((char *) item->_var_name);
+      free((char *) item->_var_ctrl_name);
+
       item = item->_next_off_item;
       free(fi);
     }
