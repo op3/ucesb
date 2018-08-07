@@ -255,6 +255,7 @@ struct ext_data_client *ext_data_open_out();
  * In addition to various system (socket etc) errors, errno:
  *
  * EINVAL           @struct_layout_info is wrong.
+ * ENOMSG           @name_id does not exist in server structure list.
  * EPROTO           Protocol error, version mismatch?
  * EBADMSG          Internal protocol fault.  Bug?
  * ENOMEM           Failure to allocate memory.

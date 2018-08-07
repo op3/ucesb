@@ -1583,7 +1583,7 @@ int ext_data_setup(struct ext_data_client *client,
 		   struct ext_data_structure_info *struct_info,
 		   size_t size_buf)
 {
-  struct ext_data_client_struct *clistr = &client->_structure[0];
+  struct ext_data_client_struct *clistr = NULL;
   const struct ext_data_structure_layout *slo =
     (const struct ext_data_structure_layout *) struct_layout_info;
   const struct ext_data_structure_layout_item *slo_items;
@@ -1643,12 +1643,56 @@ int ext_data_setup(struct ext_data_client *client,
       if (ext_data_setup_messages(client) == -1)
 	return -1;
 
+      if (client->_num_structure < 1)
+	{
+	  client->_last_error = "No structure (ntuple) from server.";
+	  errno = EPROTO;
+	  return -1;
+	}
+
       client->_state = EXT_DATA_STATE_PARSED_HEADERS;
     }
 
-  /* TODO: Match the name requested!!! */
+  if (client->_state == EXT_DATA_STATE_OPEN_OUT)
+    {
+      clistr = &client->_structure[0];
+    }
 
-  (void) name_id;
+  if (client->_state != EXT_DATA_STATE_OPEN_OUT)
+    {
+      /* TODO: Match the name requested!!! */
+
+      (void) name_id;
+
+      if (strcmp(name_id, "") == 0)
+	{
+	  clistr = &client->_structure[0];
+	}
+      else
+	{
+	  size_t i;
+
+	  for (i = 0; i < client->_num_structure; i++)
+	    {
+	      struct ext_data_client_struct *clistr_chk =
+		client->_structure+i;
+
+	      if (strcmp(name_id, clistr_chk->_id) == 0)
+		{
+		  clistr = clistr_chk;
+		  break;
+		}
+	    }
+	}
+
+      if (clistr == NULL)
+	{
+	  client->_last_error = "Requested structure (ntuple) "
+	    "not existing from server.";
+	  errno = ENOMSG;
+	  return -1;
+	}
+    }
 
   /* */
 
