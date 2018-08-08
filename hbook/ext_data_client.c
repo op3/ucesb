@@ -2170,7 +2170,8 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 				char *dest,
 				uint32_t *src,uint32_t *end_src)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure[0];
+  const struct ext_data_client_struct *clistr =
+    &client->_structure[0 /* key_id */];
 
   uint32_t *p    = src;
   uint32_t *pend = end_src;
@@ -2240,7 +2241,10 @@ int ext_data_fetch_event(struct ext_data_client *client,
 #endif
 			 )
 {
-  const struct ext_data_client_struct *clistr = &client->_structure[0];
+  const struct ext_data_client_struct *clistr;
+#if STRUCT_WRITER
+  int key_id = 0; /* fix to accept whatever event, call next_event */
+#endif
 
   /* Data read from the source until we have an entire message. */
 
@@ -2259,6 +2263,15 @@ int ext_data_fetch_event(struct ext_data_client *client,
       errno = EFAULT;
       return -1;
     }
+
+  if (key_id < 0 || key_id >= client->_num_structure)
+    {
+      client->_last_error = "Request for non-existing structure index (key).";
+      errno = EINVAL;
+      return -1;
+    }  
+
+  clistr = &client->_structure[key_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2516,9 +2529,10 @@ int ext_data_get_raw_data(struct ext_data_client *client,
 }
 
 int ext_data_clear_event(struct ext_data_client *client,
-			 void *buf,size_t size,int clear_zzp_lists)
+			 void *buf,size_t size,int clear_zzp_lists,
+			 int key_id)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure[0];
+  const struct ext_data_client_struct *clistr;
 
   uint32_t *o, *oend;
   char *b;
@@ -2539,6 +2553,15 @@ int ext_data_clear_event(struct ext_data_client *client,
       errno = EFAULT;
       return -1;
     }
+
+  if (key_id < 0 || key_id >= client->_num_structure)
+    {
+      client->_last_error = "Request for non-existing structure index (key).";
+      errno = EINVAL;
+      return -1;
+    }  
+
+  clistr = &client->_structure[key_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2618,9 +2641,10 @@ int ext_data_clear_event(struct ext_data_client *client,
 
 
 void ext_data_clear_zzp_lists(struct ext_data_client *client,
-			      void *buf,void *item)
+			      void *buf,void *item,
+			      int key_id)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure[0];
+  const struct ext_data_client_struct *clistr;
 
   uint32_t *o;
   char *b;
@@ -2640,6 +2664,8 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
   // The @item is supposed to be an control item.  Use our direct
   // look-up table for the control items to find the associated offset
   // item in the pack list.  Then clear so many values.
+
+  clistr = &client->_structure[key_id];
 
   b = (char*) buf;
 
@@ -2688,7 +2714,8 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 int ext_data_write_event(struct ext_data_client *client,
 			 void *buf,size_t size)
 {
-  const struct ext_data_client_struct *clistr = &client->_structure[0];
+  const struct ext_data_client_struct *clistr =
+    &client->_structure[0 /* key_id */];
 
   /* Data read from the source until we have an entire message. */
 
