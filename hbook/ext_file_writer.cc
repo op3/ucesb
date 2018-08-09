@@ -209,25 +209,6 @@ struct msg_config {
   uint32_t    _max_raw_words;
 } _msg_config;
 
-
-#if USING_CERNLIB
-hbook            *_hfile = NULL;
-hbook_ntuple_cwn *_cwn = NULL;
-#endif
-#if USING_ROOT
-#if ROOT_HAS_TTREE_COMPRESS_THREADS
-TTreeCompressThreads *_root_compress_threads = NULL;
-#endif
-TFile            *_root_file = NULL;
-typedef std::vector<TTree *> TTree_vector;
-TTree_vector      _root_ntuples;
-TTree            *_root_ntuple = NULL; // Reading
-uint64_t          _num_read_entries = 0;
-#endif
-uint64_t          _num_events = 0;
-uint64_t          _num_events_total = 0;
-int               _num_hists = 0;
-
 typedef ext_data_structure_item stage_array_item;
 
 typedef std::map<uint32_t,stage_array_item> stage_array_item_map;
@@ -277,12 +258,38 @@ struct offset_array
   uint32_t  _max_items;
 };
 
-//typedef std::map<int,stage_array> map_stage_array;
-//map_stage_array _stage_arrays;
+#if USING_ROOT
+typedef std::vector<TTree *> TTree_vector;
+#endif
+
+
+#if USING_CERNLIB
+hbook            *_hfile = NULL;
+#endif
+#if USING_ROOT
+#if ROOT_HAS_TTREE_COMPRESS_THREADS
+TTreeCompressThreads *_root_compress_threads = NULL;
+#endif
+TFile            *_root_file = NULL;
+#endif
+uint64_t          _num_events = 0;
+uint64_t          _num_events_total = 0;
+int               _num_hists = 0;
+
+
+#if USING_CERNLIB
+hbook_ntuple_cwn *_cwn = NULL;
+#endif
+#if USING_ROOT
+TTree_vector      _root_ntuples;
+TTree            *_root_ntuple = NULL; // Reading
+uint64_t          _num_read_entries = 0;
+#endif
 
 stage_array _stage_array = { 0, NULL, };
 
 offset_array _offset_array = { 0, NULL, 0, 0, };
+
 
 #if USING_CERNLIB || USING_ROOT
 time_t _last_slicetime = 0;
@@ -301,6 +308,7 @@ struct timeslice_name
   int   _list_fd;
 } _timeslice_name;
 #endif
+
 
 void do_file_open(time_t slicetime)
 {
