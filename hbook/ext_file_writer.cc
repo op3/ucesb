@@ -262,20 +262,42 @@ struct offset_array
 typedef std::vector<TTree *> TTree_vector;
 #endif
 
-
+struct global_once
+{
 #if USING_CERNLIB
-hbook            *_hfile = NULL;
+  hbook            *_hfile;
 #endif
 #if USING_ROOT
 #if ROOT_HAS_TTREE_COMPRESS_THREADS
-TTreeCompressThreads *_root_compress_threads = NULL;
+  TTreeCompressThreads *_root_compress_threads;
 #endif
-TFile            *_root_file = NULL;
+  TFile            *_root_file;
+  uint64_t          _num_read_entries;
 #endif
-uint64_t          _num_events = 0;
-uint64_t          _num_events_total = 0;
-int               _num_hists = 0;
+  uint64_t          _num_events;
+  uint64_t          _num_events_total;
+  int               _num_hists;
 
+public:
+  global_once()
+  {
+#if USING_CERNLIB
+    _hfile = NULL;
+#endif
+#if USING_ROOT
+#if ROOT_HAS_TTREE_COMPRESS_THREADS
+    _root_compress_threads = NULL;
+#endif
+    _root_file = NULL;
+    _num_read_entries = 0;
+#endif
+    _num_events = 0;
+    _num_events_total = 0;
+    _num_hists = 0;
+  }
+};
+
+global_once _g;
 
 #if USING_CERNLIB
 hbook_ntuple_cwn *_cwn = NULL;
@@ -283,7 +305,6 @@ hbook_ntuple_cwn *_cwn = NULL;
 #if USING_ROOT
 TTree_vector      _root_ntuples;
 TTree            *_root_ntuple = NULL; // Reading
-uint64_t          _num_read_entries = 0;
 #endif
 
 stage_array _stage_array = { 0, NULL, };
@@ -380,19 +401,19 @@ void do_file_open(time_t slicetime)
       if (strlen(_config._ftitle) > 16)
 	ERR_MSG("HBOOK file title (%s) too long (max 16 chars).",
 		_config._ftitle);
-      _hfile = new hbook;
-      _hfile->open(filename,_config._ftitle);
+      _g._hfile = new hbook;
+      _g._hfile->open(filename,_config._ftitle);
 #endif
 #if USING_ROOT
 #if ROOT_HAS_TTREE_COMPRESS_THREADS
-      if (!_root_compress_threads)
+      if (!_g._root_compress_threads)
 	{
 	  // Count logical cores we are allowed to run on.
-	  _root_compress_threads = new TTreeCompressThreads(5);
+	  _g._root_compress_threads = new TTreeCompressThreads(5);
 	}
 #endif
-      _root_file = new TFile(filename,"RECREATE",_config._ftitle);
-      if (_root_file->IsZombie())
+      _g._root_file = new TFile(filename,"RECREATE",_config._ftitle);
+      if (_g._root_file->IsZombie())
 	ERR_MSG("Failure opening TFile %s.",filename);
 #endif
       MSG("Opened %s (%s).",filename,_config._ftitle);
@@ -403,10 +424,10 @@ void do_file_open(time_t slicetime)
       ERR_MSG("HBOOK reading not implemented yet.");
 #endif
 #if USING_ROOT
-      _root_file = new TFile(_config._infile,"READ");
-      if (_root_file->IsZombie())
+      _g._root_file = new TFile(_config._infile,"READ");
+      if (_g._root_file->IsZombie())
 	ERR_MSG("Failure opening TFile %s.",_config._infile);
-      MSG("Opened %s (%s).",_config._infile,_root_file->GetTitle());
+      MSG("Opened %s (%s).",_config._infile,_g._root_file->GetTitle());
 #endif
     }
 #endif
@@ -436,7 +457,7 @@ void do_book_ntuple(uint32_t ntuple_index)
   if (_config._title)
     title = _config._title;
 #if USING_CERNLIB
-  if (!_hfile)
+  if (!_g._hfile)
     ERR_MSG("Refusing to book a ntuple without an open file.");
 
   if (_config._id)
@@ -463,7 +484,7 @@ void do_book_ntuple(uint32_t ntuple_index)
     id = _config._id;
   if (_config._outfile)
     {
-      if (!_root_file)
+      if (!_g._root_file)
 	ERR_MSG("Refusing to book a ntuple(tree) without an open file.");
 
       if (ntuple_index != _root_ntuples.size() &&
@@ -479,8 +500,8 @@ void do_book_ntuple(uint32_t ntuple_index)
 
       TTree *root_ntuple = new TTree(id,title);
 #if ROOT_HAS_TTREE_COMPRESS_THREADS
-      if (_root_compress_threads)
-	root_ntuple->SetCompressThreads(_root_compress_threads);
+      if (_g._root_compress_threads)
+	root_ntuple->SetCompressThreads(_g._root_compress_threads);
 #endif
 
       root_ntuple->SetAutoSave(0);
@@ -503,10 +524,10 @@ void do_book_ntuple(uint32_t ntuple_index)
     }
   else
     {
-      if (!_root_file)
+      if (!_g._root_file)
 	ERR_MSG("Cannot get a ntuple(tree) without an open file.");
 
-      TObject *obj_id = _root_file->Get(id);
+      TObject *obj_id = _g._root_file->Get(id);
 
       _root_ntuple = dynamic_cast<TTree*>(obj_id);
 
@@ -517,7 +538,7 @@ void do_book_ntuple(uint32_t ntuple_index)
 
 	  /* Search the file.  If there is only one tree, use that! */
 
-	  TIter iter(_root_file->GetListOfKeys());
+	  TIter iter(_g._root_file->GetListOfKeys());
 	  TKey *key;
 	  while ((key = (TKey*) iter()))
 	    {
@@ -533,7 +554,7 @@ void do_book_ntuple(uint32_t ntuple_index)
 		       "using tree with key (%s).",
 		       id, (const char *) keyname);
 
-	      obj_id = _root_file->Get(keyname);
+	      obj_id = _g._root_file->Get(keyname);
 
 	      _root_ntuple = dynamic_cast<TTree*>(obj_id);
 
@@ -553,10 +574,11 @@ void do_book_ntuple(uint32_t ntuple_index)
    */
 
 
-      _num_read_entries = _root_ntuple->GetEntries();
+      _g._num_read_entries = _root_ntuple->GetEntries();
 
       MSG("Got tree %s (%s), %" PRIu64 " entries.",
-	  _root_ntuple->GetName(),_root_ntuple->GetTitle(),_num_read_entries);
+	  _root_ntuple->GetName(),_root_ntuple->GetTitle(),
+	  _g._num_read_entries);
     }
 #endif
 #endif
@@ -626,11 +648,11 @@ void request_hist_h1i(void *msg,uint32_t *left)
   delete hist;
 #endif
 
-  _num_hists++;
+  _g._num_hists++;
 
-  if (_num_hists < 10)
+  if (_g._num_hists < 10)
     MSG("Hist H1I %s (%s) [%d,%.1f,%.1f]",id,title,bins,low,high);
-  else if (_num_hists == 10)
+  else if (_g._num_hists == 10)
     MSG("(Further histogram names suppressed...)");
 }
 
@@ -654,42 +676,42 @@ void full_write(int fd,const void *buf,size_t count);
 
 void close_output()
 {
-  _num_events_total += _num_events;
+  _g._num_events_total += _g._num_events;
 #if USING_CERNLIB
   if (_cwn)
     delete _cwn;
-  if (_hfile)
+  if (_g._hfile)
     {
-      _hfile->close();
-      delete _hfile;
+      _g._hfile->close();
+      delete _g._hfile;
       if (_config._timeslice) {
 	MSG("Closed hbook (%lld events, %lld total).",
-	    (long long int) _num_events,
-	    (long long int) _num_events_total);
+	    (long long int) _g._num_events,
+	    (long long int) _g._num_events_total);
       } else
-	MSG("Closed hbook (%lld events).",(long long int) _num_events);
+	MSG("Closed hbook (%lld events).",(long long int) _g._num_events);
     }
 #endif
 #if USING_ROOT
-  if (_root_file)
+  if (_g._root_file)
     {
       if (_config._outfile)
-	_root_file->Write();
-      _root_file->Close();
-      if (_root_file->TestBit(TFile::kWriteError))
+	_g._root_file->Write();
+      _g._root_file->Close();
+      if (_g._root_file->TestBit(TFile::kWriteError))
 	ERR_MSG("File writing failed.  (disk full?)");
-      delete _root_file;
+      delete _g._root_file;
       char msg_total[64] = "";
       char msg_trees[64] = "";
       char msg_hists[64] = "";
       if (_config._timeslice)
-	sprintf (msg_total,", %lld total",(long long int) _num_events_total);
+	sprintf (msg_total,", %lld total",(long long int) _g._num_events_total);
       if (_root_ntuples.size() > 1)
 	sprintf (msg_trees," in %d trees",(int) _root_ntuples.size());
-      if (_num_hists)
-	sprintf (msg_hists,", %d histograms",_num_hists);
+      if (_g._num_hists)
+	sprintf (msg_hists,", %d histograms",_g._num_hists);
       MSG("Closed file (%lld events%s%s%s).",
-	  (long long int) _num_events,
+	  (long long int) _g._num_events,
 	  msg_total,msg_trees,msg_hists);
     }
 #endif
@@ -711,11 +733,11 @@ void close_output()
 #if STRUCT_WRITER
   ext_net_io_server_close();
   MSG("Done (%lld events, %.1f %cB, %.1f %cB to clients).     ",
-      (long long int) _num_events,
+      (long long int) _g._num_events,
       _committed_size > 2000000000 ? (double) _committed_size / 1000000000. : (double) _committed_size / 1000000.,_committed_size > 2000000000 ? 'G' : 'M',
       _sent_size > 2000000000 ? (double) _sent_size / 1000000000. : (double) _sent_size / 1000000.,_sent_size > 2000000000 ? 'G' : 'M');
 #endif
-  _num_events = 0;
+  _g._num_events = 0;
 }
 
 void request_alloc_array(void *msg,uint32_t *left)
@@ -3129,7 +3151,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       if (now >= _ts._last_autosave + _config._autosave)
 	{
 	  struct flock fl;
-	  int fd = _root_file->GetFd();
+	  int fd = _g._root_file->GetFd();
 	  int lock_ret = 0;
 
 	  /* Locking was conjured up to read data from a somewhat reasonable
@@ -3237,7 +3259,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
  statistics:
 
-  _num_events++;
+  _g._num_events++;
 
   if (_got_sigalarm_nonforked)
     {
@@ -3245,7 +3267,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // that could happen is that we miss to do an update
       _got_sigalarm_nonforked = 0;
 
-      fprintf(stderr,"%lld events",(long long int) _num_events);
+      fprintf(stderr,"%lld events",(long long int) _g._num_events);
 #if STRUCT_WRITER
       fprintf(stderr,", (%.1f %cB, %.1f %cB to clients, now %d)",
 	      _committed_size > 2000000000 ? (double) _committed_size / 1000000000. : (double) _committed_size / 1000000.,_committed_size > 2000000000 ? 'G' : 'M',
@@ -3266,24 +3288,24 @@ bool ntuple_get_event(char *msg,char **end)
 #if USING_ROOT
   int ret;
 
-  if (_num_events >= _num_read_entries)
+  if (_g._num_events >= _g._num_read_entries)
     goto read_done;
 
-  ret = _root_ntuple->GetEntry(_num_events);
+  ret = _root_ntuple->GetEntry(_g._num_events);
 
   if (ret == 0)
     {
       MSG("Entry (event) %" PRIu64 " does not exist in ntuple(tree).",
-	  _num_events);
+	  _g._num_events);
       goto read_abort;
     }
   else if (ret == -1)
     {
       MSG("Error while reading entry (event) %" PRIu64 " from ntuple(tree).",
-	  _num_events);
+	  _g._num_events);
       goto read_abort;
     }
-  _num_events++;
+  _g._num_events++;
 #endif
 #if STRUCT_WRITER
   /* If we are bit-packed, we must unpack into the staging area
