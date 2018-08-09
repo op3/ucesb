@@ -290,23 +290,27 @@ stage_array _stage_array = { 0, NULL, };
 
 offset_array _offset_array = { 0, NULL, 0, 0, };
 
-
 #if USING_CERNLIB || USING_ROOT
-time_t _last_slicetime = 0;
-time_t _last_autosave = 0;
-int _autosave_lock_fail = 0;
-int _autosave_lock_do = 1;
-
-struct timeslice_name
+struct timeslice
 {
-  const char *_dir;  // end with '/'
-  const char *_base;
-  const char *_ext;  // begin with '.'
+  time_t _last_slicetime = 0;
+  time_t _last_autosave = 0;
+  int _autosave_lock_fail = 0;
+  int _autosave_lock_do = 1;
 
-  char *_curname;
+  struct timeslice_name
+  {
+    const char *_dir;  // end with '/'
+    const char *_base;
+    const char *_ext;  // begin with '.'
 
-  int   _list_fd;
-} _timeslice_name;
+    char *_curname;
+
+    int   _list_fd;
+  } _timeslice_name;
+};
+
+timeslice _ts;
 #endif
 
 
@@ -322,19 +326,19 @@ void do_file_open(time_t slicetime)
 
       if (_config._timeslice)
 	{
-	  _last_slicetime = slicetime;
+	  _ts._last_slicetime = slicetime;
 
 	  struct tm tmr;
 
-	  _timeslice_name._curname =
-	    (char *) malloc(strlen(_timeslice_name._dir)+32+   // date+'/'
-			    strlen(_timeslice_name._base)+32+  // '_'+date
-			    strlen(_timeslice_name._ext)+1+1); // '\n'+'\0'
+	  _ts._timeslice_name._curname =
+	    (char *) malloc(strlen(_ts._timeslice_name._dir)+32+   // date+'/'
+			    strlen(_ts._timeslice_name._base)+32+  // '_'+date
+			    strlen(_ts._timeslice_name._ext)+1+1); // '\n'+'\0'
 
-	  if (!_timeslice_name._curname)
+	  if (!_ts._timeslice_name._curname)
 	    ERR_MSG("Failure allocating string.");
 
-	  strcpy(_timeslice_name._curname,_timeslice_name._dir);
+	  strcpy(_ts._timeslice_name._curname,_ts._timeslice_name._dir);
 
 	  if (_config._timeslice_subdir)
 	    {
@@ -344,12 +348,12 @@ void do_file_open(time_t slicetime)
 	      gmtime_r(&dir_time,&tmr);
 	      strftime(tmptm,sizeof(tmptm),"%Y%m%d_%H%M%S",&tmr);
 
-	      strcat(_timeslice_name._curname,tmptm);
+	      strcat(_ts._timeslice_name._curname,tmptm);
 
 	      // Let's try to always create the directory, e.g.
 	      // in case the user helped by removing them...
 
-	      int ret = mkdir(_timeslice_name._curname,
+	      int ret = mkdir(_ts._timeslice_name._curname,
 			      S_IRWXU | S_IRWXG | S_IRWXO);
 
 	      if (ret != 0 &&
@@ -358,18 +362,18 @@ void do_file_open(time_t slicetime)
 		  perror("mkdir");
 		  ERR_MSG("Error making timeslice directory.");
 		}
-	      strcat(_timeslice_name._curname,"/");
+	      strcat(_ts._timeslice_name._curname,"/");
 	    }
 
 	  gmtime_r(&slicetime,&tmr);
 	  strftime(tmptm,sizeof(tmptm),"%Y%m%d_%H%M%S",&tmr);
 
-	  strcat(_timeslice_name._curname,_timeslice_name._base);
-	  strcat(_timeslice_name._curname,"_");
-	  strcat(_timeslice_name._curname,tmptm);
-	  strcat(_timeslice_name._curname,_timeslice_name._ext);
+	  strcat(_ts._timeslice_name._curname,_ts._timeslice_name._base);
+	  strcat(_ts._timeslice_name._curname,"_");
+	  strcat(_ts._timeslice_name._curname,tmptm);
+	  strcat(_ts._timeslice_name._curname,_ts._timeslice_name._ext);
 
-	  filename = _timeslice_name._curname;
+	  filename = _ts._timeslice_name._curname;
 	}
 
 #if USING_CERNLIB
@@ -690,17 +694,18 @@ void close_output()
     }
 #endif
 #if USING_CERNLIB || USING_ROOT
-  if (_timeslice_name._curname)
+  if (_ts._timeslice_name._curname)
     {
-      strcat(_timeslice_name._curname,"\n");
+      strcat(_ts._timeslice_name._curname,"\n");
 
       // Handles errors itself
-      full_write(_timeslice_name._list_fd,
-		 _timeslice_name._curname,strlen(_timeslice_name._curname));
-      fsync(_timeslice_name._list_fd);
+      full_write(_ts._timeslice_name._list_fd,
+		 _ts._timeslice_name._curname,
+		 strlen(_ts._timeslice_name._curname));
+      fsync(_ts._timeslice_name._list_fd);
 
-      free(_timeslice_name._curname);
-      _timeslice_name._curname = NULL;
+      free(_ts._timeslice_name._curname);
+      _ts._timeslice_name._curname = NULL;
     }
 #endif
 #if STRUCT_WRITER
@@ -2441,7 +2446,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       time_t now = time(NULL);
 
-      if (now < _last_slicetime)
+      if (now < _ts._last_slicetime)
 	{
 	  // This is likely to create a lot of problems, as the files
 	  // will not be in order.  Either we could just print a
@@ -2455,7 +2460,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      "You probably want to act on stored files and restart.");
 	}
 
-      if (now >= _last_slicetime + _config._timeslice)
+      if (now >= _ts._last_slicetime + _config._timeslice)
 	{
 	  // Close current file
 	  close_output();
@@ -3121,7 +3126,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       time_t now = time(NULL);
 
-      if (now >= _last_autosave + _config._autosave)
+      if (now >= _ts._last_autosave + _config._autosave)
 	{
 	  struct flock fl;
 	  int fd = _root_file->GetFd();
@@ -3138,7 +3143,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	   * print a warning.  (Likely some reader has gotten stuck.)
 	   */
 
-	  if (_autosave_lock_do) {
+	  if (_ts._autosave_lock_do) {
 	    fl.l_type = F_WRLCK;
 	    fl.l_whence = SEEK_SET;
 	    fl.l_start = 0;
@@ -3150,7 +3155,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      {
 	        if (errno == EINTR)
 	          {
-		    _autosave_lock_fail++;
+		    _ts._autosave_lock_fail++;
 
 		    /* There is no way for us to remove the lock.
 		     * So we report it until the problem has been solved.
@@ -3160,11 +3165,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		     * Then choosing to not do updates.
 		     */
 
-		    if (_autosave_lock_fail >= 3)
+		    if (_ts._autosave_lock_fail >= 3)
 		      {
 			MSG("Lock before AutoSave has failed multiple (%d) "
 			  "times in a row.  Not doing AutoSave.",
-			  _autosave_lock_fail);
+			  _ts._autosave_lock_fail);
 		      }
 		  }
 	        else
@@ -3173,27 +3178,27 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	            perror("fcntl(F_SETLK, F_UNLCK)");
 	            MSG("Unexpected error locking before AutoSave, will not "
 		      "lock.");
-	            _autosave_lock_do = 0;
+	            _ts._autosave_lock_do = 0;
 	          }
 	      }
 	  }
 
-	  if (lock_ret != -1 || !_autosave_lock_do)
+	  if (lock_ret != -1 || !_ts._autosave_lock_do)
 	    {
-	      if (_autosave_lock_fail >= 3)
+	      if (_ts._autosave_lock_fail >= 3)
 		MSG("Lock before AutoSave succeeded.");
 
-	      _autosave_lock_fail = 0;
+	      _ts._autosave_lock_fail = 0;
 
 	      /* We got the lock.  Use it */
 
-	      _last_autosave = now;
+	      _ts._last_autosave = now;
 
 	      for (TTree_vector::iterator iter = _root_ntuples.begin();
 		   iter != _root_ntuples.end(); ++iter)
 		(*iter)->AutoSave("saveself,flushbaskets");
 
-	      if (_autosave_lock_do) {
+	      if (_ts._autosave_lock_do) {
 	        /* Then unlock again. */
 
 	        fl.l_type = F_UNLCK;
@@ -4744,45 +4749,45 @@ int main(int argc,char *argv[])
       if (slash)
 	{
 	  afterslash = slash + 1;
-	  _timeslice_name._dir = strndup(_config._outfile,
-					 afterslash - _config._outfile);
+	  _ts._timeslice_name._dir = strndup(_config._outfile,
+					     afterslash - _config._outfile);
 	}
       else
 	{
 	  afterslash = _config._outfile;
-	  _timeslice_name._dir = "";
+	  _ts._timeslice_name._dir = "";
 	}
 
       const char *dot = strrchr(afterslash,'.');
 
       if (dot)
 	{
-	  _timeslice_name._base = strndup(afterslash,dot - afterslash);
-	  _timeslice_name._ext  = strdup(dot);
+	  _ts._timeslice_name._base = strndup(afterslash,dot - afterslash);
+	  _ts._timeslice_name._ext  = strdup(dot);
 	}
       else
 	{
-	  _timeslice_name._base = strdup(afterslash);
-	  _timeslice_name._ext = "";
+	  _ts._timeslice_name._base = strdup(afterslash);
+	  _ts._timeslice_name._ext = "";
 	}
 
       char *listname =
-	(char *) malloc(strlen(_timeslice_name._dir)+
-			strlen(_timeslice_name._base)+
+	(char *) malloc(strlen(_ts._timeslice_name._dir)+
+			strlen(_ts._timeslice_name._base)+
 			strlen(".txt")+1);
 
       if (!listname)
 	ERR_MSG("Failure allocating string.");
 
-      strcpy(listname,_timeslice_name._dir);
-      strcat(listname,_timeslice_name._base);
+      strcpy(listname,_ts._timeslice_name._dir);
+      strcat(listname,_ts._timeslice_name._base);
       strcat(listname,".txt");
 
-      _timeslice_name._list_fd = open(listname,
-				      O_RDWR | O_APPEND | O_CREAT,
-				      S_IRWXU | S_IRWXG | S_IRWXO);
+      _ts._timeslice_name._list_fd = open(listname,
+					  O_RDWR | O_APPEND | O_CREAT,
+					  S_IRWXU | S_IRWXG | S_IRWXO);
 
-      if (_timeslice_name._list_fd == -1)
+      if (_ts._timeslice_name._list_fd == -1)
 	{
 	  perror("open");
 	  ERR_MSG("Failed to open list of timesliced files for appending.");
@@ -4797,9 +4802,9 @@ int main(int argc,char *argv[])
 
       MSG("Timeslice (%d): %s%s%s_YYYYMMDD_HHMMSS%s (list: %s)",
 	  _config._timeslice,
-	  _timeslice_name._dir,
+	  _ts._timeslice_name._dir,
 	  _config._timeslice_subdir ? "YYYYMMDD_HHMMSS/" : "",
-	  _timeslice_name._base,_timeslice_name._ext,
+	  _ts._timeslice_name._base,_ts._timeslice_name._ext,
 	  listname);
 
       free(listname);
