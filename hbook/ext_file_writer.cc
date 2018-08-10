@@ -734,8 +734,14 @@ void close_output()
   ext_net_io_server_close();
   MSG("Done (%lld events, %.1f %cB, %.1f %cB to clients).     ",
       (long long int) _g._num_events,
-      _committed_size > 2000000000 ? (double) _committed_size / 1000000000. : (double) _committed_size / 1000000.,_committed_size > 2000000000 ? 'G' : 'M',
-      _sent_size > 2000000000 ? (double) _sent_size / 1000000000. : (double) _sent_size / 1000000.,_sent_size > 2000000000 ? 'G' : 'M');
+      _net_stat._committed_size > 2000000000 ?
+      (double) _net_stat._committed_size / 1000000000. :
+      (double) _net_stat._committed_size / 1000000.,
+      _net_stat._committed_size > 2000000000 ? 'G' : 'M',
+      _net_stat._sent_size > 2000000000 ?
+      (double) _net_stat._sent_size / 1000000000. :
+      (double) _net_stat._sent_size / 1000000.,
+      _net_stat._sent_size > 2000000000 ? 'G' : 'M');
 #endif
   _g._num_events = 0;
 }
@@ -3270,9 +3276,15 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       fprintf(stderr,"%lld events",(long long int) _g._num_events);
 #if STRUCT_WRITER
       fprintf(stderr,", (%.1f %cB, %.1f %cB to clients, now %d)",
-	      _committed_size > 2000000000 ? (double) _committed_size / 1000000000. : (double) _committed_size / 1000000.,_committed_size > 2000000000 ? 'G' : 'M',
-	      _sent_size > 2000000000 ? (double) _sent_size / 1000000000. : (double) _sent_size / 1000000.,_sent_size > 2000000000 ? 'G' : 'M',
-	      _cur_clients);
+	      _net_stat._committed_size > 2000000000 ?
+	      (double) _net_stat._committed_size / 1000000000. :
+	      (double) _net_stat._committed_size / 1000000.,
+	      _net_stat._committed_size > 2000000000 ? 'G' : 'M',
+	      _net_stat._sent_size > 2000000000 ?
+	      (double) _net_stat._sent_size / 1000000000. :
+	      (double) _net_stat._sent_size / 1000000.,
+	      _net_stat._sent_size > 2000000000 ? 'G' : 'M',
+	      _net_stat._cur_clients);
 #endif
       fprintf(stderr,"         \r");
       fflush(stderr);

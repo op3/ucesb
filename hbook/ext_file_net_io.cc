@@ -281,9 +281,7 @@ char *ext_net_io_reserve_chunk(size_t length,bool init_chunk,
   return (*chunk)->_data;
 }
 
-uint64_t _committed_size = 0;
-uint64_t _sent_size      = 0;
-uint32_t _cur_clients    = 0;
+ext_file_net_stat _net_stat = { 0, 0, 0 };
 
 void ext_net_io_commit_chunk(size_t length,send_item_chunk *chunk)
 {
@@ -295,7 +293,7 @@ void ext_net_io_commit_chunk(size_t length,send_item_chunk *chunk)
 
   assert (chunk->_length <= chunk->_alloc); // or too much written
 
-  _committed_size += length;
+  _net_stat._committed_size += length;
 
   // If there are any clients that have reached the end of data, they
   // need to be made aware of the availabilty of new data
@@ -576,7 +574,7 @@ void ext_net_io_data_serv_accept()
   _ext_net_clients._prev->_next = client;
   _ext_net_clients._prev = client;
 
-  _cur_clients++;
+  _net_stat._cur_clients++;
 
   CHECK_LIST_INTEGRITY;
 
@@ -622,7 +620,7 @@ bool ext_net_io_client_write(send_client *client)
 
   // Write was successful
 
-  _sent_size += n;
+  _net_stat._sent_size += n;
 
   client->_offset += n;
 
@@ -873,7 +871,7 @@ bool ext_net_io_select_clients(int read_fd,int write_fd,
 
       free(client);
 
-      _cur_clients--;
+      _net_stat._cur_clients--;
 
       CHECK_LIST_INTEGRITY;
     }

@@ -115,9 +115,14 @@ struct ext_write_config
 
 extern ext_write_config _config;
 
-extern uint64_t _committed_size;
-extern uint64_t _sent_size;
-extern uint32_t _cur_clients;
+struct ext_file_net_stat
+{
+  uint64_t _committed_size;
+  uint64_t _sent_size;
+  uint32_t _cur_clients;
+};
+
+extern ext_file_net_stat _net_stat;
 
 void ext_net_io_server_bind(int port);
 
