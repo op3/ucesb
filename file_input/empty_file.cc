@@ -85,7 +85,7 @@ void usage(char *cmdname)
   printf ("  --caen-v1290=N    Write CAEN V1290 subevent.\n");
   printf ("  --trloii-mtrig    Write TRLO II multi-trigger data.\n");
   printf ("  --max-multi=N     Max multi-events per event.\n");
-  printf ("  --toggle          Toggle mode for module geom % 3 == 1, 2.\n");
+  printf ("  --toggle          Toggle mode for module geom %% 3 == 1, 2.\n");
   printf ("  --sticky-fraction=N  Write sticky events every ~N events.\n");
   printf ("  --crate=N         Mark all subevents with this crate number.\n");
   printf ("  --empty-buffers   No events.\n");
