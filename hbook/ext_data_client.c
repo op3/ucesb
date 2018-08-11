@@ -1189,6 +1189,283 @@ const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
   return str;
 }
 
+int ext_data_setup_messages(struct ext_data_client *client)
+{
+
+  for ( ; ; )
+    {
+      struct external_writer_buf_header *header;
+
+      header = ext_data_peek_message(client);
+
+      if (header == NULL)
+	return -1;
+
+      switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
+	{
+	case EXTERNAL_WRITER_BUF_OPEN_FILE:
+	  {
+	    uint32_t magic;
+	    uint32_t *p = (uint32_t *) (header+1);
+
+	    if (ntohl(header->_length) <
+		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad open message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    magic = ntohl(p[0]);
+
+	    if (magic != EXTERNAL_WRITER_MAGIC)
+	      {
+		client->_last_error =
+		  "Bad open message magic during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    break;
+	  }
+
+	case EXTERNAL_WRITER_BUF_ALLOC_ARRAY:
+	  {
+	    uint32_t *p = (uint32_t *) (header+1);
+
+	    if (ntohl(header->_length) <
+		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad alloc message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    client->_orig_struct_size = ntohl(p[0]);
+
+	    break;
+	  }
+
+	case EXTERNAL_WRITER_BUF_ARRAY_OFFSETS:
+	  // TODO: verify that offsets match the list we have!
+	  break;
+
+	case EXTERNAL_WRITER_BUF_BOOK_NTUPLE:
+	  {
+	    uint32_t *p = (uint32_t *) (header+1);
+
+	    uint32_t ntuple_index;
+	    uint32_t sort_u32_words;
+	    uint32_t max_raw_words;
+
+	    uint32_t length_left = ntohl(header->_length) -
+	      sizeof(struct external_writer_buf_header);
+
+	    if (length_left < 2 * sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad ntuple booking message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    ntuple_index = ntohl(p[0]);
+	    // hid = ntohl(p[1]);
+
+	    if (ntuple_index == 0)
+	      {
+		if (length_left < 4 * sizeof(uint32_t))
+		  {
+		    client->_last_error =
+		      "Bad ntuple booking message size (ii) during setup.";
+		    errno = EPROTO;
+		    return -1;
+		  }
+
+		sort_u32_words = ntohl(p[2]);
+		client->_sort_u32_words = sort_u32_words;
+
+		max_raw_words = ntohl(p[3]);
+		client->_max_raw_words = max_raw_words;
+
+		if (ntohl(0x01020304) != 0x01020304)
+		  {
+		    /* We need a temporary array. */
+		    client->_raw_swapped = (uint32_t *)
+		      malloc (client->_max_raw_words * sizeof (uint32_t));
+		    if (!client->_raw_swapped)
+		      {
+			client->_last_error =
+			  "Memory allocation failure (raw swapped).";
+			errno = ENOMEM;
+			return -1;
+		      }
+		  }
+	      }
+	  }
+	  break;
+
+	case EXTERNAL_WRITER_BUF_CREATE_BRANCH:
+	  {
+	    uint32_t offset;
+	    uint32_t length;
+	    uint32_t var_array_len;
+	    uint32_t var_type;
+	    uint32_t limit_min;
+	    uint32_t limit_max;
+	    uint32_t *p = (uint32_t *) (header+1);
+	    const char *block = NULL;
+	    const char *var_name = NULL;
+	    const char *var_ctrl_name = NULL;
+
+	    uint32_t length_left = ntohl(header->_length) -
+	      sizeof(struct external_writer_buf_header);
+
+	    if (length_left < 6 * sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad create branch message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    offset    = ntohl(p[0]);
+	    length    = ntohl(p[1]);
+	    var_array_len = ntohl(p[2]);
+	    var_type  = ntohl(p[3]);
+	    limit_min = ntohl(p[4]);
+	    limit_max = ntohl(p[5]);
+
+	    p += 6;
+	    length_left -= 6 * sizeof(uint32_t);
+
+	    if ((block = ext_data_extr_str(&p, &length_left)) == NULL ||
+		(var_name = ext_data_extr_str(&p, &length_left)) == NULL ||
+		(var_ctrl_name = ext_data_extr_str(&p, &length_left)) == NULL)
+	      goto protocol_error;
+
+	    (void) var_array_len;
+	    (void) var_type;
+            (void) limit_min;
+
+	    //printf ("Q: %s %s %s\n",block, var_name, var_ctrl_name);
+
+	    ext_data_struct_info_item(client->_struct_info_msg,
+				      offset, length,
+				      var_type,
+				      "", -1,
+				      var_name, var_ctrl_name,
+				      limit_max);
+
+	    break;
+	  }
+	  {
+	  protocol_error:
+	    client->_last_error =
+	      "Bad create branch message content during setup.";
+	    errno = EPROTO;
+	    return -1;
+	  }
+
+	case EXTERNAL_WRITER_BUF_NAMED_STRING:
+	  /* fprintf (stderr, "named string ignored in setup\n"); */
+	  break;
+
+	case EXTERNAL_WRITER_BUF_NTUPLE_FILL:
+	case EXTERNAL_WRITER_BUF_DONE:
+	case EXTERNAL_WRITER_BUF_ABORT:
+	  /* Not allowed until we're set up. */
+	default:
+	  /* Unexpected message, not allowed. */
+	  client->_last_error = "Unexpected message during setup.";
+	  errno = EPROTO;
+	  return -1;
+
+	case EXTERNAL_WRITER_BUF_RESIZE:
+	  {
+	    uint32_t newsize, magic;
+	    uint32_t *p = (uint32_t *) (header+1);
+
+	    /* Resize our recieve buffer, to be able to receive the
+	     * maximum size messages that may arrive.
+	     */
+
+	    if (ntohl(header->_length) <
+		sizeof(struct external_writer_buf_header) + 2*sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad resize message during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    newsize = ntohl(p[0]);
+	    magic   = ntohl(p[1]);
+
+	    if (magic != EXTERNAL_WRITER_MAGIC)
+	      {
+		client->_last_error =
+		  "Bad resize message magic during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    char *newbuf = (char *) realloc (client->_buf,newsize);
+
+	    if (!newbuf)
+	      {
+		client->_last_error =
+		  "Memory allocation failure (buf resize).";
+		errno = ENOMEM;
+		return -1;
+	      }
+
+	    client->_buf       = newbuf;
+	    client->_buf_alloc = newsize;
+
+	    /* Since we did a reallocation. */
+
+	    header = (struct external_writer_buf_header *)
+	      (client->_buf + client->_buf_used);
+	    break;
+	  }
+
+	case EXTERNAL_WRITER_BUF_SETUP_DONE:
+	case EXTERNAL_WRITER_BUF_SETUP_DONE_WR:
+	  {
+	    uint32_t *p = (uint32_t *) (header+1);
+
+	    if (ntohl(header->_length) <
+		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad setup done message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    client->_orig_xor_sum_msg = ntohl(p[0]);
+
+	    /* Consume the message. */
+	    client->_buf_used += ntohl(header->_length);
+
+	    /* Goto while we develop the movement of the message handling. */
+	    goto messages_done;
+	  }
+	}
+
+      /* Consume the accepted/ignored message. */
+
+      client->_buf_used += ntohl(header->_length);
+    }
+
+ messages_done:
+
+  return 0;
+}
+
 int ext_data_setup(struct ext_data_client *client,
 		   const void *struct_layout_info,size_t size_info,
 		   struct ext_data_structure_info *struct_info,
@@ -1493,276 +1770,16 @@ int ext_data_setup(struct ext_data_client *client,
    * verified.
    */
 
-  for ( ; ; )
-    {
-      struct external_writer_buf_header *header;
+  {
+    /* To allow handling of multiple structures, the messages are only
+     * read once, and then verified.
+     */
 
-      header = ext_data_peek_message(client);
+    if (ext_data_setup_messages(client) == -1)
+      return -1;
+  }
 
-      if (header == NULL)
-	return -1;
-
-      switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
-	{
-	case EXTERNAL_WRITER_BUF_OPEN_FILE:
-	  {
-	    uint32_t magic;
-	    uint32_t *p = (uint32_t *) (header+1);
-
-	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad open message size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    magic = ntohl(p[0]);
-
-	    if (magic != EXTERNAL_WRITER_MAGIC)
-	      {
-		client->_last_error =
-		  "Bad open message magic during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    break;
-	  }
-
-	case EXTERNAL_WRITER_BUF_ALLOC_ARRAY:
-	  {
-	    uint32_t *p = (uint32_t *) (header+1);
-
-	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad alloc message size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    client->_orig_struct_size = ntohl(p[0]);
-
-	    break;
-	  }
-
-	case EXTERNAL_WRITER_BUF_ARRAY_OFFSETS:
-	  // TODO: verify that offsets match the list we have!
-	  break;
-
-	case EXTERNAL_WRITER_BUF_BOOK_NTUPLE:
-	  {
-	    uint32_t *p = (uint32_t *) (header+1);
-
-	    uint32_t ntuple_index;
-	    uint32_t sort_u32_words;
-	    uint32_t max_raw_words;
-
-	    uint32_t length_left = ntohl(header->_length) -
-	      sizeof(struct external_writer_buf_header);
-
-	    if (length_left < 2 * sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad ntuple booking message size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    ntuple_index = ntohl(p[0]);
-	    // hid = ntohl(p[1]);
-
-	    if (ntuple_index == 0)
-	      {
-		if (length_left < 4 * sizeof(uint32_t))
-		  {
-		    client->_last_error =
-		      "Bad ntuple booking message size (ii) during setup.";
-		    errno = EPROTO;
-		    return -1;
-		  }
-
-		sort_u32_words = ntohl(p[2]);
-		client->_sort_u32_words = sort_u32_words;
-
-		max_raw_words = ntohl(p[3]);
-		client->_max_raw_words = max_raw_words;
-
-		if (ntohl(0x01020304) != 0x01020304)
-		  {
-		    /* We need a temporary array. */
-		    client->_raw_swapped = (uint32_t *)
-		      malloc (client->_max_raw_words * sizeof (uint32_t));
-		    if (!client->_raw_swapped)
-		      {
-			client->_last_error =
-			  "Memory allocation failure (raw swapped).";
-			errno = ENOMEM;
-			return -1;
-		      }
-		  }
-	      }
-	  }
-	  break;
-
-	case EXTERNAL_WRITER_BUF_CREATE_BRANCH:
-	  {
-	    uint32_t offset;
-	    uint32_t length;
-	    uint32_t var_array_len;
-	    uint32_t var_type;
-	    uint32_t limit_min;
-	    uint32_t limit_max;
-	    uint32_t *p = (uint32_t *) (header+1);
-	    const char *block = NULL;
-	    const char *var_name = NULL;
-	    const char *var_ctrl_name = NULL;
-
-	    uint32_t length_left = ntohl(header->_length) -
-	      sizeof(struct external_writer_buf_header);
-
-	    if (length_left < 6 * sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad create branch message size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    offset    = ntohl(p[0]);
-	    length    = ntohl(p[1]);
-	    var_array_len = ntohl(p[2]);
-	    var_type  = ntohl(p[3]);
-	    limit_min = ntohl(p[4]);
-	    limit_max = ntohl(p[5]);
-
-	    p += 6;
-	    length_left -= 6 * sizeof(uint32_t);
-
-	    if ((block = ext_data_extr_str(&p, &length_left)) == NULL ||
-		(var_name = ext_data_extr_str(&p, &length_left)) == NULL ||
-		(var_ctrl_name = ext_data_extr_str(&p, &length_left)) == NULL)
-	      goto protocol_error;
-
-	    (void) var_array_len;
-	    (void) var_type;
-            (void) limit_min;
-
-	    //printf ("Q: %s %s %s\n",block, var_name, var_ctrl_name);
-
-	    ext_data_struct_info_item(client->_struct_info_msg,
-				      offset, length,
-				      var_type,
-				      "", -1,
-				      var_name, var_ctrl_name,
-				      limit_max);
-
-	    break;
-	  }
-	  {
-	  protocol_error:
-	    client->_last_error =
-	      "Bad create branch message content during setup.";
-	    errno = EPROTO;
-	    return -1;
-	  }
-
-	case EXTERNAL_WRITER_BUF_NAMED_STRING:
-	  /* fprintf (stderr, "named string ignored in setup\n"); */
-	  break;
-
-	case EXTERNAL_WRITER_BUF_NTUPLE_FILL:
-	case EXTERNAL_WRITER_BUF_DONE:
-	case EXTERNAL_WRITER_BUF_ABORT:
-	  /* Not allowed until we're set up. */
-	default:
-	  /* Unexpected message, not allowed. */
-	  client->_last_error = "Unexpected message during setup.";
-	  errno = EPROTO;
-	  return -1;
-
-	case EXTERNAL_WRITER_BUF_RESIZE:
-	  {
-	    uint32_t newsize, magic;
-	    uint32_t *p = (uint32_t *) (header+1);
-
-	    /* Resize our recieve buffer, to be able to receive the
-	     * maximum size messages that may arrive.
-	     */
-
-	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + 2*sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad resize message during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    newsize = ntohl(p[0]);
-	    magic   = ntohl(p[1]);
-
-	    if (magic != EXTERNAL_WRITER_MAGIC)
-	      {
-		client->_last_error =
-		  "Bad resize message magic during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    char *newbuf = (char *) realloc (client->_buf,newsize);
-
-	    if (!newbuf)
-	      {
-		client->_last_error =
-		  "Memory allocation failure (buf resize).";
-		errno = ENOMEM;
-		return -1;
-	      }
-
-	    client->_buf       = newbuf;
-	    client->_buf_alloc = newsize;
-
-	    /* Since we did a reallocation. */
-
-	    header = (struct external_writer_buf_header *)
-	      (client->_buf + client->_buf_used);
-	    break;
-	  }
-
-	case EXTERNAL_WRITER_BUF_SETUP_DONE:
-	case EXTERNAL_WRITER_BUF_SETUP_DONE_WR:
-	  {
-	    uint32_t *p = (uint32_t *) (header+1);
-
-	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
-	      {
-		client->_last_error =
-		  "Bad setup done message size during setup.";
-		errno = EPROTO;
-		return -1;
-	      }
-
-	    client->_orig_xor_sum_msg = ntohl(p[0]);
-
-	    /* Consume the message. */
-	    client->_buf_used += ntohl(header->_length);
-
-	    /* Goto while we develop the movement of the message handling. */
-	    goto messages_done;
-	  }
-	}
-
-      /* Consume the accepted/ignored message. */
-
-      client->_buf_used += ntohl(header->_length);
-    }
-
- messages_done:
+  /* Now do the checking. */
 
   if (!struct_info &&
       client->_struct_size != client->_orig_struct_size)
