@@ -709,7 +709,7 @@ void *external_writer::insert_buf_header(void *ptr,
   external_writer_buf_header *header =
     (external_writer_buf_header*) ptr;
 
-  header->_request = htonl(request);
+  header->_request = htonl(request | EXTERNAL_WRITER_REQUEST_HI_MAGIC);
   header->_length  = htonl(length);
 
   return (char *) (header+1);
@@ -943,8 +943,10 @@ void external_writer::send_offsets_fill(uint32_t *po)
 
   uint32_t size = (uint32_t) (((char*) po) - _buf->_cur);
 
-  assert(header->_request == htonl(EXTERNAL_WRITER_BUF_ARRAY_OFFSETS) ||
-	 header->_request == htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL));
+  assert(header->_request == htonl(EXTERNAL_WRITER_BUF_ARRAY_OFFSETS |
+				   EXTERNAL_WRITER_REQUEST_HI_MAGIC) ||
+	 header->_request == htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL |
+				   EXTERNAL_WRITER_REQUEST_HI_MAGIC));
   assert(header->_length >= size); // or we wrote too much
   header->_length  = htonl(size);
 
@@ -1135,6 +1137,12 @@ char *ext_writer_shm_buf::ensure_read_space(uint32_t space)
 
       uint32_t request = ntohl(header->_request);
 
+      if ((request & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+	  EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+	ERROR("Bad request, hi magic wrong (0x%08x).", request);
+
+      request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
+
       if (request == EXTERNAL_WRITER_BUF_EAT_LIN_SPACE)
 	{
 	  _ctrl->_done += lin_left;
@@ -1265,8 +1273,14 @@ uint32_t external_writer::get_message(uint32_t **start,uint32_t **end)
 
   external_writer_buf_header *header = (external_writer_buf_header *) p;
 
-  uint32_t msg    = ntohl(header->_request);
-  uint32_t length = ntohl(header->_length);
+  uint32_t request = ntohl(header->_request);
+  uint32_t length  = ntohl(header->_length);
+
+  if ((request & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+      EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+    ERROR("Got bad request hi magic from external writer.");
+
+  request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
 
   // And then get the full message
 
@@ -1279,7 +1293,7 @@ uint32_t external_writer::get_message(uint32_t **start,uint32_t **end)
   *start = (uint32_t *) (p + sizeof (external_writer_buf_header));
   *end   = (uint32_t *) (p + length);
 
-  return msg;
+  return request;
 }
 
 void external_writer::message_body_done(uint32_t *end)

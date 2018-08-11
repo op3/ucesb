@@ -3301,9 +3301,10 @@ bool ntuple_get_event(char *msg,char **end)
 
       if (length_in > *end - msg)
 	{
-	  ERR_MSG("Fetched message (%d) too long (invalid/corrupt) "
+	  ERR_MSG("Fetched message (0x%08x=%d) too long (invalid/corrupt) "
 		  "(%" PRIu32 " > %zd)."/*" %08x %08x %08x %08x"*/,
 		  ntohl(header_in->_request),
+		  ntohl(header_in->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK,
 		  length_in, *end - msg/*,
 		  ntohl(((uint32_t *) header_in)[0]),
 		  ntohl(((uint32_t *) header_in)[1]),
@@ -3382,7 +3383,8 @@ bool ntuple_get_event(char *msg,char **end)
 
     // Done.
 
-    header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL);
+    header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL |
+			     EXTERNAL_WRITER_REQUEST_HI_MAGIC);
     header->_length = htonl(((char*) cur) - ((char*) msg));
 
     *end = (char *) cur;
@@ -3390,11 +3392,13 @@ bool ntuple_get_event(char *msg,char **end)
   }
 
  read_abort:
-  header->_request = htonl(EXTERNAL_WRITER_BUF_ABORT);
+  header->_request = htonl(EXTERNAL_WRITER_BUF_ABORT |
+			   EXTERNAL_WRITER_REQUEST_HI_MAGIC);
   goto read_header_only;
 
  read_done:
-  header->_request = htonl(EXTERNAL_WRITER_BUF_DONE);
+  header->_request = htonl(EXTERNAL_WRITER_BUF_DONE |
+			   EXTERNAL_WRITER_REQUEST_HI_MAGIC);
 
  read_header_only:
   header->_length = htonl(sizeof(external_writer_buf_header));
@@ -3608,7 +3612,8 @@ void send_abort()
 #if STRUCT_WRITER
   external_writer_buf_header header;
 
-  header._request = htonl(EXTERNAL_WRITER_BUF_ABORT);
+  header._request = htonl(EXTERNAL_WRITER_BUF_ABORT |
+			  EXTERNAL_WRITER_REQUEST_HI_MAGIC);
   header._length  = htonl(sizeof(header));
 
   send_item_chunk *chunk;
@@ -3634,6 +3639,12 @@ bool handle_request(ext_write_config_comm *comm,
   uint32_t request = ntohl(header->_request);
   uint32_t length  = ntohl(header->_length);
 
+  if ((request & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+      EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+    ERR_MSG("Bad request hi magic.");
+
+  request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
+  
   uint32_t left = length - sizeof(*header);
 
   bool quit = false;
@@ -3798,6 +3809,12 @@ bool check_request(ext_write_config_comm *comm,
   uint32_t request = ntohl(header->_request);
   uint32_t length  = ntohl(header->_length);
 
+  if ((request & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+      EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+    ERR_MSG("Bad request hi magic.");
+
+  request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
+  
   uint32_t left = length - sizeof(*header);
 
   bool quit = false;
@@ -3854,6 +3871,12 @@ bool pre_handle_request(ext_write_config_comm *comm,
   uint32_t request = ntohl(header->_request);
   uint32_t length  = ntohl(header->_length);
 
+  if ((request & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+      EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+    ERR_MSG("Bad request hi magic.");
+
+  request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
+  
   uint32_t left = length - sizeof(*header);
 
   bool quit = false;
@@ -4052,8 +4075,10 @@ uint32_t pipe_has_full_message(ext_write_config_comm *comm)
 	    *((uint32_t *) (shmc->_mem + i*16 +  8)),
 	    *((uint32_t *) (shmc->_mem + i*16 + 12)));
       */
-      ERR_MSG("Pipe message length unaligned (req=%d,len=%d).",
-	      ntohl(header->_request),length);
+      ERR_MSG("Pipe message length unaligned (req=0x%08x=%d,len=%d).",
+	      ntohl(header->_request),
+	      ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK,
+	      length);
     }
   /*
   MSG ("%08x  h: %08x %08x (%d) (%lld)\n",
@@ -4275,6 +4300,8 @@ void pipe_communication(ext_write_config_comm *comm_head)
 		(external_writer_buf_header *) shmc->_cur;
 
 	      uint32_t request = ntohl(header->_request);
+
+	      request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
 
 	      if (request == EXTERNAL_WRITER_BUF_NTUPLE_FILL)
 		{
@@ -4928,6 +4955,8 @@ int main(int argc,char *argv[])
 	  size_t lin_left = shmc->_end - shmc->_cur;
 
 	  uint32_t request = ntohl(header->_request);
+
+	  request &= EXTERNAL_WRITER_REQUEST_LO_MASK;
 
 	  if (request == EXTERNAL_WRITER_BUF_EAT_LIN_SPACE)
 	    {

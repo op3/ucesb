@@ -757,6 +757,14 @@ ext_data_peek_message(struct ext_data_client *client)
 
   /* Unaligned messages are no good. */
 
+  if ((ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_HI_MASK) !=
+      EXTERNAL_WRITER_REQUEST_HI_MAGIC)
+    {
+      client->_last_error = "Message request hi magic wrong.";
+      errno = EPROTO;
+      return NULL;
+    }
+
   if (ntohl(header->_length) & 3)
     {
       client->_last_error = "Message length unaligned.";
@@ -1410,7 +1418,8 @@ int ext_data_setup(struct ext_data_client *client,
 
       header = (struct external_writer_buf_header *) client->_buf;
 
-      header->_request = htonl(EXTERNAL_WRITER_BUF_OPEN_FILE);
+      header->_request = htonl(EXTERNAL_WRITER_BUF_OPEN_FILE |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
       *(p++) = htonl(EXTERNAL_WRITER_MAGIC);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
@@ -1419,7 +1428,8 @@ int ext_data_setup(struct ext_data_client *client,
 
       header = (struct external_writer_buf_header *) p;
 
-      header->_request = htonl(EXTERNAL_WRITER_BUF_ALLOC_ARRAY);
+      header->_request = htonl(EXTERNAL_WRITER_BUF_ALLOC_ARRAY |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
       *(p++) = htonl((uint32_t) client->_struct_size);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
@@ -1428,7 +1438,8 @@ int ext_data_setup(struct ext_data_client *client,
 
       header = (struct external_writer_buf_header *) p;
 
-      header->_request = htonl(EXTERNAL_WRITER_BUF_RESIZE);
+      header->_request = htonl(EXTERNAL_WRITER_BUF_RESIZE |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
       *(p++) = htonl((uint32_t) bufsize);
       *(p++) = htonl(EXTERNAL_WRITER_MAGIC);
@@ -1438,7 +1449,8 @@ int ext_data_setup(struct ext_data_client *client,
 
       header = (struct external_writer_buf_header *) p;
 
-      header->_request = htonl(EXTERNAL_WRITER_BUF_SETUP_DONE_WR);
+      header->_request = htonl(EXTERNAL_WRITER_BUF_SETUP_DONE_WR |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
       *(p++) = htonl(slo->_items[0]._xor);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
@@ -1482,7 +1494,7 @@ int ext_data_setup(struct ext_data_client *client,
       if (header == NULL)
 	return -1;
 
-      switch (ntohl(header->_request))
+      switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
 	{
 	case EXTERNAL_WRITER_BUF_OPEN_FILE:
 	  {
@@ -2012,7 +2024,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
   uint32_t length = ntohl(header->_length);
 
-  switch (ntohl(header->_request))
+  switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
     {
     case EXTERNAL_WRITER_BUF_DONE:
     case EXTERNAL_WRITER_BUF_ABORT:
@@ -2507,7 +2519,8 @@ int ext_data_write_event(struct ext_data_client *client,
 
   length = (uint32_t) (((char*) cur) - ((char*) header));
 
-  header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL);
+  header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL |
+			   EXTERNAL_WRITER_REQUEST_HI_MAGIC);
   header->_length = htonl(length);
 
   /* fprintf (stderr, "wrote: %d\n", length); */
@@ -2601,7 +2614,8 @@ int ext_data_close(struct ext_data_client *client)
 	(struct external_writer_buf_header *) (client->_buf +
 					       client->_buf_filled);
 
-      header->_request = htonl(EXTERNAL_WRITER_BUF_DONE);
+      header->_request = htonl(EXTERNAL_WRITER_BUF_DONE |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       header->_length = htonl(sizeof(struct external_writer_buf_header));
 
       client->_buf_filled += sizeof(struct external_writer_buf_header);

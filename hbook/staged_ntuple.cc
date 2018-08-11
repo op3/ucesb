@@ -592,9 +592,9 @@ bool staged_ntuple::get_event()
       uint32_t *start;
       uint32_t *end;
 
-      uint32_t msg = _ext->get_message(&start,&end);
+      uint32_t request = _ext->get_message(&start,&end);
 
-      switch (msg)
+      switch (request)
 	{
 	case EXTERNAL_WRITER_BUF_DONE:
 	  return false; // We're done
@@ -605,14 +605,14 @@ bool staged_ntuple::get_event()
 	  // We got an event;
 	  break;
 	default:
-	  ERROR("Unexpected message %d from external reader.",msg);
+	  ERROR("Unexpected message %d from external reader.",request);
 	  return false;
 	}
       /*
-      printf ("msg %08x start %p end %p\n", msg, start, end);
+      printf ("msg %08x start %p end %p\n", request, start, end);
 
       printf ("msg %08x start %p end %p [%08x] [%08x]\n",
-	      msg, start, end, ntohl(start[0]), ntohl(start[1]));
+	      request, start, end, ntohl(start[0]), ntohl(start[1]));
       */
       if (end < start+2 ||
 	  ntohl(start[0]) != 0 || // ntuple_index != 0

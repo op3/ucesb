@@ -63,6 +63,10 @@
 
 #define EXTERNAL_WRITER_MAGIC (0x57e65c73u +32) // change with protocol version
 
+#define EXTERNAL_WRITER_REQUEST_HI_MASK   0xffff0000u
+#define EXTERNAL_WRITER_REQUEST_LO_MASK   0x0000ffffu
+#define EXTERNAL_WRITER_REQUEST_HI_MAGIC  0x76c30000u
+
 #define EXTERNAL_WRITER_DEFAULT_PORT      56577
 
 /* The (maximum) size of the NTUPLE_FILL message is declared as a
