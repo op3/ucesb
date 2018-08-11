@@ -282,11 +282,14 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @max_raw_words  Maximum size of raw data.
  *                   (Only for ntuple_index = 0).
  *
+ *   @struct_index  (Usually/first 0) For having several ntuples (of
+ *                  different layout) in the output file.
+ *
  * - Call send_alloc_array() to allocate the staging array.
  *
  *   @size       This should have the length of the structure that
  *               you want to dump.  NOTE: it can (currently) only
- *               contain 32-bit entries, i.e.  basically 32-bit int,
+ *               contain 32-bit entries, i.e. basically 32-bit int,
  *		 uint, and floats.  int32_t and uint32_t are
  *		 recommended.  It may be arrays whose length are
  *		 controlled by some earlier integer.
@@ -315,9 +318,8 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @limit_max    [NTUPLE] Maximum value.  Flag needed:
  *                 var_type |= EXTERNAL_WRITER_FLAG_HAS_LIMIT).
  *
- * - Call set_max_message_size() to make the reallocate the
- *   communication shm/pipe with enough space to handle the worst case
- *   message.
+ * - Call set_max_message_size() to reallocate the communication
+ *   shm/pipe with enough space to handle the worst case message.
  *
  *   @size          The maximum message length is protocol dependent
  *                  (see below), currently 2 32-bit word + 1 32-bit
@@ -379,9 +381,15 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  *   @raw_words     Size of raw data (bytes).
  *
+ *   @struct_index  (Usually 0) which ntuple to fill.
+ *
  *   The protocol consists of:
  *
- *   uint32_t       ntuple_index  (usually zero, used with multiple
+ *   uint32_t       struct_index  (usually zero, non-zero with multiple
+ *                                ntuples (of different layout) in the
+ *                                output file)
+ *
+ *   uint32_t       ntuple_index  (usually zero, non- with multiple
  *                                ntuples (of same layout) in the
  *                                output file)
  *
