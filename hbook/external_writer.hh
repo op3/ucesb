@@ -397,7 +397,8 @@ inline uint32_t external_write_float_as_uint32(float src)
  *                                            multiple streams.  Highest word
  *                                            first.
  *
- *   uint32_t       marker = 0  (used internally by the external writer,
+ *   uint32_t       marker = 0x40000000
+ *                              (used internally by the external writer,
  *                              when sending data by the STRUCT server)
  *
  *   For each data item:

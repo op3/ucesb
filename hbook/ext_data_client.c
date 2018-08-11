@@ -2043,7 +2043,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	uint32_t *end = (uint32_t *) (((char*) header) + length);
 	uint8_t *start;
 	uint32_t ntuple_index;
-	uint32_t marker, real_len;
+	uint32_t marker, compact_marker, real_len;
 
 	char *unpack_buf = (char *) buf;
 	size_t unpack_size = size;
@@ -2093,8 +2093,17 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	  }
 
 	marker = ntohl(*(p++));
+	compact_marker = marker & 0xc0000000;
 
-	if (marker == 0)
+	if (compact_marker != 0x80000000 &&
+	    compact_marker != 0x40000000)
+	  {
+	    client->_last_error = "Compact marker invalid.";
+	    errno = EBADMSG;
+	    return -1;
+	  }
+
+	if (compact_marker & 0x40000000)
 	  {
 	    /* It is not bit-packed.  Use the pack list.
 	     */
@@ -2122,14 +2131,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	  {
 	    int ret;
 
-	    if (!(marker & 0x80000000))
-	      {
-		client->_last_error = "Event message not packed.";
-		errno = EBADMSG;
-		return -1;
-	      }
-
-	    real_len = marker & 0x7fffffff;
+	    real_len = marker & 0x3fffffff;
 
 	    if ((end - p) * sizeof (uint32_t) !=
 		((real_len + 3) & (uint32_t) ~3))
@@ -2448,8 +2450,8 @@ int ext_data_write_event(struct ext_data_client *client,
 
   cur = (uint32_t *) (header + 1);
 
-  *(cur++) = 0; /* ntuple_index */
-  *(cur++) = 0; /* marker for non-packed event */
+  *(cur++) = htonl(0); /* ntuple_index */
+  *(cur++) = htonl(0x40000000); /* marker for non-packed event */
 
   /* Run through the offset list and write the data to the buffer.
    */

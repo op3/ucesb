@@ -300,7 +300,7 @@ void send_fill_$struct(external_writer *ew,
 
   uint32_t *p = ew->prepare_send_fill(fill_msg_size,ntuple_index);
 
-  *(p++) = htonl(0); // marker that we are not compacted
+  *(p++) = htonl(0x40000000); // marker that we are not compacted
 
 EndOfText
 

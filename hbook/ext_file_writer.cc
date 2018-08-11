@@ -2485,6 +2485,13 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 
   uint32_t marker = get_buf_uint32(&msg,left);
+  uint32_t compact_marker = marker & 0xc0000000;
+
+  if (compact_marker != 0x80000000 &&
+      compact_marker != 0x40000000)
+    {
+	ERR_MSG("Compact marker invalid (0x%08x) .", compact_marker);
+    }
 
   // MSG("index %d marker %d left %d.",ntuple_index,marker,*left);
 
@@ -2991,8 +2998,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  *(dest++) = (3 << 5) | (1 << 4) | store_offset;
 	}
 
-      *mark_dest =
-	htonl(0x80000000 | ((char *) dest - (char *) (mark_dest + 1)));
+      uint32_t compact_len = ((char *) dest - (char *) (mark_dest + 1));
+
+      *mark_dest = htonl(0x80000000 | compact_len);
 
       // Pad with zeros (to make comparisons work)
 
@@ -3069,7 +3077,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     {
       // Compacted data.
 
-      uint32_t real_len = marker & 0x7fffffff;
+      uint32_t real_len = marker & 0x3fffffff;
 
       if (real_len > *left)
 	ERR_MSG("Raw fill compacted data malformed, size %d > length %d.",
@@ -3316,7 +3324,7 @@ bool ntuple_get_event(char *msg,char **end)
     uint32_t *start = (uint32_t *) (header + 1);
 
     start[0] = htonl(0); // ntuple_index (0, only one when reading)
-    start[1] = htonl(0); // marker, non-compacted
+    start[1] = htonl(0x40000000); // marker, non-compacted
 
     uint32_t *cur = start + 2;
 
