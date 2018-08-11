@@ -1942,6 +1942,8 @@ get_next_event:
     try {
       loop.postprocess();
     } catch (error &e) {
+      WARNING("Error while shutting down...");
+      return 1;
     }
 
 #endif
