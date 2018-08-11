@@ -2612,9 +2612,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       if (p != pend)
       //if (pend - p != p - (uint32_t *) msg /* p != pend */)
-	ERR_MSG("Fill value array not completely consumed (%d left).  "
+	ERR_MSG("Fill value array not completely consumed (%d left, %d used).  "
 		"Desynchronised with offset array.",
-		(int) (pend - p));
+		(int) (pend - p), (int) (p - (uint32_t *) msg));
 
       *left = 0; // consumed all data
       // msg = pend; // not really needed... (as left is 0)
