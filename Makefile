@@ -91,7 +91,7 @@ $(EXTTDIR)/ext_h101.h: empty/empty $(EXT_STRUCT_WRITER)
 	  ( echo "Failure while running: '$< /dev/null --ntuple=UNPACK,STRUCT_HH,$@':" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
-	    echo "---------------" ; false)
+	    echo "---------------" ; mv $@ $@.fail ; false)
 	@rm $@.out $@.err
 
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
@@ -191,7 +191,7 @@ $(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_r
 	  ( echo "Failure while running: '$< /dev/null --ntuple=$(XTST_REGRESS),STRUCT_HH,$@':" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
-	    echo "---------------" ; false)
+	    echo "---------------" ; mv $@ $@.fail ; false)
 	@rm $@.out $@.err
 
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
