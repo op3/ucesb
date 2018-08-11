@@ -79,7 +79,7 @@ external_writer::~external_writer()
 
 int ext_writer_shm_buf::init_open()
 {
-#if defined(__NetBSD__) || defined(__APPLE__)
+#if defined(__NetBSD__) || defined(__APPLE__) || defined(EXTERNAL_WRITER_NO_SHM)
   // NetBSD has no shm_open().  Has shmat() etc, but for now: revert to pipe.
   // MacOSX seems not to like to ftruncate the shm after unlinking it, for now:
   // revert to pipe.

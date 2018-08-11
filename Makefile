@@ -55,14 +55,17 @@ include $(UCESB_BASE_DIR)/makefile_psdc.inc
 include $(UCESB_BASE_DIR)/makefile_empty_file.inc
 include $(UCESB_BASE_DIR)/makefile_tdas_conv.inc
 include $(UCESB_BASE_DIR)/makefile_ext_file_writer.inc
+include $(UCESB_BASE_DIR)/makefile_ext_writer_test.inc
 
-DEPENDENCIES=$(UCESBGEN) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS)
+DEPENDENCIES=$(UCESBGEN) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS) $(EXT_WRITER_TEST)
 
 include $(UCESB_BASE_DIR)/makefile_hasrawapi.inc
 ifneq (,$(HAS_RAWAPI))
 include $(UCESB_BASE_DIR)/makefile_rfiocmd.inc
 DEPENDENCIES+=$(RFCAT)
 endif
+
+$(EXT_WRITER_TEST): $(EXT_WRITERS)
 
 #########################################################
 
@@ -401,6 +404,7 @@ clean: clean-dir-ucesbgen clean-dir-psdc clean-dir-rfiocmd clean-dir-hbook \
 	rm -rf gen/acc_auto_def gen/
 	rm -f xtst/xtst.spec.d xtst/*.o xtst/*.d xtst/*.dep
 	rm -f file_input/empty_file file_input/tdas_conv
+	rm -f hbook/example/ext_writer_test
 	rm -rf $(EXTTDIR)/
 	@if (echo $(MAKEFLAGS) | grep -v -q j); then \
 		echo "Hint: if cleaning is slow, do 'make clean -j 10'" ; \
