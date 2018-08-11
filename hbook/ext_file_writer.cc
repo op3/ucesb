@@ -955,7 +955,12 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 #if USING_CERNLIB
   strcpy (branch,item._var_name);
   if (item._var_array_len != (uint32_t) -1)
-    sprintf (branch+strlen(branch),"(%s)",item._var_ctrl_name);
+    {
+      if (item._var_ctrl_name)
+	sprintf (branch+strlen(branch),"(%s)",item._var_ctrl_name);
+      else
+ 	sprintf (branch+strlen(branch),"(%d)",item._var_array_len);
+    }
   if (item._var_type & EXTERNAL_WRITER_FLAG_HAS_LIMIT)
     sprintf (branch+strlen(branch),
     "[%d,%d]",item._limit_min,item._limit_max);
@@ -975,7 +980,12 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
     {
       strcpy (branch,item._var_name);
       if (item._var_array_len != (uint32_t) -1)
-	sprintf (branch+strlen(branch),"[%s]",item._var_ctrl_name);
+	{
+	  if (item._var_ctrl_name)
+	    sprintf (branch+strlen(branch),"[%s]",item._var_ctrl_name);
+	  else
+	    sprintf (branch+strlen(branch),"[%d]",item._var_array_len);
+	}
       /* // no limits in root
 	 if (var_type & EXTERNAL_WRITER_FLAG_HAS_LIMIT)
 	 sprintf (branch+strlen(branch),
@@ -1030,8 +1040,31 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
       // that we have in mind is (a lot) more tricky! Well, we just look
       // up the proposed count variable the normal way and check it!
 
-      if ((item._var_array_len != (uint32_t) -1))
+      if ((item._var_array_len == (uint32_t) -1))
 	{
+	  /* We are a singular item. */
+	  if (lfcount)
+	    ERR_MSG("Requested leaf (%s) variable in tree is counted, "
+		    "but request is not.",item._var_name);
+	  if (lf->GetLenStatic() != 1)
+	    ERR_MSG("Requested leaf (%s) variable in tree is an array, "
+		    "but request is not.",item._var_name);
+	}
+      else if (!item._var_ctrl_name)
+	{
+	  /* We are a an static array. */
+	  if (lfcount)
+	    ERR_MSG("Requested leaf (%s) variable in tree is counted, "
+		    "but request is static array.",item._var_name);
+	  if (lf->GetLenStatic() != item._var_array_len)
+	    ERR_MSG("Requested leaf (%s) variable in tree "
+		    "is static array [%d], but request is [%d].",
+		    item._var_name,
+		    lf->GetLenStatic(), item._var_array_len);
+	}
+      else
+	{
+	  /* We are a an dynamic array. */
 	  if (!lfcount)
 	    ERR_MSG("Requested leaf (%s) variable in tree is not counted, "
 		    "but request is.",item._var_name);
@@ -1062,15 +1095,6 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 		    item._var_name,item._var_ctrl_name,lfcount->GetName());
 
 	  // Ok, so that matches
-	}
-      else
-	{
-	  if (lfcount)
-	    ERR_MSG("Requested leaf (%s) variable in tree is counted, "
-		    "but request is not.",item._var_name);
-	  if (lf->GetLenStatic() != 1)
-	    ERR_MSG("Requested leaf (%s) variable in tree is an array, "
-		    "but request is not.",item._var_name);
 	}
 
       // Now that we found the sought variable, set the address!
