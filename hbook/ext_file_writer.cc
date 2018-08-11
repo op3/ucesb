@@ -944,7 +944,8 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 
   void *ptr = _stage_array._ptr+offset;
 
-  size_t branch_size = strlen(item._var_name)+strlen(item._var_ctrl_name)+
+  size_t branch_size = strlen(item._var_name)+
+    (item._var_ctrl_name ? strlen(item._var_ctrl_name) : 0)+
     2/*type*/+1/*trail 0*/+2/*length/ctrl bracket ()*/+3/*limit [ , ]*/+2*11;
   char *branch = (char *) malloc(branch_size);
 
@@ -1111,7 +1112,8 @@ void request_create_branch(void *msg,uint32_t *left)
   //item._branch_vars   = strdup(branch_vars);
   item._var_name      = strdup(var_name);
   item._var_array_len = var_array_len;
-  item._var_ctrl_name = strdup(var_ctrl_name);
+  item._var_ctrl_name =
+    strcmp(var_ctrl_name,"") == 0 ? NULL : strdup(var_ctrl_name);
   item._var_type      = var_type;
   item._limit_min     = limit_min;
   item._limit_max     = limit_max;
@@ -1125,7 +1127,8 @@ void request_create_branch(void *msg,uint32_t *left)
   fflush(stdout);
   */
 #if STRUCT_WRITER
-  if (item._var_array_len != -1)
+  if (item._var_array_len != -1 &&
+      item._var_ctrl_name)
     {
       stage_array_name_map::iterator iter =
 	_stage_array._names.find(item._var_ctrl_name);
@@ -1173,7 +1176,8 @@ uint32_t calc_structure_xor_sum(stage_array &sa)
 
       for (const char *p = item._var_name; *p; p++, i = (i+1) % 23)
 	xor_sum ^= ((uint32_t) tolower(*p)) << i;
-      if (item._var_array_len != (uint32_t) -1)
+      if (item._var_array_len != (uint32_t) -1 &&
+	  item._var_ctrl_name)
 	for (const char *p = item._var_ctrl_name; *p; p++, i = (i+22) % 23)
 	  xor_sum ^= ((uint32_t) tolower(*p)) << i;
     }
@@ -1194,7 +1198,8 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 		   "/* %04x : %04x : %s[%d:%s]/%d : %s */%s\n",
 		   offset,item._length,
 		   item._var_name,item._var_array_len,
-		   item._var_ctrl_name,item._var_type,
+		   item._var_ctrl_name ? item._var_ctrl_name : "_",
+		   item._var_type,
 		   item._block,
 		   infomacro ? " \\" : "");
 	}
@@ -1249,8 +1254,14 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 				 EXTERNAL_WRITER_FLAG_TYPE_MASK]._Cname,
 		   item._var_name);
 	  if (item._var_array_len != (uint32_t) -1)
-	    fprintf (fid,"[%d EXT_STRUCT_CTRL(%s)]",
-		     item._var_array_len,item._var_ctrl_name);
+	    {
+	      if (item._var_ctrl_name)
+		fprintf (fid,"[%d EXT_STRUCT_CTRL(%s)]",
+			 item._var_array_len,item._var_ctrl_name);
+	      else
+		fprintf (fid,"[%d]",
+			 item._var_array_len);
+	    }
 	  fprintf (fid," /* [%d,%d] */",item._limit_min,item._limit_max);
 	  fprintf (fid,";\n");
 	}
@@ -1281,8 +1292,13 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 		   padlen,"",item_type,
 		   18,"",item._var_name);
 	  if (item._var_array_len != (uint32_t) -1)
-	    fprintf (fid,",%*.0s\"%s\"",
-		     padlen,"",item._var_ctrl_name);
+	    {
+	      if (item._var_ctrl_name)
+		fprintf (fid,",%*.0s\"%s\"",
+			 padlen,"",item._var_ctrl_name);
+	      else
+		fprintf (fid,",%d",item._var_array_len);
+	    }
 	  else if (item._limit_max != -1)
 	    fprintf (fid,",%d",item._limit_max);
 	  fprintf (fid,");%s\n",
@@ -1370,7 +1386,7 @@ void generate_structure_item(FILE *fid,
   if (item._var_array_len != (uint32_t) -1)
     fprintf (fid,"[%d /* %s */]",
 	     item._var_array_len,
-	     *item._var_ctrl_name ? item._var_ctrl_name : "_");
+	     item._var_ctrl_name ? item._var_ctrl_name : "_");
   fprintf (fid,";\n");
 }
 
@@ -1436,7 +1452,8 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 
 	  // First item cannot have controlled array!
 
-	  bool item1_ctrl = (item._var_array_len != (uint32_t) -1);
+	  bool item1_ctrl = (item._var_array_len != (uint32_t) -1 &&
+			     item._var_ctrl_name);
 
 	  if (index == 1)
 	    {
@@ -1471,10 +1488,12 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 
 		      if (item2._var_array_len == (uint32_t) -1)
 			break;
-		      if (strcmp(item._var_ctrl_name,item2._var_ctrl_name))
+		      if (item2._var_ctrl_name &&
+			  strcmp(item._var_ctrl_name,item2._var_ctrl_name))
 			break;
 		    }
-		  else if (item2._var_array_len != (uint32_t) -1)
+		  else if (item2._var_array_len != (uint32_t) -1 &&
+			   item2._var_ctrl_name)
 		    {
 		      // First item was not controlled, we must then
 		      // match the base
@@ -1577,11 +1596,13 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
 			  if (item2._var_array_len == (uint32_t) -1)
 			    {//fprintf (fid,"f8a\n");
 			    goto fail_array;}
-			  if (strcmp(item._var_ctrl_name,item2._var_ctrl_name))
+			  if (item2._var_ctrl_name &&
+			      strcmp(item._var_ctrl_name,item2._var_ctrl_name))
 			    {//fprintf (fid,"f8b\n");
 			    goto fail_array;}
 			}
-		      else if (sub_item2._var_array_len != (uint32_t) -1)
+		      else if (sub_item2._var_array_len != (uint32_t) -1 &&
+			       item2._var_ctrl_name)
 			{
 			  // First item was not controlled, we must then
 			  // match the base
