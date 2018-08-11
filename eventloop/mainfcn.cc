@@ -1898,17 +1898,23 @@ get_next_event:
     try {
       loop.close_ext_source();
     } catch (error &e) {
+      WARNING("Error while closing sources...");
+      return 1;
     }
 #ifdef USE_MERGING
     try {
       loop.close_sources();
     } catch (error &e) {
-    }
+      WARNING("Error while closing sources...");
+      return 1;
+     }
 #else
     try {
       loop.close_source();
     } catch (error &e) {
-    }
+      WARNING("Error while closing sources...");
+      return 1;
+     }
 #endif
 #ifdef USE_LMD_INPUT
     if (_conf._event_stitch_mode)
@@ -1932,6 +1938,8 @@ get_next_event:
     try {
       loop.close_output();
     } catch (error &e) {
+      WARNING("Error while closing output...");
+      return 1;
     }
 
     INFO("Events: "
