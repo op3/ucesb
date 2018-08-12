@@ -53,7 +53,7 @@ mystruct event;
 
 void send_offsets_mystruct(external_writer *ew)
 {
-  ew->send_book_ntuple(101,"h101","TestTree");
+  ew->send_book_ntuple(99,"h99","TestTree");
 
   ew->send_alloc_array(sizeof(mystruct));
 
@@ -63,9 +63,9 @@ void send_offsets_mystruct(external_writer *ew)
 			 "c",-1,"",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
   ew->send_hbname_branch("DEF",offsetof(mystruct,b),sizeof(event.b),
 			 "b",-1,"",EXTERNAL_WRITER_FLAG_TYPE_INT32);
-  ew->send_hbname_branch("DEF",offsetof(mystruct,d),sizeof(event.d[0]),
+  ew->send_hbname_branch("DEF",offsetof(mystruct,d),sizeof(event.d),
 			 "d",4,"b",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
-  ew->send_hbname_branch("DEF",offsetof(mystruct,e),sizeof(event.e[0]),
+  ew->send_hbname_branch("DEF",offsetof(mystruct,e),sizeof(event.e),
 			 "e",7,"",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
 
   uint32_t offset_msg_size = (1+1+1+(2)+4+7) * (uint32_t) sizeof(uint32_t);
