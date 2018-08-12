@@ -19,6 +19,7 @@
  */
 
 #include "external_writer.hh"
+#include "error.hh"
 
 #include <arpa/inet.h>
 #include <stddef.h>
@@ -52,7 +53,7 @@ mystruct event;
 
 void send_offsets_mystruct(external_writer *ew)
 {
-  ew->send_book_ntuple(101,"h101","CoolTree");
+  ew->send_book_ntuple(101,"h101","TestTree");
 
   ew->send_alloc_array(sizeof(mystruct));
 
@@ -125,10 +126,44 @@ int main(int argc, char *argv[])
 {
   main_argv0 = argv[0];
 
+  unsigned int type = 0;
+  const char *filename = NULL;
+  bool generate_header = false;
+
+  for (int i = 1; i < argc; i++)
+    {
+      char *post;
+
+#define MATCH_PREFIX(prefix,post) (strncmp(argv[i],prefix,strlen(prefix)) == 0 && *(post = argv[i] + strlen(prefix)) != '\0')
+#define MATCH_ARG(name) (strcmp(argv[i],name) == 0)
+
+      if (MATCH_PREFIX("--root=",post)) {
+	filename = post;
+	type = NTUPLE_TYPE_ROOT;
+      }
+      else if (MATCH_PREFIX("--cwn=",post)) {
+	filename = post;
+	type = NTUPLE_TYPE_CWN;
+      }
+      else if (MATCH_PREFIX("--struct=",post)) {
+	filename = post;
+	type = NTUPLE_TYPE_STRUCT;
+      }
+      else if (MATCH_PREFIX("--struct_hh=",post)) {
+	filename = post;
+	type = NTUPLE_TYPE_STRUCT_HH;
+	generate_header = true;
+      }
+    }
+
+  if (!type)
+    ERROR("No output type selected.");
+
   ew = new external_writer();
 
-  ew->init(NTUPLE_TYPE_ROOT | NTUPLE_CASE_KEEP, false,
-	   "monsterfile.root","Title",-1,false,false,false,false);
+  ew->init(type | NTUPLE_CASE_KEEP, false,
+	   filename,"Title",-1,generate_header,
+	   false,false,false);
 
   ew->send_file_open();
 
@@ -136,20 +171,23 @@ int main(int argc, char *argv[])
 
   ew->send_setup_done();
 
-  /* loop over events */
-  for (int i = 0; i < 12345; i++)
+  if (!generate_header)
     {
-      struct mystruct s;
+      /* loop over events */
+      for (int i = 0; i < 12345; i++)
+	{
+	  struct mystruct s;
 
-      memset(&s, 0, sizeof (s));
+	  memset(&s, 0, sizeof (s));
 
-      s.a = i;
-      s.c = (float) (i * 0.1);
-      s.b = i % 3;
-      s.e[0] = (float) (i * 0.01);
-      s.e[1] = (float) (i * 0.01 + 0.001);
+	  s.a = i;
+	  s.c = (float) (i * 0.1);
+	  s.b = i % 3;
+	  s.e[0] = (float) (i * 0.01);
+	  s.e[1] = (float) (i * 0.01 + 0.001);
 
-      send_fill_mystruct(ew, s, 0);
+	  send_fill_mystruct(ew, s, 0);
+	}
     }
 
   ew->close(); // not required, done in destructor below
