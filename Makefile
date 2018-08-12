@@ -108,11 +108,28 @@ $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 	@rm $@.out $@.err $@.err2
 	@touch $@
 
+$(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
+	@echo " EXTWR_R $@"
+	@$(EXT_WRITER_TEST) --root=$@ \
+	  > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
+	@diff -u hbook/example/$(notdir $@).good $@.out || \
+	  ( echo "--- Failure while running: " ; \
+	    echo "$(EXT_WRITER_TEST) --root=$@" ;\
+	    echo "--- stdout: ---" ; cat $@.out ; \
+	    echo "--- stderr : ---"; cat $@.err ; \
+	    echo "---------------" ; mv $@ $@.fail ; false)
+	@rm $@.out $@.err
+	@touch $@
+
 #########################################################
 
 .PHONY: $(EXT_WRITER_TEST)_tests
 $(EXT_WRITER_TEST)_tests: $(EXTTDIR)/ext_h99.h \
-	$(EXTTDIR)/ext_reader_h99_stderr.runstamp
+	$(EXTTDIR)/ext_reader_h99_stderr.runstamp \
+
+ifneq (,$(FILE_ROOT_CONFIG))
+$(EXT_WRITER_TEST)_tests: $(EXTTDIR)/ext_writer_test.root
+endif
 
 #########################################################
 
