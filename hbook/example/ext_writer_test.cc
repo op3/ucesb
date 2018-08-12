@@ -183,6 +183,8 @@ int main(int argc, char *argv[])
 	  s.a = i;
 	  s.c = (float) (i * 0.1);
 	  s.b = i % 3;
+	  for (int j = 0; j < s.b; j++)
+	    s.d[j] = (float) (((i % 7) + j) * 10);
 	  s.e[0] = (float) (i * 0.01);
 	  s.e[1] = (float) (i * 0.01 + 0.001);
 

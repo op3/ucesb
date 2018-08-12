@@ -57,7 +57,8 @@ include $(UCESB_BASE_DIR)/makefile_tdas_conv.inc
 include $(UCESB_BASE_DIR)/makefile_ext_file_writer.inc
 include $(UCESB_BASE_DIR)/makefile_ext_writer_test.inc
 
-DEPENDENCIES=$(UCESBGEN) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS) $(EXT_WRITER_TEST)
+DEPENDENCIES=$(UCESBGEN) $(PSDC) $(EMPTY_FILE) $(EXT_WRITERS) \
+	$(EXT_WRITER_TEST)_tests
 
 include $(UCESB_BASE_DIR)/makefile_hasrawapi.inc
 ifneq (,$(HAS_RAWAPI))
@@ -74,6 +75,47 @@ builddeps: $(DEPENDENCIES)
 
 #########################################################
 
+EXTTDIR = ext_test
+
+$(EXTTDIR)/ext_h99.h: $(EXT_WRITER_TEST)
+	@echo "EXTWRTST $@"
+	@mkdir -p $(EXTTDIR)
+	@$(EXT_WRITER_TEST) --struct_hh=$@ \
+	  > $@.out 2> $@.err || \
+	  ( echo "Failure while running: '$(EXT_WRITER_TEST) --struct_hh=$@':" ; \
+	    echo "--- stdout: ---" ; cat $@.out ; \
+	    echo "--- stderr: ---"; cat $@.err ; \
+	    echo "---------------" ; mv $@ $@.fail ; false)
+	@rm $@.out $@.err
+
+$(EXTTDIR)/ext_reader_h99_stderr: hbook/example/ext_data_reader_h99_stderr.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h99.h
+	@echo "  BUILD  $@"
+	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	  -DEXT_H99 \
+	  hbook/example/ext_data_reader_h99_stderr.c hbook/ext_data_client.o
+
+$(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
+	@echo "  TEST   $@"
+	@$(EXT_WRITER_TEST) --struct=- 2> $@.err2 | \
+	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
+	@diff -u hbook/example/$(notdir $<).good $@.out || \
+	  ( echo "--- Failure while running: " ; \
+	    echo "$(EXT_WRITER_TEST) --struct=- | ./$< -" ;\
+	    echo "--- stdout: ---" ; cat $@.out ; \
+	    echo "--- stderr (ext_writer_test): ---"; cat $@.err2 ; \
+	    echo "--- stderr ($@): ---"; cat $@.err ; \
+	    echo "---------------" ; false)
+	@rm $@.out $@.err $@.err2
+	@touch $@
+
+#########################################################
+
+.PHONY: $(EXT_WRITER_TEST)_tests
+$(EXT_WRITER_TEST)_tests: $(EXTTDIR)/ext_h99.h \
+	$(EXTTDIR)/ext_reader_h99_stderr.runstamp
+
+#########################################################
+
 .PHONY: empty_real
 empty_real: $(DEPENDENCIES)
 	@$(MAKE) -C empty -f ../makefile_unpacker.inc UNPACKER=empty
@@ -83,8 +125,6 @@ empty_real: $(DEPENDENCIES)
 empty/empty: empty_real
 
 EMPTY_EMPTY_FILE=--lmd --random-trig --events=10
-
-EXTTDIR = ext_test
 
 $(EXTTDIR)/ext_h101.h: empty/empty $(EXT_STRUCT_WRITER)
 	@echo "  EMPTY  $@"
