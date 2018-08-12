@@ -1017,7 +1017,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
       // that we have in mind is (a lot) more tricky! Well, we just look
       // up the proposed count variable the normal way and check it!
 
-      if ((item._var_array_len == (uint32_t) -1))
+      if (item._var_array_len == (uint32_t) -1)
 	{
 	  /* We are a singular item. */
 	  if (lfcount)
