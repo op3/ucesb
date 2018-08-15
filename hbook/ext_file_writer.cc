@@ -474,6 +474,8 @@ void do_book_ntuple(uint32_t ntuple_index)
   const char *id    = _msg_config._id;
   const char *title = _msg_config._title;
 
+  global_struct *s = &_s;
+
 #if USING_CERNLIB || USING_ROOT
   if (_config._title)
     title = _config._title;
@@ -494,9 +496,9 @@ void do_book_ntuple(uint32_t ntuple_index)
     ERROR("HBOOK ntuple title (%s) too long (max 255 chars).",
 	  title);
 
-  _s._cwn = new hbook_ntuple_cwn();
-  _s._cwn->hbset_bsize(4096);
-  _s._cwn->hbnt(hid,title," ");
+  s->_cwn = new hbook_ntuple_cwn();
+  s->_cwn->hbset_bsize(4096);
+  s->_cwn->hbnt(hid,title," ");
 
   MSG("Booked %d : %s",hid,title);
 #endif
@@ -508,11 +510,11 @@ void do_book_ntuple(uint32_t ntuple_index)
       if (!_g._root_file)
 	ERR_MSG("Refusing to book a ntuple(tree) without an open file.");
 
-      if (ntuple_index != _s._root_ntuples.size() &&
+      if (ntuple_index != s->_root_ntuples.size() &&
 	  !(ntuple_index == (uint32_t) -1 &&
-	    _s._root_ntuples.size() == 1))
+	    s->_root_ntuples.size() == 1))
 	ERR_MSG("Ntuple index (%d) out of order (!= %d).",
-		ntuple_index,(int) _s._root_ntuples.size());
+		ntuple_index,(int) s->_root_ntuples.size());
       if (_config._timeslice)
 	if (ntuple_index != 0 && ntuple_index != (uint32_t) -1)
 	  ERR_MSG("(Multiple) Ntuple index (%d) != 0 "
@@ -534,13 +536,13 @@ void do_book_ntuple(uint32_t ntuple_index)
 #endif
 
       if (ntuple_index == (uint32_t) -1)
-	_s._root_ntuples[0] = root_ntuple;
+	s->_root_ntuples[0] = root_ntuple;
       else
-	_s._root_ntuples.push_back(root_ntuple);
+	s->_root_ntuples.push_back(root_ntuple);
 
-      if (_s._root_ntuples.size() < 10)
+      if (s->_root_ntuples.size() < 10)
 	MSG("Tree %s (%s)",id,title);
-      else if (_s._root_ntuples.size() == 10)
+      else if (s->_root_ntuples.size() == 10)
 	MSG("(Further tree names suppressed...)");
     }
   else
@@ -550,9 +552,9 @@ void do_book_ntuple(uint32_t ntuple_index)
 
       TObject *obj_id = _g._root_file->Get(id);
 
-      _s._root_ntuple = dynamic_cast<TTree*>(obj_id);
+      s->_root_ntuple = dynamic_cast<TTree*>(obj_id);
 
-      if (!_s._root_ntuple)
+      if (!s->_root_ntuple)
 	{
 	  if (obj_id)
 	    ERR_MSG("Found object with key (%s), but is not a tree.", id);
@@ -567,7 +569,7 @@ void do_book_ntuple(uint32_t ntuple_index)
 		continue;
 	      TString keyname = key->GetName();
 
-	      if (_s._root_ntuple)
+	      if (s->_root_ntuple)
 		ERR_MSG("Multiple trees in file, "
 			"but none with expected key (%s)", id);
 
@@ -577,13 +579,13 @@ void do_book_ntuple(uint32_t ntuple_index)
 
 	      obj_id = _g._root_file->Get(keyname);
 
-	      _s._root_ntuple = dynamic_cast<TTree*>(obj_id);
+	      s->_root_ntuple = dynamic_cast<TTree*>(obj_id);
 
-	      if (!_s._root_ntuple)
+	      if (!s->_root_ntuple)
 		ERR_MSG("Strange, item with key (%s) claimed to be a TTree, "
 			"but cast failed.", id);
 	    }
-	  if (!_s._root_ntuple)
+	  if (!s->_root_ntuple)
 	    {
 	      MSG("Tree with key (%s) not found in file, "
 		  "and no other trees either!", id);
@@ -595,10 +597,10 @@ void do_book_ntuple(uint32_t ntuple_index)
    */
 
 
-      _g._num_read_entries = _s._root_ntuple->GetEntries();
+      _g._num_read_entries = s->_root_ntuple->GetEntries();
 
       MSG("Got tree %s (%s), %" PRIu64 " entries.",
-	  _s._root_ntuple->GetName(),_s._root_ntuple->GetTitle(),
+	  s->_root_ntuple->GetName(),s->_root_ntuple->GetTitle(),
 	  _g._num_read_entries);
     }
 #endif
@@ -697,10 +699,12 @@ void full_write(int fd,const void *buf,size_t count);
 
 void close_output()
 {
+  global_struct *s = &_s;
+
   _g._num_events_total += _g._num_events;
 #if USING_CERNLIB
-  if (_s._cwn)
-    delete _s._cwn;
+  if (s->_cwn)
+    delete s->_cwn;
   if (_g._hfile)
     {
       _g._hfile->close();
@@ -727,8 +731,8 @@ void close_output()
       char msg_hists[64] = "";
       if (_config._timeslice)
 	sprintf (msg_total,", %lld total",(long long int) _g._num_events_total);
-      if (_s._root_ntuples.size() > 1)
-	sprintf (msg_trees," in %d trees",(int) _s._root_ntuples.size());
+      if (s->_root_ntuples.size() > 1)
+	sprintf (msg_trees," in %d trees",(int) s->_root_ntuples.size());
       if (_g._num_hists)
 	sprintf (msg_hists,", %d histograms",_g._num_hists);
       MSG("Closed file (%lld events%s%s%s).",
@@ -769,41 +773,43 @@ void close_output()
 
 void request_alloc_array(void *msg,uint32_t *left)
 {
+  global_struct *s = &_s;
+
   uint32_t size = get_buf_uint32(&msg,left);
 
-  if (_s._stage_array._length)
+  if (s->_stage_array._length)
     ERR_MSG("Array already allocated.");
 
   // Since our compacter would break down in that it can produce
   // longer output than input.
-  if (_s._stage_array._length >= 0x10000000)
+  if (s->_stage_array._length >= 0x10000000)
     ERR_MSG("Refusing to handle event sizes >= 256 MB.");
 
   MSG("About to allocate array: %d B",size);
 
-  _s._stage_array._length = size;
-  _s._stage_array._ptr = (char*) malloc(size);
+  s->_stage_array._length = size;
+  s->_stage_array._ptr = (char*) malloc(size);
 
-  if (!_s._stage_array._ptr)
+  if (!s->_stage_array._ptr)
     ERR_MSG("Failure allocating array with size %d.",size);
 
-  memset(_s._stage_array._ptr,0,_s._stage_array._length);
+  memset(s->_stage_array._ptr,0,s->_stage_array._length);
 
 #if STRUCT_WRITER
-  if (_s._stage_array._length < (1 << (4 + 2)))
-    _s._stage_array._rewrite_max_bytes_per_item = 5;
-  else if (_s._stage_array._length < (1 << (4 + 7 + 2)))
-    _s._stage_array._rewrite_max_bytes_per_item = 6;
-  else if (_s._stage_array._length < (1 << (4 + 7 + 7 + 2)))
-    _s._stage_array._rewrite_max_bytes_per_item = 7;
-  else if (_s._stage_array._length < (1 << (4 + 7 + 7 + 7 + 2)))
-    _s._stage_array._rewrite_max_bytes_per_item = 8;
+  if (s->_stage_array._length < (1 << (4 + 2)))
+    s->_stage_array._rewrite_max_bytes_per_item = 5;
+  else if (s->_stage_array._length < (1 << (4 + 7 + 2)))
+    s->_stage_array._rewrite_max_bytes_per_item = 6;
+  else if (s->_stage_array._length < (1 << (4 + 7 + 7 + 2)))
+    s->_stage_array._rewrite_max_bytes_per_item = 7;
+  else if (s->_stage_array._length < (1 << (4 + 7 + 7 + 7 + 2)))
+    s->_stage_array._rewrite_max_bytes_per_item = 8;
   else
-    _s._stage_array._rewrite_max_bytes_per_item = 9;
+    s->_stage_array._rewrite_max_bytes_per_item = 9;
 
-  _s._stage_array._offset_value = (uint32_t*) malloc(size*2);
+  s->_stage_array._offset_value = (uint32_t*) malloc(size*2);
 
-  if (!_s._stage_array._ptr)
+  if (!s->_stage_array._ptr)
     ERR_MSG("Failure allocating offset/value array with size %d.",size*2);
 
   // How many items do we have to mask?
@@ -814,13 +820,13 @@ void request_alloc_array(void *msg,uint32_t *left)
       // Each mask item covers 32 items
       masks = (masks + 31) / 32;
 
-      _s._stage_array._masks[i] = (uint32_t*) malloc(masks * sizeof(uint32_t));
+      s->_stage_array._masks[i] = (uint32_t*) malloc(masks * sizeof(uint32_t));
 
-      if (!_s._stage_array._masks[i])
+      if (!s->_stage_array._masks[i])
 	ERR_MSG("Failure allocating mask array with size %zd.",
 		masks * sizeof(uint32_t));
 
-      _s._stage_array._num_masks[i] = masks;
+      s->_stage_array._num_masks[i] = masks;
     }
 #endif
 
@@ -829,20 +835,22 @@ void request_alloc_array(void *msg,uint32_t *left)
 
 void request_array_offsets(void *msg,uint32_t *left)
 {
+  global_struct *s = &_s;
+
   // So, we are given the offset table.  Allocate space for it and
   // make a copy.
 
-  if (_s._offset_array._length)
+  if (s->_offset_array._length)
     ERR_MSG("Offset already allocated.");
 
-  _s._offset_array._length = *left / sizeof(uint32_t);
-  _s._offset_array._ptr = (uint32_t*) malloc(*left);
-  _s._offset_array._static_items = 0;
-  _s._offset_array._max_items = 0;
+  s->_offset_array._length = *left / sizeof(uint32_t);
+  s->_offset_array._ptr = (uint32_t*) malloc(*left);
+  s->_offset_array._static_items = 0;
+  s->_offset_array._max_items = 0;
 
   // MSG ("offsets: %d \n", _offset_array._length);
 
-  if (!_s._offset_array._ptr)
+  if (!s->_offset_array._ptr)
     ERR_MSG("Failure allocating offset array with size %d.",*left);
 
   // Then verify that it's variable size array control items are
@@ -851,12 +859,12 @@ void request_array_offsets(void *msg,uint32_t *left)
   uint32_t *o    = (uint32_t *) msg;
   uint32_t *oend = (uint32_t *) (((char*) msg) + *left);
 
-  uint32_t *d    = _s._offset_array._ptr;
+  uint32_t *d    = s->_offset_array._ptr;
 
   // We reset the entire stage array, to use that to verify that each
   // item is used once
 
-  memset(_s._stage_array._ptr,0,_s._stage_array._length);
+  memset(s->_stage_array._ptr,0,s->_stage_array._length);
 
   // MSG("Offsets: %d Array: %d",*left,_stage_array._length);
 
@@ -867,16 +875,16 @@ void request_array_offsets(void *msg,uint32_t *left)
 
       // MSG("Offset entry @ %d : %d",(int) (o - (uint32_t *) msg)-1,offset);
 
-      if (offset >= _s._stage_array._length)
+      if (offset >= s->_stage_array._length)
 	ERR_MSG("Offset entry @ %zd is outside (%" PRIu32 ") stage array "
 		"(%zd).",
-		(o - (uint32_t *) msg)-1,offset,_s._stage_array._length);
+		(o - (uint32_t *) msg)-1,offset,s->_stage_array._length);
       if (offset & 3)
 	ERR_MSG("Offset entry @ %zd is unaligned (%" PRIu32 ").",
 		(o - (uint32_t *) msg)-1,offset);
 
-      (*((uint32_t *) (_s._stage_array._ptr + offset)))++;
-      _s._offset_array._static_items++;
+      (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
+      s->_offset_array._static_items++;
 
       // MSG ("offset: %d %c",offset,(offset_mark & 0x80000000) ? '*' : ' ');
 
@@ -903,7 +911,7 @@ void request_array_offsets(void *msg,uint32_t *left)
 		    PRIu32").",
 		    (o - (uint32_t *) msg)-1,max_loops,loop_size,*left);
 
-	  _s._offset_array._max_items += items;
+	  s->_offset_array._max_items += items;
 
 	  for (int i = items; i; i--)
 	    {
@@ -913,16 +921,16 @@ void request_array_offsets(void *msg,uint32_t *left)
 	      offset_mark = *(d++) = ntohl(*(o++));
 	      offset = offset_mark & 0x3fffffff;
 
-	      if (offset >= _s._stage_array._length)
+	      if (offset >= s->_stage_array._length)
 		ERR_MSG("Offset entry @ %zd is outside (%" PRIu32
 			") stage array (%zd).",
 			(o - (uint32_t *) msg)-1,offset,
-			_s._stage_array._length);
+			s->_stage_array._length);
 	      if (offset & 3)
 		ERR_MSG("Offset entry @ %zd is unaligned (%d).",
 			(o - (uint32_t *) msg)-1,offset);
 
-	      (*((uint32_t *) (_s._stage_array._ptr + offset)))++;
+	      (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
 
 	      if (offset_mark & 0x80000000)
 		ERR_MSG("Controlled offset array item @ %zd is marked"
@@ -931,16 +939,16 @@ void request_array_offsets(void *msg,uint32_t *left)
 	}
     }
 
-  _s._offset_array._max_items += _s._offset_array._static_items;
+  s->_offset_array._max_items += s->_offset_array._static_items;
 
-  uint32_t *pend = (uint32_t *) (_s._stage_array._ptr +
-				 _s._stage_array._length);
+  uint32_t *pend = (uint32_t *) (s->_stage_array._ptr +
+				 s->_stage_array._length);
 
-  for (uint32_t *p = (uint32_t *) _s._stage_array._ptr; p < pend; p++)
+  for (uint32_t *p = (uint32_t *) s->_stage_array._ptr; p < pend; p++)
     {
       if (*p != 1)
 	ERR_MSG("Stage area item @ %zd is not used (%" PRIu32 ") exactly once.",
-		(char*) p - _s._stage_array._ptr,*p);
+		(char*) p - s->_stage_array._ptr,*p);
     }
 
   *left = 0;
@@ -967,14 +975,16 @@ str_var_type _str_var_type[] = {
 
 void do_create_branch(uint32_t offset,stage_array_item &item)
 {
-  if (!_s._stage_array._length)
+  global_struct *s = &_s;
+
+  if (!s->_stage_array._length)
     ERR_MSG("Cannot create branch using unallocated array.");
 
-  if (offset > _s._stage_array._length ||
-      offset+item._length > _s._stage_array._length)
+  if (offset > s->_stage_array._length ||
+      offset+item._length > s->_stage_array._length)
     ERR_MSG("Cannot create branch with ptr [%" PRIu32 ",%" PRIu32
 	    "[ outside array (%zd).",
-	    offset,offset+item._length,_s._stage_array._length);
+	    offset,offset+item._length,s->_stage_array._length);
 
   if (item._var_type == 0 ||
       (item._var_type & EXTERNAL_WRITER_FLAG_TYPE_MASK) >=
@@ -983,7 +993,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 			 EXTERNAL_WRITER_FLAG_HAS_LIMIT))
     ERR_MSG("Invalid variable type (0x%x).",item._var_type);
 
-  void *ptr = _s._stage_array._ptr+offset;
+  void *ptr = s->_stage_array._ptr+offset;
 
   size_t branch_size = strlen(item._var_name)+
     (item._var_ctrl_name ? strlen(item._var_ctrl_name) : 0)+
@@ -1013,7 +1023,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 
   // MSG ("OLD: %s NEW: %s",hbname_vars,branch);
 
-  _s._cwn->hbname(item._block,ptr,branch/*hbname_vars*/);
+  s->_cwn->hbname(item._block,ptr,branch/*hbname_vars*/);
 #endif
 #if USING_ROOT
 
@@ -1040,15 +1050,15 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 
       // MSG ("OLD: %s NEW: %s",branch_vars,branch);
 
-      for (TTree_vector::iterator iter = _s._root_ntuples.begin();
-	   iter != _s._root_ntuples.end(); ++iter)
+      for (TTree_vector::iterator iter = s->_root_ntuples.begin();
+	   iter != s->_root_ntuples.end(); ++iter)
 	(*iter)->Branch(item._var_name,ptr,branch/*branch_vars*/);
     }
   else
     {
       // We must verify that the branch exists, and have appropriate type!
 
-      TBranch *br = _s._root_ntuple->GetBranch(item._var_name);
+      TBranch *br = s->_root_ntuple->GetBranch(item._var_name);
 
       if (!br)
 	{
@@ -1110,7 +1120,7 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 	    ERR_MSG("Requested leaf (%s) variable in tree is not counted, "
 		    "but request is.",item._var_name);
 
-	  TBranch *brc = _s._root_ntuple->GetBranch(item._var_ctrl_name);
+	  TBranch *brc = s->_root_ntuple->GetBranch(item._var_ctrl_name);
 
 	  if (!brc)
 	    ERR_MSG("Requested branch (%s) (array control) "
@@ -1150,6 +1160,8 @@ void do_create_branch(uint32_t offset,stage_array_item &item)
 
 void request_create_branch(void *msg,uint32_t *left)
 {
+  global_struct *s = &_s;
+
   uint32_t aid    = 0;
   uint32_t offset = get_buf_uint32(&msg,left);
   uint32_t length = get_buf_uint32(&msg,left);
@@ -1196,9 +1208,9 @@ void request_create_branch(void *msg,uint32_t *left)
       item._var_ctrl_name)
     {
       stage_array_name_map::iterator iter =
-	_s._stage_array._names.find(item._var_ctrl_name);
+	s->_stage_array._names.find(item._var_ctrl_name);
 
-      if (iter == _s._stage_array._names.end())
+      if (iter == s->_stage_array._names.end())
 	ERR_MSG("Unable to find controlling item (%s) for %s.",
 		item._var_ctrl_name,item._var_name);
 
@@ -1211,11 +1223,11 @@ void request_create_branch(void *msg,uint32_t *left)
   do_create_branch(offset,item);
 
 #if STRUCT_WRITER
-  _s._stage_array._items.insert(stage_array_item_map::value_type(offset,item));
-  _s._stage_array._names.insert(stage_array_name_map::value_type(item._var_name,
+  s->_stage_array._items.insert(stage_array_item_map::value_type(offset,item));
+  s->_stage_array._names.insert(stage_array_name_map::value_type(item._var_name,
 								 offset));
 #else
-  _s._stage_array._items_v.push_back(item);
+  s->_stage_array._items_v.push_back(item);
 #endif
 }
 
@@ -1770,9 +1782,11 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
   uint32_t *xor_sum_msg_p = (uint32_t *) msg;
   uint32_t xor_sum_msg = get_buf_uint32(&msg,left);
 
+  global_struct *s = &_s;
+
 #if USING_ROOT
-  if (_s._root_ntuples.size() >= 10)
-    MSG("(... %d trees booked.)",(int) _s._root_ntuples.size());
+  if (s->_root_ntuples.size() >= 10)
+    MSG("(... %d trees booked.)",(int) s->_root_ntuples.size());
 #endif
 #if STRUCT_WRITER
   _client_written = writer;
@@ -1784,7 +1798,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
   if (!writer)
     {
-      xor_sum = calc_structure_xor_sum(_s._stage_array);
+      xor_sum = calc_structure_xor_sum(s->_stage_array);
 
       if (xor_sum_msg && xor_sum_msg != xor_sum)
 	ERR_MSG("Mismatch between received (0x%08x) "
@@ -1872,7 +1886,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       "{\n",
 	       name);
 
-      generate_structure(fid,_s._stage_array,2,false);
+      generate_structure(fid,s->_stage_array,2,false);
 
       fprintf (fid,
 	       "\n"
@@ -1896,7 +1910,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
       {
 	set_strings used_names;
 
-	generate_structure_onion(fid,_s._stage_array._items,2,used_names);
+	generate_structure_onion(fid,s->_stage_array._items,2,used_names);
 
 	// This should just delete all the pointers, but as the program
 	// quits after generating the header, we ignore the memory leak :)
@@ -1917,7 +1931,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       "  ok = 1; \\\n",
 	       name);
 
-      generate_structure(fid,_s._stage_array,2,true);
+      generate_structure(fid,s->_stage_array,2,true);
 
       fprintf (fid,
 	       "  \\\n"
@@ -1955,7 +1969,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
       fprintf (fid,
 	       "  uint32_t _pack_list[%zd];",
-	       _s._offset_array._length);
+	       s->_offset_array._length);
 
       fprintf (fid,
 	       "\n"
@@ -1978,7 +1992,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       name,
 	       name,
 	       name,
-	       _s._offset_array._length,
+	       s->_offset_array._length,
 	       1);
 
       fprintf (fid,"    { 0, sizeof(EXT_STR_%s), 0x%08x, \"%s\" }, \\\n",
@@ -1990,11 +2004,11 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	       "  { \\\n"
 	       "   ");
 
-      for (int i = 0; i < _s._offset_array._length; i++)
+      for (int i = 0; i < s->_offset_array._length; i++)
 	{
 	  if ((i & 3) == 0 && i)
 	    fprintf (fid," \\\n   ");
-	  fprintf (fid," 0x%08x,",_s._offset_array._ptr[i]);
+	  fprintf (fid," 0x%08x,",s->_offset_array._ptr[i]);
 	}
 
       fprintf (fid," \\\n"
@@ -2050,18 +2064,18 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
       slo._magic = EXTERNAL_WRITER_MAGIC;
       slo._size_info = sizeof(slo);
-      slo._size_struct = slo._size_struct_onion = _s._stage_array._length;
+      slo._size_struct = slo._size_struct_onion = s->_stage_array._length;
       slo._pack_list_items = 0; // no pack list
       slo._num_items = 1;
       slo._items[0]._offset = 0;
-      slo._items[0]._size = _s._stage_array._length;
+      slo._items[0]._size = s->_stage_array._length;
       slo._items[0]._xor = xor_sum;
       slo._items[0]._name = NULL;
 
       if (ext_data_setup(_reader_client,
 			 &slo,sizeof(slo),
 			 NULL,
-			 _s._stage_array._length) != 0)
+			 s->_stage_array._length) != 0)
 	{
 	  perror("ext_data_setup");
 	  ERR_MSG("Failed to setup connection: %s",
@@ -2078,10 +2092,12 @@ void dump_array_normal()
 {
   // Dump all entries...
 
+  global_struct *s = &_s;
+
   printf ("--- === --- === ---\n");
 
-  for (stage_array_item_map::iterator iter = _s._stage_array._items.begin();
-       iter != _s._stage_array._items.end(); ++iter)
+  for (stage_array_item_map::iterator iter = s->_stage_array._items.begin();
+       iter != s->_stage_array._items.end(); ++iter)
     {
       stage_array_item &item = iter->second;
       uint32_t offset = iter->first;
@@ -2095,7 +2111,7 @@ void dump_array_normal()
 	  if (item._var_ctrl_name)
 	    {
 	      uint32_t *ctrl_p =
-		(uint32_t *) (_s._stage_array._ptr + item._ctrl_offset);
+		(uint32_t *) (s->_stage_array._ptr + item._ctrl_offset);
 
 	      items = *ctrl_p;
 
@@ -2127,7 +2143,7 @@ void dump_array_normal()
 
       // 11 * 6 = 66 tokens, i.e. 14 left
 
-      char *p = _s._stage_array._ptr + offset;
+      char *p = s->_stage_array._ptr + offset;
 
       for (int i = 0; i < items; i++, p += sizeof(uint32_t))
 	{
@@ -2166,15 +2182,17 @@ void dump_array_json()
 {
   // Dump all entries...
 
+  global_struct *s = &_s;
+
   bool pretty = _config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON;
   
   printf ("{");
   if (pretty) printf("\n");
 
-  stage_array_item_map::iterator last = --_s._stage_array._items.end();
+  stage_array_item_map::iterator last = --s->_stage_array._items.end();
   
-  for (stage_array_item_map::iterator iter = _s._stage_array._items.begin();
-       iter != _s._stage_array._items.end(); ++iter)
+  for (stage_array_item_map::iterator iter = s->_stage_array._items.begin();
+       iter != s->_stage_array._items.end(); ++iter)
     {
       stage_array_item &item = iter->second;
       uint32_t offset = iter->first;
@@ -2188,7 +2206,7 @@ void dump_array_json()
 	  if (item._var_ctrl_name)
 	    {
 	      uint32_t *ctrl_p =
-		(uint32_t *) (_s._stage_array._ptr + item._ctrl_offset);
+		(uint32_t *) (s->_stage_array._ptr + item._ctrl_offset);
 
 	      items = *ctrl_p;
 	      if (items == 0)
@@ -2205,7 +2223,7 @@ void dump_array_json()
       if (pretty && strlen(item._var_name) < 30)
 	printf("%*s", (int) (30-strlen(item._var_name)), "");
 
-      char *p = _s._stage_array._ptr + offset;
+      char *p = s->_stage_array._ptr + offset;
       
       if (is_array) printf("[");
       for (int i = 0; i < items; i++, p += sizeof(uint32_t))
@@ -2489,6 +2507,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #endif
 			 )
 {
+  global_struct *s = &_s;
+
 #if USING_CERNLIB || USING_ROOT
   if (_got_sigalarm_timesliced)
     {
@@ -2523,8 +2543,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	  // Create the items again
 	  for (stage_array_item_vector::iterator iter =
-		 _s._stage_array._items_v.begin();
-	       iter != _s._stage_array._items_v.end(); ++iter)
+		 s->_stage_array._items_v.begin();
+	       iter != s->_stage_array._items_v.end(); ++iter)
 	    {
 	      stage_array_item &item = *iter;
 
@@ -2560,7 +2580,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   // MSG("index %d marker %d left %d.",ntuple_index,marker,*left);
 
-  if (!_s._stage_array._length)
+  if (!s->_stage_array._length)
     ERR_MSG("Cannot fill using unallocated array.");
 
   if (!(marker & 0x80000000))
@@ -2585,14 +2605,14 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // The data mst be unpacked using the static information we have
       // about offsets.  Only the values are sent each time.
 
-      uint32_t *o    = _s._offset_array._ptr;
-      uint32_t *oend = _s._offset_array._ptr + _s._offset_array._length;
+      uint32_t *o    = s->_offset_array._ptr;
+      uint32_t *oend = s->_offset_array._ptr + s->_offset_array._length;
 
       uint32_t *p    = (uint32_t *) msg;
       uint32_t *pend = (uint32_t *) (((char*) msg) + *left);
 
 #if STRUCT_WRITER
-      uint32_t *pp    = (uint32_t *) _s._stage_array._offset_value;
+      uint32_t *pp    = (uint32_t *) s->_stage_array._offset_value;
       uint32_t *ppp   = (uint32_t *) pp;
 #endif
 
@@ -2601,12 +2621,12 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // first.  then every time we end up inside a controlled item,
       // we check that those items are also available.
 
-      if (pend - p < _s._offset_array._static_items)
+      if (pend - p < s->_offset_array._static_items)
 	ERR_MSG("Fill value array too short (%zd) "
 		"for offset array static items (%" PRIu32 ").",
-		pend - p,_s._offset_array._static_items);
+		pend - p,s->_offset_array._static_items);
 
-      uint32_t *pcheck = p + _s._offset_array._static_items;
+      uint32_t *pcheck = p + s->_offset_array._static_items;
 
       // MSG ("---");
 
@@ -2624,7 +2644,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  *(ppp++) = offset;
 	  *(ppp++) = value;
 #else
-	  *((uint32_t *) (_s._stage_array._ptr + offset)) = value;
+	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #endif
 
 	  // MSG ("value: (0x%08x) 0x%08x %c",offset,value,mark ? '*' : ' ');
@@ -2672,7 +2692,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		  *(ppp++) = offset;
 		  *(ppp++) = value;
 #else
-		  *((uint32_t *) (_s._stage_array._ptr + offset)) = value;
+		  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #endif
 		}
 
@@ -2701,19 +2721,19 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       //getrusage(RUSAGE_SELF,&use1);
 
-      memset(_s._stage_array._masks[0],0,
-	     _s._stage_array._num_masks[0] * sizeof(uint32_t));
+      memset(s->_stage_array._masks[0],0,
+	     s->_stage_array._num_masks[0] * sizeof(uint32_t));
 
       while (pp + 1 < ppp)
 	{
 	  uint32_t offset = *(pp++);
 	  uint32_t value  = *(pp++);
 
-	  if (offset + sizeof(uint32_t) > _s._stage_array._length)
+	  if (offset + sizeof(uint32_t) > s->_stage_array._length)
 	    ERR_MSG("Fill item offset (%" PRIu32 ") outside array (%zd).",
-		    offset,_s._stage_array._length);
+		    offset,s->_stage_array._length);
 
-	  *((uint32_t *) (_s._stage_array._ptr + offset)) = value;
+	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 
 	  uint32_t mask_item = (offset / sizeof(uint32_t));
 	  uint32_t mask_shift = (BUCKET_SORT_LEVELS - 1) * BUCKET_SORT_SHIFT;
@@ -2730,7 +2750,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      uint32_t mask_off = this_mask >> BUCKET_SORT_SHIFT;
 	      uint32_t mask_ind = this_mask & (BUCKET_SORT_BITS - 1);
 
-	      uint32_t *mask_ptr = _s._stage_array._masks[level] + mask_off;
+	      uint32_t *mask_ptr = s->_stage_array._masks[level] + mask_off;
 	      uint32_t mask_bit = 1 << mask_ind;
 
 	      if (!(*mask_ptr & mask_bit))
@@ -2753,7 +2773,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      uint32_t mask_off = this_mask >> BUCKET_SORT_SHIFT;
 	      uint32_t mask_ind = this_mask & (BUCKET_SORT_BITS - 1);
 
-	      uint32_t *mask_ptr = _s._stage_array._masks[level] + mask_off;
+	      uint32_t *mask_ptr = s->_stage_array._masks[level] + mask_off;
 	      uint32_t mask_bit = 1 << mask_ind;
 
 	      *mask_ptr = mask_bit; // initialise
@@ -2857,8 +2877,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // buffers (which are there even if there are no consumers).
       // That way, we save a memcpy operation.
 
-      size_t max_length = _s._stage_array._rewrite_max_bytes_per_item *
-	((ppp - _s._stage_array._offset_value) / 2);
+      size_t max_length = s->_stage_array._rewrite_max_bytes_per_item *
+	((ppp - s->_stage_array._offset_value) / 2);
 
       max_length = (max_length + 3) & ~3; // 4-byte alignment
       max_length += sizeof (external_writer_buf_header);
@@ -2903,11 +2923,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       uint32_t cur_offset = 0;
 
-      for (int i = 0; i < _s._stage_array._num_masks[0]; i++)
+      for (int i = 0; i < s->_stage_array._num_masks[0]; i++)
 	{
 	  // fprintf (stderr,"[0:%d]",i);
 
-	  bucket_iter iter0(_s._stage_array._masks[0][i],
+	  bucket_iter iter0(s->_stage_array._masks[0][i],
 			    i*BUCKET_SORT_BITS);
 
 	  while (iter0.get_next())
@@ -2917,7 +2937,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	      // fprintf (stderr,"(1:%d)",iter0._index);
 
 	      bucket_iter
-		iter1(_s._stage_array._masks[1][iter0._index],
+		iter1(s->_stage_array._masks[1][iter0._index],
 		      iter0._index*BUCKET_SORT_BITS);
 
 	      while (iter1.get_next())
@@ -2925,7 +2945,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		  // fprintf (stderr,"(2:%d)",iter1._index);
 
 		  bucket_iter
-		    iter2(_s._stage_array._masks[2][iter1._index],
+		    iter2(s->_stage_array._masks[2][iter1._index],
 			  iter1._index*BUCKET_SORT_BITS);
 
 		  while (iter2.get_next())
@@ -2941,7 +2961,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		      */
 		      uint32_t offset = iter2._index * sizeof (uint32_t);
 		      uint32_t value  =
-			*((uint32_t *) (_s._stage_array._ptr + offset));
+			*((uint32_t *) (s->_stage_array._ptr + offset));
 		      /*
 		      if (iter2._index * 4 != ntohl(ppp[0]) ||
 			  value != ntohl(ppp[1]))
@@ -2967,7 +2987,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 		      store_offset >>= 2;
 
 		      assert(offset + sizeof(uint32_t) <=
-			     _s._stage_array._length);
+			     s->_stage_array._length);
 			     /*
 		      if (offset + sizeof(uint32_t) > _stage_array._length)
 			ERR_MSG("Fill item offset (%d) outside array (%d).",
@@ -3047,9 +3067,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // used.  We do this such that the unpacking can verify that
       // at least all the offsets worked out together.
 
-      if (cur_offset != _s._stage_array._length)
+      if (cur_offset != s->_stage_array._length)
 	{
-	  uint32_t offset = _s._stage_array._length - sizeof(uint32_t);
+	  uint32_t offset = s->_stage_array._length - sizeof(uint32_t);
 	  uint32_t store_offset = offset - cur_offset;
 
 	  assert(!(store_offset & 3));
@@ -3090,8 +3110,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // - but anyhow, would invite for bugs should that change).
 
 #if 0
-      int ret = ext_data_write_bitpacked_event((char *) _s._stage_array._ptr,
-					       _s._stage_array._length,
+      int ret = ext_data_write_bitpacked_event((char *) s->_stage_array._ptr,
+					       s->_stage_array._length,
 					       (uint8_t *) (mark_dest+1),
 					       (uint8_t *) dest);
 
@@ -3151,8 +3171,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // Also for struct_writer we unpack, just to check that the data
       // is correct
 
-      int ret = ext_data_write_bitpacked_event((char *) _s._stage_array._ptr,
-					       _s._stage_array._length,
+      int ret = ext_data_write_bitpacked_event((char *) s->_stage_array._ptr,
+					       s->_stage_array._length,
 					       (uint8_t *) msg,
 					       (uint8_t *) msg + real_len);
 
@@ -3163,13 +3183,13 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 
 #if USING_CERNLIB
-  _s._cwn->hfnt();
+  s->_cwn->hfnt();
 #endif
 #if USING_ROOT
-  if (ntuple_index >= _s._root_ntuples.size())
+  if (ntuple_index >= s->_root_ntuples.size())
     ERR_MSG("Ntuple index (%d) too large (>= %d).",
-	    ntuple_index,(int) _s._root_ntuples.size());
-  Int_t ret = _s._root_ntuples[ntuple_index]->Fill();
+	    ntuple_index,(int) s->_root_ntuples.size());
+  Int_t ret = s->_root_ntuples[ntuple_index]->Fill();
   if (ret < 0)
     ERR_MSG("Tree filling failed.  (disk full?)");
   if (_got_sigalarm_autosave)
@@ -3246,8 +3266,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	      _ts._last_autosave = now;
 
-	      for (TTree_vector::iterator iter = _s._root_ntuples.begin();
-		   iter != _s._root_ntuples.end(); ++iter)
+	      for (TTree_vector::iterator iter = s->_root_ntuples.begin();
+		   iter != s->_root_ntuples.end(); ++iter)
 		(*iter)->AutoSave("saveself,flushbaskets");
 
 	      if (_ts._autosave_lock_do) {
@@ -3317,6 +3337,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 bool ntuple_get_event(char *msg,char **end)
 {
+  global_struct *s = &_s;
+
   external_writer_buf_header *header = (external_writer_buf_header*) msg;
 
   // Now, fetch the event
@@ -3327,7 +3349,7 @@ bool ntuple_get_event(char *msg,char **end)
   if (_g._num_events >= _g._num_read_entries)
     goto read_done;
 
-  ret = _s._root_ntuple->GetEntry(_g._num_events);
+  ret = s->_root_ntuple->GetEntry(_g._num_events);
 
   if (ret == 0)
     {
@@ -3354,7 +3376,7 @@ bool ntuple_get_event(char *msg,char **end)
   uint32_t length_in;
 
   int ret = ext_data_fetch_event(_reader_client,
-				 _s._stage_array._ptr,_s._stage_array._length,
+				 s->_stage_array._ptr,s->_stage_array._length,
 				 &header_in,&length_in);
 
   switch (ret)
@@ -3403,8 +3425,8 @@ bool ntuple_get_event(char *msg,char **end)
     // This has filled our staging array.  Now walk our offset pointers
     // and copy the data.
 
-    uint32_t *o    = _s._offset_array._ptr;
-    uint32_t *oend = _s._offset_array._ptr + _s._offset_array._length;
+    uint32_t *o    = s->_offset_array._ptr;
+    uint32_t *oend = s->_offset_array._ptr + s->_offset_array._length;
 
     while (o < oend)
       {
@@ -3412,7 +3434,7 @@ bool ntuple_get_event(char *msg,char **end)
 	uint32_t offset = offset_mark & 0x3fffffff;
 	uint32_t mark = offset_mark & 0x80000000;
 
-	uint32_t value = *((uint32_t *) (_s._stage_array._ptr + offset));
+	uint32_t value = *((uint32_t *) (s->_stage_array._ptr + offset));
 
 	// Even if an error is detected, we'll not write the event
 	// anyhow
@@ -3444,7 +3466,7 @@ bool ntuple_get_event(char *msg,char **end)
 	    for (int i = items; i; i--)
 	      {
 		offset = (*(o++)) & 0x3fffffff;
-		value = *((uint32_t *) (_s._stage_array._ptr + offset));
+		value = *((uint32_t *) (s->_stage_array._ptr + offset));
 
 		*(cur++) = htonl(value);
 	      }
@@ -4515,9 +4537,11 @@ void pipe_communication(ext_write_config_comm *comm_head)
   shmc->_cur = shmc->_mem; // we start writing to the beginning of the buffer.
   WRITE_START = shmc->_mem; // tells where the writing should start
 
+  global_struct *s = &_s;
+
   size_t max_msg_size =
     sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
-    _s._offset_array._max_items * sizeof(uint32_t);
+    s->_offset_array._max_items * sizeof(uint32_t);
 
   for ( ; ; )
     {
@@ -5166,9 +5190,11 @@ int main(int argc,char *argv[])
   shmc->_ctrl->_wakeup_avail = shmc->_ctrl->_done + (shmc->_size >> 4);
   shmc->_ctrl->_need_consumer_wakeup = 1;
 
+  global_struct *s = &_s;
+
   size_t max_msg_size =
     sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
-    _s._offset_array._max_items * sizeof(uint32_t);
+    s->_offset_array._max_items * sizeof(uint32_t);
 
   for ( ; ; )
     {
