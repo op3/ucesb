@@ -110,6 +110,7 @@ $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 
 $(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
 	@echo " EXTWR_R $@"
+	@mkdir -p $(EXTTDIR)
 	@$(EXT_WRITER_TEST) --root=$@ \
 	  > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
 	@diff -u hbook/example/$(notdir $@).good $@.out || \
