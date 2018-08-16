@@ -274,6 +274,8 @@ struct global_once
   TFile            *_root_file;
   uint64_t          _num_read_entries;
 #endif
+  uint32_t  _max_offset_array_items;
+  
   uint64_t          _num_events;
   uint64_t          _num_events_total;
   int               _num_hists;
@@ -968,6 +970,9 @@ void request_array_offsets(void *msg,uint32_t *left)
     }
 
   *left = 0;
+
+  if (s->_offset_array._max_items > _g._max_offset_array_items)
+    _g._max_offset_array_items = s->_offset_array._max_items;
 
   // OK, we are happy with the offset array
 
@@ -4564,11 +4569,9 @@ void pipe_communication(ext_write_config_comm *comm_head)
   shmc->_cur = shmc->_mem; // we start writing to the beginning of the buffer.
   WRITE_START = shmc->_mem; // tells where the writing should start
 
-  global_struct *s = &_s;
-
   size_t max_msg_size =
     sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
-    s->_offset_array._max_items * sizeof(uint32_t);
+    _g._max_offset_array_items * sizeof(uint32_t);
 
   for ( ; ; )
     {
@@ -5217,11 +5220,9 @@ int main(int argc,char *argv[])
   shmc->_ctrl->_wakeup_avail = shmc->_ctrl->_done + (shmc->_size >> 4);
   shmc->_ctrl->_need_consumer_wakeup = 1;
 
-  global_struct *s = &_s;
-
   size_t max_msg_size =
     sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
-    s->_offset_array._max_items * sizeof(uint32_t);
+    _g._max_offset_array_items * sizeof(uint32_t);
 
   for ( ; ; )
     {
