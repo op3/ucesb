@@ -470,13 +470,11 @@ void request_file_open(void *msg,uint32_t *left)
   do_file_open(time(NULL));
 }
 
-void do_book_ntuple(uint32_t ntuple_index)
+void do_book_ntuple(global_struct *s, uint32_t ntuple_index)
 {
   uint32_t hid      = _msg_config._hid;
   const char *id    = _msg_config._id;
   const char *title = _msg_config._title;
-
-  global_struct *s = &_s;
 
 #if USING_CERNLIB || USING_ROOT
   if (_config._title)
@@ -630,7 +628,9 @@ void request_book_ntuple(void *msg,uint32_t *left)
       _msg_config._max_raw_words = max_raw_words;
     }
 
-  do_book_ntuple(ntuple_index);
+  global_struct *s = &_s;
+
+  do_book_ntuple(s, ntuple_index);
 }
 
 void request_hist_h1i(void *msg,uint32_t *left)
@@ -2567,7 +2567,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	  // Open another file
 	  do_file_open(now);
-	  do_book_ntuple(-1);
+	  do_book_ntuple(s, -1);
 
 	  // Create the items again
 	  for (stage_array_item_vector::iterator iter =
