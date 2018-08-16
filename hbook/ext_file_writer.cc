@@ -1799,6 +1799,220 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
       ++iter;
     }
 }
+
+void write_header(global_struct *s, const char *name)
+{
+  char *header_guard =
+    (char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
+
+  if (!header_guard)
+    ERR_MSG("Failure allocating memory for header_guard.");
+
+  sprintf(header_guard,"__GUARD_%s_%s__",name,_config._header);
+
+  for (char *p = header_guard; *p; p++)
+    {
+      if (*p == '.')
+	*p = '_';
+      if (*p == '/')
+	*p = '_';
+      *p = toupper(*p);
+    }
+
+  FILE *fid = fopen(_config._header,"wt");
+  if (!fid)
+    {
+      perror("fopen");
+      ERR_MSG("Failure opening %s for writing.",_config._header);
+    }
+
+  fprintf (fid,
+	   "/********************************************************\n"
+	   " *\n"
+	   " * Structure for ext_data_fetch_event() filling.\n"
+	   " *\n"
+	   " * Do not edit - automatically generated.\n"
+	   " */\n"
+	   "\n"
+	   "#ifndef %s\n"
+	   "#define %s\n"
+	   "\n"
+	   "#ifndef __CINT__\n"
+	   "# include <stdint.h>\n"
+	   "#else\n"
+	   "/* For CINT (old version trouble with stdint.h): */\n"
+	   "# ifndef uint32_t\n"
+	   "typedef unsigned int uint32_t;\n"
+	   "typedef          int  int32_t;\n"
+	   "# endif\n"
+	   "#endif\n"
+	   "#ifndef EXT_STRUCT_CTRL\n"
+	   "# define EXT_STRUCT_CTRL(x)\n"
+	   "#endif\n",
+	   header_guard,
+	   header_guard);
+  // We do not put the typedefs in en else clause above, such that
+  // if compiled on a platform where it is not true, the compiler
+  // will cry.  Also, if our defines should get promoted to 64 bits,
+  // the structure size will be wrong, and that's checked.
+
+  fprintf (fid,
+	   "\n"
+	   "/********************************************************\n"
+	   " *\n"
+	   " * Plain structure (layout as ntuple/root file):\n"
+	   " */\n"
+	   "\n");
+
+  fprintf (fid,
+	   "typedef struct EXT_STR_%s_t\n"
+	   "{\n",
+	   name);
+
+  generate_structure(fid,s->_stage_array,2,false);
+
+  fprintf (fid,
+	   "\n"
+	   "} EXT_STR_%s;\n",
+	   name);
+
+  fprintf (fid,
+	   "\n"
+	   "/********************************************************\n"
+	   " *\n"
+	   " * Structure with multiple levels of arrays (partially)\n"
+	   " * recovered (recommended):\n"
+	   " */\n"
+	   "\n");
+
+  fprintf (fid,
+	   "typedef struct EXT_STR_%s_onion_t\n"
+	   "{\n",
+	   name);
+
+  {
+    set_strings used_names;
+
+    generate_structure_onion(fid,s->_stage_array._items,2,used_names);
+
+    // This should just delete all the pointers, but as the program
+    // quits after generating the header, we ignore the memory leak :)
+    // kill_strings(used_names);
+  }
+
+  fprintf (fid,
+	   "\n"
+	   "} EXT_STR_%s_onion;\n",
+	   name);
+
+  fprintf (fid,
+	   "\n"
+	   "/*******************************************************/\n"
+	   "\n"
+	   "#define EXT_STR_%s_ITEMS_INFO(ok,si,offset,struct_t,printerr) "
+	   /* */ "do { \\\n"
+	   "  ok = 1; \\\n",
+	   name);
+
+  generate_structure(fid,s->_stage_array,2,true);
+
+  fprintf (fid,
+	   "  \\\n"
+	   "} while (0);\n");
+
+  fprintf (fid,
+	   "\n"
+	   "/********************************************************\n"
+	   " *\n"
+	   " * For internal use by the network data reader:\n"
+	   " * (version checks, etc)\n"
+	   " */\n"
+	   "\n");
+
+  fprintf (fid,
+	   "typedef struct EXT_STR_%s_layout_t\n"
+	   "{\n",
+	   name);
+
+  fprintf (fid,
+	   "  uint32_t _magic;\n"
+	   "  uint32_t _size_info;\n"
+	   "  uint32_t _size_struct;\n"
+	   "  uint32_t _size_struct_onion;\n"
+	   "  uint32_t _pack_list_items;\n"
+	   "\n"
+	   "  uint32_t _num_items;\n"
+	   "  struct {\n"
+	   "    uint32_t _offset;\n"
+	   "    uint32_t _size;\n"
+	   "    uint32_t _xor;\n"
+	   "    const char *_name;\n"
+	   "  } _items[1];\n"
+	   );
+
+  fprintf (fid,
+	   "  uint32_t _pack_list[%zd];",
+	   s->_offset_array._length);
+
+  fprintf (fid,
+	   "\n"
+	   "} EXT_STR_%s_layout;\n",
+	   name);
+
+  fprintf (fid,
+	   "\n"
+	   "#define EXT_STR_%s_LAYOUT_INIT { \\\n",
+	   name);
+
+  fprintf (fid,"  0x%08x, \\\n"
+	   "  sizeof(EXT_STR_%s_layout), \\\n"
+	   "  sizeof(EXT_STR_%s), \\\n"
+	   "  sizeof(EXT_STR_%s_onion), \\\n"
+	   "  %zd, \\\n"
+	   "  %d, \\\n"
+	   "  { \\\n",
+	   EXTERNAL_WRITER_MAGIC,
+	   name,
+	   name,
+	   name,
+	   s->_offset_array._length,
+	   1);
+
+  uint32_t xor_sum = calc_structure_xor_sum(s->_stage_array);
+
+  fprintf (fid,"    { 0, sizeof(EXT_STR_%s), 0x%08x, \"%s\" }, \\\n",
+	   name,
+	   xor_sum,
+	   name);
+
+  fprintf (fid,"  }, \\\n"
+	   "  { \\\n"
+	   "   ");
+
+  for (int i = 0; i < s->_offset_array._length; i++)
+    {
+      if ((i & 3) == 0 && i)
+	fprintf (fid," \\\n   ");
+      fprintf (fid," 0x%08x,",s->_offset_array._ptr[i]);
+    }
+
+  fprintf (fid," \\\n"
+	   "  } \\\n"
+	   "};\n");
+
+  fprintf (fid,
+	   "\n"
+	   "#endif/*%s*/\n"
+	   "\n"
+	   "/*******************************************************/\n",
+	   header_guard);
+
+  fclose(fid);
+
+  free(header_guard);
+
+  MSG ("Wrote structure header file %s.",_config._header);
+}
 #endif
 
 #if STRUCT_WRITER
@@ -1860,214 +2074,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 		  "not enough information to generate header file.");
 	}
 
-      char *header_guard =
-	(char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
-
-      if (!header_guard)
-	ERR_MSG("Failure allocating memory for header_guard.");
-
-      sprintf(header_guard,"__GUARD_%s_%s__",name,_config._header);
-
-      for (char *p = header_guard; *p; p++)
-	{
-	  if (*p == '.')
-	    *p = '_';
-	  if (*p == '/')
-	    *p = '_';
-	  *p = toupper(*p);
-	}
-
-      FILE *fid = fopen(_config._header,"wt");
-      if (!fid)
-	{
-	  perror("fopen");
-	  ERR_MSG("Failure opening %s for writing.",_config._header);
-	}
-
-      fprintf (fid,
-	       "/********************************************************\n"
-	       " *\n"
-	       " * Structure for ext_data_fetch_event() filling.\n"
-	       " *\n"
-	       " * Do not edit - automatically generated.\n"
-	       " */\n"
-	       "\n"
-	       "#ifndef %s\n"
-	       "#define %s\n"
-	       "\n"
-	       "#ifndef __CINT__\n"
-	       "# include <stdint.h>\n"
-	       "#else\n"
-	       "/* For CINT (old version trouble with stdint.h): */\n"
-	       "# ifndef uint32_t\n"
-	       "typedef unsigned int uint32_t;\n"
-	       "typedef          int  int32_t;\n"
-	       "# endif\n"
-	       "#endif\n"
-	       "#ifndef EXT_STRUCT_CTRL\n"
-	       "# define EXT_STRUCT_CTRL(x)\n"
-	       "#endif\n",
-	       header_guard,
-	       header_guard);
-      // We do not put the typedefs in en else clause above, such that
-      // if compiled on a platform where it is not true, the compiler
-      // will cry.  Also, if our defines should get promoted to 64 bits,
-      // the structure size will be wrong, and that's checked.
-
-      fprintf (fid,
-	       "\n"
-	       "/********************************************************\n"
-	       " *\n"
-	       " * Plain structure (layout as ntuple/root file):\n"
-	       " */\n"
-	       "\n");
-
-      fprintf (fid,
-	       "typedef struct EXT_STR_%s_t\n"
-	       "{\n",
-	       name);
-
-      generate_structure(fid,s->_stage_array,2,false);
-
-      fprintf (fid,
-	       "\n"
-	       "} EXT_STR_%s;\n",
-	       name);
-
-      fprintf (fid,
-	       "\n"
-	       "/********************************************************\n"
-	       " *\n"
-	       " * Structure with multiple levels of arrays (partially)\n"
-	       " * recovered (recommended):\n"
-	       " */\n"
-	       "\n");
-
-      fprintf (fid,
-	       "typedef struct EXT_STR_%s_onion_t\n"
-	       "{\n",
-	       name);
-
-      {
-	set_strings used_names;
-
-	generate_structure_onion(fid,s->_stage_array._items,2,used_names);
-
-	// This should just delete all the pointers, but as the program
-	// quits after generating the header, we ignore the memory leak :)
-	// kill_strings(used_names);
-      }
-
-      fprintf (fid,
-	       "\n"
-	       "} EXT_STR_%s_onion;\n",
-	       name);
-
-      fprintf (fid,
-	       "\n"
-	       "/*******************************************************/\n"
-	       "\n"
-	       "#define EXT_STR_%s_ITEMS_INFO(ok,si,offset,struct_t,printerr) "
-	       /* */ "do { \\\n"
-	       "  ok = 1; \\\n",
-	       name);
-
-      generate_structure(fid,s->_stage_array,2,true);
-
-      fprintf (fid,
-	       "  \\\n"
-	       "} while (0);\n");
-
-      fprintf (fid,
-	       "\n"
-	       "/********************************************************\n"
-	       " *\n"
-	       " * For internal use by the network data reader:\n"
-	       " * (version checks, etc)\n"
-	       " */\n"
-	       "\n");
-
-      fprintf (fid,
-	       "typedef struct EXT_STR_%s_layout_t\n"
-	       "{\n",
-	       name);
-
-      fprintf (fid,
-	       "  uint32_t _magic;\n"
-	       "  uint32_t _size_info;\n"
-	       "  uint32_t _size_struct;\n"
-	       "  uint32_t _size_struct_onion;\n"
-	       "  uint32_t _pack_list_items;\n"
-	       "\n"
-	       "  uint32_t _num_items;\n"
-	       "  struct {\n"
-	       "    uint32_t _offset;\n"
-	       "    uint32_t _size;\n"
-	       "    uint32_t _xor;\n"
-	       "    const char *_name;\n"
-	       "  } _items[1];\n"
-	       );
-
-      fprintf (fid,
-	       "  uint32_t _pack_list[%zd];",
-	       s->_offset_array._length);
-
-      fprintf (fid,
-	       "\n"
-	       "} EXT_STR_%s_layout;\n",
-	       name);
-
-      fprintf (fid,
-	       "\n"
-	       "#define EXT_STR_%s_LAYOUT_INIT { \\\n",
-	       name);
-
-      fprintf (fid,"  0x%08x, \\\n"
-	       "  sizeof(EXT_STR_%s_layout), \\\n"
-	       "  sizeof(EXT_STR_%s), \\\n"
-	       "  sizeof(EXT_STR_%s_onion), \\\n"
-	       "  %zd, \\\n"
-	       "  %d, \\\n"
-	       "  { \\\n",
-	       EXTERNAL_WRITER_MAGIC,
-	       name,
-	       name,
-	       name,
-	       s->_offset_array._length,
-	       1);
-
-      fprintf (fid,"    { 0, sizeof(EXT_STR_%s), 0x%08x, \"%s\" }, \\\n",
-	       name,
-	       xor_sum,
-	       name);
-
-      fprintf (fid,"  }, \\\n"
-	       "  { \\\n"
-	       "   ");
-
-      for (int i = 0; i < s->_offset_array._length; i++)
-	{
-	  if ((i & 3) == 0 && i)
-	    fprintf (fid," \\\n   ");
-	  fprintf (fid," 0x%08x,",s->_offset_array._ptr[i]);
-	}
-
-      fprintf (fid," \\\n"
-	       "  } \\\n"
-	       "};\n");
-
-      fprintf (fid,
-	       "\n"
-	       "#endif/*%s*/\n"
-	       "\n"
-	       "/*******************************************************/\n",
-	       header_guard);
-
-      fclose(fid);
-
-      free(header_guard);
-
-      MSG ("Wrote structure header file %s.",_config._header);
+      write_header(s, name);
 
       if (_config._port == 0 && !_config._stdout && !_config._forked)
 	exit(0); // We're done
