@@ -1800,57 +1800,8 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
     }
 }
 
-void write_header(global_struct *s, const char *name)
+void write_structure_header(FILE *fid, global_struct *s, const char *name)
 {
-  char *header_guard =
-    (char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
-
-  if (!header_guard)
-    ERR_MSG("Failure allocating memory for header_guard.");
-
-  sprintf(header_guard,"__GUARD_%s_%s__",name,_config._header);
-
-  for (char *p = header_guard; *p; p++)
-    {
-      if (*p == '.')
-	*p = '_';
-      if (*p == '/')
-	*p = '_';
-      *p = toupper(*p);
-    }
-
-  FILE *fid = fopen(_config._header,"wt");
-  if (!fid)
-    {
-      perror("fopen");
-      ERR_MSG("Failure opening %s for writing.",_config._header);
-    }
-
-  fprintf (fid,
-	   "/********************************************************\n"
-	   " *\n"
-	   " * Structure for ext_data_fetch_event() filling.\n"
-	   " *\n"
-	   " * Do not edit - automatically generated.\n"
-	   " */\n"
-	   "\n"
-	   "#ifndef %s\n"
-	   "#define %s\n"
-	   "\n"
-	   "#ifndef __CINT__\n"
-	   "# include <stdint.h>\n"
-	   "#else\n"
-	   "/* For CINT (old version trouble with stdint.h): */\n"
-	   "# ifndef uint32_t\n"
-	   "typedef unsigned int uint32_t;\n"
-	   "typedef          int  int32_t;\n"
-	   "# endif\n"
-	   "#endif\n"
-	   "#ifndef EXT_STRUCT_CTRL\n"
-	   "# define EXT_STRUCT_CTRL(x)\n"
-	   "#endif\n",
-	   header_guard,
-	   header_guard);
   // We do not put the typedefs in en else clause above, such that
   // if compiled on a platform where it is not true, the compiler
   // will cry.  Also, if our defines should get promoted to 64 bits,
@@ -1999,6 +1950,61 @@ void write_header(global_struct *s, const char *name)
   fprintf (fid," \\\n"
 	   "  } \\\n"
 	   "};\n");
+}
+
+void write_header(global_struct *s, const char *name)
+{
+  char *header_guard =
+    (char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
+
+  if (!header_guard)
+    ERR_MSG("Failure allocating memory for header_guard.");
+
+  sprintf(header_guard,"__GUARD_%s_%s__",name,_config._header);
+
+  for (char *p = header_guard; *p; p++)
+    {
+      if (*p == '.')
+	*p = '_';
+      if (*p == '/')
+	*p = '_';
+      *p = toupper(*p);
+    }
+
+  FILE *fid = fopen(_config._header,"wt");
+  if (!fid)
+    {
+      perror("fopen");
+      ERR_MSG("Failure opening %s for writing.",_config._header);
+    }
+
+  fprintf (fid,
+	   "/********************************************************\n"
+	   " *\n"
+	   " * Structure for ext_data_fetch_event() filling.\n"
+	   " *\n"
+	   " * Do not edit - automatically generated.\n"
+	   " */\n"
+	   "\n"
+	   "#ifndef %s\n"
+	   "#define %s\n"
+	   "\n"
+	   "#ifndef __CINT__\n"
+	   "# include <stdint.h>\n"
+	   "#else\n"
+	   "/* For CINT (old version trouble with stdint.h): */\n"
+	   "# ifndef uint32_t\n"
+	   "typedef unsigned int uint32_t;\n"
+	   "typedef          int  int32_t;\n"
+	   "# endif\n"
+	   "#endif\n"
+	   "#ifndef EXT_STRUCT_CTRL\n"
+	   "# define EXT_STRUCT_CTRL(x)\n"
+	   "#endif\n",
+	   header_guard,
+	   header_guard);
+
+  write_structure_header(fid, s, name);
 
   fprintf (fid,
 	   "\n"
