@@ -973,10 +973,9 @@ str_var_type _str_var_type[] = {
   { "float   ", "R", "F" },
 };
 
-void do_create_branch(uint32_t offset,stage_array_item &item)
+void do_create_branch(global_struct *s,
+		      uint32_t offset,stage_array_item &item)
 {
-  global_struct *s = &_s;
-
   if (!s->_stage_array._length)
     ERR_MSG("Cannot create branch using unallocated array.");
 
@@ -1220,7 +1219,7 @@ void request_create_branch(void *msg,uint32_t *left)
     item._ctrl_offset   = (uint32_t) -1;
 #endif
 
-  do_create_branch(offset,item);
+  do_create_branch(s, offset,item);
 
 #if STRUCT_WRITER
   s->_stage_array._items.insert(stage_array_item_map::value_type(offset,item));
@@ -2548,7 +2547,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	    {
 	      stage_array_item &item = *iter;
 
-	      do_create_branch(item._offset,item);
+	      do_create_branch(s, item._offset,item);
 	    }
 
 	  // Ready to store data in the new file...
