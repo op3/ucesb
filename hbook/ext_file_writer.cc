@@ -1799,9 +1799,21 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
   global_struct *s = &_s;
 
+  size_t num_trees = 0;
+
+  {
+    global_struct *s = &_s;
+
 #if USING_ROOT
-  if (s->_root_ntuples.size() >= 10)
-    MSG("(... %d trees booked.)",(int) s->_root_ntuples.size());
+    num_trees += s->_root_ntuples.size();
+#endif
+  }
+
+#if USING_ROOT
+  if (num_trees >= 10)
+    MSG("(... %d trees booked.)",(int) num_trees);
+#else
+  (void) num_trees;
 #endif
 #if STRUCT_WRITER
   _client_written = writer;
