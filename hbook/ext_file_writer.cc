@@ -1854,6 +1854,12 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
   if (_config._header)
     {
+      if (writer)
+	{
+	  ERR_MSG("Data comes from client, "
+		  "not enough information to generate header file.");
+	}
+
       char *header_guard =
 	(char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
 
@@ -1869,12 +1875,6 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 	  if (*p == '/')
 	    *p = '_';
 	  *p = toupper(*p);
-	}
-
-      if (writer)
-	{
-	  ERR_MSG("Data comes from client, "
-		  "not enough information to generate header file.");
 	}
 
       FILE *fid = fopen(_config._header,"wt");
