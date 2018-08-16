@@ -2120,11 +2120,9 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 }
 
 #if STRUCT_WRITER
-void dump_array_normal()
+void dump_array_normal(global_struct *s)
 {
   // Dump all entries...
-
-  global_struct *s = &_s;
 
   printf ("--- === --- === ---\n");
 
@@ -2210,11 +2208,9 @@ void dump_array_normal()
   fflush(stdout);
 }
 
-void dump_array_json()
+void dump_array_json(global_struct *s)
 {
   // Dump all entries...
-
-  global_struct *s = &_s;
 
   bool pretty = _config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON;
   
@@ -3333,10 +3329,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #endif
 #if STRUCT_WRITER
   if (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL)
-    dump_array_normal();
+    dump_array_normal(s);
   else if (_config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON ||
 	   _config._dump == EXT_WRITER_DUMP_FORMAT_COMPACT_JSON)
-    dump_array_json();
+    dump_array_json(s);
 #endif
 
  statistics:
