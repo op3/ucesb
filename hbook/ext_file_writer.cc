@@ -697,14 +697,29 @@ void request_named_string(void *msg,uint32_t *left)
 
 void full_write(int fd,const void *buf,size_t count);
 
-void close_output()
+void close_structure(global_struct *s, size_t *num_trees)
 {
-  global_struct *s = &_s;
-
-  _g._num_events_total += _g._num_events;
 #if USING_CERNLIB
   if (s->_cwn)
     delete s->_cwn;
+#endif
+#if USING_ROOT
+  *num_trees += s->_root_ntuples.size();
+#endif
+}
+
+void close_output()
+{
+  size_t num_trees = 0;
+  
+  {
+    global_struct *s = &_s;
+
+    close_structure(s, &num_trees);
+  }
+
+  _g._num_events_total += _g._num_events;
+#if USING_CERNLIB
   if (_g._hfile)
     {
       _g._hfile->close();
@@ -730,9 +745,10 @@ void close_output()
       char msg_trees[64] = "";
       char msg_hists[64] = "";
       if (_config._timeslice)
-	sprintf (msg_total,", %lld total",(long long int) _g._num_events_total);
-      if (s->_root_ntuples.size() > 1)
-	sprintf (msg_trees," in %d trees",(int) s->_root_ntuples.size());
+	sprintf (msg_total,", %lld total",
+		 (long long int) _g._num_events_total);
+      if (num_trees > 1)
+	sprintf (msg_trees," in %d trees",(int) num_trees);
       if (_g._num_hists)
 	sprintf (msg_hists,", %d histograms",_g._num_hists);
       MSG("Closed file (%lld events%s%s%s).",
