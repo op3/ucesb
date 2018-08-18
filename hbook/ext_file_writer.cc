@@ -206,7 +206,6 @@ uint32_t *get_buf_raw_ptr(void **msg,uint32_t *left,uint32_t u32_words)
 struct msg_config {
   uint32_t    _sort_u32_words;
 
-  uint32_t    _max_raw_words;
 } _msg_config;
 
 typedef ext_data_structure_item stage_array_item;
@@ -307,6 +306,8 @@ struct global_struct
   const char *_id;
   const char *_title;
 
+  uint32_t    _max_raw_words;
+
 #if USING_CERNLIB
   hbook_ntuple_cwn *_cwn;
 #endif
@@ -327,6 +328,7 @@ public:
     _hid = 0;
     _id = NULL;
     _title = NULL;
+    _max_raw_words = 0;
 #if USING_CERNLIB
     _cwn = NULL;
 #endif
@@ -646,7 +648,7 @@ void request_book_ntuple(void *msg,uint32_t *left)
   if (ntuple_index == 0)
     {
       _msg_config._sort_u32_words = sort_u32_words;
-      _msg_config._max_raw_words = max_raw_words;
+      s->_max_raw_words = max_raw_words;
     }
 
   do_book_ntuple(s, ntuple_index);
@@ -2637,7 +2639,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
 
-  if (_msg_config._max_raw_words)
+  if (s->_max_raw_words)
     {
       comm->_raw_words = get_buf_uint32(&msg,left);
       comm->_raw_ptr = get_buf_raw_ptr(&msg,left,comm->_raw_words);
@@ -2958,7 +2960,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       max_length += sizeof (external_writer_buf_header);
       max_length +=
 	(_msg_config._sort_u32_words +
-	 (_msg_config._max_raw_words ? 1 + comm->_raw_words : 0) +
+	 (s->_max_raw_words ? 1 + comm->_raw_words : 0) +
 	 2) * // 2: ntuple_index + mark_dest
 	sizeof (uint32_t);
 
@@ -2983,7 +2985,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       uint32_t *raw_dest = ntuple_index_dest + 1;
 
-      if (_msg_config._max_raw_words)
+      if (s->_max_raw_words)
 	{
 	  *(raw_dest++) = htonl(comm->_raw_words);
 	  memcpy(raw_dest, comm->_raw_ptr,
