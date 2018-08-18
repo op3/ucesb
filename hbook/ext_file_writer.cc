@@ -1849,7 +1849,8 @@ void generate_structure_onion(FILE *fid,stage_array_item_map &sa,
     }
 }
 
-void write_structure_header(FILE *fid, global_struct *s, const char *name)
+void write_structure_header(FILE *fid, global_struct *s,
+			    const char *struct_name)
 {
   // We do not put the typedefs in en else clause above, such that
   // if compiled on a platform where it is not true, the compiler
@@ -1867,14 +1868,14 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
   fprintf (fid,
 	   "typedef struct EXT_STR_%s_t\n"
 	   "{\n",
-	   name);
+	   struct_name);
 
   generate_structure(fid,s->_stage_array,2,false);
 
   fprintf (fid,
 	   "\n"
 	   "} EXT_STR_%s;\n",
-	   name);
+	   struct_name);
 
   fprintf (fid,
 	   "\n"
@@ -1888,7 +1889,7 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
   fprintf (fid,
 	   "typedef struct EXT_STR_%s_onion_t\n"
 	   "{\n",
-	   name);
+	   struct_name);
 
   {
     set_strings used_names;
@@ -1903,7 +1904,7 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
   fprintf (fid,
 	   "\n"
 	   "} EXT_STR_%s_onion;\n",
-	   name);
+	   struct_name);
 
   fprintf (fid,
 	   "\n"
@@ -1912,7 +1913,7 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
 	   "#define EXT_STR_%s_ITEMS_INFO(ok,si,offset,struct_t,printerr) "
 	   /* */ "do { \\\n"
 	   "  ok = 1; \\\n",
-	   name);
+	   struct_name);
 
   generate_structure(fid,s->_stage_array,2,true);
 
@@ -1932,7 +1933,7 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
   fprintf (fid,
 	   "typedef struct EXT_STR_%s_layout_t\n"
 	   "{\n",
-	   name);
+	   struct_name);
 
   fprintf (fid,
 	   "  uint32_t _magic;\n"
@@ -1957,12 +1958,12 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
   fprintf (fid,
 	   "\n"
 	   "} EXT_STR_%s_layout;\n",
-	   name);
+	   struct_name);
 
   fprintf (fid,
 	   "\n"
 	   "#define EXT_STR_%s_LAYOUT_INIT { \\\n",
-	   name);
+	   struct_name);
 
   fprintf (fid,"  0x%08x, \\\n"
 	   "  sizeof(EXT_STR_%s_layout), \\\n"
@@ -1972,18 +1973,18 @@ void write_structure_header(FILE *fid, global_struct *s, const char *name)
 	   "  %d, \\\n"
 	   "  { \\\n",
 	   EXTERNAL_WRITER_MAGIC,
-	   name,
-	   name,
-	   name,
+	   struct_name,
+	   struct_name,
+	   struct_name,
 	   s->_offset_array._length,
 	   1);
 
   uint32_t xor_sum = calc_structure_xor_sum(s->_stage_array);
 
   fprintf (fid,"    { 0, sizeof(EXT_STR_%s), 0x%08x, \"%s\" }, \\\n",
-	   name,
+	   struct_name,
 	   xor_sum,
-	   name);
+	   struct_name);
 
   fprintf (fid,"  }, \\\n"
 	   "  { \\\n"
