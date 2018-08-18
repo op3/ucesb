@@ -199,11 +199,11 @@ uint32_t *get_buf_raw_ptr(void **msg,uint32_t *left,uint32_t u32_words)
   return p;
 }
 
-struct msg_config {
-  uint32_t    _hid;
-  const char *_id;
-  const char *_title;
+/* TODO: this seems a trouble for multi-event.  It points (refers to)
+ * whatever structure was defined last.
+ */
 
+struct msg_config {
   uint32_t    _sort_u32_words;
 
   uint32_t    _max_raw_words;
@@ -303,6 +303,10 @@ global_once _g;
 
 struct global_struct
 {
+  uint32_t    _hid;
+  const char *_id;
+  const char *_title;
+
 #if USING_CERNLIB
   hbook_ntuple_cwn *_cwn;
 #endif
@@ -320,6 +324,9 @@ struct global_struct
 public:
   global_struct()
   {
+    _hid = 0;
+    _id = NULL;
+    _title = NULL;
 #if USING_CERNLIB
     _cwn = NULL;
 #endif
@@ -484,9 +491,9 @@ void request_file_open(void *msg,uint32_t *left)
 
 void do_book_ntuple(global_struct *s, uint32_t ntuple_index)
 {
-  uint32_t hid      = _msg_config._hid;
-  const char *id    = _msg_config._id;
-  const char *title = _msg_config._title;
+  uint32_t hid      = s->_hid;
+  const char *id    = s->_id;
+  const char *title = s->_title;
 
 #if USING_CERNLIB || USING_ROOT
   if (_config._title)
@@ -630,17 +637,17 @@ void request_book_ntuple(void *msg,uint32_t *left)
   const char *id = get_buf_string(&msg,left);
   const char *title = get_buf_string(&msg,left);
 
-  _msg_config._hid   = hid;
-  _msg_config._id    = strdup(id);
-  _msg_config._title = strdup(title);
+  global_struct *s = &_s;
+
+  s->_hid   = hid;
+  s->_id    = strdup(id);
+  s->_title = strdup(title);
 
   if (ntuple_index == 0)
     {
       _msg_config._sort_u32_words = sort_u32_words;
       _msg_config._max_raw_words = max_raw_words;
     }
-
-  global_struct *s = &_s;
 
   do_book_ntuple(s, ntuple_index);
 }
@@ -2087,7 +2094,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
   _client_written = writer;
 
   const char *name =
-    _config._header_id ? _config._header_id : _msg_config._id;
+    _config._header_id ? _config._header_id : s->_id;
 
   if (_config._header)
     {
@@ -2553,7 +2560,7 @@ void request_keep_alive(ext_write_config_comm *comm,
 }
 
 void prehandle_keep_alive(ext_write_config_comm *comm,
-			void *msg,uint32_t *left)
+			  void *msg,uint32_t *left)
 {
   comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
   comm->_keep_alive_event = 1;
