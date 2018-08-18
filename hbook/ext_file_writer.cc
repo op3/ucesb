@@ -340,7 +340,11 @@ public:
   }
 };
 
-global_struct _s;
+typedef std::vector<global_struct *> global_struct_vector;
+
+global_struct_vector _structures;
+global_struct   *_cur_structure = NULL; /* the structure being set up */
+global_struct  *_read_structure = NULL;
 
 #if USING_CERNLIB || USING_ROOT
 struct timeslice
@@ -644,7 +648,23 @@ void request_book_ntuple(void *msg,uint32_t *left)
   const char *id = get_buf_string(&msg,left);
   const char *title = get_buf_string(&msg,left);
 
-  global_struct *s = &_s;
+  if (struct_index != _structures.size())
+    ERR_MSG("Structure index not in order (got %d, expected %zd).",
+	    struct_index, _structures.size());
+
+  if (_cur_structure)
+    {
+      /* Finalisation is done by request_array_offsets. */
+      ERR_MSG("Cannot book ntuple - structure in progress not finished.");
+    }
+
+  global_struct *s = new global_struct;
+
+  if (!s)
+    ERR_MSG("Failure allocating structure information.");
+
+  _structures.push_back(s);
+  _cur_structure = s;  
 
   s->_hid   = hid;
   s->_id    = strdup(id);
@@ -654,9 +674,6 @@ void request_book_ntuple(void *msg,uint32_t *left)
     {
       s->_max_raw_words = max_raw_words;
     }
-
-  if (struct_index != 0)
-    ERR_MSG("Booking multiple structures not supported yet.");
 
   do_book_ntuple(s, ntuple_index);
 }
@@ -741,12 +758,14 @@ void close_structure(global_struct *s, size_t *num_trees)
 void close_output()
 {
   size_t num_trees = 0;
-  
-  {
-    global_struct *s = &_s;
 
-    close_structure(s, &num_trees);
-  }
+  for (global_struct_vector::iterator iter = _structures.begin();
+       iter != _structures.end(); ++iter)
+    {
+      global_struct *s = *iter;
+
+      close_structure(s, &num_trees);
+    }
 
   _g._num_events_total += _g._num_events;
 #if USING_CERNLIB
@@ -819,7 +838,10 @@ void close_output()
 
 void request_alloc_array(void *msg,uint32_t *left)
 {
-  global_struct *s = &_s;
+  global_struct *s = _cur_structure;
+
+  if (!s)
+    ERR_MSG("Cannot allocate array - no structure being defined.");
 
   uint32_t size = get_buf_uint32(&msg,left);
 
@@ -885,7 +907,10 @@ uint32_t calc_structure_xor_sum(stage_array &sa);
 
 void request_array_offsets(void *msg,uint32_t *left)
 {
-  global_struct *s = &_s;
+  global_struct *s = _cur_structure;
+
+  if (!s)
+    ERR_MSG("Cannot allocate offsets - no structure being defined.");
 
   // First deal with the xor check.
 
@@ -1039,6 +1064,9 @@ void request_array_offsets(void *msg,uint32_t *left)
   // OK, we are happy with the offset array
 
   // MSG("Offsets...");
+
+  /* This structure is done. */
+  _cur_structure = NULL;
 }
 
 struct str_var_type
@@ -1242,7 +1270,10 @@ void do_create_branch(global_struct *s,
 
 void request_create_branch(void *msg,uint32_t *left)
 {
-  global_struct *s = &_s;
+  global_struct *s = _cur_structure;
+
+  if (!s)
+    ERR_MSG("Cannot create branch - no structure being defined.");
 
   uint32_t aid    = 0;
   uint32_t offset = get_buf_uint32(&msg,left);
@@ -2065,12 +2096,16 @@ void write_header()
 	   header_guard,
 	   header_guard);
 
-  const char *struct_name = _config._header_id;
+  for (global_struct_vector::iterator iter = _structures.begin();
+       iter != _structures.end(); ++iter)
+    {
+      const char *struct_name = _config._header_id;
 
-  if (!struct_name)
-    struct_name = s->_id;
+      if (!struct_name)
+	struct_name = s->_id;
 
-  write_structure_header(fid, s, struct_name);
+      write_structure_header(fid, s, struct_name);
+    }
 
   fprintf (fid,
 	   "\n"
@@ -2094,17 +2129,23 @@ bool _client_written = false;
 
 void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 {
-  global_struct *s = &_s;
+  if (_cur_structure)
+    {
+      /* Finalisation is done by request_array_offsets. */
+      ERR_MSG("Premature setup done - structure in progress not finished.");
+    }
 
   size_t num_trees = 0;
 
-  {
-    global_struct *s = &_s;
-
+  for (global_struct_vector::iterator iter = _structures.begin();
+       iter != _structures.end(); ++iter)
+    {
+      global_struct *s = *iter;
+      
 #if USING_ROOT
-    num_trees += s->_root_ntuples.size();
+      num_trees += s->_root_ntuples.size();
 #endif
-  }
+    }
 
 #if USING_ROOT
   if (num_trees >= 10)
@@ -2142,6 +2183,13 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
   if (reader)
     {
+      if (_structures.size() < 1)
+	ERR_MSG("Cannot get event without structure defined.");
+
+      _read_structure = _structures[0];
+
+      global_struct *s = _read_structure;
+
       if (!_config._insrc)
 	ERR_MSG("Input source not specified.");
 
@@ -2601,8 +2649,6 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #endif
 			 )
 {
-  global_struct *s = &_s;
-
 #if USING_CERNLIB || USING_ROOT
   if (_got_sigalarm_timesliced)
     {
@@ -2633,16 +2679,24 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	  // Open another file
 	  do_file_open(now);
-	  do_book_ntuple(/* Todo: loop over structures! */ s, -1);
 
-	  // Create the items again
-	  for (stage_array_item_vector::iterator iter =
-		 s->_stage_array._items_v.begin();
-	       iter != s->_stage_array._items_v.end(); ++iter)
+	  // Loop over all structures
+	  for (global_struct_vector::iterator iter = _structures.begin();
+	       iter != _structures.end(); ++iter)
 	    {
-	      stage_array_item &item = *iter;
+	      global_struct *s = *iter;
+	  
+	      do_book_ntuple(s, -1);
 
-	      do_create_branch(s, item._offset,item);
+	      // Create the items again
+	      for (stage_array_item_vector::iterator iter =
+		     s->_stage_array._items_v.begin();
+		   iter != s->_stage_array._items_v.end(); ++iter)
+		{
+		  stage_array_item &item = *iter;
+
+		  do_create_branch(s, item._offset,item);
+		}
 	    }
 
 	  // Ready to store data in the new file...
@@ -2657,6 +2711,12 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   uint32_t struct_index = get_buf_uint32(&msg,left);
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
+
+  if (struct_index >= _structures.size())
+    ERR_MSG("Structure index (%d) too large (>= %d).",
+	    struct_index,(int) _structures.size());
+
+  global_struct *s = _structures[struct_index];
 
   if (s->_max_raw_words)
     {
@@ -3285,9 +3345,6 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   s->_cwn->hfnt();
 #endif
 #if USING_ROOT
-  if (struct_index > 0)
-    ERR_MSG("Ntuple structure index (%d) too large (>= %d).",
-	    struct_index,0);
   if (ntuple_index >= s->_root_ntuples.size())
     ERR_MSG("Ntuple index (%d) too large (>= %d).",
 	    ntuple_index,(int) s->_root_ntuples.size());
@@ -3439,7 +3496,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 bool ntuple_get_event(char *msg,char **end)
 {
-  global_struct *s = &_s;
+  // TODO: Move this check to a common place?
+  // I.e. need not be done every time?
+
+  global_struct *s = _read_structure;
 
   external_writer_buf_header *header = (external_writer_buf_header*) msg;
 
