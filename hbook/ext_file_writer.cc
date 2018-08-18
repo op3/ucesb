@@ -199,15 +199,6 @@ uint32_t *get_buf_raw_ptr(void **msg,uint32_t *left,uint32_t u32_words)
   return p;
 }
 
-/* TODO: this seems a trouble for multi-event.  It points (refers to)
- * whatever structure was defined last.
- */
-
-struct msg_config {
-  uint32_t    _sort_u32_words;
-
-} _msg_config;
-
 typedef ext_data_structure_item stage_array_item;
 
 typedef std::map<uint32_t,stage_array_item> stage_array_item_map;
@@ -263,6 +254,10 @@ typedef std::vector<TTree *> TTree_vector;
 
 struct global_once
 {
+  uint32_t          _sort_u32_words;
+
+  uint32_t          _max_offset_array_items;
+
 #if USING_CERNLIB
   hbook            *_hfile;
 #endif
@@ -273,7 +268,6 @@ struct global_once
   TFile            *_root_file;
   uint64_t          _num_read_entries;
 #endif
-  uint32_t  _max_offset_array_items;
   
   uint64_t          _num_events;
   uint64_t          _num_events_total;
@@ -282,6 +276,8 @@ struct global_once
 public:
   global_once()
   {
+    _sort_u32_words = (uint32_t) -1;
+    _max_offset_array_items = 0;
 #if USING_CERNLIB
     _hfile = NULL;
 #endif
@@ -647,7 +643,13 @@ void request_book_ntuple(void *msg,uint32_t *left)
 
   if (ntuple_index == 0)
     {
-      _msg_config._sort_u32_words = sort_u32_words;
+      if (_g._sort_u32_words != sort_u32_words &&
+	  _g._sort_u32_words != (uint32_t) -1)
+	ERR_MSG("All structures (of all sources) must specify "
+		"the same number of sort words.  (got %d, had %d)",
+		sort_u32_words, _g._sort_u32_words);
+
+      _g._sort_u32_words = sort_u32_words;
       s->_max_raw_words = max_raw_words;
     }
 
@@ -2557,21 +2559,21 @@ void radix_sort(uint32_t *src,
 void request_keep_alive(ext_write_config_comm *comm,
 			void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
+  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
 
 void prehandle_keep_alive(ext_write_config_comm *comm,
 			  void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
+  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
 
 void prehandle_ntuple_fill(ext_write_config_comm *comm,
 			   void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
+  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 }
 
@@ -2634,7 +2636,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   // MSG("left %d.",*left);
 
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_msg_config._sort_u32_words);
+  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
@@ -2959,7 +2961,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       max_length = (max_length + 3) & ~3; // 4-byte alignment
       max_length += sizeof (external_writer_buf_header);
       max_length +=
-	(_msg_config._sort_u32_words +
+	(_g._sort_u32_words +
 	 (s->_max_raw_words ? 1 + comm->_raw_words : 0) +
 	 2) * // 2: ntuple_index + mark_dest
 	sizeof (uint32_t);
@@ -2975,11 +2977,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // sizeof (external_writer_buf_header)
 
       uint32_t *sort_u32_dest = (uint32_t*) (*header + 1);
-      for (uint32_t i = 0; i < _msg_config._sort_u32_words; i++)
+      for (uint32_t i = 0; i < _g._sort_u32_words; i++)
 	sort_u32_dest[i] = comm->_sort_u32_raw[i];
 
       uint32_t *ntuple_index_dest =
-	sort_u32_dest + _msg_config._sort_u32_words;
+	sort_u32_dest + _g._sort_u32_words;
 
       *ntuple_index_dest = htonl(ntuple_index);
 
@@ -4407,7 +4409,7 @@ void prepare_pipe_comm(ext_write_config_comm *comm)
 int comm_next_item_compare_less(ext_write_config_comm *comm1,
 				ext_write_config_comm *comm2)
 {
-  for (uint32_t i = 0; i < _msg_config._sort_u32_words; i++)
+  for (uint32_t i = 0; i < _g._sort_u32_words; i++)
     {
       uint32_t v1 = ntohl(comm1->_sort_u32_raw[i]);
       uint32_t v2 = ntohl(comm2->_sort_u32_raw[i]);
@@ -4526,7 +4528,8 @@ void pipe_communication(ext_write_config_comm *comm_head)
 
   assert(isrc == nsrc);
 
-  if (nsrc > 1 && _msg_config._sort_u32_words == 0)
+  if (nsrc > 1 && (_g._sort_u32_words == 0 ||
+		   _g._sort_u32_words == (uint32_t) -1))
     ERR_MSG("Multiple input sources, "
 	    "but 0 words for sorting in input streams.");
 
@@ -4753,7 +4756,6 @@ int main(int argc,char *argv[])
   // parse any arguments
 
   memset(&_config,0,sizeof(_config));
-  memset(&_msg_config,0,sizeof(_msg_config));
 
   ext_write_config_comm **next_comm_ptr = &_config._comms;
 
