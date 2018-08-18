@@ -2002,8 +2002,15 @@ void write_structure_header(FILE *fid, global_struct *s,
 	   "};\n");
 }
 
-void write_header(global_struct *s, const char *name)
+void write_header()
 {
+  global_struct *s = &_s;
+
+  const char *name = _config._header_id;
+
+  if (!name)
+    name = s->_id;
+
   char *header_guard =
     (char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
 
@@ -2054,7 +2061,12 @@ void write_header(global_struct *s, const char *name)
 	   header_guard,
 	   header_guard);
 
-  write_structure_header(fid, s, name);
+  const char *struct_name = _config._header_id;
+
+  if (!struct_name)
+    struct_name = s->_id;
+
+  write_structure_header(fid, s, struct_name);
 
   fprintf (fid,
 	   "\n"
@@ -2099,9 +2111,6 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 #if STRUCT_WRITER
   _client_written = writer;
 
-  const char *name =
-    _config._header_id ? _config._header_id : s->_id;
-
   if (_config._header)
     {
       if (writer)
@@ -2110,7 +2119,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 		  "not enough information to generate header file.");
 	}
 
-      write_header(s, name);
+      write_header();
 
       if (_config._port == 0 && !_config._stdout && !_config._forked)
 	exit(0); // We're done
