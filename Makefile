@@ -97,7 +97,7 @@ $(EXTTDIR)/ext_reader_h99_stderr: hbook/example/ext_data_reader_h99_stderr.c $(E
 $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 	@echo "  TEST   $@"
 	@$(EXT_WRITER_TEST) --struct=- 2> $@.err2 | \
-	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
+	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
 	    echo "$(EXT_WRITER_TEST) --struct=- | ./$< -" ;\
@@ -112,7 +112,7 @@ $(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
 	@echo " EXTWR_R $@"
 	@mkdir -p $(EXTTDIR)
 	@$(EXT_WRITER_TEST) --root=$@ \
-	  > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
+	  > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $@).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
 	    echo "$(EXT_WRITER_TEST) --root=$@" ;\
@@ -181,7 +181,7 @@ $(EXTTDIR)/ext_reader_h%.runstamp: $(EXTTDIR)/ext_reader_h% $(EMPTY_FILE)
 	@echo "  TEST   $@"
 	@$(EMPTY_FILE) $(EMPTY_EMPTY_FILE) 2> $@.err3 | \
 	  empty/empty --file=- --ntuple=UNPACK,STRUCT,- 2> $@.err2 | \
-	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." ; false )
+	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
 	    echo "$(EMPTY_FILE) $(EMPTY_EMPTY_FILE) | empty/empty --file=- --ntuple=UNPACK,STRUCT,- | ./$< -" ;\
@@ -197,8 +197,8 @@ $(EXTTDIR)/ext_writer_h%.runstamp: $(EXTTDIR)/ext_writer_h% $(EMPTY_FILE)
 	@echo "  TEST   $@"
 	@./$< 10 2> $@.err2 | \
 	  empty/empty --in-tuple=UNPACK,STRUCT,- > $@.out 2> $@.err || \
-	  ( echo "* FAIL * ..." ; false )
-	@diff -u hbook/example/$(notdir $<).good $@.out || true || \
+	  ( echo "* FAIL * ..." >> $@.out )
+	@diff -u hbook/example/$(notdir $<).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
 	    echo "./$< 10 | empty/empty --in-tuple=UNPACK,STRUCT,-" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
