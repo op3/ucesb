@@ -2039,12 +2039,15 @@ void write_structure_header(FILE *fid, global_struct *s,
 
 void write_header()
 {
-  global_struct *s = &_s;
-
   const char *name = _config._header_id;
 
   if (!name)
-    name = s->_id;
+    {
+      if (_structures.size() > 1)
+	name = "all";
+      else
+	name = _structures[0]->_id;
+    }
 
   char *header_guard =
     (char *) malloc(2+6+strlen(name)+1+strlen(_config._header)+2+1);
@@ -2099,6 +2102,12 @@ void write_header()
   for (global_struct_vector::iterator iter = _structures.begin();
        iter != _structures.end(); ++iter)
     {
+      global_struct *s = *iter;
+
+      if (_config._header_id_orig &&
+	  strcmp(_config._header_id_orig, s->_id) != 0)
+	continue;
+
       const char *struct_name = _config._header_id;
 
       if (!struct_name)
@@ -4784,7 +4793,7 @@ void usage(char *cmdname)
   printf ("  --outfile=FILE     Write output to FILE.\n");
   printf ("  --infile=FILE      Read from input FILE.\n");
   printf ("  --ftitle=FTITLE    FTITLE of output file.\n");
-  printf ("  --id=ID            Override ID of ntuple written.\n");
+  printf ("  --id=[OID]=ID      Override ID of ntuple written (write single struct OID).\n");
   printf ("  --title=TITLE      Override TITLE of ntuple written.\n");
   printf ("  --timeslice=N[:M]  Start a new file every N seconds.  Subdir every M seconds.\n");
   printf ("  --autosave=N       Autosave tree every N seconds.\n");
@@ -4928,7 +4937,14 @@ int main(int argc,char *argv[])
 	_config._header = post;
       }
       else if (MATCH_PREFIX("--id=",post)) {
-	_config._header_id = post;
+	char *equals = strchr(post,'=');
+	if (equals)
+	  {
+	    _config._header_id_orig = strndup(post,equals-post);
+	    _config._header_id = equals + 1;
+	  }
+	else
+	  _config._header_id = post;
       }
       else if (MATCH_ARG("--debug-header")) {
 	_config._debug_header = 1;
