@@ -1312,9 +1312,30 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	  }
 
 	case EXTERNAL_WRITER_BUF_ARRAY_OFFSETS:
-	  // TODO: verify that offsets match the list we have!
-	  break;
+	  {
+	    uint32_t *p = (uint32_t *) (header+1);
 
+	    if (ntohl(header->_length) <
+		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+	      {
+		client->_last_error =
+		  "Bad array offsets message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    clistr->_orig_xor_sum_msg = ntohl(p[0]);
+
+	    /* And then follows the actual offset array... */
+
+	    /* TODO: verify that offsets match the list we have! */
+	    /* Note: if it is from a writer, there will be no offsets
+	     * (at least yet), only the xor.
+	     */
+
+	    break;
+	  }
+	  
 	case EXTERNAL_WRITER_BUF_BOOK_NTUPLE:
 	  {
 	    uint32_t *p = (uint32_t *) (header+1);
@@ -1550,7 +1571,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    uint32_t *p = (uint32_t *) (header+1);
 
 	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+		sizeof(struct external_writer_buf_header))
 	      {
 		client->_last_error =
 		  "Bad setup done message size during setup.";
@@ -1558,7 +1579,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
-	    clistr->_orig_xor_sum_msg = ntohl(p[0]);
+	    (void) p;
 
 	    /* Consume the message. */
 	    client->_buf_used += ntohl(header->_length);
@@ -1921,6 +1942,16 @@ int ext_data_setup(struct ext_data_client *client,
       *(p++) = htonl(EXTERNAL_WRITER_MAGIC);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
+      // EXTERNAL_WRITER_BUF_ARRAY_OFFSETS
+
+      header = (struct external_writer_buf_header *) p;
+
+      header->_request = htonl(EXTERNAL_WRITER_BUF_ARRAY_OFFSETS |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
+      p = (uint32_t *) (header+1);
+      *(p++) = htonl(slo->_items[0]._xor);
+      header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
+
       // EXTERNAL_WRITER_BUF_SETUP_DONE_WR
 
       header = (struct external_writer_buf_header *) p;
@@ -1928,7 +1959,6 @@ int ext_data_setup(struct ext_data_client *client,
       header->_request = htonl(EXTERNAL_WRITER_BUF_SETUP_DONE_WR |
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
-      *(p++) = htonl(slo->_items[0]._xor);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
       // And then dump it to the reader - after this, we'll start to
@@ -1963,8 +1993,17 @@ int ext_data_setup(struct ext_data_client *client,
 
   if (slo)
     {
+      /*
+      fprintf (stderr,
+	       "xor: %x vx %x\n",
+	       slo->_items[0]._xor,clistr->_orig_xor_sum_msg);
+      */
       if (slo->_items[0]._xor != clistr->_orig_xor_sum_msg)
 	{
+	  /*
+	  fprintf(stderr,"mismatch %x vs %x\n",
+		  slo->_items[0]._xor, clistr->_orig_xor_sum_msg);
+	  */
 	  client->_last_error =
 	    "Bad setup done message xor vs. provided during setup.";
 	  errno = EPROTO;

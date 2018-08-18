@@ -849,8 +849,7 @@ void external_writer::send_hbname_branch(const char *block,
 
 void external_writer::send_setup_done(bool reader)
 {
-  uint32_t space = (uint32_t) (sizeof(external_writer_buf_header) +
-			       sizeof(uint32_t));
+  uint32_t space = (uint32_t) (sizeof(external_writer_buf_header));
 
   // space for header
   void *p = _buf->ensure_buf_space(space);
@@ -858,10 +857,6 @@ void external_writer::send_setup_done(bool reader)
   p = insert_buf_header(p,
 			reader ? EXTERNAL_WRITER_BUF_SETUP_DONE_RD :
 			EXTERNAL_WRITER_BUF_SETUP_DONE,space);
-
-  uint32_t *i = (uint32_t*) p;
-  *(i++) = htonl(0); // Reserve space for the xor_sum check variable.
-  p = i;
 
   assert (p == _buf->_cur + space);
 
@@ -925,11 +920,16 @@ uint32_t *external_writer::prepare_send_fill(uint32_t size,
 
 uint32_t *external_writer::prepare_send_offsets(uint32_t size)
 {
-  uint32_t space = (uint32_t) sizeof(external_writer_buf_header) + size;
+  uint32_t space = (uint32_t) (sizeof(external_writer_buf_header) +
+			       sizeof(uint32_t)) + size;
 
   void *o = _buf->ensure_buf_space(space);
 
   o = insert_buf_header(o,EXTERNAL_WRITER_BUF_ARRAY_OFFSETS,space);
+
+  uint32_t *i = (uint32_t*) o;
+  *(i++) = htonl(0); // Reserve space for the xor_sum check variable.
+  o = i;
 
   return (uint32_t*) o;
 }

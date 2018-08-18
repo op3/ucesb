@@ -315,6 +315,8 @@ struct global_struct
 
   offset_array _offset_array;
 
+  uint32_t _xor_sum;
+
 public:
   global_struct()
   {
@@ -329,6 +331,7 @@ public:
     _stage_array._length = 0;
     _stage_array._ptr = NULL;
     memset(&_offset_array, 0, sizeof (_offset_array));
+    _xor_sum = 0;
   }
 };
 
@@ -860,9 +863,43 @@ void request_alloc_array(void *msg,uint32_t *left)
   // MSG("Alloc array: %d",size);
 }
 
+#if STRUCT_WRITER
+uint32_t calc_structure_xor_sum(stage_array &sa);
+#endif
+
 void request_array_offsets(void *msg,uint32_t *left)
 {
   global_struct *s = &_s;
+
+  // First deal with the xor check.
+
+  uint32_t *xor_sum_msg_p = (uint32_t *) msg;
+  uint32_t xor_sum_msg = get_buf_uint32(&msg,left);
+
+  uint32_t xor_sum = 0; // make compiler happy
+
+#if STRUCT_WRITER
+  if (1 /* writer check when we were in request_setup_done */ /*!writer*/)
+    {
+      xor_sum = calc_structure_xor_sum(s->_stage_array);
+
+      if (xor_sum_msg && xor_sum_msg != xor_sum)
+	ERR_MSG("Mismatch between received (0x%08x) "
+		"and calculated xor_sum (0x%08x).",
+		xor_sum_msg,xor_sum);
+
+      // write the xor_sum into the chunk that goes to the network
+      // it's in the first integer after the header
+
+      *xor_sum_msg_p = htonl(xor_sum);
+
+      /*
+	fprintf (stderr, "set *xor_sum_msg_p : %08x\n", xor_sum);
+      */
+
+      s->_xor_sum = xor_sum;
+    }
+#endif
 
   // So, we are given the offset table.  Allocate space for it and
   // make a copy.
@@ -2028,9 +2065,6 @@ bool _client_written = false;
 
 void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 {
-  uint32_t *xor_sum_msg_p = (uint32_t *) msg;
-  uint32_t xor_sum_msg = get_buf_uint32(&msg,left);
-
   global_struct *s = &_s;
 
   size_t num_trees = 0;
@@ -2052,25 +2086,8 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 #if STRUCT_WRITER
   _client_written = writer;
 
-  uint32_t xor_sum = 0; // make compiler happy
-
   const char *name =
     _config._header_id ? _config._header_id : _msg_config._id;
-
-  if (!writer)
-    {
-      xor_sum = calc_structure_xor_sum(s->_stage_array);
-
-      if (xor_sum_msg && xor_sum_msg != xor_sum)
-	ERR_MSG("Mismatch between received (0x%08x) "
-		"and calculated xor_sum (0x%08x).",
-		xor_sum_msg,xor_sum);
-
-      // write the xor_sum into the chunk that goes to the network
-      // it's in the first integer after the header
-
-      *xor_sum_msg_p = htonl(xor_sum);
-    }
 
   if (_config._header)
     {
@@ -2123,7 +2140,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
       slo._num_items = 1;
       slo._items[0]._offset = 0;
       slo._items[0]._size = s->_stage_array._length;
-      slo._items[0]._xor = xor_sum;
+      slo._items[0]._xor = s->_xor_sum;
       slo._items[0]._name = NULL;
 
       if (ext_data_setup(_reader_client,
