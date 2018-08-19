@@ -1921,6 +1921,23 @@ int ext_data_setup(struct ext_data_client *client,
       *(p++) = htonl(EXTERNAL_WRITER_MAGIC);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
+      // EXTERNAL_WRITER_BUF_BOOK_NTUPLE /* size */
+
+      header = (struct external_writer_buf_header *) p;
+
+      header->_request = htonl(EXTERNAL_WRITER_BUF_BOOK_NTUPLE |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
+      p = (uint32_t *) (header+1);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
+
       // EXTERNAL_WRITER_BUF_ALLOC_ARRAY /* size */
 
       header = (struct external_writer_buf_header *) p;
