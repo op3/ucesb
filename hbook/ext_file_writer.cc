@@ -337,10 +337,10 @@ global_struct _s;
 #if USING_CERNLIB || USING_ROOT
 struct timeslice
 {
-  time_t _last_slicetime = 0;
-  time_t _last_autosave = 0;
-  int _autosave_lock_fail = 0;
-  int _autosave_lock_do = 1;
+  time_t _last_slicetime;
+  time_t _last_autosave;
+  int _autosave_lock_fail;
+  int _autosave_lock_do;
 
   struct timeslice_name
   {
@@ -352,6 +352,15 @@ struct timeslice
 
     int   _list_fd;
   } _timeslice_name;
+
+public:
+  timeslice()
+  {
+    _last_slicetime = 0;
+    _last_autosave = 0;
+    _autosave_lock_fail = 0;
+    _autosave_lock_do = 1;
+  }
 };
 
 timeslice _ts;
