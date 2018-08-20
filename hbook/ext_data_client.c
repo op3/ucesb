@@ -149,8 +149,8 @@ struct ext_data_client
   uint32_t  _raw_words;
   uint32_t *_raw_swapped;
 
-  struct ext_data_client_struct *_structure;
-  int                        _num_structure;
+  struct ext_data_client_struct *_structures;
+  int                        _num_structures;
 
   uint32_t _sort_u32_words;
 
@@ -817,10 +817,10 @@ static void ext_data_free(struct ext_data_client *client)
   
   free(client->_buf);
 
-  for (i = 0; i < client->_num_structure; i++)
-    ext_data_clistr_free(client->_structure+i);
+  for (i = 0; i < client->_num_structures; i++)
+    ext_data_clistr_free(client->_structures+i);
 
-  free(client->_structure);
+  free(client->_structures);
 
   free(client); /* Note! we also free the structure itself. */
 }
@@ -860,18 +860,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
       return NULL;
     }
 
-  client->_structure =
-    (struct ext_data_client_struct *)
-    malloc (sizeof (struct ext_data_client_struct));
-
-  if (!client->_structure)
-    {
-      free(client);
-      errno = ENOMEM;
-      return NULL;
-    }
-
-  client->_num_structure = 1;
+  client->_structures = NULL;
+  client->_num_structures = 0;
 
   client->_sort_u32_words = (uint32_t) -1;
 
@@ -885,8 +875,6 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
   client->_raw_ptr = NULL;
   client->_raw_words = 0;
   client->_raw_swapped = NULL;
-
-  ext_data_clear_client_struct(&client->_structure[0]);
 
   client->_last_error = NULL;
 
@@ -909,6 +897,34 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
     }
 
   return client;
+}
+
+static struct ext_data_client_struct *
+ext_data_alloc_client_struct(struct ext_data_client *client)
+{
+  struct ext_data_client_struct *clistr;
+
+  client->_structures =
+    (struct ext_data_client_struct *)
+    realloc (client->_structures,
+	     (client->_num_structures + 1) *
+	     sizeof (struct ext_data_client_struct));
+
+  if (!client->_structures)
+    {
+      client->_last_error =
+	"Memory allocation failure (client structure).";
+      errno = ENOMEM;
+      return NULL;
+    }
+
+  clistr = &client->_structures[client->_num_structures];
+
+  client->_num_structures++;
+
+  ext_data_clear_client_struct(clistr);
+
+  return clistr;
 }
 
 static int ext_data_send_magic(struct ext_data_client *client)
@@ -1252,9 +1268,9 @@ const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
   return str;
 }
 
-int ext_data_setup_messages(struct ext_data_client *client)
+static int ext_data_setup_messages(struct ext_data_client *client)
 {
-  struct ext_data_client_struct *clistr = &client->_structure[0];
+  struct ext_data_client_struct *clistr = NULL;
 
   for ( ; ; )
     {
@@ -1311,6 +1327,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
+	    if (!clistr)
+	      {
+		client->_last_error =
+		  "Cannot handle alloc message without structure.";
+		errno = EPROTO;
+		return -1;
+	      }
+
 	    clistr->_orig_struct_size = ntohl(p[0]);
 
 	    break;
@@ -1329,6 +1353,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
+	    if (!clistr)
+	      {
+		client->_last_error =
+		  "Cannot handle offset message without structure.";
+		errno = EPROTO;
+		return -1;
+	      }
+
 	    clistr->_orig_xor_sum_msg = ntohl(p[0]);
 
 	    /* And then follows the actual offset array... */
@@ -1337,6 +1369,8 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    /* Note: if it is from a writer, there will be no offsets
 	     * (at least yet), only the xor.
 	     */
+
+	    clistr = NULL;
 
 	    break;
 	  }
@@ -1364,6 +1398,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
+	    if (clistr)
+	      {
+		client->_last_error =
+		  "Cannot do ntuple booking with active structure.";
+		errno = EPROTO;
+		return -1;
+	      }
+
 	    struct_index = ntohl(p[0]);
 	    ntuple_index = ntohl(p[1]);
 	    hid = ntohl(p[2]);
@@ -1372,13 +1414,18 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    p += 3;
 	    length_left -= 3 * sizeof(uint32_t);
 
-	    if (struct_index != 0)
+	    if ((int) struct_index != client->_num_structures)
 	      {
 		client->_last_error =
-		  "Ntuple structure index too large during setup.";
+		  "Ntuple structure index not in order during setup.";
 		errno = EPROTO;
 		return -1;
 	      }
+
+	    clistr = ext_data_alloc_client_struct(client);
+
+	    if (!clistr)
+	      return -1;
 
 	    if (ntuple_index == 0)
 	      {
@@ -1468,6 +1515,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	      {
 		client->_last_error =
 		  "Bad create branch message size during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
+
+	    if (!clistr)
+	      {
+		client->_last_error =
+		  "Cannot handle create branch message without structure.";
 		errno = EPROTO;
 		return -1;
 	      }
@@ -1590,6 +1645,14 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
+	    if (clistr)
+	      {
+		client->_last_error =
+		  "Cannot handle setup done with active structure.";
+		errno = EPROTO;
+		return -1;
+	      }
+
 	    (void) p;
 
 	    /* Consume the message. */
@@ -1674,7 +1737,7 @@ int ext_data_setup(struct ext_data_client *client,
       if (ext_data_setup_messages(client) == -1)
 	return -1;
 
-      if (client->_num_structure < 1)
+      if (client->_num_structures < 1)
 	{
 	  client->_last_error = "No structure (ntuple) from server.";
 	  errno = EPROTO;
@@ -1686,7 +1749,12 @@ int ext_data_setup(struct ext_data_client *client,
 
   if (client->_state == EXT_DATA_STATE_OPEN_OUT)
     {
-      clistr = &client->_structure[0];
+      assert(client->_num_structures == 0);
+
+      clistr = ext_data_alloc_client_struct(client);
+
+      if (!clistr)
+	return -1;
     }
 
   if (client->_state != EXT_DATA_STATE_OPEN_OUT)
@@ -1695,7 +1763,7 @@ int ext_data_setup(struct ext_data_client *client,
 
       if (strcmp(name_id, "") == 0)
 	{
-	  clistr = &client->_structure[0];
+	  clistr = &client->_structures[0];
 	  if (key_id)
 	    *key_id = 0;
 	}
@@ -1703,10 +1771,10 @@ int ext_data_setup(struct ext_data_client *client,
 	{
 	  int i;
 
-	  for (i = 0; i < client->_num_structure; i++)
+	  for (i = 0; i < client->_num_structures; i++)
 	    {
 	      struct ext_data_client_struct *clistr_chk =
-		client->_structure+i;
+		client->_structures+i;
 
 	      if (strcmp(name_id, clistr_chk->_id) == 0)
 		{
@@ -2170,14 +2238,23 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 				char *dest,
 				uint32_t *src,uint32_t *end_src)
 {
-  const struct ext_data_client_struct *clistr =
-    &client->_structure[0 /* key_id */];
+  const struct ext_data_client_struct *clistr;
 
   uint32_t *p    = src;
   uint32_t *pend = end_src;
 
-  uint32_t *o    = clistr->_pack_list;
-  uint32_t *oend = clistr->_pack_list_end;
+  uint32_t *o;
+  uint32_t *oend;
+
+  int key_id = 0;
+
+  if (key_id >= client->_num_structures)
+    return -5;
+
+  clistr = &client->_structures[key_id];
+
+  o    = clistr->_pack_list;
+  oend = clistr->_pack_list_end;
 
   if (pend - p < (ssize_t) clistr->_static_pack_items)
     return -1;
@@ -2264,14 +2341,14 @@ int ext_data_fetch_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (key_id < 0 || key_id >= client->_num_structure)
+  if (key_id < 0 || key_id >= client->_num_structures)
     {
       client->_last_error = "Request for non-existing structure index (key).";
       errno = EINVAL;
       return -1;
     }  
 
-  clistr = &client->_structure[key_id];
+  clistr = &client->_structures[key_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2554,14 +2631,14 @@ int ext_data_clear_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (key_id < 0 || key_id >= client->_num_structure)
+  if (key_id < 0 || key_id >= client->_num_structures)
     {
       client->_last_error = "Request for non-existing structure index (key).";
       errno = EINVAL;
       return -1;
     }  
 
-  clistr = &client->_structure[key_id];
+  clistr = &client->_structures[key_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2665,7 +2742,7 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
   // look-up table for the control items to find the associated offset
   // item in the pack list.  Then clear so many values.
 
-  clistr = &client->_structure[key_id];
+  clistr = &client->_structures[key_id];
 
   b = (char*) buf;
 
@@ -2714,8 +2791,7 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 int ext_data_write_event(struct ext_data_client *client,
 			 void *buf,size_t size)
 {
-  const struct ext_data_client_struct *clistr =
-    &client->_structure[0 /* key_id */];
+  const struct ext_data_client_struct *clistr;
 
   /* Data read from the source until we have an entire message. */
 
@@ -2724,6 +2800,8 @@ int ext_data_write_event(struct ext_data_client *client,
   uint32_t length;
   uint32_t *o, *oend;
   char *b;
+
+  int key_id = 0;
 
   if (!client)
     {
@@ -2738,6 +2816,14 @@ int ext_data_write_event(struct ext_data_client *client,
       errno = EFAULT;
       return -1;
     }
+
+  if (key_id >= client->_num_structures)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  clistr = &client->_structures[key_id];
 
   if (size != clistr->_struct_size)
     {
