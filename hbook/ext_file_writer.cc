@@ -636,6 +636,7 @@ void do_book_ntuple(global_struct *s, uint32_t ntuple_index)
 
 void request_book_ntuple(void *msg,uint32_t *left)
 {
+  uint32_t struct_index = get_buf_uint32(&msg,left);
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
   uint32_t hid = get_buf_uint32(&msg,left);
   uint32_t max_raw_words =
@@ -653,6 +654,9 @@ void request_book_ntuple(void *msg,uint32_t *left)
     {
       s->_max_raw_words = max_raw_words;
     }
+
+  if (struct_index != 0)
+    ERR_MSG("Booking multiple structures not supported yet.");
 
   do_book_ntuple(s, ntuple_index);
 }
@@ -2628,7 +2632,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	  // Open another file
 	  do_file_open(now);
-	  do_book_ntuple(s, -1);
+	  do_book_ntuple(/* Todo: loop over structures! */ s, -1);
 
 	  // Create the items again
 	  for (stage_array_item_vector::iterator iter =
@@ -2650,6 +2654,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 
+  uint32_t struct_index = get_buf_uint32(&msg,left);
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
 
   if (s->_max_raw_words)
@@ -2974,7 +2979,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       max_length +=
 	(_g._sort_u32_words +
 	 (s->_max_raw_words ? 1 + comm->_raw_words : 0) +
-	 2) * // 2: ntuple_index + mark_dest
+	 3) * // 3: struct_index + ntuple_index + mark_dest
 	sizeof (uint32_t);
 
       char *net_io_chunk =
@@ -2991,8 +2996,12 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       for (uint32_t i = 0; i < _g._sort_u32_words; i++)
 	sort_u32_dest[i] = comm->_sort_u32_raw[i];
 
-      uint32_t *ntuple_index_dest =
+      uint32_t *struct_index_dest =
 	sort_u32_dest + _g._sort_u32_words;
+
+      *struct_index_dest = htonl(struct_index);
+
+      uint32_t *ntuple_index_dest = struct_index_dest + 1;
 
       *ntuple_index_dest = htonl(ntuple_index);
 
@@ -3275,6 +3284,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   s->_cwn->hfnt();
 #endif
 #if USING_ROOT
+  if (struct_index > 0)
+    ERR_MSG("Ntuple structure index (%d) too large (>= %d).",
+	    struct_index,0);
   if (ntuple_index >= s->_root_ntuples.size())
     ERR_MSG("Ntuple index (%d) too large (>= %d).",
 	    ntuple_index,(int) s->_root_ntuples.size());
@@ -3506,10 +3518,11 @@ bool ntuple_get_event(char *msg,char **end)
   {
     uint32_t *start = (uint32_t *) (header + 1);
 
+    start[0] = htonl(0); // struct_index (0, only one when reading)
     start[0] = htonl(0); // ntuple_index (0, only one when reading)
     start[1] = htonl(0x40000000); // marker, non-compacted
 
-    uint32_t *cur = start + 2;
+    uint32_t *cur = start + 3;
 
     // This has filled our staging array.  Now walk our offset pointers
     // and copy the data.
@@ -4628,7 +4641,7 @@ void pipe_communication(ext_write_config_comm *comm_head)
   WRITE_START = shmc->_mem; // tells where the writing should start
 
   size_t max_msg_size =
-    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
+    sizeof(external_writer_buf_header) + 3 * sizeof(uint32_t) +
     _g._max_offset_array_items * sizeof(uint32_t);
 
   for ( ; ; )
@@ -5278,7 +5291,7 @@ int main(int argc,char *argv[])
   shmc->_ctrl->_need_consumer_wakeup = 1;
 
   size_t max_msg_size =
-    sizeof(external_writer_buf_header) + 2 * sizeof(uint32_t) +
+    sizeof(external_writer_buf_header) + 3 * sizeof(uint32_t) +
     _g._max_offset_array_items * sizeof(uint32_t);
 
   for ( ; ; )

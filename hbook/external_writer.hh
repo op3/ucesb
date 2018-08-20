@@ -180,8 +180,9 @@ public:
 
 public:
   void send_file_open(uint32_t sort_u32_words);
-  void send_book_ntuple_y(int hid,
+  void send_book_ntuple_x(int hid,
 			  const char *id,const char *title,
+			  uint32_t struct_index = 0,
 			  uint32_t ntuple_index = 0,
 			  uint32_t max_raw_words = 0);
   void send_alloc_array(uint32_t size);
@@ -195,10 +196,13 @@ public:
   uint32_t *prepare_send_offsets(uint32_t size);
   void send_offsets_fill(uint32_t *po);
   void send_setup_done(bool reader = false);
-  uint32_t *prepare_send_fill(uint32_t size,uint32_t ntuple_index = 0,
+  uint32_t *prepare_send_fill(uint32_t size,
+			      /* struct_index logically here, see above */
+			      uint32_t ntuple_index = 0,
 			      uint32_t *sort_u32 = NULL,
 			      uint32_t **raw = NULL,
-			      uint32_t raw_words = 0);
+			      uint32_t raw_words = 0,
+			      uint32_t struct_index = 0);
   void send_done();
   void send_flush(); /* Used when data is sent seldomly...  Hmmm */
 

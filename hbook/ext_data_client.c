@@ -1345,6 +1345,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	  {
 	    uint32_t *p = (uint32_t *) (header+1);
 
+	    uint32_t struct_index;
 	    uint32_t ntuple_index;
 	    uint32_t hid;
 	    uint32_t max_raw_words;
@@ -1355,7 +1356,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	    uint32_t length_left = ntohl(header->_length) -
 	      sizeof(struct external_writer_buf_header);
 
-	    if (length_left < 2 * sizeof(uint32_t))
+	    if (length_left < 3 * sizeof(uint32_t))
 	      {
 		client->_last_error =
 		  "Bad ntuple booking message size during setup.";
@@ -1363,12 +1364,21 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
-	    ntuple_index = ntohl(p[0]);
-	    hid = ntohl(p[1]);
+	    struct_index = ntohl(p[0]);
+	    ntuple_index = ntohl(p[1]);
+	    hid = ntohl(p[2]);
 	    (void) hid;
 
-	    p += 2;
-	    length_left -= 2 * sizeof(uint32_t);
+	    p += 3;
+	    length_left -= 3 * sizeof(uint32_t);
+
+	    if (struct_index != 0)
+	      {
+		client->_last_error =
+		  "Ntuple structure index too large during setup.";
+		errno = EPROTO;
+		return -1;
+	      }
 
 	    if (ntuple_index == 0)
 	      {
@@ -1937,6 +1947,7 @@ int ext_data_setup(struct ext_data_client *client,
       *(p++) = htonl(0);
       *(p++) = htonl(0);
       *(p++) = htonl(0);
+      *(p++) = htonl(0);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
       // EXTERNAL_WRITER_BUF_ALLOC_ARRAY /* size */
@@ -2301,6 +2312,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	uint32_t *p = (uint32_t *) (header+1);
 	uint32_t *end = (uint32_t *) (((char*) header) + length);
 	uint8_t *start;
+	uint32_t struct_index;
 	uint32_t ntuple_index;
 	uint32_t marker, compact_marker, real_len;
 
@@ -2316,9 +2328,20 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
 	p += client->_sort_u32_words;
 
+	struct_index = ntohl(*(p++));
 	ntuple_index = ntohl(*(p++));
 
 	// printf ("index: %d\n",ntuple_index);
+
+	if (struct_index != 0)
+	  {
+	    client->_last_error = "Non-zero struct_index - "
+	      "do not know how to handle.";
+	    /* Or rather, do not know if it is properly propagated. */
+	    /* Especially to a struct_writer continuation server. */
+	    errno = EBADMSG;
+	    return -1;
+	  }
 
 	if (ntuple_index != 0)
 	  {
@@ -2696,7 +2719,7 @@ int ext_data_write_event(struct ext_data_client *client,
    */
 
   if (client->_buf_alloc - client->_buf_filled <
-      sizeof (struct external_writer_buf_header) + 2 * sizeof(uint32_t) +
+      sizeof (struct external_writer_buf_header) + 3 * sizeof(uint32_t) +
       clistr->_max_pack_items * sizeof(uint32_t))
     {
       if (ext_data_flush_buffer(client))
@@ -2708,6 +2731,7 @@ int ext_data_write_event(struct ext_data_client *client,
 
   cur = (uint32_t *) (header + 1);
 
+  *(cur++) = htonl(0); /* struct_index */
   *(cur++) = htonl(0); /* ntuple_index */
   *(cur++) = htonl(0x40000000); /* marker for non-packed event */
 

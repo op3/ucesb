@@ -53,7 +53,7 @@ mystruct event;
 
 void send_offsets_mystruct(external_writer *ew)
 {
-  ew->send_book_ntuple_y(99,"h99","TestTree");
+  ew->send_book_ntuple_x(99,"h99","TestTree");
 
   ew->send_alloc_array(sizeof(mystruct));
 

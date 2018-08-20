@@ -276,7 +276,7 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
     fix_case = &fix_case_h2root;
 
   if (_ext)
-    _ext->send_book_ntuple_y(hid,_id,_title,0,max_raw_words);
+    _ext->send_book_ntuple_x(hid,_id,_title,0,max_raw_words);
 
   vect_stage_ntuple_blocks blocks;
 
@@ -615,16 +615,17 @@ bool staged_ntuple::get_event()
       printf ("msg %08x start %p end %p [%08x] [%08x]\n",
 	      request, start, end, ntohl(start[0]), ntohl(start[1]));
       */
-      if (end < start+2 ||
-	  ntohl(start[0]) != 0 || // ntuple_index != 0
-	  ntohl(start[1]) != 0x40000000)   // non-packed
+      if (end < start+3 ||
+	  ntohl(start[0]) != 0 || // struct_index != 0
+	  ntohl(start[1]) != 0 || // ntuple_index != 0
+	  ntohl(start[2]) != 0x40000000)   // non-packed
 	ERROR("Malformed event message from external reader.");
 
 
       // start[0] = ntuple_index;
       // start[1] = 0; // marker that we're not compacted
 
-      _ext_r._p = start + 2;
+      _ext_r._p = start + 3;
       _ext_r._end = end;
 
       return true;

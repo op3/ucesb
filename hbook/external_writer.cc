@@ -750,13 +750,14 @@ void external_writer::send_file_open(/*const char *filename,
   _buf->commit_buf_space(space);
 }
 
-void external_writer::send_book_ntuple_y(int hid,
+void external_writer::send_book_ntuple_x(int hid,
 					 const char *id,const char *title,
+					 uint32_t struct_index,
 					 uint32_t ntuple_index,
 					 uint32_t max_raw_words)
 {
   uint32_t space = (uint32_t) (sizeof(external_writer_buf_header) +
-			       (ntuple_index == 0 ? 3 : 2) * sizeof(uint32_t) +
+			       (ntuple_index == 0 ? 4 : 3) * sizeof(uint32_t) +
 			       EWB_STRING_SPACE(id) + EWB_STRING_SPACE(title));
 
   // space for header
@@ -765,6 +766,7 @@ void external_writer::send_book_ntuple_y(int hid,
   p = insert_buf_header(p,EXTERNAL_WRITER_BUF_BOOK_NTUPLE,space);
 
   uint32_t *i = (uint32_t*) p;
+  *(i++) = htonl(struct_index);
   *(i++) = htonl(ntuple_index);
   *(i++) = htonl(hid);
   if (ntuple_index == 0)
@@ -890,7 +892,8 @@ uint32_t *external_writer::prepare_send_fill(uint32_t size,
 					     uint32_t ntuple_index,
 					     uint32_t *sort_u32,
 					     uint32_t **raw,
-					     uint32_t raw_words)
+					     uint32_t raw_words,
+					     uint32_t struct_index)
 {
   uint32_t space =
     EXTERNAL_WRITER_SIZE_NTUPLE_FILL(size,_sort_u32_words,
@@ -903,6 +906,7 @@ uint32_t *external_writer::prepare_send_fill(uint32_t size,
   uint32_t *i = (uint32_t*) p;
   for (uint32_t j = 0; j < _sort_u32_words; j++)
     *(i++) = htonl(sort_u32[j]);
+  *(i++) = htonl(struct_index);
   *(i++) = htonl(ntuple_index);
   if (_max_raw_words)
     {
