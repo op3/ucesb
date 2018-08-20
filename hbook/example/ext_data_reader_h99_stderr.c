@@ -52,13 +52,14 @@ int main(int argc,char *argv[])
   if (ext_data_setup_stderr(client,
 			    &event_layout,sizeof(event_layout),
 			    NULL,
-			    sizeof(event)))
+			    sizeof(event),
+			    "", NULL))
     {
       for ( ; ; )
 	{
 	  ext_data_rand_fill(&event,sizeof(event));
 
-	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event)))
+	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event),0))
 	    break;
 
 	  if (event.a < 25 || (event.a % 577) == 0)

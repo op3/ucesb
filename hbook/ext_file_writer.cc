@@ -2172,7 +2172,8 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
       if (ext_data_setup(_reader_client,
 			 &slo,sizeof(slo),
 			 NULL,
-			 s->_stage_array._length) != 0)
+			 s->_stage_array._length,
+			 "", NULL) != 0)
 	{
 	  perror("ext_data_setup");
 	  ERR_MSG("Failed to setup connection: %s",

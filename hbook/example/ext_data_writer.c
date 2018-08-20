@@ -72,7 +72,8 @@ int main(int argc,char *argv[])
   if (ext_data_setup(client,
 		     &event_layout,sizeof(event_layout),
 		     NULL,
-		     sizeof(event)) != 0)
+		     sizeof(event),
+		     "",NULL) != 0)
     {
       perror("ext_data_setup");
       fprintf (stderr,"Failed to setup output: %s\n",

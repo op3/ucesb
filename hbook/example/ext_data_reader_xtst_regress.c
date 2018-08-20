@@ -98,7 +98,8 @@ int main(int argc,char *argv[])
 			    NULL, 0,
 #endif
 			    struct_info,/*NULL,*/
-			    sizeof(event)))
+			    sizeof(event),
+			    "", NULL))
     {
       /* Handle events. */
 
@@ -130,7 +131,7 @@ int main(int argc,char *argv[])
 
 	  /* Fetch the event. */
 
-	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event)))
+	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event),0))
 	    break;
 
 	  /* Do whatever is wanted with the data. */

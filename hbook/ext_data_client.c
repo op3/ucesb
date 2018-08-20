@@ -1613,7 +1613,8 @@ int ext_data_setup_messages(struct ext_data_client *client)
 int ext_data_setup(struct ext_data_client *client,
 		   const void *struct_layout_info,size_t size_info,
 		   struct ext_data_structure_info *struct_info,
-		   size_t size_buf)
+		   size_t size_buf,
+		   const char *name_id, int *key_id)
 {
   struct ext_data_client_struct *clistr = NULL;
   const struct ext_data_structure_layout *slo =
@@ -1621,8 +1622,6 @@ int ext_data_setup(struct ext_data_client *client,
   const struct ext_data_structure_layout_item *slo_items;
   const uint32_t *slo_pack_list;
   uint32_t i;
-
-  const char *name_id = "";
 
   if (!client)
     {
@@ -1694,11 +1693,11 @@ int ext_data_setup(struct ext_data_client *client,
     {
       /* TODO: Match the name requested!!! */
 
-      (void) name_id;
-
       if (strcmp(name_id, "") == 0)
 	{
 	  clistr = &client->_structure[0];
+	  if (key_id)
+	    *key_id = 0;
 	}
       else
 	{
@@ -1712,6 +1711,8 @@ int ext_data_setup(struct ext_data_client *client,
 	      if (strcmp(name_id, clistr_chk->_id) == 0)
 		{
 		  clistr = clistr_chk;
+		  if (key_id)
+		    *key_id = i;
 		  break;
 		}
 	    }
@@ -2230,6 +2231,9 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 
 int ext_data_fetch_event(struct ext_data_client *client,
 			 void *buf,size_t size
+#if !STRUCT_WRITER
+			 ,int key_id
+#endif
 #if STRUCT_WRITER
 			 ,struct external_writer_buf_header **header_in
 			 ,uint32_t *length_in
@@ -3000,10 +3004,12 @@ int ext_data_setup_stderr(struct ext_data_client *client,
 			  const void *struct_layout_info,
 			  size_t size_info,
 			  struct ext_data_structure_info *struct_info,
-			  size_t size_buf)
+			  size_t size_buf,
+			  const char *name_id, int *key_id)
 {
   int ret = ext_data_setup(client,
-			   struct_layout_info,size_info,struct_info,size_buf);
+			   struct_layout_info,size_info,struct_info,size_buf,
+			   name_id,key_id);
 
   if (ret == -1)
     {
@@ -3033,9 +3039,10 @@ int ext_data_nonblocking_fd_stderr(struct ext_data_client *client)
 }
 
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
-				void *buf,size_t size)
+				void *buf,size_t size,
+				int key_id)
 {
-  int ret = ext_data_fetch_event(client,buf,size);
+  int ret = ext_data_fetch_event(client,buf,size,key_id);
 
   if (ret == 0)
     {

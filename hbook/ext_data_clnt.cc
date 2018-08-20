@@ -81,19 +81,21 @@ int ext_data_clnt::nonblocking_fd()
 int ext_data_clnt::setup(const void *struct_layout_info,
 			 size_t size_info,
 			 ext_data_struct_info *struct_info,
-			 size_t size_buf)
+			 size_t size_buf,
+			 const char *name_id, int *key_id)
 {
   struct ext_data_structure_info *si =
     struct_info ?
     (struct ext_data_structure_info *) struct_info->_info : NULL;
 
   return ext_data_setup((ext_data_client *) _client,
-			struct_layout_info,size_info,si,size_buf);
+			struct_layout_info,size_info,si,size_buf,
+			name_id, key_id);
 }
 
-int ext_data_clnt::fetch_event(void *buf,size_t size)
+int ext_data_clnt::fetch_event(void *buf,size_t size, int key_id)
 {
-  return ext_data_fetch_event((ext_data_client *) _client,buf,size);
+  return ext_data_fetch_event((ext_data_client *) _client,buf,size,key_id);
 }
 
 int ext_data_clnt::get_raw_data(const void **raw, ssize_t *raw_words)
@@ -146,19 +148,22 @@ int ext_data_clnt_stderr::nonblocking_fd()
 int ext_data_clnt_stderr::setup(const void *struct_layout_info,
 				size_t size_info,
 				ext_data_struct_info *struct_info,
-				size_t size_buf)
+				size_t size_buf,
+				const char *name_id, int *key_id)
 {
   struct ext_data_structure_info *si =
     struct_info ?
     (struct ext_data_structure_info *) struct_info->_info : NULL;
 
   return ext_data_setup_stderr((ext_data_client *) _client,
-			       struct_layout_info,size_info,si,size_buf);
+			       struct_layout_info,size_info,si,size_buf,
+			       name_id,key_id);
 }
 
-int ext_data_clnt_stderr::fetch_event(void *buf,size_t size)
+int ext_data_clnt_stderr::fetch_event(void *buf,size_t size,int key_id)
 {
-  return ext_data_fetch_event_stderr((ext_data_client *) _client,buf,size);
+  return ext_data_fetch_event_stderr((ext_data_client *) _client,
+				     buf,size,key_id);
 }
 
 int ext_data_clnt_stderr::get_raw_data(const void **raw, ssize_t *raw_words)

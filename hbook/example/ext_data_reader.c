@@ -180,7 +180,8 @@ int main(int argc,char *argv[])
 		     NULL,0,
 		     struct_info,
 #endif
-		     sizeof(event)) != 0)
+		     sizeof(event),
+		     "", NULL) != 0)
     {
       perror("ext_data_setup");
       fprintf (stderr,"Failed to setup with data from server '%s': %s\n",
@@ -207,7 +208,8 @@ int main(int argc,char *argv[])
 	  /* Fetch the event. */
 
 	  ret = ext_data_fetch_event(client,
-				     &event,sizeof(event));
+				     &event,sizeof(event),
+				     0);
 
 	  if (ret == 0)
 	    {
