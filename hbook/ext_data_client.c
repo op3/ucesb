@@ -157,6 +157,8 @@ struct ext_data_client
   const char *_last_error;
 
   int _state;
+
+  int _fetched_event;
 };
 
 /* Layout of the structure information generated.
@@ -880,6 +882,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
 
   client->_state = EXT_DATA_STATE_INIT;
 
+  client->_fetched_event = 0;
+
   if (buf_alloc)
     {
       /* Get us a buffer for reading. */
@@ -1268,6 +1272,7 @@ const char *ext_data_extr_str(uint32_t **p, uint32_t *length_left)
   return str;
 }
 
+/* Handle messages that come during setup phase. */
 static int ext_data_setup_messages(struct ext_data_client *client)
 {
   struct ext_data_client_struct *clistr = NULL;
@@ -2307,6 +2312,120 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 }
 
 
+/* Handle messages up to the next ntuple fill event. */
+static int
+ext_data_fetch_event_message(struct ext_data_client *client,
+			     struct external_writer_buf_header **get_header,
+			     uint32_t *struct_index)
+{
+  /* Data read from the source until we have an entire message. */
+  struct external_writer_buf_header *header;
+
+  header = ext_data_peek_message(client);
+
+  *get_header = header;
+
+  if (header == NULL)
+    return -1; /* errno already set */
+
+  uint32_t length = ntohl(header->_length);
+
+  switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
+    {
+    case EXTERNAL_WRITER_BUF_DONE:
+    case EXTERNAL_WRITER_BUF_ABORT:
+      /* In either case, we're out of data.  Not consumed. */
+      return 0;
+
+    case EXTERNAL_WRITER_BUF_NAMED_STRING:
+      /* This one should be part of the init, i.e. not appear here. */
+      errno = EPROTO;
+      client->_last_error = "Named string in fetch, after setup.";
+      return -1;
+
+    default:
+      /* Unexpected message, not allowed.  Not consumed. */
+      errno = EPROTO;
+      client->_last_error = "Unexpected message in fetch.";
+      return -1;
+
+    case EXTERNAL_WRITER_BUF_NTUPLE_FILL:
+      {
+	uint32_t *p = (uint32_t *) (header+1);
+	uint32_t *end = (uint32_t *) (((char*) header) + length);
+
+	if (p + (client->_sort_u32_words + 3) > end)
+	  {
+	    client->_last_error = "Event message too short for headers.";
+	    errno = EBADMSG;
+	    return -1;
+	  }
+
+	p += client->_sort_u32_words;
+
+	*struct_index = ntohl(*(p++));
+
+	if (*struct_index >= (uint32_t) client->_num_structures)
+	  {
+	    client->_last_error = "Event structure index outside bounds.";
+	    errno = EBADMSG;
+	    return -1;
+	  }
+
+	return 1;
+      }
+    }
+}
+
+int ext_data_next_event(struct ext_data_client *client,
+			int *key_id)
+{
+  uint32_t struct_index;
+
+  if (!client)
+    {
+      /* client->_last_error = "Client context NULL."; */
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (client->_state != EXT_DATA_STATE_SETUP_READ)
+    {
+      client->_last_error = "Client context has not had setup (for reading).";
+      errno = EFAULT;
+      return -1;
+    }
+
+  for ( ; ; )
+    {
+      struct external_writer_buf_header *header;
+
+      int ret = ext_data_fetch_event_message(client, &header, &struct_index);
+
+      if (ret != 1)
+	return ret;
+
+      if (client->_fetched_event)
+	{
+	  /* We shall discard one event first. */
+
+	  uint32_t length = ntohl(header->_length);
+
+	  client->_buf_used += length;
+
+	  client->_fetched_event = 0;
+	  continue;
+	}
+      break;
+    }
+
+  *key_id = (int) struct_index;
+
+  client->_fetched_event = 1;
+
+  return 1;
+}
+
 int ext_data_fetch_event(struct ext_data_client *client,
 			 void *buf,size_t size
 #if !STRUCT_WRITER
@@ -2324,7 +2443,6 @@ int ext_data_fetch_event(struct ext_data_client *client,
 #endif
 
   /* Data read from the source until we have an entire message. */
-
   struct external_writer_buf_header *header;
 
   if (!client)
@@ -2360,202 +2478,202 @@ int ext_data_fetch_event(struct ext_data_client *client,
   client->_raw_ptr = NULL;
   client->_raw_words = 0;
 
-  header = ext_data_peek_message(client);
-
-  if (header == NULL)
-    return -1; /* errno already set */
-
   /* So, try to treat the message.
    *
    * Note that we ignore most messages, and only partially treat some.
-   *
-   * We do however make sure that (given correctness of the buf and
+   */
+
+  for ( ; ; )
+    {
+      uint32_t struct_index;
+
+      int ret = ext_data_fetch_event_message(client, &header, &struct_index);
+
+      uint32_t length = ntohl(header->_length);
+
+      if (ret == 0)
+	{
+#ifdef STRUCT_WRITER
+
+	  *header_in = header;
+	  *length_in = length;
+#endif
+	  return 0;
+	}
+
+      if (ret != 1)
+	return ret;
+
+      if (struct_index != (uint32_t) key_id)
+	{
+	  /* Discard this event. */
+	  client->_buf_used += length;
+	  continue;
+	}
+
+      /* This event is for us. */
+      break;
+    }
+
+  /* We do however make sure that (given correctness of the buf and
    * size parameters, this function can never crash on bad network
    * input, but rather produces some error message).
    */
 
   uint32_t length = ntohl(header->_length);
 
-  switch (ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK)
-    {
-    case EXTERNAL_WRITER_BUF_DONE:
-    case EXTERNAL_WRITER_BUF_ABORT:
-      /* In either case, we're out of data.  Not consumed. */
-#ifdef STRUCT_WRITER
-      *header_in = header;
-      *length_in = length;
-#endif
-      return 0;
-
-    case EXTERNAL_WRITER_BUF_NAMED_STRING:
-      /* This one should be part of the init, i.e. not appear here. */
-      errno = EPROTO;
-      client->_last_error = "Named string in fetch, after setup.";
-      return -1;
-
-    case EXTERNAL_WRITER_BUF_NTUPLE_FILL:
-      {
-	/* The main message, prompting fill of the structure.
-	 */
+  assert ((ntohl(header->_request) & EXTERNAL_WRITER_REQUEST_LO_MASK) ==
+	  EXTERNAL_WRITER_BUF_NTUPLE_FILL);
+  
+  {
+    /* The main message, prompting fill of the structure.
+     */
 #if 0
-	uint32_t *p   = (uint32_t *) (header+1);
-	uint32_t *end = (uint32_t *) (((char*) header) +
-				      ntohl(header->_length));
+    uint32_t *p   = (uint32_t *) (header+1);
+    uint32_t *end = (uint32_t *) (((char*) header) +
+				  ntohl(header->_length));
 #endif
 
-	uint32_t *p = (uint32_t *) (header+1);
-	uint32_t *end = (uint32_t *) (((char*) header) + length);
-	uint8_t *start;
-	uint32_t struct_index;
-	uint32_t ntuple_index;
-	uint32_t marker, compact_marker, real_len;
+    uint32_t *p = (uint32_t *) (header+1);
+    uint32_t *end = (uint32_t *) (((char*) header) + length);
+    uint8_t *start;
+    uint32_t struct_index;
+    uint32_t ntuple_index;
+    uint32_t marker, compact_marker, real_len;
 
-	char *unpack_buf = (char *) buf;
-	size_t unpack_size = size;
+    char *unpack_buf = (char *) buf;
+    size_t unpack_size = size;
 
-	if (p + (client->_sort_u32_words + 3) > end)
+    if (p + (client->_sort_u32_words + 3) > end)
+      {
+	client->_last_error = "Event message too short for headers.";
+	errno = EBADMSG;
+	return -1;
+      }
+
+    p += client->_sort_u32_words;
+
+    struct_index = ntohl(*(p++));
+    ntuple_index = ntohl(*(p++));
+
+    // printf ("index: %d\n",ntuple_index);
+
+    (void) struct_index; /* Handled above. */
+
+    if (ntuple_index != 0)
+      {
+	client->_last_error = "Non-zero ntuple_index - "
+	  "do not know how to handle.";
+	/* Or rather, do not know if it is properly propagated. */
+	/* Especially to a struct_writer continuation server. */
+	errno = EBADMSG;
+	return -1;
+      }
+
+    if (clistr->_orig_array)
+      {
+	unpack_buf = (char *) clistr->_orig_array;
+	unpack_size = clistr->_orig_struct_size;
+      }
+
+    if (clistr->_max_raw_words)
+      {
+	client->_raw_words = ntohl(*(p++));
+
+	if (p + (client->_raw_words + 1) > end)
 	  {
-	    client->_last_error = "Event message too short for headers.";
+	    client->_last_error = "Event message too short for raw data.";
 	    errno = EBADMSG;
 	    return -1;
 	  }
 
-	p += client->_sort_u32_words;
+	client->_raw_ptr = p;
+	p += client->_raw_words;
+      }
 
-	struct_index = ntohl(*(p++));
-	ntuple_index = ntohl(*(p++));
+    marker = ntohl(*(p++));
+    compact_marker = marker & 0xc0000000;
 
-	// printf ("index: %d\n",ntuple_index);
+    if (compact_marker != 0x80000000 &&
+	compact_marker != 0x40000000)
+      {
+	client->_last_error = "Compact marker invalid.";
+	errno = EBADMSG;
+	return -1;
+      }
 
-	if (struct_index != 0)
-	  {
-	    client->_last_error = "Non-zero struct_index - "
-	      "do not know how to handle.";
-	    /* Or rather, do not know if it is properly propagated. */
-	    /* Especially to a struct_writer continuation server. */
-	    errno = EBADMSG;
-	    return -1;
-	  }
+    if (compact_marker & 0x40000000)
+      {
+	/* It is not bit-packed.  Use the pack list.
+	 */
 
-	if (ntuple_index != 0)
-	  {
-	    client->_last_error = "Non-zero ntuple_index - "
-	      "do not know how to handle.";
-	    /* Or rather, do not know if it is properly propagated. */
-	    /* Especially to a struct_writer continuation server. */
-	    errno = EBADMSG;
-	    return -1;
-	  }
-
-	if (clistr->_orig_array)
-	  {
-	    unpack_buf = (char *) clistr->_orig_array;
-	    unpack_size = clistr->_orig_struct_size;
-	  }
-
-	if (clistr->_max_raw_words)
-	  {
-	    client->_raw_words = ntohl(*(p++));
-
-	    if (p + (client->_raw_words + 1) > end)
-	      {
-		client->_last_error = "Event message too short for raw data.";
-		errno = EBADMSG;
-		return -1;
-	      }
-
-	    client->_raw_ptr = p;
-	    p += client->_raw_words;
-	  }
-
-	marker = ntohl(*(p++));
-	compact_marker = marker & 0xc0000000;
-
-	if (compact_marker != 0x80000000 &&
-	    compact_marker != 0x40000000)
-	  {
-	    client->_last_error = "Compact marker invalid.";
-	    errno = EBADMSG;
-	    return -1;
-	  }
-
-	if (compact_marker & 0x40000000)
-	  {
-	    /* It is not bit-packed.  Use the pack list.
-	     */
-
-	    client->_buf_used += length;
+	client->_buf_used += length;
 
 #ifdef STRUCT_WRITER
-	    /* We actually do not want to get it unpacked for us.  We will
-	     * handle it ourselves.
-	     */
-	    *header_in = header;
-	    *length_in = length;
-	    return 2;
+	/* We actually do not want to get it unpacked for us.  We will
+	 * handle it ourselves.
+	 */
+	*header_in = header;
+	*length_in = length;
+	return 2;
 #endif
 
-	    if (ext_data_write_packed_event(client,unpack_buf,
-					    p,end))
-	      {
-		client->_last_error = "Event message unpack failure.";
-		errno = EBADMSG;
-		return -1;
-	      }
-	  }
-	else
+	if (ext_data_write_packed_event(client,unpack_buf,
+					p,end))
 	  {
-	    int ret;
-
-	    real_len = marker & 0x3fffffff;
-
-	    if ((end - p) * sizeof (uint32_t) !=
-		((real_len + 3) & (uint32_t) ~3))
-	      {
-		client->_last_error = "Event message packed length mismatch.";
-		errno = EBADMSG;
-		return -1;
-	      }
-
-	    /* Either we strike an error or not, we declare this event
-	     * as consumed.  Note: there is not much sense for clients
-	     * to continue, and they can anyhow not distinguish the
-	     * error message from other (more fatal) failures that give
-	     * the same error code.
-	     */
-
-	    client->_buf_used += length;
-
-	    start = (uint8_t *) p;
-
-	    ret = ext_data_write_bitpacked_event(unpack_buf,
-						 unpack_size,
-						 start,start + real_len);
-
-	    if (ret)
-	      {
-		client->_last_error = "Event message bit-unpack failure.";
-		errno = EBADMSG;
-		return -1;
-	      }
+	    client->_last_error = "Event message unpack failure.";
+	    errno = EBADMSG;
+	    return -1;
 	  }
-
-	if (clistr->_orig_array)
-	  {
-	    ext_data_struct_map_items(clistr,
-				      (char *) buf,
-				      (char *) unpack_buf);
-	  }
-
-	/* We got an event! */
-	return 1;
       }
-    }
+    else
+      {
+	int ret;
 
-  /* Unexpected message, not allowed.  Not consumed. */
-  errno = EPROTO;
-  client->_last_error = "Unexpected message.";
-  return -1;
+	real_len = marker & 0x3fffffff;
+
+	if ((end - p) * sizeof (uint32_t) !=
+	    ((real_len + 3) & (uint32_t) ~3))
+	  {
+	    client->_last_error = "Event message packed length mismatch.";
+	    errno = EBADMSG;
+	    return -1;
+	  }
+
+	/* Either we strike an error or not, we declare this event
+	 * as consumed.  Note: there is not much sense for clients
+	 * to continue, and they can anyhow not distinguish the
+	 * error message from other (more fatal) failures that give
+	 * the same error code.
+	 */
+
+	client->_buf_used += length;
+
+	start = (uint8_t *) p;
+
+	ret = ext_data_write_bitpacked_event(unpack_buf,
+					     unpack_size,
+					     start,start + real_len);
+
+	if (ret)
+	  {
+	    client->_last_error = "Event message bit-unpack failure.";
+	    errno = EBADMSG;
+	    return -1;
+	  }
+      }
+
+    if (clistr->_orig_array)
+      {
+	ext_data_struct_map_items(clistr,
+				  (char *) buf,
+				  (char *) unpack_buf);
+      }
+
+    client->_fetched_event = 0;
+    /* We got an event! */
+    return 1;
+  }
 }
 
 int ext_data_get_raw_data(struct ext_data_client *client,

@@ -311,6 +311,9 @@ int ext_data_nonblocking_fd(struct ext_data_client *client);
  * @client          Connection context structure.
  * @name_id         Pointer to return id of next event.
  *
+ * If called multiple times, then events are discarded.  Can be used
+ * to skip unwanted structures.
+ *
  * Return value:
  *
  *  1  success (one event can be fetched).
@@ -319,6 +322,10 @@ int ext_data_nonblocking_fd(struct ext_data_client *client);
  *
  * In addition to various system (socket read) errors, errno:
  *
+ * EFAULT           @client is NULL.
+ * EBADMSG          Data offset outside structure.
+ *                  Malformed message.  Bug?
+ * EPROTO           Unexpected message.  Bug?
  * EFAULT           @client is NULL.
  * EAGAIN           No futher data at this moment (after using
  *                  ext_data_nonblocking_fd()).
