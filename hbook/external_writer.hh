@@ -179,12 +179,11 @@ public:
   void close();
 
 public:
-  void send_file_open();
-  void send_book_ntuple(int hid,
-			const char *id,const char *title,
-			uint32_t ntuple_index = 0,
-			uint32_t sort_u32_words = 0,
-			uint32_t max_raw_words = 0);
+  void send_file_open(uint32_t sort_u32_words);
+  void send_book_ntuple_y(int hid,
+			  const char *id,const char *title,
+			  uint32_t ntuple_index = 0,
+			  uint32_t max_raw_words = 0);
   void send_alloc_array(uint32_t size);
   void send_hbname_branch(const char *block,
 			  uint32_t offset,uint32_t length,
@@ -253,6 +252,9 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  *   @ftitle       File title.  (part of hbook and root files).
  *
+ *   @sort_u32_words  Number of words used for sorting multiple streams.
+ *                    (Only for ntuple_index = 0).
+ *
  *   @server_port  Used for NTUPLE_TYPE_STRUCT.
  *
  *   @generate_header  Used for NTUPLE_TYPE_STRUCT_HH.  Hmm...
@@ -265,7 +267,7 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  * - Call send_file_open() to make it open the output file.
  *
- * - Call send_book_ntuple() to create the ntuple/tree object.
+ * - Call send_book_ntuple_x() to create the ntuple/tree object.
  *
  *   @hid           [NTUPLE] Ntuple id.
  *
@@ -275,9 +277,6 @@ inline uint32_t external_write_float_as_uint32(float src)
  *
  *   @ntuple_index  (Usually 0) For having several ntuples (of
  *                  same layout) in the output file.
- *
- *   @sort_u32_words  Number of words used for sorting multiple streams.
- *                    (Only for ntuple_index = 0).
  *
  *   @max_raw_words  Maximum size of raw data.
  *                   (Only for ntuple_index = 0).

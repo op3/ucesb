@@ -717,10 +717,11 @@ void *external_writer::insert_buf_header(void *ptr,
 
 void external_writer::send_file_open(/*const char *filename,
 				     const char *ftitle,
-				     int server_port,int generate_header*/)
+				     int server_port,int generate_header*/
+				     uint32_t sort_u32_words)
 {
   uint32_t space = (uint32_t) (sizeof(external_writer_buf_header)+
-    /*3**/sizeof(uint32_t)/* +
+    /*3**/2 * sizeof(uint32_t)/* +
       EWB_STRING_SPACE(filename)+EWB_STRING_SPACE(ftitle)*/);
   /*
   printf ("%d %d %d -> %d\n",
@@ -737,6 +738,8 @@ void external_writer::send_file_open(/*const char *filename,
   *(i++) = htonl(EXTERNAL_WRITER_MAGIC); // put some magic for checking
   //*(i++) = htonl(server_port);
   //*(i++) = htonl(generate_header);
+  *(i++) = htonl(sort_u32_words);
+  _sort_u32_words = sort_u32_words;
   p = i;
 
   //p = insert_buf_string(p,filename);
@@ -747,14 +750,13 @@ void external_writer::send_file_open(/*const char *filename,
   _buf->commit_buf_space(space);
 }
 
-void external_writer::send_book_ntuple(int hid,
-				       const char *id,const char *title,
-				       uint32_t ntuple_index,
-				       uint32_t sort_u32_words,
-				       uint32_t max_raw_words)
+void external_writer::send_book_ntuple_y(int hid,
+					 const char *id,const char *title,
+					 uint32_t ntuple_index,
+					 uint32_t max_raw_words)
 {
   uint32_t space = (uint32_t) (sizeof(external_writer_buf_header) +
-			       (ntuple_index == 0 ? 4 : 2) * sizeof(uint32_t) +
+			       (ntuple_index == 0 ? 3 : 2) * sizeof(uint32_t) +
 			       EWB_STRING_SPACE(id) + EWB_STRING_SPACE(title));
 
   // space for header
@@ -767,8 +769,6 @@ void external_writer::send_book_ntuple(int hid,
   *(i++) = htonl(hid);
   if (ntuple_index == 0)
     {
-      *(i++) = htonl(sort_u32_words);
-      _sort_u32_words = sort_u32_words;
       *(i++) = htonl(max_raw_words);
       _max_raw_words = max_raw_words;
     }

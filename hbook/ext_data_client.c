@@ -1270,10 +1270,11 @@ int ext_data_setup_messages(struct ext_data_client *client)
 	case EXTERNAL_WRITER_BUF_OPEN_FILE:
 	  {
 	    uint32_t magic;
+	    uint32_t sort_u32_words;
 	    uint32_t *p = (uint32_t *) (header+1);
 
 	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+		sizeof(struct external_writer_buf_header) + 2*sizeof(uint32_t))
 	      {
 		client->_last_error =
 		  "Bad open message size during setup.";
@@ -1290,6 +1291,9 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		errno = EPROTO;
 		return -1;
 	      }
+
+	    sort_u32_words = ntohl(p[1]);
+	    client->_sort_u32_words = sort_u32_words;
 
 	    break;
 	  }
@@ -1343,7 +1347,6 @@ int ext_data_setup_messages(struct ext_data_client *client)
 
 	    uint32_t ntuple_index;
 	    uint32_t hid;
-	    uint32_t sort_u32_words;
 	    uint32_t max_raw_words;
 
 	    const char *id = NULL;
@@ -1369,7 +1372,7 @@ int ext_data_setup_messages(struct ext_data_client *client)
 
 	    if (ntuple_index == 0)
 	      {
-		if (length_left < 2 * sizeof(uint32_t))
+		if (length_left < 1 * sizeof(uint32_t))
 		  {
 		    client->_last_error =
 		      "Bad ntuple booking message size (ii) during setup.";
@@ -1377,26 +1380,11 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		    return -1;
 		  }
 
-		sort_u32_words = ntohl(p[0]);
-		/* TODO: the number of sort words should be part of
-		 * another message!
-		 */
-		if (client->_sort_u32_words != sort_u32_words &&
-		    client->_sort_u32_words != (uint32_t) -1)
-		  {
-		    client->_last_error =
-		      "Bad ntuple booking message, "
-		      "different number of sort words.";
-		    errno = EPROTO;
-		    return -1;
-		  }
-		client->_sort_u32_words = sort_u32_words;
-
-		max_raw_words = ntohl(p[1]);
+		max_raw_words = ntohl(p[0]);
 		clistr->_max_raw_words = max_raw_words;
 
-		p += 2;
-		length_left -= 2 * sizeof(uint32_t);
+		p += 1;
+		length_left -= 1 * sizeof(uint32_t);
 
 		if (ntohl(0x01020304) != 0x01020304)
 		  {
@@ -1932,6 +1920,7 @@ int ext_data_setup(struct ext_data_client *client,
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
       *(p++) = htonl(EXTERNAL_WRITER_MAGIC);
+      *(p++) = htonl(0);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
       // EXTERNAL_WRITER_BUF_BOOK_NTUPLE /* size */
@@ -1941,7 +1930,6 @@ int ext_data_setup(struct ext_data_client *client,
       header->_request = htonl(EXTERNAL_WRITER_BUF_BOOK_NTUPLE |
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
-      *(p++) = htonl(0);
       *(p++) = htonl(0);
       *(p++) = htonl(0);
       *(p++) = htonl(0);

@@ -84,9 +84,9 @@ public:
   int  _autosave;
 
 public:
-  void open(const char *filename);
-  void stage(vect_ntuple_items &list,int hid,void *base,
-	     uint sort_u32_words = 0, uint max_raw_words = 0);
+  void open(const char *filename,uint sort_u32_words = 0);
+  void stage_x(vect_ntuple_items &list,int hid,void *base,
+	       uint max_raw_words = 0);
   void event(void *base,uint *sort_u32 = NULL,
 	     fill_raw_info *fill_raw = NULL);
   bool get_event();

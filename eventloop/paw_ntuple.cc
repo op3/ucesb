@@ -717,11 +717,14 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   if (!ntuple->_staged->_id)
     ntuple->_staged->_id = strdup("h101");
 
-  ntuple->_staged->open(filename); // open file/start the writer
-
-  ntuple->_staged->stage(listing,hid,&_static_event
+  ntuple->_staged->open(filename
 #if defined(USE_LMD_INPUT)
 		    ,1
+#endif
+			); // open file/start the writer
+
+  ntuple->_staged->stage_x(listing,hid,&_static_event
+#if defined(USE_LMD_INPUT)
 		    ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
 #endif
 		    );

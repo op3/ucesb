@@ -122,9 +122,9 @@ void start_monitor_thread(int port)
 		"monitor.root","Monitor",
 		port,false,0,0,0);
 
-  _mon_ew->send_file_open();
+  _mon_ew->send_file_open(0);
 
-  _mon_ew->send_book_ntuple(1,"Monitor","Monitor");
+  _mon_ew->send_book_ntuple_y(1,"Monitor","Monitor");
 
   send_offsets_extwrite_mon_block(_mon_ew);
 

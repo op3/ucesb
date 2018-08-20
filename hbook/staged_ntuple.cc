@@ -63,7 +63,8 @@ staged_ntuple::~staged_ntuple()
   free(_ftitle);
 }
 
-void staged_ntuple::open(const char *filename)
+void staged_ntuple::open(const char *filename,
+			 uint sort_u32_words)
 {
   _ext = new external_writer();
 
@@ -75,7 +76,7 @@ void staged_ntuple::open(const char *filename)
 	     _struct_server_port,
 	     !!(_ntuple_type & NTUPLE_TYPE_STRUCT_HH),
 	     _timeslice,_timeslice_subdir,_autosave);
-  _ext->send_file_open();
+  _ext->send_file_open(sort_u32_words);
 }
 
 void fix_case_none(char *) { }
@@ -254,8 +255,8 @@ void staged_ntuple::close()
     }
 }
 
-void staged_ntuple::stage(vect_ntuple_items &listing,int hid,void *base,
-			  uint sort_u32_words,uint max_raw_words)
+void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
+			    uint max_raw_words)
 {
   assert(_ext);
 
@@ -275,7 +276,7 @@ void staged_ntuple::stage(vect_ntuple_items &listing,int hid,void *base,
     fix_case = &fix_case_h2root;
 
   if (_ext)
-    _ext->send_book_ntuple(hid,_id,_title,0,sort_u32_words,max_raw_words);
+    _ext->send_book_ntuple_y(hid,_id,_title,0,max_raw_words);
 
   vect_stage_ntuple_blocks blocks;
 

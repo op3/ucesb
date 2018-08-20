@@ -477,12 +477,22 @@ void request_file_open(void *msg,uint32_t *left)
 {
   /* magic = */ get_buf_uint32(&msg,left);
 
+  uint32_t sort_u32_words = get_buf_uint32(&msg,left);
+
   //_server_port = (int32_t) get_buf_uint32(&msg,left);
 
   //uint32_t generate_header = get_buf_uint32(&msg,left);
 
   //const char *filename = get_buf_string(&msg,left);
   //const char *ftitle = get_buf_string(&msg,left);
+
+  if (_g._sort_u32_words != sort_u32_words &&
+      _g._sort_u32_words != (uint32_t) -1)
+    ERR_MSG("All sources must specify "
+	    "the same number of sort words.  (got %d, had %d)",
+	    sort_u32_words, _g._sort_u32_words);
+  
+  _g._sort_u32_words = sort_u32_words;
 
   do_file_open(time(NULL));
 }
@@ -628,8 +638,6 @@ void request_book_ntuple(void *msg,uint32_t *left)
 {
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
   uint32_t hid = get_buf_uint32(&msg,left);
-  uint32_t sort_u32_words =
-    (ntuple_index == 0 ? get_buf_uint32(&msg,left) : 0);
   uint32_t max_raw_words =
     (ntuple_index == 0 ? get_buf_uint32(&msg,left) : 0);
   const char *id = get_buf_string(&msg,left);
@@ -643,13 +651,6 @@ void request_book_ntuple(void *msg,uint32_t *left)
 
   if (ntuple_index == 0)
     {
-      if (_g._sort_u32_words != sort_u32_words &&
-	  _g._sort_u32_words != (uint32_t) -1)
-	ERR_MSG("All structures (of all sources) must specify "
-		"the same number of sort words.  (got %d, had %d)",
-		sort_u32_words, _g._sort_u32_words);
-
-      _g._sort_u32_words = sort_u32_words;
       s->_max_raw_words = max_raw_words;
     }
 
