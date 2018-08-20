@@ -112,8 +112,6 @@ struct ext_data_client_struct
   size_t _orig_struct_size;
   void  *_orig_array; /* for mapping */
 
-  uint32_t _sort_u32_words;
-
   size_t _struct_size;
   uint32_t _max_pack_items;
   uint32_t _static_pack_items;
@@ -152,7 +150,9 @@ struct ext_data_client
   uint32_t *_raw_swapped;
 
   struct ext_data_client_struct *_structure;
-  size_t                     _num_structure;
+  int                        _num_structure;
+
+  uint32_t _sort_u32_words;
 
   const char *_last_error;
 
@@ -813,7 +813,7 @@ static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
 
 static void ext_data_free(struct ext_data_client *client)
 {
-  size_t i;
+  int i;
   
   free(client->_buf);
 
@@ -834,7 +834,6 @@ void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
   clistr->_orig_xor_sum_msg = 0;
   clistr->_orig_struct_size = 0;
   clistr->_orig_array = NULL;
-  clistr->_sort_u32_words = 0;
   clistr->_struct_size = 0;
   clistr->_max_pack_items = 0;
   clistr->_static_pack_items = 0;
@@ -873,6 +872,8 @@ struct ext_data_client *ext_data_create_client(size_t buf_alloc)
     }
 
   client->_num_structure = 1;
+
+  client->_sort_u32_words = (uint32_t) -1;
 
   client->_fd_close = -1;
 
@@ -1377,7 +1378,19 @@ int ext_data_setup_messages(struct ext_data_client *client)
 		  }
 
 		sort_u32_words = ntohl(p[0]);
-		clistr->_sort_u32_words = sort_u32_words;
+		/* TODO: the number of sort words should be part of
+		 * another message!
+		 */
+		if (client->_sort_u32_words != sort_u32_words &&
+		    client->_sort_u32_words != (uint32_t) -1)
+		  {
+		    client->_last_error =
+		      "Bad ntuple booking message, "
+		      "different number of sort words.";
+		    errno = EPROTO;
+		    return -1;
+		  }
+		client->_sort_u32_words = sort_u32_words;
 
 		max_raw_words = ntohl(p[1]);
 		clistr->_max_raw_words = max_raw_words;
@@ -1691,7 +1704,7 @@ int ext_data_setup(struct ext_data_client *client,
 	}
       else
 	{
-	  size_t i;
+	  int i;
 
 	  for (i = 0; i < client->_num_structure; i++)
 	    {
@@ -2306,20 +2319,14 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	char *unpack_buf = (char *) buf;
 	size_t unpack_size = size;
 
-	if (clistr->_orig_array)
-	  {
-	    unpack_buf = (char *) clistr->_orig_array;
-	    unpack_size = clistr->_orig_struct_size;
-	  }
-
-	if (p + (clistr->_sort_u32_words + 2) > end)
+	if (p + (client->_sort_u32_words + 3) > end)
 	  {
 	    client->_last_error = "Event message too short for headers.";
 	    errno = EBADMSG;
 	    return -1;
 	  }
 
-	p += clistr->_sort_u32_words;
+	p += client->_sort_u32_words;
 
 	ntuple_index = ntohl(*(p++));
 
@@ -2333,6 +2340,12 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	    /* Especially to a struct_writer continuation server. */
 	    errno = EBADMSG;
 	    return -1;
+	  }
+
+	if (clistr->_orig_array)
+	  {
+	    unpack_buf = (char *) clistr->_orig_array;
+	    unpack_size = clistr->_orig_struct_size;
 	  }
 
 	if (clistr->_max_raw_words)
