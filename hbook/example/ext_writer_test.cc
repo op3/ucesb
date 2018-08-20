@@ -41,7 +41,11 @@ struct mystruct
   float e[7];
 };
 
-mystruct event;
+struct secondstruct
+{
+  int32_t g;
+  float h;
+};
 
 /* The code for the below can be obtained from:
  *
@@ -53,6 +57,8 @@ mystruct event;
 
 void send_offsets_mystruct(external_writer *ew)
 {
+  struct mystruct event;
+
   ew->send_book_ntuple_x(99,"h99","TestTree");
 
   ew->send_alloc_array(sizeof(mystruct));
@@ -122,6 +128,54 @@ void send_fill_mystruct(external_writer *ew,
   ew->send_offsets_fill(p);
 }
 
+void send_offsets_secondstruct(external_writer *ew)
+{
+  struct secondstruct event;
+
+  ew->send_book_ntuple_x(98,"h98","TestTree2",1);
+
+  ew->send_alloc_array(sizeof(secondstruct));
+
+  ew->send_hbname_branch("DEF",offsetof(secondstruct,g),
+                         sizeof(/*secondstruct.g*/int32_t),
+                         "g",-1,"",EXTERNAL_WRITER_FLAG_TYPE_INT32);
+  ew->send_hbname_branch("DEF",offsetof(secondstruct,h),
+                         sizeof(/*secondstruct.h*/float),
+                         "h",-1,"",EXTERNAL_WRITER_FLAG_TYPE_FLOAT32);
+
+  uint32_t offset_msg_size = (2 + 2 * 0) * (uint32_t) sizeof(uint32_t);
+  uint32_t fill_msg_size = (1 + 2) * (uint32_t) sizeof(uint32_t);
+
+  ew->set_max_message_size(fill_msg_size > offset_msg_size ?
+                           fill_msg_size : offset_msg_size);
+
+  {
+    uint32_t *o = ew->prepare_send_offsets(offset_msg_size);
+
+    *(o++) = htonl((uint32_t) offsetof(secondstruct,g) | 0x40000000);
+    *(o++) = htonl((uint32_t) offsetof(secondstruct,h));
+
+    ew->send_offsets_fill(o);
+  }
+}
+
+void send_fill_secondstruct(external_writer *ew,
+			    const secondstruct &s,
+			    uint32_t ntuple_index = 0)
+{
+  uint32_t fill_msg_size = (1 + 2) * (uint32_t) sizeof(uint32_t);
+
+  uint32_t *p = ew->prepare_send_fill_x(fill_msg_size,1,ntuple_index,
+					NULL,NULL,0);
+
+  *(p++) = htonl(0x40000000); // marker that we are not compacted
+
+  *(p++) = htonl((s.g));
+  *(p++) = htonl(external_write_float_as_uint32(s.h));
+
+  ew->send_offsets_fill(p);
+}
+
 int main(int argc, char *argv[])
 {
   main_argv0 = argv[0];
@@ -169,6 +223,8 @@ int main(int argc, char *argv[])
 
   send_offsets_mystruct(ew);
 
+  send_offsets_secondstruct(ew);
+
   ew->send_setup_done();
 
   if (!generate_header)
@@ -189,6 +245,18 @@ int main(int argc, char *argv[])
 	  s.e[1] = (float) (i * 0.01 + 0.001);
 
 	  send_fill_mystruct(ew, s, 0);
+
+	  if (i % 99 == 0)
+	    {
+	      struct secondstruct s2;
+
+	      memset(&s2, 0, sizeof (s2));
+
+	      s2.g = i;
+	      s2.h = (float) (i * 0.01);
+
+	      send_fill_secondstruct(ew, s2, 0);
+	    }
 	}
     }
 
