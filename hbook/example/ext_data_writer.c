@@ -110,7 +110,8 @@ int main(int argc,char *argv[])
 	   */
 
 	  if (ext_data_clear_event(client,&event,sizeof(event),
-				   /* clear_zzp_lists */ 0,/* key_id */ 0) != 0)
+				   /* clear_zzp_lists */ 0,
+				   /* struct_id */ 0) != 0)
 	    {
 	      perror("ext_data_clear_event");
 	      fprintf (stderr,"Failed to clear event: %s\n",

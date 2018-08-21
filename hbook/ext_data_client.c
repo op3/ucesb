@@ -1682,7 +1682,7 @@ int ext_data_setup(struct ext_data_client *client,
 		   const void *struct_layout_info,size_t size_info,
 		   struct ext_data_structure_info *struct_info,
 		   size_t size_buf,
-		   const char *name_id, int *key_id)
+		   const char *name_id, int *struct_id)
 {
   struct ext_data_client_struct *clistr = NULL;
   const struct ext_data_structure_layout *slo =
@@ -1769,8 +1769,8 @@ int ext_data_setup(struct ext_data_client *client,
       if (strcmp(name_id, "") == 0)
 	{
 	  clistr = &client->_structures[0];
-	  if (key_id)
-	    *key_id = 0;
+	  if (struct_id)
+	    *struct_id = 0;
 	}
       else
 	{
@@ -1784,8 +1784,8 @@ int ext_data_setup(struct ext_data_client *client,
 	      if (strcmp(name_id, clistr_chk->_id) == 0)
 		{
 		  clistr = clistr_chk;
-		  if (key_id)
-		    *key_id = i;
+		  if (struct_id)
+		    *struct_id = i;
 		  break;
 		}
 	    }
@@ -2251,12 +2251,12 @@ int ext_data_write_packed_event(struct ext_data_client *client,
   uint32_t *o;
   uint32_t *oend;
 
-  int key_id = 0;
+  int struct_id = 0;
 
-  if (key_id >= client->_num_structures)
+  if (struct_id >= client->_num_structures)
     return -5;
 
-  clistr = &client->_structures[key_id];
+  clistr = &client->_structures[struct_id];
 
   o    = clistr->_pack_list;
   oend = clistr->_pack_list_end;
@@ -2378,7 +2378,7 @@ ext_data_fetch_event_message(struct ext_data_client *client,
 }
 
 int ext_data_next_event(struct ext_data_client *client,
-			int *key_id)
+			int *struct_id)
 {
   uint32_t struct_index;
 
@@ -2419,7 +2419,7 @@ int ext_data_next_event(struct ext_data_client *client,
       break;
     }
 
-  *key_id = (int) struct_index;
+  *struct_id = (int) struct_index;
 
   client->_fetched_event = 1;
 
@@ -2429,7 +2429,7 @@ int ext_data_next_event(struct ext_data_client *client,
 int ext_data_fetch_event(struct ext_data_client *client,
 			 void *buf,size_t size
 #if !STRUCT_WRITER
-			 ,int key_id
+			 ,int struct_id
 #endif
 #if STRUCT_WRITER
 			 ,struct external_writer_buf_header **header_in
@@ -2439,7 +2439,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 {
   const struct ext_data_client_struct *clistr;
 #if STRUCT_WRITER
-  int key_id = 0; /* fix to accept whatever event, call next_event */
+  int struct_id = 0; /* fix to accept whatever event, call next_event */
 #endif
 
   /* Data read from the source until we have an entire message. */
@@ -2459,14 +2459,14 @@ int ext_data_fetch_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (key_id < 0 || key_id >= client->_num_structures)
+  if (struct_id < 0 || struct_id >= client->_num_structures)
     {
       client->_last_error = "Request for non-existing structure index (key).";
       errno = EINVAL;
       return -1;
     }  
 
-  clistr = &client->_structures[key_id];
+  clistr = &client->_structures[struct_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2504,7 +2504,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
       if (ret != 1)
 	return ret;
 
-      if (struct_index != (uint32_t) key_id)
+      if (struct_index != (uint32_t) struct_id)
 	{
 	  /* Discard this event. */
 	  client->_buf_used += length;
@@ -2725,7 +2725,7 @@ int ext_data_get_raw_data(struct ext_data_client *client,
 
 int ext_data_clear_event(struct ext_data_client *client,
 			 void *buf,size_t size,int clear_zzp_lists,
-			 int key_id)
+			 int struct_id)
 {
   const struct ext_data_client_struct *clistr;
 
@@ -2749,14 +2749,14 @@ int ext_data_clear_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (key_id < 0 || key_id >= client->_num_structures)
+  if (struct_id < 0 || struct_id >= client->_num_structures)
     {
       client->_last_error = "Request for non-existing structure index (key).";
       errno = EINVAL;
       return -1;
     }  
 
-  clistr = &client->_structures[key_id];
+  clistr = &client->_structures[struct_id];
 
   if (size != clistr->_struct_size)
     {
@@ -2837,7 +2837,7 @@ int ext_data_clear_event(struct ext_data_client *client,
 
 void ext_data_clear_zzp_lists(struct ext_data_client *client,
 			      void *buf,void *item,
-			      int key_id)
+			      int struct_id)
 {
   const struct ext_data_client_struct *clistr;
 
@@ -2860,7 +2860,7 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
   // look-up table for the control items to find the associated offset
   // item in the pack list.  Then clear so many values.
 
-  clistr = &client->_structures[key_id];
+  clistr = &client->_structures[struct_id];
 
   b = (char*) buf;
 
@@ -2919,7 +2919,7 @@ int ext_data_write_event(struct ext_data_client *client,
   uint32_t *o, *oend;
   char *b;
 
-  int key_id = 0;
+  int struct_id = 0;
 
   if (!client)
     {
@@ -2935,13 +2935,13 @@ int ext_data_write_event(struct ext_data_client *client,
       return -1;
     }
 
-  if (key_id >= client->_num_structures)
+  if (struct_id >= client->_num_structures)
     {
       errno = EFAULT;
       return -1;
     }
 
-  clistr = &client->_structures[key_id];
+  clistr = &client->_structures[struct_id];
 
   if (size != clistr->_struct_size)
     {
@@ -3236,11 +3236,11 @@ int ext_data_setup_stderr(struct ext_data_client *client,
 			  size_t size_info,
 			  struct ext_data_structure_info *struct_info,
 			  size_t size_buf,
-			  const char *name_id, int *key_id)
+			  const char *name_id, int *struct_id)
 {
   int ret = ext_data_setup(client,
 			   struct_layout_info,size_info,struct_info,size_buf,
-			   name_id,key_id);
+			   name_id,struct_id);
 
   if (ret == -1)
     {
@@ -3270,9 +3270,9 @@ int ext_data_nonblocking_fd_stderr(struct ext_data_client *client)
 }
 
 int ext_data_next_event_stderr(struct ext_data_client *client,
-			       int *key_id)
+			       int *struct_id)
 {
-  int ret = ext_data_next_event(client, key_id);
+  int ret = ext_data_next_event(client, struct_id);
 
   if (ret == 0)
     {
@@ -3297,9 +3297,9 @@ int ext_data_next_event_stderr(struct ext_data_client *client,
 
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
 				void *buf,size_t size,
-				int key_id)
+				int struct_id)
 {
-  int ret = ext_data_fetch_event(client,buf,size,key_id);
+  int ret = ext_data_fetch_event(client,buf,size,struct_id);
 
   if (ret == 0)
     {
