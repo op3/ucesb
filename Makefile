@@ -172,6 +172,12 @@ $(EXTTDIR)/ext_reader_h101_stderr: hbook/example/ext_data_reader_stderr.c $(EXT_
 	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  hbook/example/ext_data_reader_stderr.c hbook/ext_data_client.o
 
+$(EXTTDIR)/ext_reader_h101_cc: hbook/example/ext_data_reader_cc.cc $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
+	@echo "  BUILD  $@"
+	@$(CXX) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	  hbook/example/ext_data_reader_cc.cc \
+	  hbook/ext_data_client.o hbook/ext_data_clnt.o
+
 $(EXTTDIR)/ext_writer_h101: hbook/example/ext_data_writer.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
 	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
@@ -216,6 +222,7 @@ ifndef USE_MERGING # disabled for the time being (to be fixed...)
 empty: $(EXTTDIR)/ext_reader_h101.runstamp \
 	$(EXTTDIR)/ext_reader_h101_items_info.runstamp \
 	$(EXTTDIR)/ext_reader_h101_stderr.runstamp \
+	$(EXTTDIR)/ext_reader_h101_cc.runstamp \
 	$(EXTTDIR)/ext_writer_h101.runstamp
 endif
 
