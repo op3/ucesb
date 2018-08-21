@@ -365,12 +365,6 @@ ext_data_client.o: ext_data_client.c ext_data_client.d
 
 struct_writer: ext_data_client.o
 
-ifneq (,$(FILE_ROOT_CONFIG))
-
-%_dict.cc: %.hh
-	@echo "ROOTCINT $@"
-	$(QUIET)rootcint -f $@ -c $<
-
 # Would be ext_data_clnt% , but the % wants at least one letter...
 ext_data_cln%.o: ext_data_cln%.cc
 	@echo "   CXX   $@"
@@ -380,6 +374,12 @@ ext_data_cln%.o: ext_data_cln%.cc
 online_chai%.o: online_chai%.cc
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
+
+ifneq (,$(FILE_ROOT_CONFIG))
+
+%_dict.cc: %.hh
+	@echo "ROOTCINT $@"
+	$(QUIET)rootcint -f $@ -c $<
 
 .PRECIOUS: ext_data_clnt_dict.cc ext_data_clnt_stderr_dict.cc online_chain_dict.cc
 
@@ -393,6 +393,8 @@ libext_data_clnt.so: ext_data_client.o ext_data_clnt.o \
 struct_writer: libext_data_clnt.so
 
 endif
+
+struct_writer: ext_data_clnt.o
 
 endif # $(MAKECMDGOALS) has struct_writer
 
