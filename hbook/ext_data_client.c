@@ -3269,6 +3269,32 @@ int ext_data_nonblocking_fd_stderr(struct ext_data_client *client)
   return fd;
 }
 
+int ext_data_next_event_stderr(struct ext_data_client *client,
+			       int *key_id)
+{
+  int ret = ext_data_next_event(client, key_id);
+
+  if (ret == 0)
+    {
+      fprintf (stderr,"End from server.\n");
+      return 0; /* Out of data. */
+    }
+
+  if (ret == -1)
+    {
+      if (errno == EAGAIN)
+	return -1;
+
+      perror("ext_data_next_event");
+      fprintf (stderr,"Failed to query next event: %s\n",
+	       client->_last_error);
+      /* Not more fatal than that we can disconnect. */
+      return 0;
+    }
+
+  return 1;
+}
+
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
 				void *buf,size_t size,
 				int key_id)

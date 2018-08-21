@@ -93,6 +93,11 @@ int ext_data_clnt::setup(const void *struct_layout_info,
 			name_id, key_id);
 }
 
+int ext_data_clnt::next_event(int *key_id)
+{
+  return ext_data_next_event((ext_data_client *) _client,key_id);
+}
+
 int ext_data_clnt::fetch_event(void *buf,size_t size, int key_id)
 {
   return ext_data_fetch_event((ext_data_client *) _client,buf,size,key_id);
@@ -158,6 +163,11 @@ int ext_data_clnt_stderr::setup(const void *struct_layout_info,
   return ext_data_setup_stderr((ext_data_client *) _client,
 			       struct_layout_info,size_info,si,size_buf,
 			       name_id,key_id);
+}
+
+int ext_data_clnt_stderr::next_event(int *key_id)
+{
+  return ext_data_next_event_stderr((ext_data_client *) _client,key_id);
 }
 
 int ext_data_clnt_stderr::fetch_event(void *buf,size_t size,int key_id)

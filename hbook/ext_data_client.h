@@ -620,6 +620,9 @@ int ext_data_setup_stderr(struct ext_data_client *client,
 
 int ext_data_nonblocking_fd_stderr(struct ext_data_client *client);
 
+int ext_data_next_event_stderr(struct ext_data_client *client,
+			       int *key_id);
+
 int ext_data_fetch_event_stderr(struct ext_data_client *client,
 				void *buf,size_t size,
 				int key_id);

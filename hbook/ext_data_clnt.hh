@@ -51,6 +51,7 @@ public:
 	    size_t size_buf,
 	    const char *name_id = "", int *key_id = NULL);
 
+  int next_event(int *key_id);
   int fetch_event(void *buf,size_t size,int key_id = 0);
   int get_raw_data(const void **raw, ssize_t *raw_words);
   const char *last_error();
