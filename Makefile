@@ -97,7 +97,20 @@ $(EXTTDIR)/ext_reader_h99_stderr: hbook/example/ext_data_reader_h99_stderr.c $(E
 $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 	@echo "  TEST   $@"
 	@$(EXT_WRITER_TEST) --struct=- 2> $@.err2 | \
-	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
+	  ./$< - > $@.out 2> $@.err || \
+	  ( echo "* FAIL * ..." >> $@.out )
+	@echo "---" >> $@.out
+	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	  ./$< --h99 - >> $@.out 2>> $@.err || \
+	  ( echo "* FAIL * ..." >> $@.out )
+	@echo "---" >> $@.out
+	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	  ./$< --h98 - >> $@.out 2>> $@.err || \
+	  ( echo "* FAIL * ..." >> $@.out )
+	@echo "---" >> $@.out
+	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	  ./$< --h99-h98 - >> $@.out 2>> $@.err || \
+	  ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
 	    echo "$(EXT_WRITER_TEST) --struct=- | ./$< -" ;\

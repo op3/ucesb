@@ -25,41 +25,106 @@
 #define EXT_EVENT_STRUCT_LAYOUT       EXT_STR_h99_layout
 #define EXT_EVENT_STRUCT_LAYOUT_INIT  EXT_STR_h99_LAYOUT_INIT
 
+#define EXT_EVENT_STRUCT_B              EXT_STR_h98
+#define EXT_EVENT_STRUCT_B_LAYOUT       EXT_STR_h98_layout
+#define EXT_EVENT_STRUCT_B_LAYOUT_INIT  EXT_STR_h98_LAYOUT_INIT
+
 #include EXT_EVENT_STRUCT_H_FILE
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+#define CHECK_NEXT_H99      1
+#define CHECK_NEXT_H98      2
+#define CHECK_NEXT_H99_H98  3
 
 int main(int argc,char *argv[])
 {
   struct ext_data_client *client;
   int i;
 
+  int server_i = 1;
+  int check_next = 0;
+
   EXT_EVENT_STRUCT event;
   EXT_EVENT_STRUCT_LAYOUT event_layout = EXT_EVENT_STRUCT_LAYOUT_INIT;
 
-  if (argc < 2)
+  EXT_EVENT_STRUCT_B event_b;
+  EXT_EVENT_STRUCT_B_LAYOUT event_b_layout = EXT_EVENT_STRUCT_B_LAYOUT_INIT;
+
+  int h99_id = -1;
+  int h98_id = -1;
+
+  if (argc > 1)
+    {
+      if (strcmp(argv[1],"--h99") == 0)
+	{
+	  check_next = CHECK_NEXT_H99;
+	  server_i = 2;
+	}
+      else if (strcmp(argv[1],"--h98") == 0)
+	{
+	  check_next = CHECK_NEXT_H98;
+	  server_i = 2;
+	}
+      else if (strcmp(argv[1],"--h99-h98") == 0)
+	{
+	  check_next = CHECK_NEXT_H99_H98;
+	  server_i = 2;
+	}
+    }
+
+  if (argc < server_i+1)
     {
       fprintf (stderr,"No server name given, usage: %s SERVER\n",argv[0]);
       exit(1);
     }
 
-  client = ext_data_connect_stderr(argv[1]);
+  client = ext_data_connect_stderr(argv[server_i]);
 
   if (client == NULL)
     exit(1);
 
-  if (ext_data_setup_stderr(client,
-			    &event_layout,sizeof(event_layout),
-			    NULL,
-			    sizeof(event),
-			    "", NULL))
-    {
-      for ( ; ; )
-	{
-	  ext_data_rand_fill(&event,sizeof(event));
+  if (!ext_data_setup_stderr(client,
+			     &event_layout,sizeof(event_layout),
+			     NULL,
+			     sizeof(event),
+			     "", &h99_id))
+    goto failed_setup;
 
-	  if (!ext_data_fetch_event_stderr(client,&event,sizeof(event),0))
+  if (!ext_data_setup_stderr(client,
+			     &event_b_layout,sizeof(event_b_layout),
+			     NULL,
+			     sizeof(event_b),
+			     "h98", &h98_id))
+    goto failed_setup;
+
+  for ( ; ; )
+    {
+      int struct_id = 0;
+
+      ext_data_rand_fill(&event,sizeof(event));
+
+      if (check_next)
+	{
+	  if (!ext_data_next_event_stderr(client,&struct_id))
+	    break;
+
+	  if (struct_id == h99_id)
+	    if (check_next != CHECK_NEXT_H99 &&
+		check_next != CHECK_NEXT_H99_H98)
+	      continue;
+	  if (struct_id == h98_id)
+	    if (check_next != CHECK_NEXT_H98 &&
+		check_next != CHECK_NEXT_H99_H98)
+	      continue;
+	}
+
+      if (struct_id == h99_id)
+	{
+	  if (!ext_data_fetch_event_stderr(client,
+					   &event,sizeof(event),struct_id))
 	    break;
 
 	  if (event.a < 25 || (event.a % 577) == 0)
@@ -73,8 +138,23 @@ int main(int argc,char *argv[])
 	      printf ("\n");
 	    }
 	}
+      else if (struct_id == h98_id)
+	{
+	  if (!ext_data_fetch_event_stderr(client,
+					   &event_b,sizeof(event_b),struct_id))
+	    break;
+
+	  if (event_b.g < 2500 || (event_b.g % 577) == 0)
+	    {
+	      printf ("%10d: %6.3f", event_b.g, event_b.h);
+	      printf ("\n");
+	    }
+	}
     }
 
+ failed_setup:
+  ;
+  
   ext_data_close_stderr(client);
 
   return 0;
