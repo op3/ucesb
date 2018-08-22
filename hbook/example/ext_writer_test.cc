@@ -100,7 +100,7 @@ void send_fill_mystruct(external_writer *ew,
 {
   uint32_t fill_msg_size = (1 + (1+1+1+4+7)) * (uint32_t) sizeof(uint32_t);
 
-  uint32_t *p = ew->prepare_send_fill(fill_msg_size, ntuple_index);
+  uint32_t *p = ew->prepare_send_fill_x(fill_msg_size, 0, ntuple_index);
 
   *(p++) = htonl(0x40000000); /* marker */
 

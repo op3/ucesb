@@ -292,13 +292,15 @@ print <<"EndOfText";
 
 //////////////////////////////////////////////////////////////////////
 
-void send_fill_$struct(external_writer *ew,
-                       const $struct &s,
-                       uint32_t ntuple_index = 0)
+void send_fill_x_$struct(external_writer *ew,
+                         const $struct &s,
+                         uint32_t struct_index = 0,
+                         uint32_t ntuple_index = 0)
 {
   uint32_t fill_msg_size = (1 + $numitems) * (uint32_t) sizeof(uint32_t);
 
-  uint32_t *p = ew->prepare_send_fill(fill_msg_size,ntuple_index);
+  uint32_t *p = ew->prepare_send_fill_x(fill_msg_size,
+					struct_index,ntuple_index);
 
   *(p++) = htonl(0x40000000); // marker that we are not compacted
 

@@ -888,12 +888,12 @@ void external_writer::send_done()
   _buf->commit_buf_space(space);
 }
 
-uint32_t *external_writer::prepare_send_fill(uint32_t size,
-					     uint32_t ntuple_index,
-					     uint32_t *sort_u32,
-					     uint32_t **raw,
-					     uint32_t raw_words,
-					     uint32_t struct_index)
+uint32_t *external_writer::prepare_send_fill_x(uint32_t size,
+					       uint32_t struct_index,
+					       uint32_t ntuple_index,
+					       uint32_t *sort_u32,
+					       uint32_t **raw,
+					       uint32_t raw_words)
 {
   uint32_t space =
     EXTERNAL_WRITER_SIZE_NTUPLE_FILL(size,_sort_u32_words,

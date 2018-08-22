@@ -553,9 +553,9 @@ void staged_ntuple::event(void *base,uint *sort_u32,
       assert (size <= UINT32_MAX);
 
       uint32_t *start =
-	_ext->prepare_send_fill((uint32_t) size,0,sort_u32,
-				fill_raw ? &fill_raw->_ptr : NULL,
-				fill_raw ? fill_raw->_words : 0);
+	_ext->prepare_send_fill_x((uint32_t) size,0,0,sort_u32,
+				  fill_raw ? &fill_raw->_ptr : NULL,
+				  fill_raw ? fill_raw->_words : 0);
 
       if (fill_raw)
 	fill_raw->_callback(fill_raw);

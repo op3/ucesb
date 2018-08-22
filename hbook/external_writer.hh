@@ -196,13 +196,12 @@ public:
   uint32_t *prepare_send_offsets(uint32_t size);
   void send_offsets_fill(uint32_t *po);
   void send_setup_done(bool reader = false);
-  uint32_t *prepare_send_fill(uint32_t size,
-			      /* struct_index logically here, see above */
-			      uint32_t ntuple_index = 0,
-			      uint32_t *sort_u32 = NULL,
-			      uint32_t **raw = NULL,
-			      uint32_t raw_words = 0,
-			      uint32_t struct_index = 0);
+  uint32_t *prepare_send_fill_x(uint32_t size,
+				uint32_t struct_index = 0,
+				uint32_t ntuple_index = 0,
+				uint32_t *sort_u32 = NULL,
+				uint32_t **raw = NULL,
+				uint32_t raw_words = 0);
   void send_done();
   void send_flush(); /* Used when data is sent seldomly...  Hmmm */
 
@@ -375,6 +374,8 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @size          Maximum size that will be used for the protocol data.
  *                  Can safely use the value sent to set_max_message_size().
  *
+ *   @struct_index  (Usually 0) which ntuple to fill.
+ *
  *   @ntuple_index  (Usually 0) which ntuple to fill.
  *
  *   @sort_u32      Pointer to words used for sorting multiple streams.
@@ -383,8 +384,6 @@ inline uint32_t external_write_float_as_uint32(float src)
  *                  where to write ancillary raw data of size @raw_words.
  *
  *   @raw_words     Size of raw data (bytes).
- *
- *   @struct_index  (Usually 0) which ntuple to fill.
  *
  *   The protocol consists of:
  *

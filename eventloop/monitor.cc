@@ -81,7 +81,7 @@ void *monitor_thread(void *)
 	      /* Good. */
 	      //printf ("Good copy in %d.\n", copy);
 
-	      send_fill_extwrite_mon_block(_mon_ew,mon);
+	      send_fill_x_extwrite_mon_block(_mon_ew,mon);
 	      _mon_ew->send_flush();
 	      
 	      break;
