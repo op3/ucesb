@@ -51,9 +51,9 @@ public:
 
 typedef std::vector<struct_item*> struct_item_list;
 
-#define SD_NOENCODE 0x0001
-#define SD_OPTIONAL 0x0002
-#define SD_SEVERAL  0x0004
+#define SD_FLAGS_NOENCODE 0x0001
+#define SD_FLAGS_OPTIONAL 0x0002
+#define SD_FLAGS_SEVERAL  0x0004
 
 class struct_data
   : public struct_item

@@ -112,7 +112,7 @@ bool struct_unpack_code::get_match_bits(const struct_data *data,dumper &d,const 
   if (data->_size > 32)
     return false; // bits._mask and bits._value cannot handle this
 
-  if (data->_flags & SD_OPTIONAL)
+  if (data->_flags & SD_FLAGS_OPTIONAL)
     {
       d.text_fmt(" optional");
      // Item is optional, so in principle we should also try the next

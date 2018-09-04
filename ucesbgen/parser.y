@@ -586,13 +586,13 @@ data_item:
 
 data_item_flag:
 	             { $$ = 0; }
-	| T_OPTIONAL { $$ = SD_OPTIONAL; }
-	| T_SEVERAL  { $$ = SD_SEVERAL; }
+	| T_OPTIONAL { $$ = SD_FLAGS_OPTIONAL; }
+	| T_SEVERAL  { $$ = SD_FLAGS_SEVERAL; }
         ;
 
 noencode:
 	           { $$ = 0; }
-	| NOENCODE { $$ = SD_NOENCODE; }
+	| NOENCODE { $$ = SD_FLAGS_NOENCODE; }
         ;
 
 zero_suppress:

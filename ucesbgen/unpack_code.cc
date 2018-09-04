@@ -654,11 +654,11 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 
   bool do_declare = false;
 
-  if (!(data->_flags & SD_NOENCODE))
+  if (!(data->_flags & SD_FLAGS_NOENCODE))
     {
       // We want it in the header
 
-      if (data->_flags & SD_SEVERAL)
+      if (data->_flags & SD_FLAGS_SEVERAL)
 	ERROR_LOC(data->_loc,
 		  "Item marked several without marked NOENCODE, "
 		  "cannot store multiple items...");
@@ -679,7 +679,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
     }
 
   if ((type & UCT_UNPACK) &&
-      (data->_flags & SD_SEVERAL))
+      (data->_flags & SD_FLAGS_SEVERAL))
     d.text("for ( ; ; ) {\n");
 
   char* data_done_label = NULL;
@@ -697,7 +697,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 
       if (type & (UCT_UNPACK | UCT_MATCH))
 	{
-	  if (data->_flags & (SD_OPTIONAL | SD_SEVERAL))
+	  if (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL))
 	    {
 	      // If there is no bitfield, the only thing that can stop
 	      // us is if the buffer is empty.  (if there are half the
@@ -718,7 +718,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 		     data_type,prefix,data->_ident);
 
 	  if ((type & UCT_UNPACK) &&
-	      (data->_flags & SD_SEVERAL))
+	      (data->_flags & SD_FLAGS_SEVERAL))
 	    d.text("}\n");
 
 	  if (data_done_label)
@@ -739,7 +739,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
   bool declare_temp = false;
 
   if ((type & UCT_UNPACK) &&
-      (data->_flags & (SD_OPTIONAL | SD_SEVERAL)))
+      (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL)))
     {
       if (!do_declare)
 	{
@@ -827,7 +827,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
     {
       const char *read_prefix = "READ";
 
-      if (data->_flags & (SD_OPTIONAL | SD_SEVERAL))
+      if (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL))
 	{
 	  char label[128];
 	  sprintf (label,"data_done_%d",data_done_counter++);
@@ -852,7 +852,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
       const char *check_data_done_label = NULL;
 
       if ((type & UCT_UNPACK) &&
-	  (data->_flags & (SD_OPTIONAL | SD_SEVERAL)))
+	  (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL)))
 	{
 	  check_prefix = "CHECK_JUMP";
 	  check_data_done_label = data_done_label;
@@ -905,7 +905,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 		     data->_ident,full_name,
 		     prefix,data->_ident,full_name);
 
-	if (data->_flags & (SD_OPTIONAL | SD_SEVERAL))
+	if (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL))
 	  {
 	    // Data item has been declared to match, so copy it from
 	    // the temporary to the real item.  And advance the source
@@ -946,7 +946,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	}
 
       if ((type & UCT_UNPACK) &&
-	  (data->_flags & SD_SEVERAL))
+	  (data->_flags & SD_FLAGS_SEVERAL))
 	d.text("}\n");
 
       if (data_done_label)

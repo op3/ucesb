@@ -25,9 +25,9 @@
 
 void struct_data::dump(dumper &d,bool /*recursive*/) const
 {
-  if (_flags & SD_OPTIONAL)
+  if (_flags & SD_FLAGS_OPTIONAL)
     d.text("optional ");
-  if (_flags & SD_SEVERAL)
+  if (_flags & SD_FLAGS_SEVERAL)
     d.text("several ");
   switch (_size)
     {
@@ -37,7 +37,7 @@ void struct_data::dump(dumper &d,bool /*recursive*/) const
     case 8:  d.text("UINT8 "); break;
     }
   d.text(_ident);
-  if (_flags & SD_NOENCODE)
+  if (_flags & SD_FLAGS_NOENCODE)
     d.text(" NOENCODE");
   if (_bits || _encode)
     {
