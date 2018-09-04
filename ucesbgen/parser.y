@@ -150,6 +150,7 @@ int _signal_spec_order_index = 0;
 %token <strValue>  STRING
 %token <strValue>  IDENTIFIER
 %token EVENT
+%token STICKY_EVENT
 %token SUBEVENT
 %token SIGNAL
 %token TOGGLE
@@ -225,6 +226,7 @@ int _signal_spec_order_index = 0;
 /* Compounds(?) */
 
 %type <ev_def>      event_definition
+%type <ev_def>      event_definition_body
 %type <str_def>     structure_definition
 %type <str_cond>    conditional_item
 //%type <str_several> several_item
@@ -344,7 +346,12 @@ stmt:
 
 
 event_definition:
-	  EVENT '{' event_declared_item_list '}' { event_definition *event = new event_definition(CURR_FILE_LINE,$3); check_valid_opts($3,STRUCT_DECL_OPTS_REVISIT | EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT); $$ = event; }
+	  EVENT event_definition_body { $$ = $2; }
+        | STICKY_EVENT event_definition_body { $2->_opts |= EVENT_OPTS_STICKY; $$ = $2; }
+        ;
+
+event_definition_body:
+	  '{' event_declared_item_list '}' { event_definition *event = new event_definition(CURR_FILE_LINE,$2); check_valid_opts($2,STRUCT_DECL_OPTS_REVISIT | EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT); $$ = event; }
         ;
 
 structure_definition:

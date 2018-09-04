@@ -124,6 +124,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
             }
 
 "EVENT"       { return EVENT; }
+"STICKY_EVENT" { return STICKY_EVENT; }
 "SUBEVENT"    { return SUBEVENT; }
 "SIGNAL"      { return SIGNAL; }
 "TOGGLE"      { return TOGGLE; }

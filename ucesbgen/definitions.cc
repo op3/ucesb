@@ -35,6 +35,7 @@ signal_multimap all_signals_no_ident;
 signal_info_map all_signal_infos;
 
 event_definition *the_event;
+event_definition *the_sticky_event;
 
 struct_definition *find_named_structure(const char *name)
 {
@@ -212,16 +213,30 @@ void map_definitions()
 
       if (event)
 	{
-	  if (the_event)
-	    ERROR_LOC_PREV(event->_loc,the_event->_loc,"Several event defintions.\n");
-	  the_event = event;
+	  if (event->_opts & EVENT_OPTS_STICKY)
+	    {
+	      if (the_sticky_event)
+		ERROR_LOC_PREV(event->_loc,the_sticky_event->_loc,
+			       "Several sticky event definitions.\n");
+	      the_sticky_event = event;
+	    }
+	  else
+	    {
+	      if (the_event)
+		ERROR_LOC_PREV(event->_loc,the_event->_loc,
+			       "Several event definitions.\n");
+	      the_event = event;
+	    }
 	}
     }
 
   if (!the_event)
     {
       // please add an EVENT to your .spec file!
-      ERROR_LOC(file_line(_first_lineno_map ? _first_lineno_map->_internal : 0),"There is no event defintion (EVENT { }) in the specification.");
+      ERROR_LOC(file_line(_first_lineno_map ?
+			  _first_lineno_map->_internal : 0),
+		"There is no event definition (EVENT { }) "
+		"in the specification.");
     }
 }
 
@@ -241,6 +256,9 @@ void generate_unpack_code()
 
   if (the_event)
     generate_unpack_code(the_event);
+
+  if (the_sticky_event)
+    generate_unpack_code(the_sticky_event);
 
   printf ("/**********************************************************/\n");
 }
@@ -286,6 +304,16 @@ void dump_definitions()
   if (the_event)
     {
       the_event->dump(d);
+      d.nl();
+    }
+
+  printf ("/**********************************************************\n"
+          " * The sticky_event definition:\n"
+          " */\n\n");
+
+  if (the_sticky_event)
+    {
+      the_sticky_event->dump(d);
       d.nl();
     }
 

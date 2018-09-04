@@ -232,7 +232,10 @@ void struct_definition::dump(dumper &d,bool recursive) const
 
 void event_definition::dump(dumper &d,bool recursive) const
 {
-  d.text("EVENT\n");
+  if (_opts & EVENT_OPTS_STICKY)
+    d.text("STICKY_EVENT\n");
+  else
+    d.text("EVENT\n");
   if (recursive)
     {
       dump_list_braces(_items,d);

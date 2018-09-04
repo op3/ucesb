@@ -54,6 +54,7 @@ extern signal_multimap all_signals_no_ident;
 extern signal_info_map all_signal_infos;
 
 extern event_definition *the_event;
+extern event_definition *the_sticky_event;
 
 void map_definitions();
 void check_consistency();
