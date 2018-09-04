@@ -88,11 +88,11 @@ public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
 
-#define STRUCT_DECL_MULTI      0x01
-#define STRUCT_DECL_EXTERNAL   0x02
-#define STRUCT_DECL_REVISIT    0x04
-#define STRUCT_DECL_NO_REVISIT 0x08
-#define EVENT_IGNORE_UNKNOWN_SUBEVENT  0x10
+#define STRUCT_DECL_OPTS_MULTI      0x01
+#define STRUCT_DECL_OPTS_EXTERNAL   0x02
+#define STRUCT_DECL_OPTS_REVISIT    0x04
+#define STRUCT_DECL_OPTS_NO_REVISIT 0x08
+#define EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT  0x10
 
 class struct_decl
   : public struct_item
@@ -518,7 +518,7 @@ public:
 
 public:
   const struct_decl_list *_items;
-  int                     _opts; // EVENT_IGNORE_UNKNOWN_SUBEVENT
+  int                     _opts; // EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT
 
 public:
   virtual void dump(dumper &d,bool recursive = true) const;

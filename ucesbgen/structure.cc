@@ -53,19 +53,19 @@ void struct_data::dump(dumper &d,bool /*recursive*/) const
 
 void struct_decl::dump(dumper &d,bool /*recursive*/) const
 {
-  if (_opts & EVENT_IGNORE_UNKNOWN_SUBEVENT)
+  if (_opts & EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT)
     {
       d.text("ignore_unknown_subevent;");
       return;
     }
 
-  if (_opts & STRUCT_DECL_MULTI)
+  if (_opts & STRUCT_DECL_OPTS_MULTI)
     d.text("multi ");
-  if (_opts & STRUCT_DECL_EXTERNAL)
+  if (_opts & STRUCT_DECL_OPTS_EXTERNAL)
     d.text("external ");
-  if (_opts & STRUCT_DECL_REVISIT)
+  if (_opts & STRUCT_DECL_OPTS_REVISIT)
     d.text("revisit ");
-  if (_opts & STRUCT_DECL_NO_REVISIT)
+  if (_opts & STRUCT_DECL_OPTS_NO_REVISIT)
     d.text("norevisit ");
   _name->dump(d);
   d.text(" = ");
@@ -249,15 +249,15 @@ void struct_decl::check_valid_opts(int valid_opts)
     {
       const char *opt_name = "";
 
-      if (invalid_opts & STRUCT_DECL_MULTI)
+      if (invalid_opts & STRUCT_DECL_OPTS_MULTI)
 	opt_name = "multi";
-      else if (invalid_opts & STRUCT_DECL_EXTERNAL)
+      else if (invalid_opts & STRUCT_DECL_OPTS_EXTERNAL)
 	opt_name = "external";
-      else if (invalid_opts & STRUCT_DECL_REVISIT)
+      else if (invalid_opts & STRUCT_DECL_OPTS_REVISIT)
 	opt_name = "revisit";
-      else if (invalid_opts & STRUCT_DECL_NO_REVISIT)
+      else if (invalid_opts & STRUCT_DECL_OPTS_NO_REVISIT)
 	opt_name = "norevisit";
-      else if (invalid_opts & EVENT_IGNORE_UNKNOWN_SUBEVENT)
+      else if (invalid_opts & EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT)
 	opt_name = "ignore_unknown_subevent";
 
       ERROR_LOC(_loc,"Option '%s' not allowed in this context opt=%x validopt=%x.",
@@ -267,7 +267,7 @@ void struct_decl::check_valid_opts(int valid_opts)
 
 int struct_decl::is_event_opt()
 {
-  return _opts & EVENT_IGNORE_UNKNOWN_SUBEVENT;
+  return _opts & EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT;
 }
 
 

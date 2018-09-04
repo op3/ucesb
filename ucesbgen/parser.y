@@ -344,7 +344,7 @@ stmt:
 
 
 event_definition:
-	  EVENT '{' event_declared_item_list '}' { event_definition *event = new event_definition(CURR_FILE_LINE,$3); check_valid_opts($3,STRUCT_DECL_REVISIT | EVENT_IGNORE_UNKNOWN_SUBEVENT); $$ = event; }
+	  EVENT '{' event_declared_item_list '}' { event_definition *event = new event_definition(CURR_FILE_LINE,$3); check_valid_opts($3,STRUCT_DECL_OPTS_REVISIT | EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT); $$ = event; }
         ;
 
 structure_definition:
@@ -374,7 +374,7 @@ structure_item:
         | select_item { $$ = $1; }
 //        | several_item { $$ = $1; }
         | conditional_item { $$ = $1; }
-        | declared_item { $$ = $1; $1->check_valid_opts(STRUCT_DECL_MULTI | STRUCT_DECL_EXTERNAL); }
+        | declared_item { $$ = $1; $1->check_valid_opts(STRUCT_DECL_OPTS_MULTI | STRUCT_DECL_OPTS_EXTERNAL); }
         | member_item { $$ = $1; }
         | mark_count_item { $$ = $1; }
         | check_count_item { $$ = $1; }
@@ -401,7 +401,7 @@ event_declared_item_list:
         ;
 
 event_declared_item:
-          T_IGNORE_UNKNOWN_SUBEVENT ';'    { struct_decl *decl = new struct_decl(CURR_FILE_LINE,NULL,NULL,NULL,EVENT_IGNORE_UNKNOWN_SUBEVENT); $$ = decl; }
+          T_IGNORE_UNKNOWN_SUBEVENT ';'    { struct_decl *decl = new struct_decl(CURR_FILE_LINE,NULL,NULL,NULL,EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT); $$ = decl; }
         | declared_item                    { $$ = $1; }
         ;
 
@@ -430,10 +430,10 @@ declared_item_multi_ext_list:
         ;
 
 declared_item_multi_ext_item:
-          T_MULTI     { $$ = STRUCT_DECL_MULTI; }
-        | T_EXTERNAL  { $$ = STRUCT_DECL_EXTERNAL; }
-        | T_REVISIT   { $$ = STRUCT_DECL_REVISIT; }
-        | T_NOREVISIT { $$ = STRUCT_DECL_NO_REVISIT; }
+          T_MULTI     { $$ = STRUCT_DECL_OPTS_MULTI; }
+        | T_EXTERNAL  { $$ = STRUCT_DECL_OPTS_EXTERNAL; }
+        | T_REVISIT   { $$ = STRUCT_DECL_OPTS_REVISIT; }
+        | T_NOREVISIT { $$ = STRUCT_DECL_OPTS_NO_REVISIT; }
         ;
 
 list_item:
@@ -441,7 +441,7 @@ list_item:
         ;
 
 select_item:
-	  T_SELECT select_flag '{' declared_item_list_null '}' { struct_select *select = new struct_select(CURR_FILE_LINE,$4,$2); check_valid_opts($4,STRUCT_DECL_MULTI | STRUCT_DECL_EXTERNAL | STRUCT_DECL_NO_REVISIT); $$ = select; }
+	  T_SELECT select_flag '{' declared_item_list_null '}' { struct_select *select = new struct_select(CURR_FILE_LINE,$4,$2); check_valid_opts($4,STRUCT_DECL_OPTS_MULTI | STRUCT_DECL_OPTS_EXTERNAL | STRUCT_DECL_OPTS_NO_REVISIT); $$ = select; }
 //	| T_SELECT INTEGER   '{' structure_body '}' { struct_select *select = new struct_select($4,$2); $$ = select; }
         ;
 

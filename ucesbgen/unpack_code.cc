@@ -384,7 +384,7 @@ void gen_indexed_decl(indexed_decl_map &indexed_decl,dumper &d)
   for (indexed_decl_map::iterator array = indexed_decl.begin();
        array != indexed_decl.end(); array++)
     {
-      d.text_fmt("%s(",(array->second._opts & STRUCT_DECL_MULTI) ? "MULTI" : "SINGLE");
+      d.text_fmt("%s(",(array->second._opts & STRUCT_DECL_OPTS_MULTI) ? "MULTI" : "SINGLE");
       d.text_fmt("%s,",array->second._type);
       d.text_fmt("%s",array->first);
       if (array->second._max_items)
@@ -972,7 +972,7 @@ const struct_header_named *find_decl(const struct_decl* decl,bool subevent)
     ERROR_LOC(decl->_loc,"Structure %s defintion does not have a parameter list (even empty).",
 	      decl->_ident);
 
-  if (!(decl->_opts & STRUCT_DECL_EXTERNAL) !=
+  if (!(decl->_opts & STRUCT_DECL_OPTS_EXTERNAL) !=
       !(str_decl->_opts & STRUCT_DEF_OPTS_EXTERNAL))
     {
       WARNING_LOC(decl->_loc,"Structure %s usage and declaration do not agree about being external.",
@@ -1032,7 +1032,7 @@ void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
     {
       gen_decl(indexed_decl,decl,d,false);
       /*
-      d.text_fmt("%s(",(decl->_opts & STRUCT_DECL_MULTI) ? "MULTI" : "SINGLE");
+      d.text_fmt("%s(",(decl->_opts & STRUCT_DECL_OPTS_MULTI) ? "MULTI" : "SINGLE");
       d.text(decl->_ident);
       d.text(",");
       decl->_name->dump(d);
@@ -1139,7 +1139,7 @@ void struct_unpack_code::gen_unpack_decl(const struct_decl *decl,
   d.text(decl->_ident);
   //decl->_name->dump(ssd);
   d.text(",");
-  if (decl->_opts & STRUCT_DECL_MULTI)
+  if (decl->_opts & STRUCT_DECL_OPTS_MULTI)
     {
       d.text("multi_");
       decl->_name->dump(d);
@@ -1202,7 +1202,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	    d.text(" __visited.clear();");
 	  d.text(" }\n");
 	  d.text_fmt("  bool ignore_unknown_subevent() { return %s; }\n",
-		 event_opts & EVENT_IGNORE_UNKNOWN_SUBEVENT ? "true" : "false");	  d.col0_text("#endif//!__PSDC__\n");
+		 event_opts & EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT ? "true" : "false");	  d.col0_text("#endif//!__PSDC__\n");
   	}
     }
 
@@ -1225,7 +1225,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	  for (i = items->begin(); i != items->end(); ++i)
 	    {
 	      struct_decl *decl = *i;
-	      if (decl->_opts & STRUCT_DECL_NO_REVISIT)
+	      if (decl->_opts & STRUCT_DECL_OPTS_NO_REVISIT)
 		num_check_visit++;
 	    }
 	  if (num_check_visit)
@@ -1380,7 +1380,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 		dumper sssd(ssd,2);
 		if (subevent)
 		  {
-		    if (!(decl->_opts & STRUCT_DECL_REVISIT))
+		    if (!(decl->_opts & STRUCT_DECL_OPTS_REVISIT))
 		      {
 			sssd.text_fmt("UNPACK_SUBEVENT_CHECK_NO_REVISIT(%d,%s,",
 				      decl->_loc._internal,decl->_ident);
@@ -1408,7 +1408,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 			gen_check_spurios_match(decl,sssd,abort_spurious_label);
 		      }
 
-		    if (decl->_opts & STRUCT_DECL_NO_REVISIT)
+		    if (decl->_opts & STRUCT_DECL_OPTS_NO_REVISIT)
 		      {
 			sssd.text_fmt("UNPACK_CHECK_NO_REVISIT(%d,%s,",
 				      decl->_loc._internal,decl->_ident);
