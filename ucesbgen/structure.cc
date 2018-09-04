@@ -116,7 +116,7 @@ void struct_member::dump(dumper &d,bool /*recursive*/) const
 
 void struct_mark::dump(dumper &d,bool /*recursive*/) const
 {
-  if (_flags & STRUCT_MARK_GLOBAL)
+  if (_flags & STRUCT_MARK_FLAGS_GLOBAL)
     d.text_fmt("MARK(%s);",_name);
   else
     d.text_fmt("MARK_COUNT(%s);",_name);

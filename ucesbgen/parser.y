@@ -387,7 +387,7 @@ member_item:
         ;
 
 mark_count_item:
-          MARK '(' IDENTIFIER ')' ';' { struct_mark *mark = new struct_mark(CURR_FILE_LINE,$3,STRUCT_MARK_GLOBAL); $$ = mark; }
+          MARK '(' IDENTIFIER ')' ';' { struct_mark *mark = new struct_mark(CURR_FILE_LINE,$3,STRUCT_MARK_FLAGS_GLOBAL); $$ = mark; }
 	| MARK_COUNT '(' IDENTIFIER ')' ';' { struct_mark *mark = new struct_mark(CURR_FILE_LINE,$3,0); $$ = mark; }
         ;
 

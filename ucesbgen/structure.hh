@@ -296,7 +296,7 @@ public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
 
-#define STRUCT_MARK_GLOBAL    0x01
+#define STRUCT_MARK_FLAGS_GLOBAL    0x01
 
 class struct_mark
   : public struct_item

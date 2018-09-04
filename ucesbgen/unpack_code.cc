@@ -1619,7 +1619,7 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 
 void struct_unpack_code::gen(const struct_mark* mark,dumper &d,uint32 type)
 {
-  if (mark->_flags & STRUCT_MARK_GLOBAL)
+  if (mark->_flags & STRUCT_MARK_FLAGS_GLOBAL)
     {
       if (type & UCT_HEADER)
 	{
