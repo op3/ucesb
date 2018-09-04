@@ -1217,7 +1217,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
       // We try to match items, and continue as long as we find matches.
       // In case there is no match, we return
 
-      if (flags & SS_SEVERAL)
+      if (flags & SS_FLAGS_SEVERAL)
 	{
 	  int num_check_visit = 0;
 
@@ -1253,9 +1253,9 @@ void struct_unpack_code::gen_match(const file_line &loc,
 
       if (!subevent)
 	{
-	  if (flags & SS_SEVERAL)
+	  if (flags & SS_FLAGS_SEVERAL)
 	    sd.text("if (__buffer.empty()) break;\n"); // nothing more in subevent, we're done
-	  else if (flags & SS_OPTIONAL)
+	  else if (flags & SS_FLAGS_OPTIONAL)
 	    {
 	      no_match_counter++;
 	      sd.text_fmt("if (__buffer.empty()) goto no_match_%d;\n",no_match_counter);
@@ -1342,9 +1342,9 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	  sd.text("if (!__match_no) return 0;\n");
 	else
 	  {
-	    if (flags & SS_SEVERAL)
+	    if (flags & SS_FLAGS_SEVERAL)
 	      sd.text("if (!__match_no) break;\n");
-	    else if (flags & SS_OPTIONAL)
+	    else if (flags & SS_FLAGS_OPTIONAL)
 	      {
 		sd.text_fmt("if (!__match_no) goto no_match_%d;\n",no_match_counter);
 	      }
@@ -1431,14 +1431,14 @@ void struct_unpack_code::gen_match(const file_line &loc,
       if (subevent)
 	sd.text("return 0;\n");
       d.text("}\n");
-      if (!subevent && !(flags & SS_SEVERAL))
+      if (!subevent && !(flags & SS_FLAGS_SEVERAL))
 	d.text("while (0);\n");
       if (abort_spurious_label)
 	{
 	  d.text_fmt("%s:;\n",abort_spurious_label);
 	  free(abort_spurious_label);
 	}
-      if (!subevent && (flags & SS_OPTIONAL))
+      if (!subevent && (flags & SS_FLAGS_OPTIONAL))
 	sd.text_fmt("no_match_%d:;\n",no_match_counter);
     }
   if (type & UCT_PACKER)

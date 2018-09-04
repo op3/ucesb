@@ -447,8 +447,8 @@ select_item:
 
 select_flag:
 	              { $$ = 0; }
-	| T_SEVERAL   { $$ = SS_SEVERAL; }
-	| T_OPTIONAL  { $$ = SS_OPTIONAL; }
+	| T_SEVERAL   { $$ = SS_FLAGS_SEVERAL; }
+	| T_OPTIONAL  { $$ = SS_FLAGS_OPTIONAL; }
         ;
 
 

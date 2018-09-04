@@ -147,9 +147,9 @@ void struct_list::dump(dumper &d,bool recursive) const
 void struct_select::dump(dumper &d,bool recursive) const
 {
   d.text("select");
-  if (_flags & SS_OPTIONAL)
+  if (_flags & SS_FLAGS_OPTIONAL)
     d.text(" optional");
-  if (_flags & SS_SEVERAL)
+  if (_flags & SS_FLAGS_SEVERAL)
     d.text(" several");
   d.nl();
   if (recursive)

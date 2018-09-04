@@ -163,9 +163,9 @@ public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
 
-// flags 0 =             // exactly 1 item
-#define SS_OPTIONAL 0x01 // 0 or 1 items
-#define SS_SEVERAL  0x02 // 0 or more items
+// flags 0 =                   // exactly 1 item
+#define SS_FLAGS_OPTIONAL 0x01 // 0 or 1 items
+#define SS_FLAGS_SEVERAL  0x02 // 0 or more items
 
 class struct_select
   : public struct_item
