@@ -469,8 +469,8 @@ public:
 
 };
 
-#define STRUCT_DEF_EXTERNAL      0x02
-#define STRUCT_DEF_HAS_MATCH_END 0x04
+#define STRUCT_DEF_OPTS_EXTERNAL      0x02
+#define STRUCT_DEF_OPTS_HAS_MATCH_END 0x04
 
 class struct_definition
   : public str_ev_definition

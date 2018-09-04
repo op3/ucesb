@@ -55,7 +55,7 @@ bool struct_unpack_code::get_match_bits(const struct_decl*    decl,dumper &d,
   if (!str_decl)
     ERROR_LOC(decl->_loc,"Structure %s not defined.",decl->_ident);
 
-  if (str_decl->_opts & STRUCT_DEF_EXTERNAL)
+  if (str_decl->_opts & STRUCT_DEF_OPTS_EXTERNAL)
     return false; // cannot calculate match bits for external unpacker
 
   // get match bits from structure body

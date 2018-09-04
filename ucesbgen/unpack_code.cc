@@ -143,7 +143,7 @@ void generate_unpack_code(struct_definition *structure)
   dumper udm(&code->_code_match);
   dumper udp(&code->_code_packer);
 
-  if (structure->_opts & STRUCT_DEF_EXTERNAL)
+  if (structure->_opts & STRUCT_DEF_OPTS_EXTERNAL)
     {
       printf ("\n"
 	      "// Structure is external.  Must be provided by the user\n"
@@ -973,7 +973,7 @@ const struct_header_named *find_decl(const struct_decl* decl,bool subevent)
 	      decl->_ident);
 
   if (!(decl->_opts & STRUCT_DECL_EXTERNAL) !=
-      !(str_decl->_opts & STRUCT_DEF_EXTERNAL))
+      !(str_decl->_opts & STRUCT_DEF_OPTS_EXTERNAL))
     {
       WARNING_LOC(decl->_loc,"Structure %s usage and declaration do not agree about being external.",
 		  decl->_ident);

@@ -349,7 +349,7 @@ event_definition:
 
 structure_definition:
           structure_header '{' structure_body_null '}' { $$ = new struct_definition(CURR_FILE_LINE,$1,$3); }
-        | T_EXTERNAL structure_header ';' { $$ = new struct_definition(CURR_FILE_LINE,$2,NULL,STRUCT_DEF_EXTERNAL); }
+        | T_EXTERNAL structure_header ';' { $$ = new struct_definition(CURR_FILE_LINE,$2,NULL,STRUCT_DEF_OPTS_EXTERNAL); }
         ;
 
 structure_header:

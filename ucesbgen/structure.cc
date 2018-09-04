@@ -209,10 +209,10 @@ void struct_header_subevent::dump(dumper &d) const
 
 void struct_definition::dump(dumper &d,bool recursive) const
 {
-  if (_opts & STRUCT_DEF_EXTERNAL)
+  if (_opts & STRUCT_DEF_OPTS_EXTERNAL)
     d.text("external ");
   _header->dump(d);
-  if (_opts & STRUCT_DEF_EXTERNAL)
+  if (_opts & STRUCT_DEF_OPTS_EXTERNAL)
     d.text(";\n");
   else
     if (recursive)
