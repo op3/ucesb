@@ -87,27 +87,29 @@ void struct_member::dump(dumper &d,bool /*recursive*/) const
 
   int flags_left = _flags._flags;
 
-  if ((flags_left & SM_ZERO_SUPPRESS_LIST) == SM_ZERO_SUPPRESS_LIST)
+  if ((flags_left & SM_FLAGS_ZERO_SUPPRESS_LIST) ==
+      SM_FLAGS_ZERO_SUPPRESS_LIST)
     {
       d.text(" ZERO_SUPPRESS_LIST");
-      flags_left &= ~(SM_ZERO_SUPPRESS_LIST);
+      flags_left &= ~(SM_FLAGS_ZERO_SUPPRESS_LIST);
     }
-  if ((flags_left & SM_ZERO_SUPPRESS_MULTI) == SM_ZERO_SUPPRESS_MULTI)
+  if ((flags_left & SM_FLAGS_ZERO_SUPPRESS_MULTI) ==
+      SM_FLAGS_ZERO_SUPPRESS_MULTI)
     {
       assert(_flags._multi_size != -1);
       d.text_fmt(" ZERO_SUPPRESS_MULTI(%d)",_flags._multi_size);
-      flags_left &= ~(SM_ZERO_SUPPRESS_MULTI);
+      flags_left &= ~(SM_FLAGS_ZERO_SUPPRESS_MULTI);
     }
-  if ((flags_left & SM_NO_INDEX_LIST) == SM_NO_INDEX_LIST)
+  if ((flags_left & SM_FLAGS_NO_INDEX_LIST) == SM_FLAGS_NO_INDEX_LIST)
     {
       d.text(" NO_INDEX_LIST");
-      flags_left &= ~(SM_NO_INDEX_LIST);
+      flags_left &= ~(SM_FLAGS_NO_INDEX_LIST);
     }
-  if (flags_left & SM_ZERO_SUPPRESS)
+  if (flags_left & SM_FLAGS_ZERO_SUPPRESS)
     d.text(" ZERO_SUPPRESS");
-  if (flags_left & SM_NO_INDEX)
+  if (flags_left & SM_FLAGS_NO_INDEX)
     d.text(" NO_INDEX");
-  if (flags_left & SM_LIST)
+  if (flags_left & SM_FLAGS_LIST)
     d.text(" LIST");
   d.text(");");
 }
@@ -350,7 +352,7 @@ void struct_definition::find_member_args()
 		      p->_name);
 
 	  p->_member = mi->second;
-	  mi->second->_flags._flags |= SM_IS_ARGUMENT;
+	  mi->second->_flags._flags |= SM_FLAGS_IS_ARGUMENT;
 	}
     }
 }

@@ -1552,7 +1552,7 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	  length2 = vi->_index2;
 	}
 
-      if ((member->_flags._flags & SM_IS_ARGUMENT) &&
+      if ((member->_flags._flags & SM_FLAGS_IS_ARGUMENT) &&
 	  !(type & UCT_MEMBER_ARG))
 	{
 	  // The member is to be an argument, so do not declare it in
@@ -1565,22 +1565,22 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	{
 	  const char *array_type = "raw_array";
 
-	  if (member->_flags._flags & SM_ZERO_SUPPRESS)
+	  if (member->_flags._flags & SM_FLAGS_ZERO_SUPPRESS)
 	    {
-	      if (member->_flags._flags & SM_LIST)
+	      if (member->_flags._flags & SM_FLAGS_LIST)
 		array_type = "raw_list_zero_suppress";
 	      else
 		array_type = "raw_array_zero_suppress";
 	    }
-	  if (member->_flags._flags & SM_NO_INDEX)
+	  if (member->_flags._flags & SM_FLAGS_NO_INDEX)
 	    {
-	      if (member->_flags._flags & SM_LIST)
+	      if (member->_flags._flags & SM_FLAGS_LIST)
 		array_type = "raw_list_ii_zero_suppress";
 	      else
 		ERROR("NO_INDEX must be with LIST");
 	    }
 
-	  if (member->_flags._flags & SM_MULTI)
+	  if (member->_flags._flags & SM_FLAGS_MULTI)
 	    {
 	      const char *array_type = "raw_array_multi_zero_suppress";
 
@@ -1600,7 +1600,8 @@ void struct_unpack_code::gen(const struct_member *member,dumper &d,uint32 type)
 	}
       else
 	{
-	  if (member->_flags._flags & (SM_ZERO_SUPPRESS | SM_NO_INDEX))
+	  if (member->_flags._flags & (SM_FLAGS_ZERO_SUPPRESS |
+				       SM_FLAGS_NO_INDEX))
 	    ERROR_LOC(member->_loc,
 		      "Cannot zero-suppress/no-index non-array member.");
 	  d.text_fmt("%s %s%s",name,ref,ident);

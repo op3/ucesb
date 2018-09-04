@@ -597,10 +597,10 @@ noencode:
 
 zero_suppress:
 	                { $$ = new sm_flags(0); }
-	| ZERO_SUPPRESS { $$ = new sm_flags(SM_ZERO_SUPPRESS); }
-	| ZERO_SUPPRESS_LIST { $$ = new sm_flags(SM_ZERO_SUPPRESS_LIST); }
-        | ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' { CHECK_ARRAY_SIZE($3,0x10000); $$ = new sm_flags(SM_ZERO_SUPPRESS_MULTI,$3); }
-	| NO_INDEX_LIST { $$ = new sm_flags(SM_NO_INDEX_LIST); }
+	| ZERO_SUPPRESS { $$ = new sm_flags(SM_FLAGS_ZERO_SUPPRESS); }
+	| ZERO_SUPPRESS_LIST { $$ = new sm_flags(SM_FLAGS_ZERO_SUPPRESS_LIST); }
+        | ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' { CHECK_ARRAY_SIZE($3,0x10000); $$ = new sm_flags(SM_FLAGS_ZERO_SUPPRESS_MULTI,$3); }
+	| NO_INDEX_LIST { $$ = new sm_flags(SM_FLAGS_NO_INDEX_LIST); }
         ;
 
 encode_item_list:

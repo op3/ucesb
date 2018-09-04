@@ -239,16 +239,16 @@ public:
   virtual void dump(dumper &d,bool recursive = true) const;
 };
 
-#define SM_ZERO_SUPPRESS      0x0001
-#define SM_NO_INDEX           0x0002
-#define SM_LIST               0x0004
-#define SM_MULTI              0x0008
+#define SM_FLAGS_ZERO_SUPPRESS      0x0001
+#define SM_FLAGS_NO_INDEX           0x0002
+#define SM_FLAGS_LIST               0x0004
+#define SM_FLAGS_MULTI              0x0008
 
-#define SM_ZERO_SUPPRESS_LIST  (SM_ZERO_SUPPRESS | SM_LIST)
-#define SM_NO_INDEX_LIST       (SM_NO_INDEX | SM_LIST)
-#define SM_ZERO_SUPPRESS_MULTI (SM_ZERO_SUPPRESS | SM_MULTI)
+#define SM_FLAGS_ZERO_SUPPRESS_LIST  (SM_FLAGS_ZERO_SUPPRESS | SM_FLAGS_LIST)
+#define SM_FLAGS_NO_INDEX_LIST       (SM_FLAGS_NO_INDEX | SM_FLAGS_LIST)
+#define SM_FLAGS_ZERO_SUPPRESS_MULTI (SM_FLAGS_ZERO_SUPPRESS | SM_FLAGS_MULTI)
 
-#define SM_IS_ARGUMENT        0x0010
+#define SM_FLAGS_IS_ARGUMENT        0x0010
 
 struct sm_flags
 {
@@ -267,7 +267,7 @@ public:
 
 public:
   int _flags;
-  int _multi_size; // if SM_MULTI
+  int _multi_size; // if SM_FLAGS_MULTI
 };
 
 class struct_member
