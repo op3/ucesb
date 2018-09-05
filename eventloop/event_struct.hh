@@ -68,6 +68,12 @@ public:
   // void map_members(const struct unpack_event_base_map& map MAP_MEMBERS_PARAM) const { }
 };
 
+class unpack_sticky_event_base :
+  public unpack_event_base
+{
+
+};
+
 class unpack_subevent_base
 {
 

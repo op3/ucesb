@@ -94,6 +94,7 @@ public:
 #define STRUCT_DECL_OPTS_NO_REVISIT 0x08
 #define EVENT_OPTS_IGNORE_UNKNOWN_SUBEVENT  0x10
 #define EVENT_OPTS_STICKY           0x20
+#define EVENT_OPTS_INTENTIONALLY_EMPTY 0x40
 
 class struct_decl
   : public struct_item

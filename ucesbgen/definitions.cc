@@ -238,6 +238,17 @@ void map_definitions()
 		"There is no event definition (EVENT { }) "
 		"in the specification.");
     }
+
+  if (!the_sticky_event)
+    {
+      // Empty sticky event.  Since it does not have ignore, it will
+      // dislike any actual sticky event.  But code can compile.
+      the_sticky_event =
+	new event_definition(file_line(),
+			     new struct_decl_list);
+      the_sticky_event->_opts |=
+	EVENT_OPTS_STICKY | EVENT_OPTS_INTENTIONALLY_EMPTY;
+    }
 }
 
 void generate_unpack_code()
@@ -311,7 +322,8 @@ void dump_definitions()
           " * The sticky_event definition:\n"
           " */\n\n");
 
-  if (the_sticky_event)
+  if (the_sticky_event &&
+      !(the_sticky_event->_opts & EVENT_OPTS_INTENTIONALLY_EMPTY))
     {
       the_sticky_event->dump(d);
       d.nl();

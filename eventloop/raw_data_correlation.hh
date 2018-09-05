@@ -158,6 +158,11 @@ public:
 
 };
 
+class unpack_sticky_event_base_correlation :
+  public unpack_event_base_correlation
+{
+};
+
 class raw_event_base_correlation
 {
 public:

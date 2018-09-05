@@ -1111,7 +1111,7 @@ void struct_unpack_code::gen(const struct_select*select,dumper &d,uint32 type,
 			     match_end_info *mei,bool last_subevent_item)
 {
   gen_match(select->_loc,
-	    select->_items,d,type,mei,false,last_subevent_item,
+	    select->_items,d,type,mei,false,last_subevent_item,true,
 	    select->_flags);
 }
 
@@ -1162,6 +1162,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 				   match_end_info *mei,
 				   bool subevent,
 				   bool last_subevent_item,
+				   bool warn_empty,
 				   int flags)
 
 {
@@ -1273,8 +1274,10 @@ void struct_unpack_code::gen_match(const file_line &loc,
       // inlining.  This also has the side-effect that our __match
       // variable will not shadow any outer one...  To be empty will
       // however cause a run-time error since no-one will match...
-      if (items->size() == 0)
-	WARNING_LOC(loc,"select statement with no entries (will give run-time error)\n");
+      if (warn_empty &&
+	  items->size() == 0)
+	WARNING_LOC(loc,"select statement with no entries "
+		    "(will give run-time error)\n");
 
       int normal_match = true;
 
@@ -1675,12 +1678,13 @@ void struct_unpack_code::gen(const event_definition *evt,
 {
   COMMENT_DUMP_ORIG(d,evt);
 
-  const char *event_class = "unpack_event";
+  const char *event_class =
+    evt->_opts & EVENT_OPTS_STICKY ? "unpack_sticky_event" : "unpack_event";
 
   if (type & UCT_HEADER)
     {
       d.text_fmt("class %s",event_class);
-      d.text(" : public unpack_event_base");
+      d.text_fmt(" : public %s_base",event_class);
       d.text("\n");
       d.text("{\n");
       d.text("public:\n");
@@ -1716,7 +1720,8 @@ void struct_unpack_code::gen(const event_definition *evt,
       subevent_cond_params->push_back(new param(find_str_identifiers("mod")));
     }
 
-  gen_match(evt->_loc,evt->_items,d,type,NULL,true,false,0);
+  gen_match(evt->_loc,evt->_items,d,type,NULL,true,false,
+	    !(evt->_opts & EVENT_OPTS_INTENTIONALLY_EMPTY),0);
 
   if (type & UCT_HEADER)
     {

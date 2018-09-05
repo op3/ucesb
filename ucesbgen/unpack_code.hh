@@ -121,6 +121,7 @@ public:
 		 match_end_info *mei,
 		 bool subevent,
 		 bool last_subevent_item,
+		 bool warn_empty,
 		 int flags);
 
   bool gen_optimized_match(const file_line &loc,
