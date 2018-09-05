@@ -77,14 +77,12 @@ public:
 
   std::vector<staged_ntuple_named_str> _named_strs;
 
-  int  _struct_server_port;
-
-  int  _timeslice;
-  int  _timeslice_subdir;
-  int  _autosave;
-
 public:
-  void open(const char *filename,uint sort_u32_words = 0);
+  void open_x(const char *filename,
+	      int server_port = -1,
+	      int timeslice = 0, int timeslice_subdir = 0,
+	      int autosave = 0,
+	      uint sort_u32_words = 0);
   void stage_x(vect_ntuple_items &list,int hid,void *base,
 	       uint max_raw_words = 0);
   void event(void *base,uint *sort_u32 = NULL,

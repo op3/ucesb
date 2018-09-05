@@ -46,12 +46,6 @@ staged_ntuple::staged_ntuple()
   _entries_array = 0;
 
   _ext = NULL;
-
-  _struct_server_port = -1;
-
-  _timeslice = 0;
-  _timeslice_subdir = 0;
-  _autosave = 0;
 }
 
 staged_ntuple::~staged_ntuple()
@@ -63,8 +57,11 @@ staged_ntuple::~staged_ntuple()
   free(_ftitle);
 }
 
-void staged_ntuple::open(const char *filename,
-			 uint sort_u32_words)
+void staged_ntuple::open_x(const char *filename,
+			   int server_port,
+			   int timeslice, int timeslice_subdir,
+			   int autosave,
+			   uint sort_u32_words)
 {
   _ext = new external_writer();
 
@@ -73,9 +70,9 @@ void staged_ntuple::open(const char *filename,
 
   _ext->init(_ntuple_type,!(_ntuple_type & NTUPLE_WRITER_NO_SHM),
 	     filename,_ftitle,
-	     _struct_server_port,
+	     server_port,
 	     !!(_ntuple_type & NTUPLE_TYPE_STRUCT_HH),
-	     _timeslice,_timeslice_subdir,_autosave);
+	     timeslice,timeslice_subdir,autosave);
   _ext->send_file_open(sort_u32_words);
 }
 

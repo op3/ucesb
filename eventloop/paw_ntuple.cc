@@ -429,6 +429,12 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
   int toggle_include = ENUM_IS_TOGGLE_I;
 
+  int struct_server_port = -1;
+
+  int timeslice = 0;
+  int timeslice_subdir = 0;
+  int autosave = 0;
+
   paw_ntuple *ntuple = new paw_ntuple;
 
   if (!ntuple)
@@ -519,7 +525,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_ARG("STRUCT") || MATCH_ARG("SERVER"))
 	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_STRUCT;
       else if (MATCH_PREFIX("PORT=",post) || MATCH_PREFIX("port=",post))
-	ntuple->_staged->_struct_server_port = atoi(post);
+	struct_server_port = atoi(post);
       else if (MATCH_ARG("NOEXTERNAL")) {
 	ERROR("Support for internal ntuple writing has been removed.");
       }
@@ -540,16 +546,16 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_PREFIX("TIMESLICE=",post) ||
 	       MATCH_PREFIX("timeslice=",post))
 	{
-	  ntuple->_staged->_timeslice = atoi(post);
+	  timeslice = atoi(post);
 	  char *colon = strchr(post,':');
 	  if (colon)
-	    ntuple->_staged->_timeslice_subdir = atoi(colon+1);
+	    timeslice_subdir = atoi(colon+1);
 	}
       else if (MATCH_ARG("AUTOSAVE") || MATCH_ARG("autosave"))
-	ntuple->_staged->_autosave = 1;
+	autosave = 1;
       else if (MATCH_PREFIX("AUTOSAVE=",post) ||
 	       MATCH_PREFIX("autosave=",post))
-	ntuple->_staged->_autosave = atoi(post);
+	autosave = atoi(post);
 #if defined(USE_LMD_INPUT)
       else if (MATCH_PREFIX("rawdata=",post))
 	max_raw_size = parse_size_postfix(post,"kMG","Rawdata",true);
@@ -717,11 +723,14 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   if (!ntuple->_staged->_id)
     ntuple->_staged->_id = strdup("h101");
 
-  ntuple->_staged->open(filename
+  ntuple->_staged->open_x(filename,
+			  struct_server_port,
+			  timeslice, timeslice_subdir,
+			  autosave
 #if defined(USE_LMD_INPUT)
-		    ,1
+			  ,1
 #endif
-			); // open file/start the writer
+			  ); // open file/start the writer
 
   ntuple->_staged->stage_x(listing,hid,&_static_event
 #if defined(USE_LMD_INPUT)
