@@ -49,6 +49,25 @@ public:
   bool is_sticky() { return false; }
 };
 
+class sticky_event_base
+{
+public:
+#if USE_THREADING || USE_MERGING
+  // FILE_INPUT_EVENT *event;
+  void        *_file_event;
+#endif
+  hex_dump_mark_buf _unpack_fail;
+  unpack_sticky_event _unpack;
+#ifndef USE_MERGING
+  //raw_event    _raw;
+  //cal_event    _cal;
+
+#ifdef USER_STRUCT
+  //USER_STRUCT   _user;
+#endif
+#endif//!USE_MERGING
+};
+
 // The event data structure!
 
 // This should not be used by any user code!
