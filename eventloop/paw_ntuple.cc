@@ -738,6 +738,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
 		    );
 
+  ntuple->_staged->stage_done();
+
   return ntuple;
 }
 

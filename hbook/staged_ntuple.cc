@@ -508,9 +508,18 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
       _ext->send_offsets_fill(w._p);
 
       // And then we're done with the setup
-
-      _ext->send_setup_done(!!(_ntuple_type & NTUPLE_READER_INPUT));
     }
+}
+
+
+void staged_ntuple::stage_done()
+{
+  assert(_ext);
+
+  // Only call when done with all ntuples
+
+  if (_ext)
+    _ext->send_setup_done(!!(_ntuple_type & NTUPLE_READER_INPUT));
 }
 
 void staged_ntuple::event(void *base,uint *sort_u32,
