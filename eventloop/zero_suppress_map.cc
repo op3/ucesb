@@ -409,6 +409,10 @@ void setup_zero_suppress_info_ptrs()
   _static_event._user.zero_suppress_info_ptrs(used_info);
 #endif
 #endif//!USE_MERGING
+
+#ifndef USE_MERGING
+  _static_sticky_event._unpack.zero_suppress_info_ptrs(used_info);
+#endif//!USE_MERGING
 }
 
 #define SNPRINTF_NAME(name) {			\
