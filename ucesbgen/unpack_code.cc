@@ -256,6 +256,14 @@ void generate_unpack_code(event_definition *event)
   dumper d(&d_dest);
   gen_subevent_names(event,d);
   print_footer("SUBEVENT_NAMES");
+
+  if (event->_opts & EVENT_OPTS_STICKY)
+    {
+      print_header("UNPACKER_DEFINES","Control" /* hmmm */);
+      d.text_fmt("#define STICKY_EVENT_IS_NONTRIVIAL  %d\n\n",
+		 !(event->_opts & EVENT_OPTS_INTENTIONALLY_EMPTY));
+      print_footer("UNPACKER_DEFINES");
+    }
 }
 
 #define COMMENT_DUMP_ORIG(d,i) { dumper __cd(d,0,true); i->dump(__cd,false); }
@@ -1821,4 +1829,3 @@ void gen_subevent_names(const event_definition *evt,
 	}
     }
 }
-

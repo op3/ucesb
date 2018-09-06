@@ -143,7 +143,8 @@ GENERATED = $(GENDIR)/clean_structures.hh \
 	$(GENDIR)/struct_dump.psd \
 	$(GENDIR)/raw_struct_dump.psd \
 	$(GENDIR)/subevent_names.hh \
-	$(GENDIR)/packer.hh
+	$(GENDIR)/packer.hh \
+	$(GENDIR)/unpacker_defines.hh
 
 OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
 	convert_picture.o pretty_dump.o \
@@ -638,6 +639,10 @@ $(GENDIR)/locations.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) LOCATIONS < $< > $@
 
+$(GENDIR)/unpacker_defines.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
+	@echo " EXTRACT $@"
+	@$(EXTRACT) UNPACKER_DEFINES < $< > $@
+
 $(GENDIR)/reparse.uce: $(GENDIR)/$(UNPACKER).uce
 	@echo " EXTRACT $@"
 	@$(EXTRACT) INPUT_DEFINITION < $< > $@
@@ -785,8 +790,9 @@ $(VERIFYPSDC): $(GENDIR)/reparse_raw.psd $(GENDIR)/verify_reparse_raw.psd
 
 #########################################################
 
-$(OBJDIR)/unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh $(GENDIR)/packer.hh \
-	$(GENDIR)/locations.hh $(GENDIR)/structures.hh $(GENDIR)/data_mapping.hh
+$(OBJDIR)/unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh \
+	$(GENDIR)/packer.hh $(GENDIR)/locations.hh \
+	$(GENDIR)/structures.hh $(GENDIR)/data_mapping.hh
 
 #########################################################
 

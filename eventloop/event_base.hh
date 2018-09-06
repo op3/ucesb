@@ -21,6 +21,7 @@
 #ifndef __EVENT_BASE_HH__
 #define __EVENT_BASE_HH__
 
+#include "gen/unpacker_defines.hh"
 #include "structures.hh"
 #include "hex_dump_mark.hh"
 
