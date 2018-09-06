@@ -429,6 +429,12 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
   int toggle_include = ENUM_IS_TOGGLE_I;
 
+  uint ntuple_type = 0;
+
+  char *id = NULL;     // of ntuple (root: name)
+  char *title = NULL;  // of ntuple
+  char *ftitle = NULL; // of file (hbook: file top)
+
   int struct_server_port = -1;
 
   int timeslice = 0;
@@ -440,11 +446,6 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   if (!ntuple)
     ERROR("Memory allocation error (ntuple: ntuple).");
 
-  ntuple->_staged = new staged_ntuple;
-
-  if (!ntuple->_staged)
-    ERROR("Memory allocation error (ntuple: staged).");
-
 #if defined(USE_LMD_INPUT)
   ntuple->_raw_select = new select_event;
 
@@ -453,7 +454,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
 
   if (reading)
-    ntuple->_staged->_ntuple_type |= NTUPLE_READER_INPUT;
+    ntuple_type |= NTUPLE_READER_INPUT;
 
   const char *req_end;
 
@@ -517,32 +518,32 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	ERROR("Support for row-wise ntuples (RWN) has been removed.");
       }
       else if (MATCH_ARG("CWN"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_CWN;
+	ntuple_type |= NTUPLE_TYPE_CWN;
       else if (MATCH_ARG("ROOT"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_ROOT;
+	ntuple_type |= NTUPLE_TYPE_ROOT;
       else if (MATCH_ARG("STRUCT_HH"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_STRUCT_HH;
+	ntuple_type |= NTUPLE_TYPE_STRUCT_HH;
       else if (MATCH_ARG("STRUCT") || MATCH_ARG("SERVER"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_STRUCT;
+	ntuple_type |= NTUPLE_TYPE_STRUCT;
       else if (MATCH_PREFIX("PORT=",post) || MATCH_PREFIX("port=",post))
 	struct_server_port = atoi(post);
       else if (MATCH_ARG("NOEXTERNAL")) {
 	ERROR("Support for internal ntuple writing has been removed.");
       }
       else if (MATCH_ARG("NOSHM"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_WRITER_NO_SHM;
+	ntuple_type |= NTUPLE_WRITER_NO_SHM;
       else if (MATCH_ARG("UPPER"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_CASE_UPPER;
+	ntuple_type |= NTUPLE_CASE_UPPER;
       else if (MATCH_ARG("LOWER"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_CASE_LOWER;
+	ntuple_type |= NTUPLE_CASE_LOWER;
       else if (MATCH_ARG("H2ROOT"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_CASE_H2ROOT;
+	ntuple_type |= NTUPLE_CASE_H2ROOT;
       else if (MATCH_PREFIX("ID=",post) || MATCH_PREFIX("id=",post))
-	ntuple->_staged->_id = strdup(post);
+	id = strdup(post);
       else if (MATCH_PREFIX("TITLE=",post) || MATCH_PREFIX("title=",post))
-	ntuple->_staged->_title = strdup(post);
+	title = strdup(post);
       else if (MATCH_PREFIX("FTITLE=",post) || MATCH_PREFIX("ftitle=",post))
-	ntuple->_staged->_ftitle = strdup(post);
+	ftitle = strdup(post);
       else if (MATCH_PREFIX("TIMESLICE=",post) ||
 	       MATCH_PREFIX("timeslice=",post))
 	{
@@ -579,28 +580,28 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       exit(0);
     }
 
-  if (!(ntuple->_staged->_ntuple_type & NTUPLE_TYPE_MASK))
+  if (!(ntuple_type & NTUPLE_TYPE_MASK))
     {
       const char *last_slash = strrchr(filename,'/');
       if (!last_slash)
 	last_slash = filename;
 
       if (strstr(last_slash,".nt") || strstr(last_slash,".hb"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_CWN;
+	ntuple_type |= NTUPLE_TYPE_CWN;
       if (strstr(last_slash,".root"))
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_ROOT;
+	ntuple_type |= NTUPLE_TYPE_ROOT;
 
       if (strcmp(last_slash+strlen(last_slash)-2,".h") == 0 ||
 	  strcmp(last_slash+strlen(last_slash)-3,".hh") == 0)
-	ntuple->_staged->_ntuple_type |= NTUPLE_TYPE_STRUCT_HH;
+	ntuple_type |= NTUPLE_TYPE_STRUCT_HH;
     }
-  if (!(ntuple->_staged->_ntuple_type & NTUPLE_TYPE_MASK))
+  if (!(ntuple_type & NTUPLE_TYPE_MASK))
     ERROR("Cannot determine / no ntuple type given.");
 
-  if (!ntuple->_staged->_ftitle)
-    ntuple->_staged->_ftitle = strdup("ucesb");
-  if (!ntuple->_staged->_title)
-    ntuple->_staged->_title = strdup("CWNtuple");
+  if (!ftitle)
+    ftitle = strdup("ucesb");
+  if (!title)
+    title = strdup("CWNtuple");
 
 #if defined(USE_LMD_INPUT)
   if (ntuple->_raw_select->has_selection() &&
@@ -641,7 +642,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
     }
 
-  extra._cwn = !!(ntuple->_staged->_ntuple_type & (NTUPLE_TYPE_CWN |
+  extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
 						   NTUPLE_TYPE_ROOT |
 						   NTUPLE_TYPE_STRUCT_HH |
 						   NTUPLE_TYPE_STRUCT));
@@ -698,30 +699,42 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
   int hid = 101;
 
-  if (ntuple->_staged->_ntuple_type & NTUPLE_TYPE_CWN)
+  if (ntuple_type & NTUPLE_TYPE_CWN)
     {
-      if (ntuple->_staged->_id)
+      if (id)
 	{
 	  // The id must be numeric
 
 	  char *end;
 
-	  hid = (int) strtol(ntuple->_staged->_id,&end,10);
+	  hid = (int) strtol(id,&end,10);
 
-	  if (end == ntuple->_staged->_id || *end != 0)
+	  if (end == id || *end != 0)
 	    ERROR("HBOOK ntuple ID (%s) must be numeric.",
-		  ntuple->_staged->_id);
+		  id);
 	}
-      if (strlen(ntuple->_staged->_title) > 255)
+      if (strlen(title) > 255)
 	ERROR("HBOOK ntuple title (%s) too long (max 255 chars).",
-	      ntuple->_staged->_title);
-      if (strlen(ntuple->_staged->_ftitle) > 16)
+	      title);
+      if (strlen(ftitle) > 16)
 	ERROR("HBOOK file title (%s) too long (max 16 chars).",
-	      ntuple->_staged->_ftitle);
+	      ftitle);
     }
 
-  if (!ntuple->_staged->_id)
-    ntuple->_staged->_id = strdup("h101");
+  if (!id)
+    id = strdup("h101");
+
+  ///
+
+  ntuple->_staged = new staged_ntuple;
+
+  if (!ntuple->_staged)
+    ERROR("Memory allocation error (ntuple: staged).");
+
+  ntuple->_staged->_ntuple_type = ntuple_type;
+  ntuple->_staged->_id     = id;
+  ntuple->_staged->_title  = title;
+  ntuple->_staged->_ftitle = ftitle;
 
   ntuple->_staged->open_x(filename,
 			  struct_server_port,
