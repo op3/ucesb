@@ -276,7 +276,7 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
     fix_case = &fix_case_h2root;
 
   if (_ext)
-    _ext->send_book_ntuple_x(hid,_id,_title,0,max_raw_words);
+    _ext->send_book_ntuple_x(hid,_id,_title,0,0,max_raw_words);
 
   vect_stage_ntuple_blocks blocks;
 
