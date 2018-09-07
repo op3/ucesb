@@ -375,7 +375,6 @@ void paw_ntuple_usage()
   printf ("STRUCT|SERVER       Run STRUCT server to send data.\n");
   printf ("STRUCT_HH           Produce header file for STRUCT server data.\n");
   printf ("port=N              Run STRUCT server on port N.\n");
-  printf ("NOSHM               Do not use shared memory communication.\n");
   printf ("UPPER               Make all variable names upper case.\n");
   printf ("LOWER               Make all variable names lower case.\n");
   printf ("H2ROOT              Make all variable names like h2root.\n");
@@ -389,6 +388,9 @@ void paw_ntuple_usage()
   printf ("incl=               Subevent inclusion.\n");
   printf ("excl=               Subevent exclusion.\n");
 #endif
+  printf ("NOSHM               Do not use shared memory communication.\n");
+  printf ("GDB                 Run the external program via gdb (backtrace fault).\n");
+  printf ("VALGRIND            Run the external program via valgrind.\n");
   printf ("\n");
 }
 
@@ -530,8 +532,6 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_ARG("NOEXTERNAL")) {
 	ERROR("Support for internal ntuple writing has been removed.");
       }
-      else if (MATCH_ARG("NOSHM"))
-	ntuple_type |= NTUPLE_WRITER_NO_SHM;
       else if (MATCH_ARG("UPPER"))
 	ntuple_type |= NTUPLE_CASE_UPPER;
       else if (MATCH_ARG("LOWER"))
@@ -565,6 +565,12 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_PREFIX("excl=",post))
 	ntuple->_raw_select->parse_request(post,false);
 #endif
+      else if (MATCH_ARG("NOSHM"))
+	ntuple_type |= NTUPLE_WRITER_NO_SHM;
+      else if (MATCH_ARG("GDB"))
+	ntuple_type |= NTUPLE_EXT_GDB;
+      else if (MATCH_ARG("VALGRIND"))
+	ntuple_type |= NTUPLE_EXT_VALGRIND;
       else
 	requests.add_detector_request(request,0);
 

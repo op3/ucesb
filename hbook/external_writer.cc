@@ -283,12 +283,41 @@ void external_writer::init(unsigned int type,bool shm,
   int fd_dest = -1;
 
   char tmp[1024];
-  /*const*/ char *argv[15];
+  /*const*/ char *argv[25];
   int argc = 0;
+  char *executable = NULL;
 
   char *fork_pipes = NULL;
 
-  argv[argc++] = strdup(ext_writer_name);
+  // gdb -batch -ex "run" -ex "bt"
+
+  if (type & NTUPLE_EXT_GDB)
+    {
+      executable = strdup("gdb");
+      argv[argc++] = strdup("gdb");
+      argv[argc++] = strdup("-batch");
+      argv[argc++] = strdup("-ex");
+      argv[argc++] = strdup("run");
+      argv[argc++] = strdup("-ex");
+      argv[argc++] = strdup("bt");
+      argv[argc++] = strdup("--return-child-result");
+      argv[argc++] = strdup("--args");
+    }
+  else if (type & NTUPLE_EXT_VALGRIND)
+    {
+     executable = strdup("valgrind");
+     argv[argc++] = strdup("valgrind");
+    }
+  else
+    {
+      argv[argc++] = strdup(ext_writer_name);
+      executable = argv0_replace(ext_writer);
+    }
+
+  if (type & (NTUPLE_EXT_GDB | NTUPLE_EXT_VALGRIND))
+    {
+      argv[argc++] = strdup(argv0_replace(ext_writer));
+    }
 
   // fork_pipes points to XXXXX,XXXXX, so that actual numbers can be
   // filled out by the forker
@@ -398,8 +427,6 @@ void external_writer::init(unsigned int type,bool shm,
     }
 
   argv[argc++] = NULL; // terminate
-
-  char *executable = argv0_replace(ext_writer);
 
   int dummy_fd; // so they are not closed
 

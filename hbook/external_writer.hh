@@ -49,6 +49,9 @@
 #define NTUPLE_WRITER_NO_SHM     0x4000
 #define NTUPLE_READER_INPUT      0x8000 // use as a reader!
 
+#define NTUPLE_EXT_GDB         0x010000
+#define NTUPLE_EXT_VALGRIND    0x020000
+
 class ext_writer_buf
 {
 public:
