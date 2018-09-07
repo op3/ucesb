@@ -267,13 +267,19 @@ $(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_r
 	@echo "  XTST   $@"
 	@mkdir -p $(EXTTDIR)
 	@xtst/xtst /dev/null \
-	  --ntuple=$(XTST_REGRESS),STRUCT_HH,$@ \
-	  > $@.out 2> $@.err || \
-	  ( echo "Failure while running: '$< /dev/null --ntuple=$(XTST_REGRESS),STRUCT_HH,$@':" ; \
-	    echo "--- stdout: ---" ; cat $@.out ; \
+	  --ntuple=$(XTST_REGRESS),STRUCT,- > $@.extstrdump \
+	  2> $@.err || \
+	  ( echo "Failure while running: '$< /dev/null --ntuple=$(XTST_REGRESS),-':" ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
+	    echo "---------------" ; false)
+	@hbook/struct_writer - --header=$@ < $@.extstrdump \
+	  > $@.out2 2> $@.err2 || \
+	  ( echo "Failure while running: 'hbook/struct_writer --header=$@ < $@.str':" ; \
+	    echo "--- stdout: ---" ; cat $@.out2 ; \
+	    echo "--- stderr: ---"; cat $@.err2 ; \
 	    echo "---------------" ; mv $@ $@.fail ; false)
 	@#rm $@.out $@.err
+	@#rm $@.out2 $@.err2
 
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
 $(EXTTDIR)/ext_reader_xtst_regress: hbook/example/ext_data_reader_xtst_regress.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_xtst_regress.h hbook/example/test_caen_v775_data.h hbook/example/test_caen_v1290_data.h
