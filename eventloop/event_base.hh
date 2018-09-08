@@ -41,6 +41,12 @@ public:
   USER_STRUCT   _user;
 #endif
 #endif//!USE_MERGING
+
+public:
+  void raw_cal_user_clean();
+
+public:
+  bool is_sticky() { return false; }
 };
 
 // The event data structure!

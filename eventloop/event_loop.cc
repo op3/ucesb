@@ -1462,6 +1462,33 @@ void ucesb_event_loop::force_event_data(event_base &eb
 #endif
 }
 
+void event_base::raw_cal_user_clean()
+{
+#ifndef USE_MERGING
+  _raw.__clean();
+  _cal.__clean();
+#ifdef USER_STRUCT
+  _user.__clean();
+#endif
+#endif
+}
+
+void copy_eventno_sub_trig(raw_event_base &raw,
+			   unpack_event_base& unpack,
+			   uint32 sub_no,
+			   bool last_multi_ev)
+{
+#if USING_MULTI_EVENTS
+  raw.event_no     = unpack.event_no;
+  raw.event_sub_no = sub_no;
+
+  if (last_multi_ev)
+    raw.trigger = unpack.trigger;
+  else
+    raw.trigger = 1;
+#endif
+}
+
 bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 {
   int multievents = 1;
@@ -1506,11 +1533,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 #endif
   for (int mev = 0; mev < multievents; mev++)
     {
-      eb._raw.__clean();
-      eb._cal.__clean();
-#ifdef USER_STRUCT
-      eb._user.__clean();
-#endif
+      eb.raw_cal_user_clean();
 
 #if defined(USE_EXT_WRITER)
       if (_ext_source)
@@ -1576,12 +1599,9 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 
       do_unpack_map(map_info);
 
-      if (mev == multievents-1)
-	eb._raw.trigger  = eb._unpack.trigger;
-      else
-	eb._raw.trigger  = 1;
-      eb._raw.event_no = eb._unpack.event_no;
-      eb._raw.event_sub_no = mev+1;
+      copy_eventno_sub_trig(eb._raw, eb._unpack,
+			    mev+1,
+			    mev == multievents-1);
 #else
       do_unpack_map();
 #endif
