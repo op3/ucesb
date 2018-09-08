@@ -1498,7 +1498,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 #endif
     {
 #if defined(UNPACK_EVENT_USER_FUNCTION) || USING_MULTI_EVENTS
-      multievents = UNPACK_EVENT_USER_FUNCTION(&_static_event._unpack);
+      multievents = UNPACK_EVENT_USER_FUNCTION(&eb._unpack);
 #endif
 
 #if !USING_MULTI_EVENTS
@@ -1678,7 +1678,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 	    _paw_ntuple->event();
 	  } catch (error &e) {
 #if defined(UNPACK_EVENT_END_USER_FUNCTION)
-	    UNPACK_EVENT_END_USER_FUNCTION(&_static_event._unpack);
+	    UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 #endif
 	    *num_multi = mev;
 	    return false;
@@ -1689,13 +1689,13 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 #endif//!USE_MERGING
   } catch (error &e) {
 #if defined(UNPACK_EVENT_END_USER_FUNCTION)
-    UNPACK_EVENT_END_USER_FUNCTION(&_static_event._unpack);
+    UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 #endif
     throw;
   }
 
 #if defined(UNPACK_EVENT_END_USER_FUNCTION)
-  UNPACK_EVENT_END_USER_FUNCTION(&_static_event._unpack);
+  UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 #endif
 
   *num_multi = multievents;
