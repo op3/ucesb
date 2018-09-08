@@ -424,6 +424,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
    */
 
   detector_requests requests;
+  detector_requests sticky_requests;
   int request_level = 0;
   int request_level_detailed = 0;
   int prefix_level = 0;
@@ -633,6 +634,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
   vect_ntuple_items listing;
 
+  {
   enumerate_ntuple_info extra;
 
   extra._listing = &listing;
@@ -704,6 +706,40 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	    "Does that detector exist?",
 	    requests._requests[i]._str,
 	    request_level_str(requests._requests[i]._level));
+  }
+
+  sticky_requests.prepare();
+
+  vect_ntuple_items sticky_listing;
+
+  {
+  enumerate_ntuple_info extra;
+
+  extra._listing = &sticky_listing;
+  extra._requests = &sticky_requests;
+  extra._block = "";
+  extra._level = 0;
+  extra._toggle_include = toggle_include;
+
+  extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
+						   NTUPLE_TYPE_ROOT |
+						   NTUPLE_TYPE_STRUCT_HH |
+						   NTUPLE_TYPE_STRUCT));
+
+    {
+      extra._level = NTUPLE_WRITER_UNPACK;
+      extra._detailed_only = false;
+      extra._block = "UNPACK";
+      extra._block_prefix = (prefix_level & NTUPLE_WRITER_UNPACK) ? "U" : "";
+      _static_sticky_event._unpack.
+	enumerate_members(signal_id(),enumerate_info(),
+					      enumerate_member_paw_ntuple,
+					      &extra);
+    }
+
+
+  }
+
 
   int hid = 101;
 
@@ -779,9 +815,10 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else
 	staged->set_ext(ntuple->_staged[0]->get_ext());
 
-      staged->stage_x(listing, hid,
+      staged->stage_x(i == 0 ? listing : sticky_listing,
+		      hid,
 		      this_id, this_title,
-		      &_static_event
+		      i == 0 ? &_static_event : (event_base*) &_static_sticky_event
 #if defined(USE_LMD_INPUT)
 		      ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
 #endif
