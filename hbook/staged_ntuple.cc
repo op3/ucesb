@@ -42,12 +42,21 @@ staged_ntuple::staged_ntuple()
   _x_ntuple_type = 0;
   _x_ntuple_opt = 0;
 
+  _struct_index = 0;
+
   _ext = NULL;
+  _external_ext = false;
 }
 
 staged_ntuple::~staged_ntuple()
 {
   close();
+}
+
+void staged_ntuple::set_ext(external_writer *ext)
+{
+  _ext = ext;
+  _external_ext = true;
 }
 
 void staged_ntuple::open_x(const char *filename,
@@ -243,6 +252,12 @@ void insert_index_var(stage_ntuple_block *block,
 
 void staged_ntuple::close()
 {
+  if (_external_ext)
+    {
+      _ext = NULL;
+      _external_ext = false;
+    }
+  
   if (_ext)
     {
       _ext->close();
@@ -275,7 +290,9 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,
     fix_case = &fix_case_h2root;
 
   if (_ext)
-    _ext->send_book_ntuple_x(hid,id,title,0,0,max_raw_words);
+    _ext->send_book_ntuple_x(hid,id,title,
+			     _struct_index,0,
+			     max_raw_words);
 
   vect_stage_ntuple_blocks blocks;
 
@@ -561,7 +578,7 @@ void staged_ntuple::event(void *base,uint *sort_u32,
       assert (size <= UINT32_MAX);
 
       uint32_t *start =
-	_ext->prepare_send_fill_x((uint32_t) size,0,0,sort_u32,
+	_ext->prepare_send_fill_x((uint32_t) size,_struct_index,0,sort_u32,
 				  fill_raw ? &fill_raw->_ptr : NULL,
 				  fill_raw ? fill_raw->_words : 0);
 

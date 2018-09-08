@@ -27,6 +27,10 @@ class staged_ntuple;
 class select_event;
 class lmd_event_out;
 
+#define PAW_NTUPLE_NORMAL_EVENT  0
+#define PAW_NTUPLE_STICKY_EVENT  1
+#define PAW_NTUPLE_NUM           2
+
 class paw_ntuple
 {
 public:
@@ -34,7 +38,7 @@ public:
   virtual ~paw_ntuple();
 
 public:
-  staged_ntuple *_staged;
+  staged_ntuple *_staged[PAW_NTUPLE_NUM];
 
 #if defined(USE_LMD_INPUT)
   // For raw data output:

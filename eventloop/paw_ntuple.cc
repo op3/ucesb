@@ -396,7 +396,8 @@ void paw_ntuple_usage()
 
 paw_ntuple::paw_ntuple()
 {
-  _staged = NULL;
+  for (int i = 0; i < PAW_NTUPLE_NUM; i++)
+    _staged[i] = NULL;
 #if defined(USE_LMD_INPUT)
   _raw_select = NULL;
   _raw_event = NULL;
@@ -405,7 +406,7 @@ paw_ntuple::paw_ntuple()
 
 paw_ntuple::~paw_ntuple()
 {
-  delete _staged;
+  close();
 #if defined(USE_LMD_INPUT)
   delete _raw_select;
   delete _raw_event;
@@ -733,30 +734,65 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
   ///
 
-  ntuple->_staged = new staged_ntuple;
-
-  if (!ntuple->_staged)
-    ERROR("Memory allocation error (ntuple: staged).");
-
-  ntuple->_staged->open_x(filename, ftitle,
-			  ntuple_type, ntuple_opt,
-			  struct_server_port,
-			  timeslice, timeslice_subdir,
-			  autosave
-#if defined(USE_LMD_INPUT)
-			  ,1
+  for (int i = 0; i < PAW_NTUPLE_NUM; i++)
+    {
+#ifndef STICKY_EVENT_IS_NONTRIVIAL
+# define STICKY_EVENT_IS_NONTRIVIAL 0
 #endif
-			  ); // open file/start the writer
+      if (i == PAW_NTUPLE_STICKY_EVENT &&
+	  (!STICKY_EVENT_IS_NONTRIVIAL ||
+	   reading))
+	continue;
 
-  ntuple->_staged->stage_x(listing, hid,
-			   id, title,
-			   &_static_event
+      // printf ("tree: %d\n",i);
+
+      staged_ntuple *staged = new staged_ntuple;
+
+      if (!staged)
+	ERROR("Memory allocation error (ntuple: staged).");
+
+      const char *this_id = NULL;
+      const char *this_title = NULL;
+
+      if (i == PAW_NTUPLE_STICKY_EVENT)
+	{
+	  this_id     = "hsticky";
+	  this_title  = "CWNsticky";
+	}
+      else
+	{
+	  this_id     = id;
+	  this_title  = title;
+	}
+      staged->_struct_index = i;
+
+      if (i == 0)
+	staged->open_x(filename,ftitle,
+		       ntuple_type, ntuple_opt,
+		       struct_server_port,
+		       timeslice, timeslice_subdir,
+		       autosave
 #if defined(USE_LMD_INPUT)
-		    ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
+		       ,1
 #endif
-		    );
+		       ); // open file/start the writer
+      else
+	staged->set_ext(ntuple->_staged[0]->get_ext());
 
-  ntuple->_staged->stage_done();
+      staged->stage_x(listing, hid,
+		      this_id, this_title,
+		      &_static_event
+#if defined(USE_LMD_INPUT)
+		      ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
+#endif
+		      );
+
+      ntuple->_staged[i] = staged;
+    }
+
+  assert(ntuple->_staged[0]);
+
+  ntuple->_staged[0]->stage_done();
 
   free(id);
   free(title);
@@ -806,11 +842,12 @@ void paw_ntuple::event()
 
       length = (length + (sizeof (uint32_t) - 1)) / sizeof (uint32_t);
 
-      if (length > _staged->_ext->_max_raw_words)
+      if (length > _staged[PAW_NTUPLE_NORMAL_EVENT]->_ext->_max_raw_words)
 	ERROR("Too many words (%zd bytes > %zd bytes) "
 	      "in raw data for ntuple (struct) output.",
 	      length * sizeof (uint32_t),
-	      _staged->_ext->_max_raw_words * sizeof (uint32_t));
+	      _staged[PAW_NTUPLE_NORMAL_EVENT]->_ext->_max_raw_words *
+	      sizeof (uint32_t));
 
       fill_raw._words = (uint32_t) length;
       fill_raw._ptr = NULL;
@@ -821,27 +858,31 @@ void paw_ntuple::event()
     }
 #endif
 
-  _staged->event(&_static_event
+  _staged[PAW_NTUPLE_NORMAL_EVENT]->event(&_static_event
 #if defined(USE_LMD_INPUT)
-		 ,&_static_event._unpack.event_no
-		 ,_raw_event ? &fill_raw : NULL
+					  ,&_static_event._unpack.event_no
+					  ,_raw_event ? &fill_raw : NULL
 #endif
-		 );
+					  );
 }
 
 bool paw_ntuple::get_event()
 {
-  return _staged->get_event();
+  return _staged[PAW_NTUPLE_NORMAL_EVENT]->get_event();
 }
 
 void paw_ntuple::unpack_event()
 {
-  _staged->unpack_event(&_static_event);
+  _staged[PAW_NTUPLE_NORMAL_EVENT]->unpack_event(&_static_event);
 }
 
 void paw_ntuple::close()
 {
-  _staged->close();
-  delete _staged;
-  _staged = NULL;
+  if (_staged[0])
+    _staged[0]->close();
+  for (int i = 0; i < PAW_NTUPLE_NUM; i++)
+    {
+      delete _staged[i];
+      _staged[i] = NULL;
+    }
 }

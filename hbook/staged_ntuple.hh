@@ -55,6 +55,7 @@ public:
 public:
   external_writer  *_ext;
   reader_src_external _ext_r; // in progress (reading)
+  bool _external_ext;
 
 public:
   indexed_item  _global_array;  // rwn & cwn
@@ -69,10 +70,16 @@ public:
 
   size_t        _array_entries;
 
+  int           _struct_index;
+
   uint _x_ntuple_type;
   uint _x_ntuple_opt;
 
   std::vector<staged_ntuple_named_str> _named_strs;
+
+public:
+  void set_ext(external_writer *ext);
+  external_writer *get_ext() { return _ext; }
 
 public:
   void open_x(const char *filename,
