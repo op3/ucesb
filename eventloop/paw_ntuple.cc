@@ -432,6 +432,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   int toggle_include = ENUM_IS_TOGGLE_I;
 
   uint ntuple_type = 0;
+  uint ntuple_opt = 0;
 
   char *id = NULL;     // of ntuple (root: name)
   char *title = NULL;  // of ntuple
@@ -456,7 +457,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
 
   if (reading)
-    ntuple_type |= NTUPLE_READER_INPUT;
+    ntuple_opt |= NTUPLE_OPT_READER_INPUT;
 
   const char *req_end;
 
@@ -566,11 +567,11 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	ntuple->_raw_select->parse_request(post,false);
 #endif
       else if (MATCH_ARG("NOSHM"))
-	ntuple_type |= NTUPLE_WRITER_NO_SHM;
+	ntuple_opt |= NTUPLE_OPT_WRITER_NO_SHM;
       else if (MATCH_ARG("GDB"))
-	ntuple_type |= NTUPLE_EXT_GDB;
+	ntuple_opt |= NTUPLE_OPT_EXT_GDB;
       else if (MATCH_ARG("VALGRIND"))
-	ntuple_type |= NTUPLE_EXT_VALGRIND;
+	ntuple_opt |= NTUPLE_OPT_EXT_VALGRIND;
       else
 	requests.add_detector_request(request,0);
 
@@ -737,9 +738,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   if (!ntuple->_staged)
     ERROR("Memory allocation error (ntuple: staged).");
 
-  ntuple->_staged->_ntuple_type = ntuple_type;
-
   ntuple->_staged->open_x(filename, ftitle,
+			  ntuple_type, ntuple_opt,
 			  struct_server_port,
 			  timeslice, timeslice_subdir,
 			  autosave

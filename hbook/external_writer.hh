@@ -46,11 +46,13 @@
                             NTUPLE_CASE_UPPER | NTUPLE_CASE_LOWER | \
                             NTUPLE_CASE_H2ROOT)
 
-#define NTUPLE_WRITER_NO_SHM     0x4000
-#define NTUPLE_READER_INPUT      0x8000 // use as a reader!
+// Separate variable: (could reuse bits)
 
-#define NTUPLE_EXT_GDB         0x010000
-#define NTUPLE_EXT_VALGRIND    0x020000
+#define NTUPLE_OPT_WRITER_NO_SHM     0x4000
+#define NTUPLE_OPT_READER_INPUT      0x8000 // use as a reader!
+
+#define NTUPLE_OPT_EXT_GDB         0x010000
+#define NTUPLE_OPT_EXT_VALGRIND    0x020000
 
 class ext_writer_buf
 {
@@ -174,11 +176,11 @@ public:
   void *insert_buf_string(void *ptr,const char *str);
 
 public:
-  void init(unsigned int type,bool no_shm,
-	    const char *filename,const char *ftitle,
-	    int server_port,int generate_header,
-	    int timeslice,int timeslice_subdir,
-	    int autosave);
+  void init_x(unsigned int type,unsigned int opt,
+	      const char *filename,const char *ftitle,
+	      int server_port,int generate_header,
+	      int timeslice,int timeslice_subdir,
+	      int autosave);
   void close();
 
 public:

@@ -181,6 +181,7 @@ int main(int argc, char *argv[])
   main_argv0 = argv[0];
 
   unsigned int type = 0;
+  unsigned int opt = NTUPLE_OPT_WRITER_NO_SHM;
   const char *filename = NULL;
   bool generate_header = false;
 
@@ -215,9 +216,9 @@ int main(int argc, char *argv[])
 
   ew = new external_writer();
 
-  ew->init(type | NTUPLE_CASE_KEEP, false,
-	   filename,"Title",-1,generate_header,
-	   false,false,false);
+  ew->init_x(type | NTUPLE_CASE_KEEP, opt,
+	     filename,"Title",-1,generate_header,
+	     false,false,false);
 
   ew->send_file_open(0);
 

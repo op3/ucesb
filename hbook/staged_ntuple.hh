@@ -69,13 +69,16 @@ public:
 
   size_t        _array_entries;
 
-  uint _ntuple_type;
+  uint _x_ntuple_type;
+  uint _x_ntuple_opt;
 
   std::vector<staged_ntuple_named_str> _named_strs;
 
 public:
   void open_x(const char *filename,
 	      const char *ftitle,
+	      int ntuple_type,
+	      int ntuple_opt,
 	      int server_port = -1,
 	      int timeslice = 0, int timeslice_subdir = 0,
 	      int autosave = 0,

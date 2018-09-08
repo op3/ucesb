@@ -214,13 +214,14 @@ void ext_writer_pipe_buf::init_alloc()
 }
 
 
-void external_writer::init(unsigned int type,bool shm,
-			   const char *filename,const char *ftitle,
-			   int server_port,int generate_header,
-			   int timeslice,int timeslice_subdir,
-			   int autosave)
+void external_writer::init_x(unsigned int type,unsigned int opt,
+			     const char *filename,const char *ftitle,
+			     int server_port,int generate_header,
+			     int timeslice,int timeslice_subdir,
+			     int autosave)
 {
   int fd_mem = -1;
+  bool shm = !(opt & NTUPLE_OPT_WRITER_NO_SHM);
 
   if (shm)
     {
@@ -240,6 +241,7 @@ void external_writer::init(unsigned int type,bool shm,
 	  INFO(0,"Using shm communication.");
 	}
     }
+  // We may have reverted to !shm above
   if (!shm)
     {
       ext_writer_pipe_buf *ewpb = new ext_writer_pipe_buf();
@@ -291,7 +293,7 @@ void external_writer::init(unsigned int type,bool shm,
 
   // gdb -batch -ex "run" -ex "bt"
 
-  if (type & NTUPLE_EXT_GDB)
+  if (opt & NTUPLE_OPT_EXT_GDB)
     {
       executable = strdup("gdb");
       argv[argc++] = strdup("gdb");
@@ -303,7 +305,7 @@ void external_writer::init(unsigned int type,bool shm,
       argv[argc++] = strdup("--return-child-result");
       argv[argc++] = strdup("--args");
     }
-  else if (type & NTUPLE_EXT_VALGRIND)
+  else if (opt & NTUPLE_OPT_EXT_VALGRIND)
     {
      executable = strdup("valgrind");
      argv[argc++] = strdup("valgrind");
@@ -314,7 +316,7 @@ void external_writer::init(unsigned int type,bool shm,
       executable = argv0_replace(ext_writer);
     }
 
-  if (type & (NTUPLE_EXT_GDB | NTUPLE_EXT_VALGRIND))
+  if (opt & (NTUPLE_OPT_EXT_GDB | NTUPLE_OPT_EXT_VALGRIND))
     {
       argv[argc++] = strdup(argv0_replace(ext_writer));
     }
@@ -344,13 +346,13 @@ void external_writer::init(unsigned int type,bool shm,
       argv[argc++] = strdup(tmp);
     }
 
-  if (generate_header)
+  if (type & NTUPLE_TYPE_STRUCT_HH)
     {
       snprintf (tmp,sizeof(tmp),
 		"--header=%s",filename);  argv[argc++] = strdup(tmp);
     }
 
-  if (type & NTUPLE_READER_INPUT)
+  if (opt & NTUPLE_OPT_READER_INPUT)
     {
       if (type & (NTUPLE_TYPE_ROOT | NTUPLE_TYPE_CWN))
 	{

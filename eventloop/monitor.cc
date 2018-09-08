@@ -117,10 +117,10 @@ void start_monitor_thread(int port)
 
   _mon_ew = new external_writer();
 
-  _mon_ew->init(NTUPLE_TYPE_STRUCT | NTUPLE_CASE_KEEP,
-		false,
-		"monitor.root","Monitor",
-		port,false,0,0,0);
+  _mon_ew->init_x(NTUPLE_TYPE_STRUCT | NTUPLE_CASE_KEEP,
+		  NTUPLE_OPT_WRITER_NO_SHM,
+		  "monitor.root","Monitor",
+		  port,false,0,0,0);
 
   _mon_ew->send_file_open(0);
 

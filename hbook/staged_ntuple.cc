@@ -36,10 +36,11 @@ staged_ntuple::staged_ntuple()
   _array_item = NULL;
   _array_entries = 0;
 
-  _ntuple_type = 0;
-
   _entries_index = 0;
   _entries_array = 0;
+
+  _x_ntuple_type = 0;
+  _x_ntuple_opt = 0;
 
   _ext = NULL;
 }
@@ -51,6 +52,8 @@ staged_ntuple::~staged_ntuple()
 
 void staged_ntuple::open_x(const char *filename,
 			   const char *ftitle,
+			   int ntuple_type,
+			   int ntuple_opt,
 			   int server_port,
 			   int timeslice, int timeslice_subdir,
 			   int autosave,
@@ -61,12 +64,15 @@ void staged_ntuple::open_x(const char *filename,
   if (!_ext)
     ERROR("Failure allocating external writer.");
 
-  _ext->init(_ntuple_type,!(_ntuple_type & NTUPLE_WRITER_NO_SHM),
-	     filename,ftitle,
-	     server_port,
-	     !!(_ntuple_type & NTUPLE_TYPE_STRUCT_HH),
-	     timeslice,timeslice_subdir,autosave);
+  _ext->init_x(ntuple_type,ntuple_opt,
+	       filename,ftitle,
+	       server_port,
+	       !!(ntuple_type & NTUPLE_TYPE_STRUCT_HH),
+	       timeslice,timeslice_subdir,autosave);
   _ext->send_file_open(sort_u32_words);
+
+  _x_ntuple_type = ntuple_type;
+  _x_ntuple_opt = ntuple_opt;
 }
 
 void fix_case_none(char *) { }
@@ -253,19 +259,19 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,
 {
   assert(_ext);
 
-  if ((_ntuple_type & NTUPLE_TYPE_CWN) &&
-      (_ntuple_type & NTUPLE_TYPE_ROOT))
+  if ((_x_ntuple_type & NTUPLE_TYPE_CWN) &&
+      (_x_ntuple_type & NTUPLE_TYPE_ROOT))
     {
       ERROR("Cannot export both HBOOK and ROOT ntuple.");
     }
 
   ntuple_var_case_fcn fix_case = &fix_case_none;
 
-  if (_ntuple_type & NTUPLE_CASE_UPPER)
+  if (_x_ntuple_type & NTUPLE_CASE_UPPER)
     fix_case = &fix_case_upper;
-  else if (_ntuple_type & NTUPLE_CASE_LOWER)
+  else if (_x_ntuple_type & NTUPLE_CASE_LOWER)
     fix_case = &fix_case_lower;
-  else if (_ntuple_type & NTUPLE_CASE_H2ROOT)
+  else if (_x_ntuple_type & NTUPLE_CASE_H2ROOT)
     fix_case = &fix_case_h2root;
 
   if (_ext)
@@ -515,7 +521,7 @@ void staged_ntuple::stage_done()
   // Only call when done with all ntuples
 
   if (_ext)
-    _ext->send_setup_done(!!(_ntuple_type & NTUPLE_READER_INPUT));
+    _ext->send_setup_done(!!(_x_ntuple_opt & NTUPLE_OPT_READER_INPUT));
 }
 
 void staged_ntuple::event(void *base,uint *sort_u32,
@@ -523,7 +529,7 @@ void staged_ntuple::event(void *base,uint *sort_u32,
 {
   assert(_ext);
 
-  if (_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
+  if (_x_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
     return;
 
   /* We need to fill the structures holding the data.
@@ -585,7 +591,7 @@ bool staged_ntuple::get_event()
 {
   assert(_ext);
 
-  if (_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
+  if (_x_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
     return false;
 
   if (_ext)
@@ -639,7 +645,7 @@ void staged_ntuple::unpack_event(void *base)
 {
   assert(_ext);
 
-  if (_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
+  if (_x_ntuple_type & NTUPLE_TYPE_STRUCT_HH)
     return;
 
   if (_ext)
@@ -661,7 +667,6 @@ void staged_ntuple::unpack_event(void *base)
       _ext->message_body_done(_ext_r._end);
 
       _ext_r._p = NULL;
-
     }
 }
 
