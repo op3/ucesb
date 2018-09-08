@@ -38,10 +38,6 @@ staged_ntuple::staged_ntuple()
 
   _ntuple_type = 0;
 
-  _id     = NULL;
-  _title  = NULL;
-  _ftitle = NULL;
-
   _entries_index = 0;
   _entries_array = 0;
 
@@ -51,13 +47,10 @@ staged_ntuple::staged_ntuple()
 staged_ntuple::~staged_ntuple()
 {
   close();
-
-  free(_id);
-  free(_title);
-  free(_ftitle);
 }
 
 void staged_ntuple::open_x(const char *filename,
+			   const char *ftitle,
 			   int server_port,
 			   int timeslice, int timeslice_subdir,
 			   int autosave,
@@ -69,7 +62,7 @@ void staged_ntuple::open_x(const char *filename,
     ERROR("Failure allocating external writer.");
 
   _ext->init(_ntuple_type,!(_ntuple_type & NTUPLE_WRITER_NO_SHM),
-	     filename,_ftitle,
+	     filename,ftitle,
 	     server_port,
 	     !!(_ntuple_type & NTUPLE_TYPE_STRUCT_HH),
 	     timeslice,timeslice_subdir,autosave);
@@ -252,7 +245,10 @@ void staged_ntuple::close()
     }
 }
 
-void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
+void staged_ntuple::stage_x(vect_ntuple_items &listing,
+			    int hid,
+			    const char *id, const char *title,
+			    void *base,
 			    uint max_raw_words)
 {
   assert(_ext);
@@ -273,7 +269,7 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,int hid,void *base,
     fix_case = &fix_case_h2root;
 
   if (_ext)
-    _ext->send_book_ntuple_x(hid,_id,_title,0,0,max_raw_words);
+    _ext->send_book_ntuple_x(hid,id,title,0,0,max_raw_words);
 
   vect_stage_ntuple_blocks blocks;
 

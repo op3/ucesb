@@ -738,11 +738,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
     ERROR("Memory allocation error (ntuple: staged).");
 
   ntuple->_staged->_ntuple_type = ntuple_type;
-  ntuple->_staged->_id     = id;
-  ntuple->_staged->_title  = title;
-  ntuple->_staged->_ftitle = ftitle;
 
-  ntuple->_staged->open_x(filename,
+  ntuple->_staged->open_x(filename, ftitle,
 			  struct_server_port,
 			  timeslice, timeslice_subdir,
 			  autosave
@@ -751,13 +748,19 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 #endif
 			  ); // open file/start the writer
 
-  ntuple->_staged->stage_x(listing,hid,&_static_event
+  ntuple->_staged->stage_x(listing, hid,
+			   id, title,
+			   &_static_event
 #if defined(USE_LMD_INPUT)
 		    ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
 #endif
 		    );
 
   ntuple->_staged->stage_done();
+
+  free(id);
+  free(title);
+  free(ftitle);
 
   return ntuple;
 }
