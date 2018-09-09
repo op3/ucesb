@@ -1489,6 +1489,60 @@ void copy_eventno_sub_trig(raw_event_base &raw,
 #endif
 }
 
+int wrap_UNPACK_EVENT_USER_FUNCTION(unpack_event *unpack_ev)
+{
+  int multievents = 1;
+
+#if defined(UNPACK_EVENT_USER_FUNCTION) || USING_MULTI_EVENTS
+  multievents = UNPACK_EVENT_USER_FUNCTION(unpack_ev);
+#endif
+
+#if !USING_MULTI_EVENTS
+  multievents = !!multievents;
+#endif
+
+  return multievents;
+}
+
+void wrap_UNPACK_EVENT_END_USER_FUNCTION(unpack_event *unpack_ev)
+{
+#if defined(UNPACK_EVENT_END_USER_FUNCTION)
+  UNPACK_EVENT_END_USER_FUNCTION(unpack_ev);
+#endif
+}
+
+void wrap_RAW_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
+                                  raw_event    *raw_ev
+                                  MAP_MEMBERS_PARAM)
+{
+#ifdef RAW_EVENT_USER_FUNCTION
+  RAW_EVENT_USER_FUNCTION(unpack_ev,
+                          raw_ev
+                          MAP_MEMBERS_ARG);
+#endif
+}
+
+void wrap_CAL_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
+                                  raw_event    *raw_ev,
+                                  cal_event    *cal_ev
+#ifdef USER_STRUCT
+                                  ,USER_STRUCT *user_ev
+#endif
+                                  MAP_MEMBERS_PARAM)
+{
+#ifdef CAL_EVENT_USER_FUNCTION
+  CAL_EVENT_USER_FUNCTION(unpack_ev,
+                          raw_ev,
+                          cal_ev
+#ifdef USER_STRUCT
+                          ,user_ev
+#endif
+                          MAP_MEMBERS_ARG);
+#endif
+}
+
+
+
 bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 {
   int multievents = 1;
@@ -1497,13 +1551,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
   if (!_ext_source)
 #endif
     {
-#if defined(UNPACK_EVENT_USER_FUNCTION) || USING_MULTI_EVENTS
-      multievents = UNPACK_EVENT_USER_FUNCTION(&eb._unpack);
-#endif
-
-#if !USING_MULTI_EVENTS
-      multievents = !!multievents;
-#endif
+      multievents = wrap_UNPACK_EVENT_USER_FUNCTION(&eb._unpack);
     }
 
   try {
@@ -1606,28 +1654,24 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
       do_unpack_map();
 #endif
 
-#ifdef RAW_EVENT_USER_FUNCTION
-      RAW_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw
+      wrap_RAW_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw
 #if USING_MULTI_EVENTS
-			      ,map_info
+				   ,map_info
 #endif
-			      );
-#endif
+				   );
 
       level_dump(DUMP_LEVEL_RAW,"RAW",eb._raw);
 
       do_calib_map();
 
-#ifdef CAL_EVENT_USER_FUNCTION
-      CAL_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw,&eb._cal
+      wrap_CAL_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw,&eb._cal
 #ifdef USER_STRUCT
-			      ,&eb._user
+				   ,&eb._user
 #endif
 #if USING_MULTI_EVENTS
-			      ,map_info
+				   ,map_info
 #endif
-			      );
-#endif
+				   );
 
       level_dump(DUMP_LEVEL_CAL,"CAL",eb._cal);
 
@@ -1677,9 +1721,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 	    /* Produce the event. */
 	    _paw_ntuple->event();
 	  } catch (error &e) {
-#if defined(UNPACK_EVENT_END_USER_FUNCTION)
-	    UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
-#endif
+	    wrap_UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 	    *num_multi = mev;
 	    return false;
 	  }
@@ -1688,15 +1730,11 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
     }
 #endif//!USE_MERGING
   } catch (error &e) {
-#if defined(UNPACK_EVENT_END_USER_FUNCTION)
-    UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
-#endif
+    wrap_UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
     throw;
   }
 
-#if defined(UNPACK_EVENT_END_USER_FUNCTION)
-  UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
-#endif
+  wrap_UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 
   *num_multi = multievents;
   return true;
