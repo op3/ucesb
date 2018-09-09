@@ -87,6 +87,7 @@ tstamp_alignment *_ts_align_hist = NULL;
 #endif
 
 event_base _static_event;
+sticky_event_base _static_sticky_event;
 
 #ifdef USE_MERGING
 // and not USE_THREADING, but does not compile together anyhow
@@ -283,6 +284,7 @@ void ucesb_event_loop::close_source(source_event_base* seb)
 
   delete seb->_src;
   delete seb->_event;
+  delete seb->_sticky_event;
 
   _sources.erase(find(_sources.begin(),_sources.end(),seb));
 
@@ -806,8 +808,10 @@ void ucesb_event_loop::open_source(config_input &input,
 
   seb->_src   = source;
   seb->_event = new event_base;
+  seb->_sticky_event = new sticky_event_base;
 
-  seb->_event->_file_event = &seb->_src->_file_event;
+  seb->_sticky_event->_file_event =
+    seb->_event->_file_event = &seb->_src->_file_event;
 
   seb->_name = input._name;
 
@@ -906,8 +910,9 @@ void err_bold_header(char* headermsg,
 #pragma GCC diagnostic ignored "-Wformat-security"
 #endif
 
-template<typename __data_src_t,typename start_ptr_t,typename subevent_header_t>
-void show_remaining(event_base &eb,
+template<typename __data_src_t,typename start_ptr_t,
+	 typename event_base_t,typename subevent_header_t>
+void show_remaining(event_base_t &eb,
 		    subevent_header_t *ev_header,
 		    __data_src_t &src,start_ptr_t *start,
 		    int loc)
@@ -919,6 +924,9 @@ void show_remaining(event_base &eb,
   size_t msglen = 0;
   size_t msgthislen = 0;
   msg[0] = 0;
+
+  const char *subevstr =
+    eb.is_sticky() ? "Sticky subevent" : "Subevent";
 
   eb._unpack_fail._next = src._data;
 
@@ -1054,19 +1062,20 @@ void show_remaining(event_base &eb,
   WARNING(msg);
 
   if (loc) {
-    ERROR_U_LOC(loc,"Subevent: " ERR_NOBOLD "%s not completely read.",
-		headermsg);
+    ERROR_U_LOC(loc,ERR_NOBOLD "%s: " ERR_NOBOLD "%s not completely read.",
+		subevstr, headermsg);
   } else {
-    ERROR("Subevent: " ERR_NOBOLD "%s not completely read.",
-	  headermsg);
+    ERROR(ERR_NOBOLD "%s: " ERR_NOBOLD "%s not completely read.",
+	  subevstr, headermsg);
   }
 }
 #if ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)))
 #pragma GCC diagnostic pop
 #endif
 
-template<typename __data_src_t,typename start_ptr_t,typename subevent_header_t>
-void unpack_subevent(event_base &eb,
+template<typename __data_src_t,typename start_ptr_t,
+	 typename event_base_t,typename subevent_header_t>
+void unpack_subevent(event_base_t &eb,
 		     subevent_header_t *ev_header,
 		     __data_src_t &src,
 		     start_ptr_t *start)
@@ -1108,11 +1117,14 @@ void unpack_subevent(event_base &eb,
       if (eb._unpack.ignore_unknown_subevent())
 	return;
 
+      const char *subevstr =
+	eb.is_sticky() ? "Sticky subevent" : "Subevent";
+
       err_bold_header(headermsg,ev_header);
 
       eb._unpack_fail._next = ev_header;
-      ERROR("Subevent: " ERR_NOBOLD "%s (%d bytes) unknown.",
-	    headermsg,
+      ERROR(ERR_NOBOLD "%s: " ERR_NOBOLD "%s (%d bytes) unknown.",
+	    subevstr, headermsg,
 	    (int) (src._end - src._data));
     }
   else
@@ -1234,7 +1246,8 @@ void ucesb_event_loop::stitch_event(event_base &eb,
 }
 #endif
 
-void ucesb_event_loop::unpack_event(event_base &eb)
+template<typename T_event_base>
+void ucesb_event_loop::unpack_event(T_event_base &eb)
 {
   eb._unpack_fail._prev = eb._unpack_fail._this = eb._unpack_fail._next = NULL;
 
@@ -1290,6 +1303,17 @@ void ucesb_event_loop::unpack_event(event_base &eb)
       char *end;
 
       src_event->get_subevent_data_src(subevent_info,start,end);
+
+      if (eb.is_sticky())
+	{
+      // NOTE! This is for testing only!!!
+      // TODO: Remove!!!
+#ifdef STICKY_SUBEVENT_USER_FUNCTION
+	  STICKY_SUBEVENT_USER_FUNCTION((unpack_sticky_event *) &eb._unpack,
+					&subevent_info->_header,
+					start, end, src_event->_swapping);
+#endif
+	}
 
 #ifdef USE_LMD_INPUT
       int scramble;
@@ -1379,41 +1403,12 @@ void ucesb_event_loop::unpack_event(event_base &eb)
   level_dump(DUMP_LEVEL_UNPACK,"UNPACK",eb._unpack);
 }
 
-#ifdef USE_LMD_INPUT
-void ucesb_event_loop::unpack_sticky(event_base &eb)
-{
-  /* This is partly a copy of what is in unpack_event above.  Merge?
-   */
-  
-#if USE_THREADING || USE_MERGING
-  FILE_INPUT_EVENT *src_event = (FILE_INPUT_EVENT *) eb._file_event;
-#else
-  FILE_INPUT_EVENT *src_event = &_file_event;
-#endif
+// Force instantiation
+template
+void ucesb_event_loop::unpack_event<event_base>(event_base &eb);
+template
+void ucesb_event_loop::unpack_event<sticky_event_base>(sticky_event_base &eb);
 
-  if (_conf._event_sizes)
-    _event_sizes.account(src_event);
-
-  for (int subevent = 0; subevent < src_event->_nsubevents; subevent++)
-    {
-      typedef __typeof__(*src_event->_subevents) subevent_t;
-
-      subevent_t *subevent_info = &src_event->_subevents[subevent];
-
-      char *start;
-      char *end;
-
-      src_event->get_subevent_data_src(subevent_info,start,end);
-
-
-#ifdef STICKY_SUBEVENT_USER_FUNCTION
-      STICKY_SUBEVENT_USER_FUNCTION(&eb._unpack,
-				    &subevent_info->_header,
-				    start, end, src_event->_swapping);
-#endif
-    }
-}
-#endif
 
 void ucesb_event_loop::force_event_data(event_base &eb
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)

@@ -1240,6 +1240,9 @@ get_next_event:
 		typedef __typeof__(*seb->_event) event_type;
 		event_type *event = seb->_event;
 
+		typedef __typeof__(*seb->_sticky_event) sticky_event_type;
+		sticky_event_type *sticky_event = seb->_sticky_event;
+
 		assert (CURRENT_EVENT == NULL);
 		_current_event = seb->_event; // For CURRENT_EVENT
 
@@ -1252,6 +1255,9 @@ get_next_event:
 
 	    typedef __typeof__(_static_event) event_type;
 	    event_type *event = &_static_event;
+
+	    typedef __typeof__(_static_sticky_event) sticky_event_type;
+	    sticky_event_type *sticky_event = &_static_sticky_event;
 
 	    assert (CURRENT_EVENT == &_static_event);
 
@@ -1393,7 +1399,7 @@ get_next_event:
 
 #if defined(USE_LMD_INPUT)
 	      if (file_event->is_sticky())
-		loop.unpack_sticky(*event);
+		loop.unpack_event(*sticky_event);
 	      else
 #endif
 	      loop.unpack_event(*event);

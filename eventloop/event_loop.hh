@@ -47,6 +47,7 @@
 
 #ifdef USE_MERGING
 class event_base;
+class sticky_event_base;
 union merge_event_order;
 
 #define MERGE_EVENTS_ERROR_ORDER_BEFORE   1
@@ -63,6 +64,7 @@ struct source_event_base
 {
   lmd_source *_src;
   event_base *_event;
+  sticky_event_base *_sticky_event;
   uint64_t    _timestamp; // for MERGE_EVENTS_MODE_TITRIS_TIME
 
   uint64_t    _events;           // for display
@@ -203,7 +205,8 @@ public:
   static void stitch_event(event_base &eb,
 			   stitch_info *stitch);
 
-  static void unpack_event(event_base &eb);
+  template<typename T_event_base>
+  static void unpack_event(T_event_base &eb);
   // the following is used before error printing, to ensure that
   // whatever data is available, is available unfragmented.
   static void force_event_data(event_base &eb
@@ -213,8 +216,6 @@ public:
 			       );
 
   bool handle_event(event_base &eb,int *num_multi);
-
-  static void unpack_sticky(event_base &eb);
 
 public:
   bool get_ext_source_event(event_base &eb);

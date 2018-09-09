@@ -66,6 +66,9 @@ public:
   //USER_STRUCT   _user;
 #endif
 #endif//!USE_MERGING
+
+public:
+  bool is_sticky() { return true; }
 };
 
 // The event data structure!
@@ -75,6 +78,8 @@ public:
 // Otherwise multi-threading/merging will not function properly!!!
 
 extern event_base _static_event;
+
+extern sticky_event_base _static_sticky_event;
 
 // See user.hh for the following entry...
 

@@ -46,7 +46,7 @@ void init_function()
   memset(_sticky_last_ev, 0, sizeof (_sticky_last_ev));
 }
 
-void sticky_subevent_user_function(unpack_event *event,
+void sticky_subevent_user_function(unpack_sticky_event *sticky_event,
 				   const void *header,
 				   const char *start, const char *end,
 				   bool swapping)
@@ -100,14 +100,14 @@ void sticky_subevent_user_function(unpack_event *event,
 
   if (isev < 32)
     {
-      if (_sticky_last_ev[crate][isev] == event->event_no)
+      if (_sticky_last_ev[crate][isev] == sticky_event->event_no)
 	{
 	  WARNING("Event %d: crate %d: "
 		  "Sticky subevent (%d) seen for same event no.",
-		  event->event_no, crate,
+		  sticky_event->event_no, crate,
 		  isev);
 	}      
-      _sticky_last_ev[crate][isev] = event->event_no;
+      _sticky_last_ev[crate][isev] = sticky_event->event_no;
     }
 }
 
