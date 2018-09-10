@@ -114,6 +114,8 @@ struct output_info
 int get_time_stamp_mode(const char *);
 #endif
 
+void init_sticky_idx();
+
 struct stitch_info
 {
   uint64_t _last_stamp;

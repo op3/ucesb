@@ -887,6 +887,8 @@ int main(int argc, char **argv)
 	  "be STAGED before usage, exit.");
 #endif
 
+  init_sticky_idx();
+
   /******************************************************************/
 
   //struct sigaction action;

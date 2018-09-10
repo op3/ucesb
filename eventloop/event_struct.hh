@@ -21,6 +21,7 @@
 #ifndef __EVENT_STRUCT_HH__
 #define __EVENT_STRUCT_HH__
 
+#include "gen/unpacker_defines.hh"
 #include "../common/signal_id.hh"
 
 #include "enumerate.hh"
@@ -36,6 +37,10 @@ public:
   uint16 trigger;
   uint16 dummy;
   uint32 event_no;
+
+#if STICKY_EVENT_IS_NONTRIVIAL
+  uint32 sticky_idx;
+#endif
 
 public:
   void __clean()
@@ -57,12 +62,18 @@ public:
   {
     callback(signal_id(id,"TRIGGER"),enumerate_info(info,&trigger,ENUM_TYPE_USHORT,0,15),extra);
     callback(signal_id(id,"EVENTNO"),enumerate_info(info,&event_no,ENUM_TYPE_UINT),extra);
+#if STICKY_EVENT_IS_NONTRIVIAL
+    callback(signal_id(id,"STIDX"),enumerate_info(info,&sticky_idx,ENUM_TYPE_UINT),extra);
+#endif
   }
 
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
   {
     ::zero_suppress_info_ptrs(&trigger,used_info);
     ::zero_suppress_info_ptrs(&event_no,used_info);
+#if STICKY_EVENT_IS_NONTRIVIAL
+    ::zero_suppress_info_ptrs(&sticky_idx,used_info);
+#endif
   }
 
   // void map_members(const struct unpack_event_base_map& map MAP_MEMBERS_PARAM) const { }

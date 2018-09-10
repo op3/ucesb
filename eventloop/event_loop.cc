@@ -1461,6 +1461,27 @@ void ucesb_event_loop::force_event_data(event_base &eb
 #endif
 }
 
+void init_sticky_idx()
+{
+#if STICKY_EVENT_IS_NONTRIVIAL
+  _static_sticky_event._unpack.sticky_idx = 0;
+#endif
+}
+
+void set_sticky_idx(unpack_event_base& unpack)
+{
+#if STICKY_EVENT_IS_NONTRIVIAL
+  unpack.sticky_idx = _static_sticky_event._unpack.sticky_idx;
+#endif
+}
+
+void set_sticky_idx(unpack_sticky_event_base& unpack)
+{
+#if STICKY_EVENT_IS_NONTRIVIAL
+  unpack.sticky_idx++;
+#endif
+}
+
 void event_base::raw_cal_user_clean()
 {
 #ifndef USE_MERGING
@@ -1594,6 +1615,8 @@ template<typename T_event_base>
 bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 {
   int multievents = 1;
+
+  set_sticky_idx(eb._unpack);
 
 #if defined(USE_EXT_WRITER)
   if (!_ext_source)
