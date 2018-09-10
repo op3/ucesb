@@ -1585,7 +1585,9 @@ void wrap_paw_ntuple_event(event_base &eb_dummy)
 
 void wrap_paw_ntuple_event(sticky_event_base &eb_dummy)
 {
-  // _paw_ntuple->event();
+#if defined(USE_CERNLIB) || defined(USE_ROOT) || defined(USE_EXT_WRITER)
+  _paw_ntuple->event(PAW_NTUPLE_STICKY_EVENT);
+#endif
 }
 
 template<typename T_event_base>

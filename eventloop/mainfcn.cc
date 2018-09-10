@@ -1411,7 +1411,7 @@ get_next_event:
 
 #if defined(USE_LMD_INPUT)
 	      if (file_event->is_sticky())
-		;
+		write_ok = loop.handle_event(*sticky_event,&num_multi);
 	      else
 #endif
 		write_ok = loop.handle_event(*event,&num_multi);
