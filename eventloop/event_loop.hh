@@ -215,7 +215,8 @@ public:
 #endif
 			       );
 
-  bool handle_event(event_base &eb,int *num_multi);
+  template<typename T_event_base>
+  bool handle_event(T_event_base &eb,int *num_multi);
 
 public:
   bool get_ext_source_event(event_base &eb);

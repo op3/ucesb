@@ -158,6 +158,10 @@ void level_dump(int level_mask,const char *level_name,T &level)
     }
 }
 
+void level_dump(int level_mask,const char *level_name,dummy_container &level)
+{
+}
+
 /********************************************************************/
 
 void ucesb_event_loop::preprocess()
@@ -1468,6 +1472,10 @@ void event_base::raw_cal_user_clean()
 #endif
 }
 
+void sticky_event_base::raw_cal_user_clean()
+{
+}
+
 void copy_eventno_sub_trig(raw_event_base &raw,
 			   unpack_event_base& unpack,
 			   uint32 sub_no,
@@ -1482,6 +1490,13 @@ void copy_eventno_sub_trig(raw_event_base &raw,
   else
     raw.trigger = 1;
 #endif
+}
+
+void copy_eventno_sub_trig(dummy_container &raw,
+			   unpack_event_base& unpack,
+			   uint32 sub_no,
+			   bool last_multi_ev)
+{
 }
 
 int wrap_UNPACK_EVENT_USER_FUNCTION(unpack_event *unpack_ev)
@@ -1499,11 +1514,20 @@ int wrap_UNPACK_EVENT_USER_FUNCTION(unpack_event *unpack_ev)
   return multievents;
 }
 
+int wrap_UNPACK_EVENT_USER_FUNCTION(unpack_sticky_event *unpack_ev)
+{
+  return 1;
+}
+
 void wrap_UNPACK_EVENT_END_USER_FUNCTION(unpack_event *unpack_ev)
 {
 #if defined(UNPACK_EVENT_END_USER_FUNCTION)
   UNPACK_EVENT_END_USER_FUNCTION(unpack_ev);
 #endif
+}
+
+void wrap_UNPACK_EVENT_END_USER_FUNCTION(unpack_sticky_event *unpack_ev)
+{
 }
 
 void wrap_RAW_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
@@ -1517,28 +1541,55 @@ void wrap_RAW_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
 #endif
 }
 
+void wrap_RAW_EVENT_USER_FUNCTION(unpack_sticky_event *unpack_ev,
+				  dummy_container     *raw_ev
+				  MAP_MEMBERS_PARAM)
+{
+}
+
 void wrap_CAL_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
-                                  raw_event    *raw_ev,
-                                  cal_event    *cal_ev
+				  raw_event    *raw_ev,
+				  cal_event    *cal_ev
 #ifdef USER_STRUCT
-                                  ,USER_STRUCT *user_ev
+				  ,USER_STRUCT *user_ev
 #endif
-                                  MAP_MEMBERS_PARAM)
+				  MAP_MEMBERS_PARAM)
 {
 #ifdef CAL_EVENT_USER_FUNCTION
   CAL_EVENT_USER_FUNCTION(unpack_ev,
-                          raw_ev,
-                          cal_ev
+			  raw_ev,
+			  cal_ev
 #ifdef USER_STRUCT
-                          ,user_ev
+			  ,user_ev
 #endif
-                          MAP_MEMBERS_ARG);
+			  MAP_MEMBERS_ARG);
 #endif
 }
 
+void wrap_CAL_EVENT_USER_FUNCTION(unpack_sticky_event *unpack_ev,
+				  dummy_container     *raw_ev,
+				  dummy_container     *cal_ev
+#ifdef USER_STRUCT
+				  ,dummy_container    *user_ev
+#endif
+				  MAP_MEMBERS_PARAM)
+{
+}
 
+void wrap_paw_ntuple_event(event_base &eb_dummy)
+{
+#if defined(USE_CERNLIB) || defined(USE_ROOT) || defined(USE_EXT_WRITER)
+  _paw_ntuple->event(PAW_NTUPLE_NORMAL_EVENT);
+#endif
+}
 
-bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
+void wrap_paw_ntuple_event(sticky_event_base &eb_dummy)
+{
+  // _paw_ntuple->event();
+}
+
+template<typename T_event_base>
+bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 {
   int multievents = 1;
 
@@ -1714,7 +1765,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 	      }
 #endif
 	    /* Produce the event. */
-	    _paw_ntuple->event(PAW_NTUPLE_NORMAL_EVENT);
+	    wrap_paw_ntuple_event(eb);
 	  } catch (error &e) {
 	    wrap_UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 	    *num_multi = mev;
@@ -1734,6 +1785,12 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
   *num_multi = multievents;
   return true;
 }
+
+// Force instantiation
+template
+bool ucesb_event_loop::handle_event<event_base>(event_base &eb,int *num_multi);
+template
+bool ucesb_event_loop::handle_event<sticky_event_base>(sticky_event_base &eb,int *num_multi);
 
 
 /*

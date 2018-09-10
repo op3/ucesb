@@ -50,6 +50,10 @@ public:
   bool is_sticky() { return false; }
 };
 
+class dummy_container
+{
+};
+
 class sticky_event_base
 {
 public:
@@ -60,13 +64,19 @@ public:
   hex_dump_mark_buf _unpack_fail;
   unpack_sticky_event _unpack;
 #ifndef USE_MERGING
+  dummy_container _raw;
+  dummy_container _cal;
   //raw_event    _raw;
   //cal_event    _cal;
 
 #ifdef USER_STRUCT
+  dummy_container _user;
   //USER_STRUCT   _user;
 #endif
 #endif//!USE_MERGING
+
+public:
+  void raw_cal_user_clean();
 
 public:
   bool is_sticky() { return true; }
