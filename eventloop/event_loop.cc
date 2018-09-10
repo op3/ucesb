@@ -1714,7 +1714,7 @@ bool ucesb_event_loop::handle_event(event_base &eb,int *num_multi)
 	      }
 #endif
 	    /* Produce the event. */
-	    _paw_ntuple->event();
+	    _paw_ntuple->event(PAW_NTUPLE_NORMAL_EVENT);
 	  } catch (error &e) {
 	    wrap_UNPACK_EVENT_END_USER_FUNCTION(&eb._unpack);
 	    *num_multi = mev;

@@ -868,7 +868,7 @@ void paw_ntuple_copy_raw(fill_raw_info *fill_raw)
 }
 #endif
 
-void paw_ntuple::event()
+void paw_ntuple::event(int kind)
 {
 #if defined(USE_LMD_INPUT)
   fill_raw_info fill_raw;
@@ -879,11 +879,11 @@ void paw_ntuple::event()
 
       length = (length + (sizeof (uint32_t) - 1)) / sizeof (uint32_t);
 
-      if (length > _staged[PAW_NTUPLE_NORMAL_EVENT]->_ext->_max_raw_words)
+      if (length > _staged[kind]->_ext->_max_raw_words)
 	ERROR("Too many words (%zd bytes > %zd bytes) "
 	      "in raw data for ntuple (struct) output.",
 	      length * sizeof (uint32_t),
-	      _staged[PAW_NTUPLE_NORMAL_EVENT]->_ext->_max_raw_words *
+	      _staged[kind]->_ext->_max_raw_words *
 	      sizeof (uint32_t));
 
       fill_raw._words = (uint32_t) length;
@@ -895,12 +895,13 @@ void paw_ntuple::event()
     }
 #endif
 
-  _staged[PAW_NTUPLE_NORMAL_EVENT]->event(&_static_event
+  _staged[kind]->event(kind == PAW_NTUPLE_NORMAL_EVENT ?
+		       &_static_event : (event_base*) &_static_sticky_event
 #if defined(USE_LMD_INPUT)
-					  ,&_static_event._unpack.event_no
-					  ,_raw_event ? &fill_raw : NULL
+		       ,&_static_event._unpack.event_no
+		       ,_raw_event ? &fill_raw : NULL
 #endif
-					  );
+		       );
 }
 
 bool paw_ntuple::get_event()

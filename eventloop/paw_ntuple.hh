@@ -49,7 +49,7 @@ public:
 
 public:
   void open_stage(const char *command,bool reading);
-  void event(); // write
+  void event(int kind); // write
   bool get_event(); // read I
   void unpack_event(); // read II
   void close();
