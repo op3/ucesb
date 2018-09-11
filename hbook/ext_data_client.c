@@ -2485,7 +2485,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
   for ( ; ; )
     {
-      uint32_t struct_index;
+      uint32_t struct_index = -1; /* make compiler happy */
 
       int ret = ext_data_fetch_event_message(client, &header, &struct_index);
 
