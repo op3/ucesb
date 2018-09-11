@@ -238,6 +238,8 @@ STICKY_ACTIVE()
 
   UINT32 active;
   UINT32 mark;
+
+  UINT32 corr;
 }
 
 WR_STAMP(id)
@@ -556,9 +558,16 @@ SIGNAL(ZERO_SUPPRESS: ZZP1_1_U_10);
 SIGNAL(ZZP1_1_L_1,vme.tdc2.data[8],(DATA12,uint64));
 SIGNAL(ZERO_SUPPRESS: ZZP1_1_L_10);
 
+SIGNAL(STCORR,regress[0].sticky_active.corr,uint32);
 
+SUBEVENT(XTST_STICKY_CORR)
+{
+  UINT32 base;
+}
 
 STICKY_EVENT
 {
+  corr = XTST_STICKY_CORR(type=0x0cae,subtype=0x0caf);
+
   ignore_unknown_subevent;
 }

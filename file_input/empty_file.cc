@@ -450,12 +450,15 @@ void write_data_lmd()
   uint64_t rstate_badwr = 5;
   uint64_t rstate_sim_caen = 6;
   uint64_t rstate_multi = 7;
+  uint64_t rstate_sticky_base = 8;
+  uint64_t rstate_sticky_corr = 9;
 
   uint64_t timeslot_nev = 0;
   struct timeval timeslot_start;
 
   uint32_t sticky_active = 0;
   uint32_t sticky_mark = 0;
+  uint32_t sticky_base = 0;
 
   uint32_t sticky_payload_count = 0;
 
@@ -601,6 +604,14 @@ void write_data_lmd()
 		  need_sticky_event_total_size += sizeof (uint32_t);
 		}
 
+	      // For the correlation base sticky, we follow [0]
+	      if (sticky_update & 1)
+		{
+		  need_sticky_event_total_size +=
+		    sizeof(lmd_subevent_10_1_host);
+		  need_sticky_event_total_size += sizeof (uint32_t);
+		}
+
 	      // If this buffer cannot hold the sticky event, go for the
 	      // next one!
 	      
@@ -666,6 +677,32 @@ void write_data_lmd()
 		  evp_end = sevp_end;
 		}
 	      
+	      // For the correlation base sticky, we follow [0]
+	      if (sticky_update & 1)
+		{
+		  lmd_subevent_10_1_host *sev =
+		    (lmd_subevent_10_1_host *) evp_end;
+
+		  sev->_header.i_type    = 0x0cae;
+		  sev->_header.i_subtype = 0x0caf;
+		  sev->h_control  = 0;
+		  sev->h_subcrate = _conf._crate;
+		  sev->i_procid   = 0;
+
+		  char *sev_start = (char*) (sev + 1);
+		  uint32_t *p = (uint32_t *) sev_start;
+
+		  sticky_base = rxs64s(&rstate_sticky_base) % 200;
+		  *(p++) = sticky_base;
+		  
+		  char *sevp_end = (char *) p;
+
+		  sev->_header.l_dlen =
+		    SUBEVENT_DLEN_FROM_DATA_LENGTH(sevp_end - sev_start);
+
+		  evp_end = sevp_end;
+		}
+
 	      ev->_header.l_dlen    =
 		DLEN_FROM_EVENT_DATA_LENGTH(evp_end - (char *) &ev->_info);
 
@@ -913,6 +950,8 @@ void write_data_lmd()
 		       */
 		      *(p++) = sticky_active;
 		      *(p++) = sticky_mark;
+		      *(p++) = sticky_base * 100 +
+			rxs64s(&rstate_sticky_corr) % 100;
 
 		      sevp_write = (char *) p;
 
