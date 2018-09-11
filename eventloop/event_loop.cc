@@ -1139,8 +1139,20 @@ void unpack_subevent(event_base_t &eb,
 }
 
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
-void ucesb_event_loop::pre_unpack_event(event_base &eb,
-					source_event_hint_t *hints)
+void ucesb_event_loop::pre1_unpack_event(FILE_INPUT_EVENT *src_event)
+{
+#ifdef USE_LMD_INPUT
+  // First get the basic event info
+  src_event->get_10_1_info();    // this may throw up (also)...
+#endif
+
+  // The above figures out if an event is sticky, so must before
+  // we call the correct version of pre2_unpack_event...
+}
+
+template<typename T_event_base>
+void ucesb_event_loop::pre2_unpack_event(T_event_base &eb,
+					 source_event_hint_t *hints)
 {
   eb._unpack.__clean();
   eb._unpack.__clear_visited();
@@ -1149,11 +1161,6 @@ void ucesb_event_loop::pre_unpack_event(event_base &eb,
   FILE_INPUT_EVENT *src_event = (FILE_INPUT_EVENT *) eb._file_event;
 #else
   FILE_INPUT_EVENT *src_event = &_file_event;
-#endif
-
-#ifdef USE_LMD_INPUT
-  // First get the basic event info
-  src_event->get_10_1_info();    // this may throw up (also)...
 #endif
 
 #ifdef USE_LMD_INPUT
@@ -1172,7 +1179,18 @@ void ucesb_event_loop::pre_unpack_event(event_base &eb,
 
   src_event->locate_subevents(hints); // this may throw up...
 }
+
+// Force instantiation
+template
+void ucesb_event_loop::
+pre2_unpack_event<event_base>(event_base &eb,
+			      source_event_hint_t *hints);
+template
+void ucesb_event_loop::
+pre2_unpack_event<sticky_event_base>(sticky_event_base &eb,
+				     source_event_hint_t *hints);
 #endif//USE_LMD_INPUT || USE_HLD_INPUT || USE_RIDF_INPUT
+
 
 #if defined(USE_LMD_INPUT)
 void ucesb_event_loop::stitch_event(event_base &eb,
@@ -1412,7 +1430,6 @@ template
 void ucesb_event_loop::unpack_event<event_base>(event_base &eb);
 template
 void ucesb_event_loop::unpack_event<sticky_event_base>(sticky_event_base &eb);
-
 
 void ucesb_event_loop::force_event_data(event_base &eb
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)

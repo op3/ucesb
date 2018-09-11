@@ -1375,7 +1375,15 @@ get_next_event:
 #endif
 		{
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
-		  loop.pre_unpack_event(*event, &loop._source_event_hint);
+		  loop.pre1_unpack_event(file_event);
+#if defined(USE_LMD_INPUT)
+		  if (file_event->is_sticky())
+		    loop.pre2_unpack_event(*sticky_event,
+					   &loop._source_event_hint);
+		  else
+#endif
+		    loop.pre2_unpack_event(*event,
+					   &loop._source_event_hint);
 #endif
 
 	      if (_conf._print)

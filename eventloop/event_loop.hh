@@ -198,11 +198,13 @@ protected:
 		   input_buffer **file_input
 		   PTHREAD_PARAM(thread_block *block_reader) );
 public:
-  static void pre_unpack_event(event_base &eb
+  static void pre1_unpack_event(FILE_INPUT_EVENT *src_event);
+  template<typename T_event_base>
+  static void pre2_unpack_event(T_event_base &eb
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
-			       , source_event_hint_t *hints
+				, source_event_hint_t *hints
 #endif
-			       );
+				);
 
   static void stitch_event(event_base &eb,
 			   stitch_info *stitch);
