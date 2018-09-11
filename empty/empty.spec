@@ -25,6 +25,12 @@ EVENT
   ignore_unknown_subevent;
 }
 
+STICKY_EVENT
+{
+  ignore_unknown_subevent;
+}
+
+
 
 
 // Before 'ignore_unknown_subevent' was implemented, all
