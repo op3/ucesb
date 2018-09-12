@@ -690,17 +690,27 @@ void write_data_lmd()
 		  sev->i_procid   = 0;
 
 		  char *sev_start = (char*) (sev + 1);
-		  uint32_t *p = (uint32_t *) sev_start;
 
-		  sticky_base = rxs64s(&rstate_sticky_base) % 200;
-		  *(p++) = sticky_base;
+		  if (sticky_kill & 1)
+		    {
+		      sev->_header.l_dlen = -1;
+		      evp_end = sev_start;
+		      sticky_base = 0;
+		    }
+		  else
+		    {
+		      uint32_t *p = (uint32_t *) sev_start;
+
+		      sticky_base = rxs64s(&rstate_sticky_base) % 200;
+		      *(p++) = sticky_base;
 		  
-		  char *sevp_end = (char *) p;
+		      char *sevp_end = (char *) p;
 
-		  sev->_header.l_dlen =
-		    SUBEVENT_DLEN_FROM_DATA_LENGTH(sevp_end - sev_start);
+		      sev->_header.l_dlen =
+			SUBEVENT_DLEN_FROM_DATA_LENGTH(sevp_end - sev_start);
 
-		  evp_end = sevp_end;
+		      evp_end = sevp_end;
+		    }
 		}
 
 	      ev->_header.l_dlen    =
