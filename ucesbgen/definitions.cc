@@ -127,6 +127,29 @@ void insert_signal_info(signal_info *sig_info)
 						      sig_info));
 }
 
+void mark_subevents_sticky(event_definition *evt)
+{
+  const struct_decl_list *items = evt->_items;
+  struct_decl_list::const_iterator i;
+
+  for (i = items->begin(); i != items->end(); ++i)
+    {
+      struct_decl *decl = *i;
+
+      if (decl->is_event_opt())
+	continue;
+
+      struct_definition *str_def;
+
+      str_def = find_subevent_structure(decl->_ident);
+
+      if (!str_def)
+	ERROR_LOC(decl->_loc,"Failed to find subevent %s.",decl->_ident);
+
+      str_def->_opts |= STRUCT_DEF_OPTS_STICKY_SUBEV;
+    } 
+}
+
 void map_definitions()
 {
   if (!all_definitions)
@@ -249,6 +272,8 @@ void map_definitions()
       the_sticky_event->_opts |=
 	EVENT_OPTS_STICKY | EVENT_OPTS_INTENTIONALLY_EMPTY;
     }
+
+  mark_subevents_sticky(the_sticky_event);
 }
 
 void generate_unpack_code()

@@ -150,6 +150,11 @@ public:
 
 };
 
+class unpack_sticky_subevent_base_correlation :
+  public unpack_subevent_base_correlation
+{
+};
+
 class unpack_event_base_correlation
 {
 public:

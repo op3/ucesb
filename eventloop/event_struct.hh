@@ -135,6 +135,12 @@ public:
   // void map_members(const struct unpack_subevent_base_map& map MAP_MEMBERS_PARAM) const { }
 };
 
+class unpack_sticky_subevent_base :
+  public unpack_subevent_base
+{
+
+};
+
 class raw_event_base
 {
 

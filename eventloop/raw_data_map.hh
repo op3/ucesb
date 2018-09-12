@@ -212,6 +212,11 @@ public:
 
 };
 
+class unpack_sticky_subevent_base_map :
+  public unpack_subevent_base_map
+{
+};
+
 class unpack_event_base_map
 {
 public:

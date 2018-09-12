@@ -236,6 +236,12 @@ public:
 };
 
 template <typename Twatcher_channel>
+class unpack_sticky_subevent_base_watcher :
+  public unpack_subevent_base_watcher<Twatcher_channel>
+{
+};
+
+template <typename Twatcher_channel>
 class unpack_event_base_watcher
 {
 public:

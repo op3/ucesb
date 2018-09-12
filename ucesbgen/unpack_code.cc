@@ -294,7 +294,9 @@ void struct_unpack_code::gen(const struct_definition *str,
       d.text("\n");
       d.text("#endif//PACKER_CODE\n");
       if (subevent_header)
-	d.text(" : public unpack_subevent_base");
+	d.text_fmt(" : public unpack_%ssubevent_base",
+		   str->_opts & STRUCT_DEF_OPTS_STICKY_SUBEV ?
+		   "sticky_" : "");
       d.text("\n");
       d.text("{\n");
       d.text("public:\n");
