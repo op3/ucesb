@@ -1138,6 +1138,19 @@ void unpack_subevent(event_base_t &eb,
     show_remaining(eb,ev_header,src,start,loc);
 }
 
+void unpack_clean(event_base &eb)
+{
+  eb._unpack.__clean();
+  eb._unpack.__clear_visited();
+}
+
+void unpack_clean(sticky_event_base &eb)
+{
+  // Sticky events are NOT cleared every time they get unpacked.
+  eb._unpack.__clean();
+  eb._unpack.__clear_visited();
+}
+
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
 void ucesb_event_loop::pre1_unpack_event(FILE_INPUT_EVENT *src_event)
 {
@@ -1154,8 +1167,7 @@ template<typename T_event_base>
 void ucesb_event_loop::pre2_unpack_event(T_event_base &eb,
 					 source_event_hint_t *hints)
 {
-  eb._unpack.__clean();
-  eb._unpack.__clear_visited();
+  unpack_clean(eb);
 
 #if USE_THREADING || USE_MERGING
   FILE_INPUT_EVENT *src_event = (FILE_INPUT_EVENT *) eb._file_event;
@@ -1393,8 +1405,7 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 #endif
     }
 #else
-  /*_event*/eb._unpack.__clean();
-  eb._unpack.__clear_visited();
+  unpack_clean(eb);
 
 #if defined(USE_PAX_INPUT) || defined(USE_GENF_INPUT) || \
     defined(USE_EBYE_INPUT_16)
@@ -1482,6 +1493,7 @@ void init_sticky_idx()
 {
 #if STICKY_EVENT_IS_NONTRIVIAL
   _static_sticky_event._unpack.sticky_idx = 0;
+  _static_sticky_event._unpack.__clean();
 #endif
 }
 
@@ -1674,8 +1686,7 @@ bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 #if defined(USE_EXT_WRITER)
       if (_ext_source)
 	{
-	  eb._unpack.__clean();
-	  eb._unpack.__clear_visited();
+	  unpack_clean(eb);
 	  _ext_source->unpack_event();
 
 	  if (_dump_request)
