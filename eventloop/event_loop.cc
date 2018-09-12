@@ -1138,6 +1138,31 @@ void unpack_subevent(event_base_t &eb,
     show_remaining(eb,ev_header,src,start,loc);
 }
 
+template<typename event_base_t,typename subevent_header_t>
+void revoke_subevent(event_base_t &eb,
+		     subevent_header_t *ev_header)
+{
+  int loc;
+  loc = eb._unpack.__revoke_subevent((subevent_header*) ev_header);
+
+  if (!loc)
+    {
+      char headermsg[128];
+
+      if (eb._unpack.ignore_unknown_subevent())
+	return;
+
+      const char *subevstr =
+	eb.is_sticky() ? "Sticky subevent" : "Subevent";
+
+      err_bold_header(headermsg,ev_header);
+
+      eb._unpack_fail._next = ev_header;
+      ERROR(ERR_NOBOLD "%s: " ERR_NOBOLD "%s unknown, cannot revoke.",
+	    subevstr, headermsg);
+    }
+}
+
 void unpack_clean(event_base &eb)
 {
   eb._unpack.__clean();
@@ -1147,7 +1172,6 @@ void unpack_clean(event_base &eb)
 void unpack_clean(sticky_event_base &eb)
 {
   // Sticky events are NOT cleared every time they get unpacked.
-  eb._unpack.__clean();
   eb._unpack.__clear_visited();
 }
 
@@ -1347,6 +1371,12 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 					&subevent_info->_header,
 					start, end, src_event->_swapping);
 #endif
+	}
+
+      if (start == NULL)
+	{
+	  revoke_subevent(eb,&subevent_info->_header);
+	  continue;
 	}
 
 #ifdef USE_LMD_INPUT

@@ -141,6 +141,12 @@ public:
 			     char *&start,char *&end);
   void print_event(int data,hex_dump_mark_buf *unpack_fail) const;
   bool is_sticky() const { return _status & LMD_EVENT_IS_STICKY; }
+  bool is_subevent_sticky_revoke(lmd_subevent *subevent_info) const
+  {
+    return ((_status & LMD_EVENT_IS_STICKY) &&
+	    subevent_info->_header._header.l_dlen ==
+	    LMD_SUBEVENT_STICKY_DLEN_REVOKE);
+  }
 };
 
 #define FILE_INPUT_EVENT lmd_event

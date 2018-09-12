@@ -1554,6 +1554,12 @@ void lmd_event::get_subevent_data_src(lmd_subevent *subevent_info,
   // So that one would use a special function, and not this one.
   // This one is for use by normal processors.
 
+  if (is_subevent_sticky_revoke(subevent_info))
+    {
+      start = end = NULL;
+      return;
+    }
+
   // We have a few cases.  Either the data was not fragmented:
 
   size_t data_length = (size_t)
