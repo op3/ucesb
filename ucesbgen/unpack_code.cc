@@ -219,10 +219,12 @@ void generate_unpack_code(event_definition *event)
   dumper hd(&code->_headers);
   dumper udu(&code->_code_unpack);
   dumper udp(&code->_code_packer);
+  dumper udr(&code->_code_revoke);
 
   code->gen(event,hd,UCT_HEADER);
   code->gen(event,udu,UCT_UNPACK);
   code->gen(event,udp,UCT_PACKER);
+  code->gen(event,udr,UCT_REVOKE);
 
   // Now we're done! (now we may be called without recursion)
   code->_done = true;
@@ -248,6 +250,12 @@ void generate_unpack_code(event_definition *event)
   print_header("PACKER",comment);
   code->_code_packer.fwrite(stdout);
   print_footer("PACKER");
+
+  sprintf (comment,
+           "Event revoker for EVENT.");
+  print_header("REVOKE",comment);
+  code->_code_revoke.fwrite(stdout);
+  print_footer("REVOKE");
 
   sprintf (comment,
            "Mappings of names for [incl|excl] name lookup.");
@@ -1121,7 +1129,7 @@ void struct_unpack_code::gen(const struct_select*select,dumper &d,uint32 type,
 			     match_end_info *mei,bool last_subevent_item)
 {
   gen_match(select->_loc,
-	    select->_items,d,type,mei,false,last_subevent_item,true,
+	    select->_items,d,type,mei,false,last_subevent_item,true,false,
 	    select->_flags);
 }
 
@@ -1173,6 +1181,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 				   bool subevent,
 				   bool last_subevent_item,
 				   bool warn_empty,
+				   bool sticky,
 				   int flags)
 
 {
@@ -1217,7 +1226,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
   	}
     }
 
-  if (type & (UCT_UNPACK | UCT_MATCH))
+  if (type & (UCT_UNPACK | UCT_MATCH | UCT_REVOKE))
     {
       char *abort_spurious_label = NULL;
       static int check_visit_counter = 0;
@@ -1371,7 +1380,7 @@ void struct_unpack_code::gen_match(const file_line &loc,
 	    if (mei->can_end(true))
 	      sd.text("return true;\n");
 	  }
-	if (type & UCT_UNPACK)
+	if (type & (UCT_UNPACK | UCT_REVOKE))
 	  {
 	    sd.text("switch (__match_no)\n");
 	    sd.text("{\n");
@@ -1400,8 +1409,10 @@ void struct_unpack_code::gen_match(const file_line &loc,
 			decl->_name->dump(sssd);
 			sssd.text_fmt(",%d);\n",index_check_visit++);
 		      }
-		    sssd.text_fmt("UNPACK_SUBEVENT_DECL(%d,%s,",
-				 decl->_loc._internal,decl->_ident);
+		    sssd.text_fmt("%s_SUBEVENT_DECL(%d,%d,%s,",
+				  type & UCT_UNPACK ? "UNPACK" : "REVOKE",
+				  decl->_loc._internal,sticky ? 1 : 0,
+				  decl->_ident);
 		    decl->_name->dump(sssd);
 		    sssd.text(");\n");
 		  }
@@ -1708,6 +1719,12 @@ void struct_unpack_code::gen(const event_definition *evt,
       d.text(")\n");
     }
 
+  if (type & UCT_REVOKE)
+    {
+      d.text_fmt("int %s",event_class);
+      d.text("::__revoke_subevent(subevent_header *__header)\n");
+    }
+
   if (!subevent_cond_params)
     {
       subevent_cond_params = new param_list;
@@ -1731,7 +1748,8 @@ void struct_unpack_code::gen(const event_definition *evt,
     }
 
   gen_match(evt->_loc,evt->_items,d,type,NULL,true,false,
-	    !(evt->_opts & EVENT_OPTS_INTENTIONALLY_EMPTY),0);
+	    !(evt->_opts & EVENT_OPTS_INTENTIONALLY_EMPTY),
+	    evt->_opts & EVENT_OPTS_STICKY,0);
 
   if (type & UCT_HEADER)
     {
@@ -1740,6 +1758,7 @@ void struct_unpack_code::gen(const event_definition *evt,
       d.col0_text("#ifndef __PSDC__\n");
       d.text("template<typename __data_src_t>\n");
       d.text("  int __unpack_subevent(subevent_header *__header,__data_src_t &__buffer);\n");
+      d.text("  int __revoke_subevent(subevent_header *__header);\n");
       d.text("  // void __clean_event();\n");
       d.nl();
       d.text_fmt("  STRUCT_FCNS_DECL(%s);\n",event_class);

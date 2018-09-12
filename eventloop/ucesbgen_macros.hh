@@ -352,9 +352,10 @@
 #endif
 
 #if defined __GNUC__ && __GNUC__ < 3 // 2.95 do not do iso99 variadic macros
-#define UNPACK_SUBEVENT_DECL(loc,decltype,declname,__VA_ARGS__...) { \
+#define UNPACK_SUBEVENT_DECL(loc,sticky,decltype,declname,__VA_ARGS__...) { \
   try {                         \
-    (declname).__unpack(__buffer, ## __VA_ARGS__);  \
+    if (sticky) { (declname).__clean(); }		\
+    (declname).__unpack(__buffer, ## __VA_ARGS__);	\
   } catch (error &e) {          \
     print_error(e);             \
     ERROR_U_LOC((loc),"Unpack failure in subevent %s %s.",#decltype,#declname); \
@@ -362,13 +363,26 @@
   return (loc);                 \
 }
 #else
-#define UNPACK_SUBEVENT_DECL(loc,decltype,declname,...) { \
+#define UNPACK_SUBEVENT_DECL(loc,sticky,decltype,declname,...) {	\
   try {                         \
+    if (sticky) { (declname).__clean(); }	    \
     (declname).__unpack(__buffer, ## __VA_ARGS__);  \
   } catch (error &e) {          \
     print_error(e);             \
     ERROR_U_LOC((loc),"Unpack failure in subevent %s %s.",#decltype,#declname); \
   }                             \
+  return (loc);                 \
+}
+#endif
+
+#if defined __GNUC__ && __GNUC__ < 3 // 2.95 do not do iso99 variadic macros
+#define REVOKE_SUBEVENT_DECL(loc,sticky,decltype,declname,__VA_ARGS__...) { \
+  if (sticky) { (declname).__clean(); }		\
+  return (loc);                 \
+}
+#else
+#define REVOKE_SUBEVENT_DECL(loc,sticky,decltype,declname,...) {	\
+  if (sticky) { (declname).__clean(); }		\
   return (loc);                 \
 }
 #endif

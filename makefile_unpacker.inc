@@ -144,6 +144,7 @@ GENERATED = $(GENDIR)/clean_structures.hh \
 	$(GENDIR)/raw_struct_dump.psd \
 	$(GENDIR)/subevent_names.hh \
 	$(GENDIR)/packer.hh \
+	$(GENDIR)/revoke.hh \
 	$(GENDIR)/unpacker_defines.hh
 
 OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
@@ -614,6 +615,10 @@ $(GENDIR)/unpacker.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 $(GENDIR)/packer.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) PACKER < $< > $@
+
+$(GENDIR)/revoke.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
+	@echo " EXTRACT $@"
+	@$(EXTRACT) REVOKE < $< > $@
 
 $(GENDIR)/matcher.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"

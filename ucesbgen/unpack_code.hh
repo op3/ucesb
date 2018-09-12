@@ -30,7 +30,8 @@
 #define UCT_UNPACK   0x02
 #define UCT_MATCH    0x04
 #define UCT_PACKER   0x08
-#define UCT_MEMBER_ARG 0x10 // dirty trick
+#define UCT_REVOKE   0x10
+#define UCT_MEMBER_ARG 0x20 // dirty trick
 
 struct indexed_type_ind
 {
@@ -84,6 +85,7 @@ public:
   dumper_dest_memory _code_unpack;
   dumper_dest_memory _code_match;
   dumper_dest_memory _code_packer;
+  dumper_dest_memory _code_revoke;
 
 public:
   bool _done;
@@ -122,6 +124,7 @@ public:
 		 bool subevent,
 		 bool last_subevent_item,
 		 bool warn_empty,
+		 bool sticky,
 		 int flags);
 
   bool gen_optimized_match(const file_line &loc,
