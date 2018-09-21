@@ -48,7 +48,7 @@
 # We still need access to the ucesb/ directory, since the ucesb and
 # psdc programs are there, and since the common source also is there
 
-TREE_OR_HOME_SRC_DIR = $(firstword $(wildcard $(addsuffix /$(1),$(shell pwd)/.. $(HOME))))
+TREE_OR_HOME_SRC_DIR = $(realpath $(firstword $(wildcard $(addsuffix /$(1),$(shell pwd)/.. $(HOME)))))
 
 UCESB_BASE_DIR=$(call TREE_OR_HOME_SRC_DIR,ucesb)
 export UCESB_BASE_DIR

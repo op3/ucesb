@@ -1,8 +1,8 @@
 # -*- Makefile -*-
 
 TREE_UCESB_OR_HOME_SRC_DIR = \
-  $(firstword $(wildcard $(addsuffix /$(1),\
-                             $(shell pwd)/.. $(UCESB_BASE_DIR)/.. $(HOME))))
+  $(realpath $(firstword $(wildcard $(addsuffix /$(1),\
+                             $(shell pwd)/.. $(UCESB_BASE_DIR)/.. $(HOME)))))
 
 define CHECK_DIRECTORY_EXIST
 DIR_EXISTS:=$(shell test -d '$(1)' && echo exists)
