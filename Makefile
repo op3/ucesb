@@ -86,7 +86,7 @@ $(EXTTDIR)/ext_h99.h: $(EXT_WRITER_TEST)
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
 	    echo "---------------" ; mv $@ $@.fail ; false)
-	@#rm $@.out $@.err
+#	#@rm $@.out $@.err
 
 $(EXTTDIR)/ext_reader_h99_stderr: hbook/example/ext_data_reader_h99_stderr.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h99.h
 	@echo "  BUILD  $@"
@@ -118,7 +118,7 @@ $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 	    echo "--- stderr (ext_writer_test): ---"; cat $@.err2 ; \
 	    echo "--- stderr ($@): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2
+#	#@rm $@.out $@.err $@.err2
 	@touch $@
 
 $(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
@@ -132,7 +132,7 @@ $(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr : ---"; cat $@.err ; \
 	    echo "---------------" ; mv $@ $@.fail ; false)
-	@#rm $@.out $@.err
+#	#@rm $@.out $@.err
 	@touch $@
 
 #########################################################
@@ -166,7 +166,7 @@ $(EXTTDIR)/ext_h101.h: empty/empty $(EXT_STRUCT_WRITER)
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
 	    echo "---------------" ; mv $@ $@.fail ; false)
-	@#rm $@.out $@.err
+#	#@rm $@.out $@.err
 
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
 $(EXTTDIR)/ext_reader_h101: hbook/example/ext_data_reader.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
@@ -209,7 +209,7 @@ $(EXTTDIR)/ext_reader_h%.runstamp: $(EXTTDIR)/ext_reader_h% $(EMPTY_FILE)
 	    echo "--- stderr (empty): ---"; cat $@.err2 ; \
 	    echo "--- stderr ($@): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2 $@.err3
+#	#@rm $@.out $@.err $@.err2 $@.err3
 	@touch $@
 
 $(EXTTDIR)/ext_writer_h%.runstamp: $(EXTTDIR)/ext_writer_h% $(EMPTY_FILE)
@@ -224,7 +224,7 @@ $(EXTTDIR)/ext_writer_h%.runstamp: $(EXTTDIR)/ext_writer_h% $(EMPTY_FILE)
 	    echo "--- stderr ($@): ---"; cat $@.err2 ; \
 	    echo "--- stderr (empty): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2
+#	#@rm $@.out $@.err $@.err2
 	@touch $@
 
 #########################################################
@@ -278,8 +278,8 @@ $(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_r
 	    echo "--- stdout: ---" ; cat $@.out2 ; \
 	    echo "--- stderr: ---"; cat $@.err2 ; \
 	    echo "---------------" ; mv $@ $@.fail ; false)
-	@#rm $@.out $@.err
-	@#rm $@.out2 $@.err2
+#	#@rm $@.out $@.err
+#	#@rm $@.out2 $@.err2
 
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
 $(EXTTDIR)/ext_reader_xtst_regress: hbook/example/ext_data_reader_xtst_regress.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_xtst_regress.h hbook/example/test_caen_v775_data.h hbook/example/test_caen_v1290_data.h
@@ -300,7 +300,7 @@ $(EXTTDIR)/ext_reader_xtst_regress.runstamp: $(EXTTDIR)/ext_reader_xtst_regress 
 	    echo "--- stderr (xtst): ---"; cat $@.err2 ; \
 	    echo "--- stderr ($@): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2 $@.err3
+#	#@rm $@.out $@.err $@.err2 $@.err3
 	@touch $@
 
 $(EXTTDIR)/ext_reader_xtst_regress_more.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
@@ -316,7 +316,7 @@ $(EXTTDIR)/ext_reader_xtst_regress_more.runstamp: $(EXTTDIR)/ext_reader_xtst_reg
 	    echo "--- stderr (xtst): ---"; cat $@.err2 ; \
 	    echo "--- stderr ($@): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2 $@.err3
+#	#@rm $@.out $@.err $@.err2 $@.err3
 	@touch $@
 
 $(EXTTDIR)/ext_reader_xtst_regress_less.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
@@ -332,7 +332,7 @@ $(EXTTDIR)/ext_reader_xtst_regress_less.runstamp: $(EXTTDIR)/ext_reader_xtst_reg
 	    echo "--- stderr (xtst): ---"; cat $@.err2 ; \
 	    echo "--- stderr ($@): ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@#rm $@.out $@.err $@.err2 $@.err3
+#	#@rm $@.out $@.err $@.err2 $@.err3
 	@touch $@
 
 #########################################################
