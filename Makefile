@@ -25,7 +25,7 @@
 #LEX=flex    # needed on cygwin
 #export LEX  #           cygwin
 
-UCESB_BASE_DIR=$(shell pwd)
+UCESB_BASE_DIR:=$(shell pwd)
 export UCESB_BASE_DIR
 
 #CXX=g++-3.2

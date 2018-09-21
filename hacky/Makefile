@@ -50,7 +50,7 @@
 
 TREE_OR_HOME_SRC_DIR = $(realpath $(firstword $(wildcard $(addsuffix /$(1),$(shell pwd)/.. $(HOME)))))
 
-UCESB_BASE_DIR=$(call TREE_OR_HOME_SRC_DIR,ucesb)
+UCESB_BASE_DIR:=$(call TREE_OR_HOME_SRC_DIR,ucesb)
 export UCESB_BASE_DIR
 
 #########################################################
