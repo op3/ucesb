@@ -96,7 +96,7 @@ rfcat.dep: $(AUTO_DEPS)
 
 rfcat.base.dep: rfcat.dep
 	@echo " BASEDEP $@"
-	@echo '$$(UCESB_BASE_DIR)/rfiocmd/$(MAKECMDGOALS): \\' > $@
+	@echo '$$(UCESB_BASE_DIR)/rfiocmd/$(MAKECMDGOALS): \' > $@
 	@cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
 	  sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/rfiocmd/,g' | sort -u >> $@
 

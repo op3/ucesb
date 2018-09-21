@@ -100,7 +100,7 @@ empty_file.dep: $(AUTO_DEPS)
 
 empty_file.base.dep: empty_file.dep
 	@echo " BASEDEP $@"
-	@echo '$$(UCESB_BASE_DIR)/file_input/$(MAKECMDGOALS): \\' > $@
+	@echo '$$(UCESB_BASE_DIR)/file_input/$(MAKECMDGOALS): \' > $@
 	@cat $< | grep -v ' \\' | sed -e 's,  /, /,' | \
 	  sed -e 's,  ,  $$\(UCESB_BASE_DIR\)/file_input/,g' | sort -u >> $@
 
