@@ -134,7 +134,7 @@ struct config
   uint64 _max_buffers;
   uint64 _max_events;
 
-  int  _max_rate;
+  uint64 _max_rate;
 
   uint _format;
 };
@@ -457,7 +457,7 @@ void write_data_lmd()
   uint32_t sticky_active = 0;
   uint32_t sticky_mark = 0;
 
-  uint32_t sticky_payload_count;
+  uint32_t sticky_payload_count = 0;
 
   // round the buffer size up to next multiple of 1024 bytes.
   // default size is 32k
@@ -718,7 +718,7 @@ void write_data_lmd()
 		  write_multi_info ||
 		  write_caen_vxxx ||
 		  write_sticky_mark ||
-		  evp_end - (char*) ev < event_size) &&
+		  evp_end - (char*) ev < (ssize_t) event_size) &&
 		 _buffer_end - evp_end >= need_subevent_total_size)
 	    {
 	      lmd_subevent_10_1_host *sev =
@@ -728,14 +728,14 @@ void write_data_lmd()
 	      char *sevp_write = sevp_start;
 	      char *sevp_cut = NULL;
 
-	      uint sev_len =
+	      ssize_t sev_len =
 		_buffer_end - sevp_start;
 
 	      uint subevent_size = _conf._subevent_size;
 	      if (_conf._random_size && subevent_size)
 		subevent_size = rxs64s(&rstate_sevsize) % (subevent_size+1);
 
-	      if (sev_len > subevent_size)
+	      if (sev_len > (ssize_t) subevent_size)
 		sev_len = subevent_size;
 
 	      ssize_t need_subevent_data_size =
@@ -817,7 +817,7 @@ void write_data_lmd()
 
 		      *(p++) = 0xdf000000 | nmulti;
 
-		      for (int j = 0; j < nmulti; j++)
+		      for (uint32 j = 0; j < nmulti; j++)
 			{
 			  *(p++) =
 			    (uint32_t) rxs64s(&rstate); // lo time
@@ -865,7 +865,7 @@ void write_data_lmd()
 		    {
 		      int crate = 0x80 - geom; // for fun!
 
-		      for (int j = 0; j < num_toggle_ev[geom % 3]
+		      for (uint32_t j = 0; j < num_toggle_ev[geom % 3]
 			     /*_conf._toggle ?
 			       num_toggle_ev[geom % 3] : nmulti*/; j++)
 			{
@@ -889,7 +889,7 @@ void write_data_lmd()
 		  for (int geom = 1; geom <= _conf._caen_v1290 &&
 			 geom < 32; geom++)
 		    {
-		      for (int j = 0; j < nmulti; j++)
+		      for (uint32 j = 0; j < nmulti; j++)
 			{
 			  caen_v1290_data cev;
 
@@ -1003,7 +1003,8 @@ void write_data_ebye()
 
       if (!_conf._empty_buffers)
 	{
-	  while (_buffer_end - data_end >= 2*sizeof(ebye_event_header) &&
+	  while (_buffer_end - data_end >=
+		 (ssize_t) (2*sizeof(ebye_event_header)) &&
 		 nev < _conf._max_events)
 	    {
 	      nev++;
@@ -1062,7 +1063,8 @@ void write_data_pax()
 
       if (!_conf._empty_buffers)
 	{
-	  while (_buffer_end - data_end >= 2*sizeof(pax_event_header) &&
+	  while (_buffer_end - data_end >=
+		 (ssize_t) (2*sizeof(pax_event_header)) &&
 		 nev < _conf._max_events)
 	    {
 	      nev++;
