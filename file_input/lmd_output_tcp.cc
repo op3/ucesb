@@ -1803,6 +1803,7 @@ void lmd_server_usage()
   printf ("hold                Wait for clients, no data discarded.\n");
   printf ("sendonce            Only one receiver per stream, for fan-out.\n");
   printf ("forcemap            No data transmission on fixed port (avoid timeout on bind).\n");
+  printf ("nopmap              Do not provide port mapping port.\n");
   printf ("\n");
 }
 
@@ -1820,6 +1821,7 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
   int stream_port = -1;
   int trans_port = -1;
   bool forcemap = false;
+  bool nopmap = false;
 
   uint64 max_size = LMD_OUTPUT_DEFAULT_MAX_BUF;
 
@@ -1856,6 +1858,8 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 	out_tcp->_state._sendonce = true;
       else if (MATCH_C_ARG("forcemap"))
 	forcemap = true;
+      else if (MATCH_C_ARG("nopmap"))
+	nopmap = true;
       else if (MATCH_C_PREFIX("bufsize=",post))
 	{
 	  out_tcp->_state._buf_size =
@@ -1884,6 +1888,9 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
       free(request);
       command = next_cmd;
     }
+
+  if (nopmap && forcemap)
+    ERROR("nopmap and forcemap options are mutually exclusive.");
 
   out_tcp->_state._max_streams =
     (int) (max_size /
@@ -1914,11 +1921,13 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
       /* Bind portmap port before legacy port, so clients do not accidentaly
        * revert to the legacy port while we are trying to bind.
        */
-      out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
-			     trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
-			     true,false);
+       if (!nopmap)
+	 out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
+				trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
+				true,false);
       if (!forcemap)
-	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,false,true);
+	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,
+			       nopmap ? true : false,true);
     }
 
   out_tcp->init();
