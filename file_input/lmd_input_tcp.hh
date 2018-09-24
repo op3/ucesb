@@ -176,7 +176,11 @@ public:
   int _fd;
 
 protected:
-  bool open_connection(const char *server,
+  bool parse_connection(const char *server,
+			struct sockaddr_in *p_serv_addr,
+			int *port,
+			int default_port);
+  bool open_connection(const struct sockaddr_in *p_serv_addr,
 		       int port, bool error_on_failure);
   void close_connection();
 
@@ -209,7 +213,8 @@ protected:
   size_t read_buffer(void *buf,size_t count,int *nbufs);
 
 protected:
-  size_t do_map_connect(const char *server, int port_map, int port);
+  size_t do_map_connect(const char *server,
+			int port_map_add, int default_port);
 
 };
 

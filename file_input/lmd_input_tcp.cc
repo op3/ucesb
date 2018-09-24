@@ -313,13 +313,15 @@ lmd_input_tcp::~lmd_input_tcp()
 
 #define max(x,y) ((x)>(y)?(x):(y))
 
-bool lmd_input_tcp::open_connection(const char *server,
-				    int port, bool error_on_failure)
+bool lmd_input_tcp::parse_connection(const char *server,
+				     struct sockaddr_in *p_serv_addr,
+				     int *port,
+				     int default_port)
 {
-  int rc;
-  struct sockaddr_in serv_addr;
   struct hostent *h;
   char *hostname;
+
+  *port = default_port;
 
   // if there is a colon in the hostname, interpret what follows as a
   // port number, overriding the default port
@@ -330,7 +332,7 @@ bool lmd_input_tcp::open_connection(const char *server,
 
     if (colon)
       {
-	port = atoi(colon+1);
+	*port = atoi(colon+1);
 	*colon = 0; // cut the hostname
       }
 
@@ -346,7 +348,24 @@ bool lmd_input_tcp::open_connection(const char *server,
   INFO(0,"Server '%s' known... (IP : %s) (port: %d).",
        h->h_name,
        inet_ntoa(*(struct in_addr *)h->h_addr_list[0]),
-       port);
+       *port);
+
+  p_serv_addr->sin_family = (sa_family_t) h->h_addrtype;
+  memcpy((char *) &p_serv_addr->sin_addr.s_addr,
+	 h->h_addr_list[0], (size_t) h->h_length);
+  // p_serv_addr->sin_port = htons(port);
+
+  return true;
+}
+
+bool lmd_input_tcp::open_connection(const struct sockaddr_in *p_serv_addr,
+				    int port, bool error_on_failure)
+{
+  int rc;
+  struct sockaddr_in serv_addr;
+
+  serv_addr = *p_serv_addr;
+  serv_addr.sin_port = htons(port);
 
   /* socket creation */
   _fd = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
@@ -354,11 +373,6 @@ bool lmd_input_tcp::open_connection(const char *server,
     ERROR("Cannot open socket.");
     return false;
   }
-
-  serv_addr.sin_family = (sa_family_t) h->h_addrtype;
-  memcpy((char *) &serv_addr.sin_addr.s_addr,
-	 h->h_addr_list[0], (size_t) h->h_length);
-  serv_addr.sin_port = htons(port);
 
   // Make the read file non-blocking to handle cases where the
   // read would be from some socket of sorts, that may actually
@@ -371,6 +385,8 @@ bool lmd_input_tcp::open_connection(const char *server,
       perror("fcntl()");
       exit(1);
     }
+
+  INFO(0,"Connecting port: %d",port);
 
   rc = ::connect(_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
   if (rc < 0) {
@@ -712,7 +728,6 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
 
   if (_info.bufsize == (uint32_t) LMD_TCP_INFO_BUFSIZE_MAXCLIENTS)
     {
-      // This should not happen to us!, since we know how to interpret the map
       ERROR("Buffer size -2, "
 	    "hint that maximum number of clients are already connected.");
     }
@@ -833,29 +848,39 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 /////////////////////////////////////////////////////////////////////
 
 size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
-					    int port_map, int port)
+					    int port_map_add,
+					    int default_port)
 {
+  struct sockaddr_in serv_addr;
+  int port;
+
+  if (!lmd_input_tcp::parse_connection(server, &serv_addr, &port,
+				       default_port))
+    return false;
+
   int data_port = -1;
   size_t ret;
 
-  if (port_map != -1)
+  if (port_map_add != -1)
     {
       // First try with port that only might provide mapping.
 
-      if (lmd_input_tcp_buffer::open_connection(server, port_map, false))
+      if (lmd_input_tcp_buffer::open_connection(&serv_addr,
+						port + port_map_add, false))
 	ret = lmd_input_tcp_buffer::read_info(&data_port);
     }
 
   if (data_port == -1)
     {
-      lmd_input_tcp_buffer::open_connection(server, port, true);
-      ret = lmd_input_tcp_buffer::read_info(port_map == -1 ? &data_port : NULL);
+      lmd_input_tcp_buffer::open_connection(&serv_addr, port, true);
+      ret = lmd_input_tcp_buffer::read_info(port_map_add == -1 ?
+					    &data_port : NULL);
     }
 
   if (data_port != -1)
     {
       lmd_input_tcp_buffer::close_connection();
-      lmd_input_tcp_buffer::open_connection(server, data_port, true);
+      lmd_input_tcp_buffer::open_connection(&serv_addr, data_port, true);
       ret = lmd_input_tcp_buffer::read_info(NULL);
     }
 
@@ -867,7 +892,7 @@ size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
 size_t lmd_input_tcp_transport::connect(const char *server)
 {
   return do_map_connect(server,
-			LMD_TCP_PORT_TRANS + LMD_TCP_PORT_TRANS_MAP_ADD,
+			LMD_TCP_PORT_TRANS_MAP_ADD,
 			LMD_TCP_PORT_TRANS);
 }
 
@@ -1166,8 +1191,14 @@ void lmd_input_tcp_event::send_acknowledge()
 
 size_t lmd_input_tcp_event::connect(const char *server)
 {
+  struct sockaddr_in serv_addr;
+  int port;
+  
   // First establish connection
-  lmd_input_tcp::open_connection(server, -1, LMD_TCP_PORT_EVENT);
+  if (!lmd_input_tcp::parse_connection(server, &serv_addr, &port,
+				       LMD_TCP_PORT_EVENT) ||
+      !lmd_input_tcp::open_connection(&serv_addr, port, true))
+    return false;
 
   // Then we are to setup, specify and send a filter description...
 
