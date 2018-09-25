@@ -716,6 +716,7 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
       (_info.streams & LMD_PORT_MAP_MARK_MASK) == LMD_PORT_MAP_MARK)
     {
       *data_port = _info.streams & LMD_PORT_MAP_PORT_MASK;
+      INFO(0,"Redirected -> port %d", *data_port);
       return 0;
     }
   
