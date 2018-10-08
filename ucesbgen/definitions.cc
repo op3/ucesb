@@ -127,7 +127,7 @@ void insert_signal_info(signal_info *sig_info)
 						      sig_info));
 }
 
-void mark_subevents_sticky(event_definition *evt)
+void mark_subevents_sticky(event_definition *evt, bool mark_sticky)
 {
   const struct_decl_list *items = evt->_items;
   struct_decl_list::const_iterator i;
@@ -146,7 +146,15 @@ void mark_subevents_sticky(event_definition *evt)
       if (!str_def)
 	ERROR_LOC(decl->_loc,"Failed to find subevent %s.",decl->_ident);
 
-      str_def->_opts |= STRUCT_DEF_OPTS_STICKY_SUBEV;
+      if (mark_sticky)
+	str_def->_opts |= STRUCT_DEF_OPTS_STICKY_SUBEV;
+      else
+	{
+	  if (str_def->_opts & STRUCT_DEF_OPTS_STICKY_SUBEV)
+	    ERROR_LOC(decl->_loc,
+		      "Subevent %s used both as normal and sticky.",
+		      decl->_ident);
+	}
     } 
 }
 
@@ -273,7 +281,8 @@ void map_definitions()
 	EVENT_OPTS_STICKY | EVENT_OPTS_INTENTIONALLY_EMPTY;
     }
 
-  mark_subevents_sticky(the_sticky_event);
+  mark_subevents_sticky(the_sticky_event, true);
+  mark_subevents_sticky(the_event, false);
 }
 
 void generate_unpack_code()
