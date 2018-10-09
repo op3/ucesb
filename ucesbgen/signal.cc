@@ -1027,6 +1027,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
 
       signal_spec *new_spec = new signal_spec(signal->_loc,
 					      signal->_order_index,
+					      signal->_sticky_flag,
 					      find_str_identifiers(name),ident,
 					      signal->_types,
 					      signal->_tag);

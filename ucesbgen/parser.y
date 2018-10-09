@@ -153,6 +153,7 @@ int _signal_spec_order_index = 0;
 %token STICKY_EVENT
 %token SUBEVENT
 %token SIGNAL
+%token STICKY
 %token TOGGLE
 %token UINT64
 %token UINT32
@@ -663,6 +664,7 @@ signal:
 	  SIGNAL '(' signal_ident_var ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				0,
 				$3->_name,$3->_ident,$5,0);
 	      delete $3; $$ = signal;
 	    }
@@ -670,6 +672,7 @@ signal:
                      signal_ident_var ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				      0,
 				      $3->_name,$3->_ident,
 				      $5->_name,$5->_ident,$7,0);
 	      delete $3; delete $5; $$ = signal;
@@ -678,15 +681,16 @@ signal:
                      signal_ident_var ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				0,
 				$4->_name,$4->_ident,$6,$3);
-	      delete $4; $$ =
-			   signal;
+	      delete $4; $$ = signal;
 	    }
         | SIGNAL '(' signal_tags
                      signal_ident_var ','
                      signal_ident_var ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				      0,
 				      $4->_name,$4->_ident,
 				      $6->_name,$6->_ident,$8,$3);
 	      delete $4; delete $6; $$ = signal;
@@ -697,6 +701,36 @@ signal:
 	  SIGNAL '(' signal_ident_null ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				0,
+				$3->_name,$3->_ident,$5,0);
+	      delete $3; $$ = signal;
+	    }
+	;
+
+signal:
+	  STICKY '(' signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				EVENT_OPTS_STICKY,
+				$3->_name,$3->_ident,$5,0);
+	      delete $3; $$ = signal;
+	    }
+        | STICKY '(' signal_ident_var ','
+                     signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				      EVENT_OPTS_STICKY,
+				      $3->_name,$3->_ident,
+				      $5->_name,$5->_ident,$7,0);
+	      delete $3; delete $5; $$ = signal;
+	    }
+	;
+
+signal:
+	  STICKY '(' signal_ident_null ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				EVENT_OPTS_STICKY,
 				$3->_name,$3->_ident,$5,0);
 	      delete $3; $$ = signal;
 	    }

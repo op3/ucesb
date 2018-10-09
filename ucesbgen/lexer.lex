@@ -127,6 +127,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
 "STICKY_EVENT" { return STICKY_EVENT; }
 "SUBEVENT"    { return SUBEVENT; }
 "SIGNAL"      { return SIGNAL; }
+"STICKY"      { return STICKY; }
 "TOGGLE"      { return TOGGLE; }
 "UINT64"      { return UINT64; }
 "UINT32"      { return UINT32; }
