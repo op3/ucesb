@@ -659,44 +659,60 @@ bits_condition:
 /*******************************************************/
 
 signal:
-	  SIGNAL '(' signal_ident_var ',' signal_types ')' { signal_spec* signal =
-                                                               new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                              $3->_name,$3->_ident,$5,0);
-                                                             delete $3; $$ = signal; }
+	  SIGNAL '(' signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$3->_name,$3->_ident,$5,0);
+	      delete $3; $$ = signal;
+	    }
         | SIGNAL '(' signal_ident_var ','
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
-                                                               new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                                     $3->_name,$3->_ident,
-                                                                                     $5->_name,$5->_ident,$7,0);
-                                                             delete $3; delete $5; $$ = signal; }
+                     signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				      $3->_name,$3->_ident,
+				      $5->_name,$5->_ident,$7,0);
+	      delete $3; delete $5; $$ = signal;
+	    }
 	| SIGNAL '(' signal_tags
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
-                                                               new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                               $4->_name,$4->_ident,$6,$3);
-                                                             delete $4; $$ = signal; }
+                     signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$4->_name,$4->_ident,$6,$3);
+	      delete $4; $$ =
+			   signal;
+	    }
         | SIGNAL '(' signal_tags
                      signal_ident_var ','
-                     signal_ident_var ',' signal_types ')' { signal_spec* signal =
-                                                               new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                                     $4->_name,$4->_ident,
-                                                                                     $6->_name,$6->_ident,$8,$3);
-                                                             delete $4; delete $6; $$ = signal; }
+                     signal_ident_var ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec_range(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				      $4->_name,$4->_ident,
+				      $6->_name,$6->_ident,$8,$3);
+	      delete $4; delete $6; $$ = signal;
+	    }
 	;
 
 signal:
-	  SIGNAL '(' IDENTIFIER ',' ',' signal_types ')'   { signal_spec* signal =
-                                                               new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-                                                                               $3,NULL,$6,0);
-                                                             $$ = signal; }
+	  SIGNAL '(' IDENTIFIER ',' ',' signal_types ')'
+	    { signal_spec* signal =
+		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$3,NULL,$6,0);
+	      $$ = signal;
+	    }
 	;
 
 signal_ident_var:
-	  IDENTIFIER ',' var_named   { signal_spec_ident_var* idvar = new signal_spec_ident_var($1,$3); $$ = idvar; }
+	  IDENTIFIER ',' var_named
+	    { signal_spec_ident_var* idvar =
+		new signal_spec_ident_var($1,$3); $$ = idvar;
+	    }
         ;
 
 signal_types:
-	  signal_type_unit                               { $$ = new signal_spec_types($1); }
-	| '(' signal_type_unit ',' signal_type_unit ')'  { $$ = new signal_spec_types($2,$4); }
+	  signal_type_unit
+	    { $$ = new signal_spec_types($1); }
+	| '(' signal_type_unit ',' signal_type_unit ')'
+	    { $$ = new signal_spec_types($2,$4); }
 	;
 
 signal_type:
@@ -706,7 +722,8 @@ signal_type:
 
 signal_type_unit:
 	  signal_type         { $$ = new signal_spec_type_unit($1); }
-	| signal_type STRING  { insert_prefix_units_exp(CURR_FILE_LINE,$2); $$ = new signal_spec_type_unit($1,$2); }
+	| signal_type STRING  { insert_prefix_units_exp(CURR_FILE_LINE,$2);
+	                        $$ = new signal_spec_type_unit($1,$2); }
 	;
 
 signal_tags:
@@ -731,9 +748,24 @@ signal_tag:
 	;
 
 signal_info:
-          SIGNAL '(' ZERO_SUPPRESS ':' IDENTIFIER ')' { signal_info* signal = new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,$5,SIGNAL_INFO_ZERO_SUPPRESS); $$ = signal; }
-	| SIGNAL '(' NO_INDEX_LIST ':' IDENTIFIER ')' { signal_info* signal = new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,$5,SIGNAL_INFO_NO_INDEX_LIST); $$ = signal; }
-	| SIGNAL '(' ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' ':' IDENTIFIER ')' { CHECK_ARRAY_SIZE($5,0x10000); signal_info* signal = new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,$8,SIGNAL_INFO_ZERO_SUPPRESS_MULTI,$5); $$ = signal; }
+          SIGNAL '(' ZERO_SUPPRESS ':' IDENTIFIER ')'
+	    { signal_info* signal =
+		new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$5,SIGNAL_INFO_ZERO_SUPPRESS); $$ = signal;
+	    }
+	| SIGNAL '(' NO_INDEX_LIST ':' IDENTIFIER ')'
+	    { signal_info* signal =
+		new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$5,SIGNAL_INFO_NO_INDEX_LIST); $$ = signal;
+	    }
+	| SIGNAL '(' ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' ':'
+	/**/         IDENTIFIER ')'
+	    { CHECK_ARRAY_SIZE($5,0x10000);
+	      signal_info* signal =
+		new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				$8,SIGNAL_INFO_ZERO_SUPPRESS_MULTI,$5);
+	      $$ = signal;
+	    }
         ;
 
 /*******************************************************/
