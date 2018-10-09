@@ -285,6 +285,7 @@ int _signal_spec_order_index = 0;
 %type <iValue>      signal_tag
 
 %type <sig_id_var>  signal_ident_var
+%type <sig_id_var>  signal_ident_null
 %type <sig_types>   signal_types
 %type <strValue>    signal_type
 %type <sig_type_unit> signal_type_unit
@@ -693,11 +694,11 @@ signal:
 	;
 
 signal:
-	  SIGNAL '(' IDENTIFIER ',' ',' signal_types ')'
+	  SIGNAL '(' signal_ident_null ',' signal_types ')'
 	    { signal_spec* signal =
 		new signal_spec(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
-				$3,NULL,$6,0);
-	      $$ = signal;
+				$3->_name,$3->_ident,$5,0);
+	      delete $3; $$ = signal;
 	    }
 	;
 
@@ -705,6 +706,13 @@ signal_ident_var:
 	  IDENTIFIER ',' var_named
 	    { signal_spec_ident_var* idvar =
 		new signal_spec_ident_var($1,$3); $$ = idvar;
+	    }
+        ;
+
+signal_ident_null:
+	IDENTIFIER ',' /* var_named omitted */
+	    { signal_spec_ident_var* idvar =
+		new signal_spec_ident_var($1,NULL); $$ = idvar;
 	    }
         ;
 
