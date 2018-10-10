@@ -272,6 +272,12 @@ public:
 };
 
 template <typename Twatcher_channel>
+class raw_sticky_base_watcher :
+  public raw_event_base_watcher<Twatcher_channel>
+{
+};
+
+template <typename Twatcher_channel>
 class cal_event_base_watcher
 {
 public:

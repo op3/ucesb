@@ -332,6 +332,13 @@ public:
 
 };
 
+class raw_sticky_base_calib_map :
+  public raw_event_base_calib_map
+{
+  
+};
+
+
 /*
 class cal_event_base_map
 {

@@ -176,6 +176,11 @@ public:
 
 };
 
+class raw_sticky_base_correlation :
+  public raw_event_base_correlation
+{
+};
+
 class cal_event_base_correlation
 {
 public:
