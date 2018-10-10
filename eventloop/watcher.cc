@@ -414,8 +414,11 @@ void raw_array_watcher<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n>::
 #undef  FCNCALL_CALL_CTRL_WRAP_ARRAY
 #undef STRUCT_ONLY_LAST_UNION_MEMBER
 
-void watcher_one_event(WATCH_MEMBERS_SINGLE_PARAM)
+void watcher_one_event(unpack_event *unpack_ev
+		       WATCH_MEMBERS_PARAM)
 {
+  (void) unpack_ev;
+
   memset(&_event_info,0,sizeof(_event_info));
 
 #ifdef USE_LMD_INPUT
@@ -452,6 +455,11 @@ void watcher_one_event(WATCH_MEMBERS_SINGLE_PARAM)
 #endif
 }
 
+void watcher_one_event(unpack_sticky_event *unpack_ev
+		       WATCH_MEMBERS_PARAM)
+{
+  (void) unpack_ev;
+}
 
 
 

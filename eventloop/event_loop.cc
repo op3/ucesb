@@ -1814,17 +1814,17 @@ bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
       if (_conf._watcher._command)
 	{
 #if USING_MULTI_EVENTS
-	  watcher_one_event(map_info);
+	  watcher_one_event(&eb._unpack, map_info);
 #else
-	  watcher_one_event();
+	  watcher_one_event(&eb._unpack);
 #endif
 	}
 #endif
 
 #if USING_MULTI_EVENTS
-      correlation_event(map_info);
+      correlation_event(&eb._unpack, map_info);
 #else
-      correlation_event();
+      correlation_event(&eb._unpack);
 #endif
 
 #if defined(USE_CERNLIB) || defined(USE_ROOT) || defined(USE_EXT_WRITER)

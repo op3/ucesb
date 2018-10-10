@@ -642,8 +642,11 @@ void correlation_init(const config_command_vect &commands)
 
 
 #ifndef USE_MERGING
-void correlation_event(WATCH_MEMBERS_SINGLE_PARAM)
+void correlation_event(unpack_event *unpack_ev
+		       WATCH_MEMBERS_PARAM)
 {
+  (void) unpack_ev;
+
 #if defined(CORRELATION_EVENT_INFO_USER_FUNCTION)
   if (!CORRELATION_EVENT_INFO_USER_FUNCTION(&_static_event._unpack))
     return;
@@ -657,6 +660,12 @@ void correlation_event(WATCH_MEMBERS_SINGLE_PARAM)
 
       correlation_one_event(cp WATCH_MEMBERS_ARG);
     }
+}
+
+void correlation_event(unpack_sticky_event *unpack_ev
+		       WATCH_MEMBERS_PARAM)
+{
+  (void) unpack_ev;
 }
 #endif//!USE_MERGING
 
