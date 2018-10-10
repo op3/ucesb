@@ -466,20 +466,16 @@ void raw_list_zero_suppress<Tsingle,T,n>::map_members(const raw_array_calib_map<
 #undef  FCNCALL_MULTI_ARG
 #undef STRUCT_ONLY_LAST_UNION_MEMBER
 
-void do_calib_map()
+void do_calib_map(raw_event *raw_ev)
 {
 #ifndef USE_MERGING
-  the_raw_event_calib_map.map_members(_static_event._raw);
+  the_raw_event_calib_map.map_members(*raw_ev /* _static_event._raw */);
 #endif
 }
 
-
-
-
-
-
-
-
+void do_calib_map(raw_sticky *raw_ev)
+{
+}
 
 
 

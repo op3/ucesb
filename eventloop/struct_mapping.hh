@@ -24,8 +24,14 @@
 #include "multi_chunk.hh"
 
 void setup_unpack_map();
-void do_unpack_map(MAP_MEMBERS_SINGLE_PARAM);
-void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM);
+void do_unpack_map(unpack_event *unpack_ev
+		   MAP_MEMBERS_PARAM);
+void do_unpack_map(unpack_sticky_event *unpack_ev
+		   MAP_MEMBERS_PARAM);
+void do_raw_reverse_map(raw_event *raw_ev
+			MAP_MEMBERS_PARAM);
+void do_raw_reverse_map(raw_sticky *raw_ev
+			MAP_MEMBERS_PARAM);
 
 #include "raw_data_map.hh"
 

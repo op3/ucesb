@@ -376,23 +376,35 @@ void map_members(const data_map<T_src> &map,const T_src &src MAP_MEMBERS_PARAM)
 
 
 #ifndef USE_MERGING
-void do_unpack_map(MAP_MEMBERS_SINGLE_PARAM)
+void do_unpack_map(unpack_event *unpack_ev
+		   MAP_MEMBERS_PARAM)
 {
   //_static_event._unpack.map_members(the_unpack_event_map MAP_MEMBERS_ARG);
-  the_unpack_event_map.map_members(_static_event._unpack MAP_MEMBERS_ARG);
+  the_unpack_event_map.map_members(*unpack_ev /* _static_event._unpack */
+				   MAP_MEMBERS_ARG);
+}
+
+void do_unpack_map(unpack_sticky_event *unpack_ev
+		   MAP_MEMBERS_PARAM)
+{
 }
 #endif
 
 #ifndef USE_MERGING
-
-void do_raw_reverse_map(MAP_MEMBERS_SINGLE_PARAM)
+void do_raw_reverse_map(raw_event *raw_ev
+			MAP_MEMBERS_PARAM)
 {
   //_static_event._unpack.map_members(the_unpack_event_map MAP_MEMBERS_ARG);
 #if THIS_SEEMS_UNUSED
-  the_raw_event_reverse_map.map_members(_static_event._raw MAP_MEMBERS_ARG);
+  the_raw_event_reverse_map.map_members(*raw_ev /* _static_event._raw */
+					MAP_MEMBERS_ARG);
 #endif
 }
 
+void do_raw_reverse_map(raw_sticky *raw_ev
+			MAP_MEMBERS_PARAM)
+{
+}
 #endif
 
 

@@ -1740,9 +1740,9 @@ bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 	      map_info._multi_event_no = /*mev*/0;
 	      map_info._event_type = 0;
 
-	      do_raw_reverse_map(map_info);
+	      do_raw_reverse_map(&eb._raw, map_info);
 #else
-	      do_raw_reverse_map();
+	      do_raw_reverse_map(&eb._raw);
 #endif
 
 	      // Pack into event structures!
@@ -1774,13 +1774,13 @@ bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 				    MAP_MEMBER_TYPE_MULTI_LAST)))
 	map_info._event_type |= MAP_MEMBER_TYPE_MULTI_OTHER;
 
-      do_unpack_map(map_info);
+      do_unpack_map(&eb._unpack, map_info);
 
       copy_eventno_sub_trig(eb._raw, eb._unpack,
 			    mev+1,
 			    mev == multievents-1);
 #else
-      do_unpack_map();
+      do_unpack_map(&eb._unpack);
 #endif
 
       wrap_RAW_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw
@@ -1791,7 +1791,7 @@ bool ucesb_event_loop::handle_event(T_event_base &eb,int *num_multi)
 
       level_dump(DUMP_LEVEL_RAW,"RAW",eb._raw);
 
-      do_calib_map();
+      do_calib_map(&eb._raw);
 
       wrap_CAL_EVENT_USER_FUNCTION(&eb._unpack,&eb._raw,&eb._cal
 #ifdef USER_STRUCT

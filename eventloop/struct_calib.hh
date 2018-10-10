@@ -21,11 +21,15 @@
 #ifndef __STRUCT_CALIB_HH__
 #define __STRUCT_CALIB_HH__
 
+class unpack_event;
+class unpack_sticky_event;
+
 //void setup_calib_map();
 void clear_calib_map();
 void set_rnd_seed_calib_map();
 void show_calib_map();
-void do_calib_map();
+void do_calib_map(raw_event *raw_ev);
+void do_calib_map(raw_sticky *raw_ev);
 
 #include "raw_calib_map.hh"
 
