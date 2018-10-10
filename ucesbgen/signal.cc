@@ -763,9 +763,10 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 }
 
 void generate_signal(dumper &d, signal_spec *s,
+		     const char *name,
 		     int toggle_tag_hide, int toggle_i_hide)
 {
-  d.text("SIGNAL_MAPPING(");
+  d.text_fmt("%s(", name);
   d.text(s->_types->_tu[0]->_type);
   d.text(",");
   d.text(s->_name);
@@ -854,7 +855,11 @@ void generate_signals()
   event_signal signal_head_raw(NULL,"raw_event");
   event_signal signal_head_cal(NULL,"cal_event");
 
-  event_signal *signal_head[2] = { &signal_head_raw, &signal_head_cal};
+  event_signal sticky_head_raw(NULL,"raw_sticky");
+
+  event_signal *signal_head[2 /* sticky */ ][2 /* type_no */ ] =
+    { { &signal_head_raw, &signal_head_cal },
+      { &sticky_head_raw, NULL } };
 
   {
     signal_map::iterator i;
@@ -865,23 +870,32 @@ void generate_signals()
 
 	dissect_name(s->_loc,s->_name,s->_id);
 
-	for (int type_no = 0; type_no < 2; type_no++)
-	  if (s->_types->_tu[type_no])
-	    insert_signal(*signal_head[type_no],s,s->_id,type_no,true);
+	for (int sticky = 0; sticky < 2; sticky++)
+	  for (int type_no = 0; type_no < 2; type_no++)
+	    if (signal_head[sticky][type_no] &&
+		!s->_sticky_flag == !sticky &&
+		s->_types->_tu[type_no])
+	      insert_signal(*signal_head[sticky][type_no],
+			    s,s->_id,type_no,true);
       }
   }
   {
     signal_multimap::iterator i;
 
-    for (i = all_signals_no_ident.begin(); i != all_signals_no_ident.end(); ++i)
+    for (i = all_signals_no_ident.begin();
+	 i != all_signals_no_ident.end(); ++i)
       {
 	signal_spec *s = i->second;
 
 	dissect_name(s->_loc,s->_name,s->_id);
 
-	for (int type_no = 0; type_no < 2; type_no++)
-	  if (s->_types->_tu[type_no])
-	    insert_signal(*signal_head[type_no],s,s->_id,type_no,true);
+	for (int sticky = 0; sticky < 2; sticky++)
+	  for (int type_no = 0; type_no < 2; type_no++)
+	    if (signal_head[sticky][type_no] &&
+		!s->_sticky_flag == !sticky &&
+		s->_types->_tu[type_no])
+	      insert_signal(*signal_head[sticky][type_no],
+			    s,s->_id,type_no,true);
       }
   }
   {
@@ -893,60 +907,81 @@ void generate_signals()
 
 	dissect_name(s->_loc,s->_name,s->_id);
 
-	for (int type_no = 0; type_no < 2; type_no++)
-	  insert_signal(*signal_head[type_no],s,s->_id,type_no,false);
+	for (int sticky = 0; sticky < 2; sticky++)
+	  for (int type_no = 0; type_no < 2; type_no++)
+	    if (signal_head[sticky][type_no] &&
+		/*!s->_sticky_flag*/ 0 == sticky)
+	      insert_signal(*signal_head[sticky][type_no],
+			    s,s->_id,type_no,false);
       }
   }
-  for (int type_no = 0; type_no < 2; type_no++)
+  for (int sticky = 0; sticky < 2; sticky++)
+    for (int type_no = 0; type_no < 2; type_no++)
+      {
+	const char *header_name = NULL;
+
+	if (!signal_head[sticky][type_no])
+	  continue;
+
+	switch (type_no)
+	  {
+	  case 0: header_name = "EVENT_RAW_STRUCTURE"; break;
+	  case 1: header_name = "EVENT_CAL_STRUCTURE"; break;
+	  }
+
+	print_header(header_name,"Event data structure.");
+
+	dumper_dest_file d_dest(stdout);
+	dumper d(&d_dest);
+
+	signal_head[sticky][type_no]->dump(d,0,
+					   type_no == 0 ? "array" : "list",
+					   "","_base", type_no == 0);
+
+	print_footer(header_name);
+      }
+  for (int sticky = 0; sticky < 2; sticky++)
     {
-      const char *header_name = NULL;
+      print_header("EVENT_DATA_MAPPING","Event data mapping.");
 
-      switch (type_no)
+      printf("// The order in this file does not matter.\n"
+	     "// This information parsed once and not treated eventwise,\n"
+	     "// it is used to initialize a structure.\n\n");
+
+      const char *name = NULL;
+
+      switch (sticky)
 	{
-	case 0: header_name = "EVENT_RAW_STRUCTURE"; break;
-	case 1: header_name = "EVENT_CAL_STRUCTURE"; break;
+	case 0: name = "SIGNAL_MAPPING"; break;
+	case 1: name = "STICKY_MAPPING"; break;
 	}
-
-      print_header(header_name,"Event data structure.");
 
       dumper_dest_file d_dest(stdout);
       dumper d(&d_dest);
 
-      signal_head[type_no]->dump(d,0,type_no == 0 ? "array" : "list",
-				 "","_base", type_no == 0);
+      signal_map::iterator i;
 
-      print_footer(header_name);
+      for (i = all_signals.begin(); i != all_signals.end(); ++i)
+	{
+	  signal_spec *s = i->second;
+
+	  if (!s->_sticky_flag == !sticky)
+	    {
+	      if ((s->_tag & (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2)) ==
+		  (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2))
+		{
+		  generate_signal(d, s, name, SIGNAL_TAG_TOGGLE_2, 1);
+		  generate_signal(d, s, name, SIGNAL_TAG_TOGGLE_1, 0);
+		}
+	      else
+		{
+		  generate_signal(d, s, name, 0, -1);
+		}
+	    }
+	}
+
+      print_footer("EVENT_DATA_MAPPING");
     }
-  {
-    print_header("EVENT_DATA_MAPPING","Event data mapping.");
-
-    printf("// The order in this file does not matter.\n"
-	   "// This information parsed once and not treated eventwise,\n"
-	   "// it is used to initialize a structure.\n\n");
-
-    dumper_dest_file d_dest(stdout);
-    dumper d(&d_dest);
-
-    signal_map::iterator i;
-
-    for (i = all_signals.begin(); i != all_signals.end(); ++i)
-      {
-	signal_spec *s = i->second;
-
-	if ((s->_tag & (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2)) ==
-	    (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2))
-	  {
-	    generate_signal(d, s, SIGNAL_TAG_TOGGLE_2, 1);
-	    generate_signal(d, s, SIGNAL_TAG_TOGGLE_1, 0);
-	  }
-	else
-	  {
-	    generate_signal(d, s, 0, -1);
-	  }
-      }
-
-    print_footer("EVENT_DATA_MAPPING");
-  }
 
   printf ("/**********************************************************/\n");
 

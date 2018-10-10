@@ -203,6 +203,12 @@ public:
   // void map_members(const struct unpack_subevent_base_map& map MAP_MEMBERS_PARAM) const { }
 };
 
+class raw_sticky_base :
+  public raw_event_base
+{
+
+};
+
 class cal_event_base
 {
 
