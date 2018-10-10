@@ -571,3 +571,5 @@ STICKY_EVENT
 
   ignore_unknown_subevent;
 }
+
+STICKY(corrbase, corr.base, UINT32);
