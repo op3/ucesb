@@ -52,7 +52,7 @@ public:
 	      const signal_id_info *src,const signal_id_info *dest,
 	      int type,vect_double_unit *param,
 	      int toggle_i)
-    : map_info(loc,src,dest,NULL,NULL,0)
+    : map_info(loc,src,dest,NULL,NULL,0,0)
   {
     _type   = type;
     _param  = param;
@@ -78,7 +78,7 @@ public:
   user_calib_param(const file_line &loc,
 		   const signal_id_info *dest,
 		   vect_double_unit *param)
-    : map_info(loc,NULL,dest,NULL,NULL,0)
+    : map_info(loc,NULL,dest,NULL,NULL,0,0)
   {
     _param  = param;
   }

@@ -116,6 +116,7 @@ ssize_t lexer_read(char* buf,size_t max_size);
  /******************************************************************/
 
 "SIGNAL_MAPPING" { return SIGNAL_MAPPING; }
+"STICKY_MAPPING" { return STICKY_MAPPING; }
 "CALIB_PARAM" { return CALIB_PARAM; }
 "CALIB_PARAM_C" { return CALIB_PARAM_C; }
 "TOGGLE"      { return TOGGLE; }

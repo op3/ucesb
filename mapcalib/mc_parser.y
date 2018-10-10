@@ -110,6 +110,7 @@ struct md_ident_fl
 %token <strValue>  IDENTIFIER
 
 %token SIGNAL_MAPPING
+%token STICKY_MAPPING
 %token CALIB_PARAM
 %token CALIB_PARAM_C
 %token TOGGLE
@@ -202,7 +203,21 @@ signal_mapping:
 	    delete $10;
 	    $$ = new map_info(CURR_FILE_LINE,src_info,dest_info,
 			      NULL,NULL/*,rev_src_info,rev_dest_info*/,
-			      $9);
+			      0,$9);
+          }
+	| STICKY_MAPPING '(' data_type ',' data_name ',' var_or_name ',' toggle_null var_or_name ')' ';'
+          {
+	    const signal_id_info *src_info  =
+	      get_signal_id_info($7,SID_MAP_UNPACK | SID_MAP_STICKY | SID_MAP_MIRROR_MAP);
+	    const signal_id_info *dest_info =
+	      get_signal_id_info($10,SID_MAP_RAW | SID_MAP_STICKY);
+	    /*const signal_id_info *rev_src_info  = get_signal_id_info($9,SID_MAP_RAW | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE);*/
+	      /*const signal_id_info *rev_dest_info = get_signal_id_info($7,SID_MAP_UNPACK);*/
+	    delete $7;
+	    delete $10;
+	    $$ = new map_info(CURR_FILE_LINE,src_info,dest_info,
+			      NULL,NULL/*,rev_src_info,rev_dest_info*/,
+			      1,$9);
           }
         ;
 

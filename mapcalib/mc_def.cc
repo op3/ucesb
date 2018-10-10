@@ -288,6 +288,11 @@ const signal_id_info *get_signal_id_info(signal_id *id,int map_no)
 	case SID_MAP_USER:   map_str = "USER";    break;
 	case SID_MAP_CALIB:  map_str = "CALIB";   break;
 
+	case SID_MAP_STICKY | SID_MAP_UNPACK:
+	  map_str = "sticky UNPACK";  break;
+	case SID_MAP_STICKY | SID_MAP_RAW:
+	  map_str = "sticky RAW";     break;  
+
 	case SID_MAP_MIRROR_MAP | SID_MAP_UNPACK:
 	  map_str = "UNPACK (map mirror)";  break;
 	case SID_MAP_MIRROR_MAP | SID_MAP_RAW:
@@ -298,6 +303,9 @@ const signal_id_info *get_signal_id_info(signal_id *id,int map_no)
 	  map_str = "USER (map mirror)";    break;
 	case SID_MAP_MIRROR_MAP | SID_MAP_CALIB:
 	  map_str = "CALIB (map mirror)";   break;
+
+	case SID_MAP_STICKY | SID_MAP_MIRROR_MAP | SID_MAP_UNPACK:
+	  map_str = "sticky UNPACK (map mirror)";  break;
 
 	case SID_MAP_MIRROR_MAP | SID_MAP_RAW | SID_MAP_REVERSE:
 	  map_str = "RAW (reverse map mirror)"; break;
