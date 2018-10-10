@@ -412,6 +412,7 @@ void setup_zero_suppress_info_ptrs()
 
 #ifndef USE_MERGING
   _static_sticky_event._unpack.zero_suppress_info_ptrs(used_info);
+  _static_sticky_event._raw.zero_suppress_info_ptrs(used_info);
 #endif//!USE_MERGING
 }
 

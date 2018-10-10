@@ -76,4 +76,6 @@ extern unpack_event_map the_unpack_event_map;
 extern raw_event_map the_raw_event_reverse_map;
 #endif
 
+extern unpack_sticky_event_map the_unpack_sticky_event_map;
+
 #endif//__STRUCT_MAPPING_HH__

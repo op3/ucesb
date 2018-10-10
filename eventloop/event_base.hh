@@ -64,7 +64,7 @@ public:
   hex_dump_mark_buf _unpack_fail;
   unpack_sticky_event _unpack;
 #ifndef USE_MERGING
-  dummy_container _raw;
+  raw_sticky      _raw;
   dummy_container _cal;
   //raw_event    _raw;
   //cal_event    _cal;

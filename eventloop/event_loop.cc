@@ -1622,7 +1622,7 @@ void wrap_RAW_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
 }
 
 void wrap_RAW_EVENT_USER_FUNCTION(unpack_sticky_event *unpack_ev,
-				  dummy_container     *raw_ev
+				  raw_sticky          *raw_ev
 				  MAP_MEMBERS_PARAM)
 {
 }
@@ -1647,7 +1647,7 @@ void wrap_CAL_EVENT_USER_FUNCTION(unpack_event *unpack_ev,
 }
 
 void wrap_CAL_EVENT_USER_FUNCTION(unpack_sticky_event *unpack_ev,
-				  dummy_container     *raw_ev,
+				  raw_sticky          *raw_ev,
 				  dummy_container     *cal_ev
 #ifdef USER_STRUCT
 				  ,dummy_container    *user_ev

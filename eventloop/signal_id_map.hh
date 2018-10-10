@@ -31,10 +31,11 @@
 #define SID_MAP_USER       0x04
 #define SID_MAP_CALIB      0x05
 
-#define SID_MAP_MIRROR_MAP 0x08
-#define SID_MAP_REVERSE    0x10
+#define SID_MAP_STICKY     0x08
+#define SID_MAP_MIRROR_MAP 0x10
+#define SID_MAP_REVERSE    0x20
 
-#define SID_MAP_MAX_NUM    0x20
+#define SID_MAP_MAX_NUM    0x40
 
 class prefix_units_exponent;
 
@@ -79,6 +80,8 @@ void setup_signal_id_map();
 
 void setup_signal_id_map_unpack_map(void *extra);
 void setup_signal_id_map_raw_map(void *extra);
+
+void setup_signal_id_map_unpack_sticky_map(void *extra);
 
 void setup_signal_id_map_raw_reverse_map(void *extra);
 

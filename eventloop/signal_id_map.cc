@@ -435,11 +435,25 @@ void setup_signal_id_map()
 					  enumerate_member_signal_id_zzp_part,
 					  &extra);
 
+  extra._map_no = SID_MAP_UNPACK | SID_MAP_STICKY;
+  _static_sticky_event._unpack.enumerate_members(signal_id(),info,
+					  enumerate_member_signal_id,&extra);
+  _static_sticky_event._unpack.enumerate_members(signal_id(),info_zzp_part,
+					  enumerate_member_signal_id_zzp_part,
+					  &extra);
+
 #ifndef USE_MERGING
   extra._map_no = SID_MAP_RAW;
   _static_event._raw.enumerate_members(signal_id(),info,
 				       enumerate_member_signal_id,&extra);
   _static_event._raw.enumerate_members(signal_id(),info_zzp_part,
+				       enumerate_member_signal_id_zzp_part,
+				       &extra);
+
+  extra._map_no = SID_MAP_RAW | SID_MAP_STICKY;
+  _static_sticky_event._raw.enumerate_members(signal_id(),info,
+				       enumerate_member_signal_id,&extra);
+  _static_sticky_event._raw.enumerate_members(signal_id(),info_zzp_part,
 				       enumerate_member_signal_id_zzp_part,
 				       &extra);
 
@@ -467,6 +481,9 @@ void setup_signal_id_map()
 
   extra._map_no = SID_MAP_UNPACK | SID_MAP_MIRROR_MAP;
   setup_signal_id_map_unpack_map(&extra);
+
+  extra._map_no = SID_MAP_UNPACK | SID_MAP_STICKY | SID_MAP_MIRROR_MAP;
+  setup_signal_id_map_unpack_sticky_map(&extra);
 
   extra._map_no = SID_MAP_RAW | SID_MAP_MIRROR_MAP;
   setup_signal_id_map_raw_map(&extra);

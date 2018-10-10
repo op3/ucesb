@@ -55,6 +55,8 @@ unpack_event_map the_unpack_event_map;
 raw_event_map the_raw_event_reverse_map;
 #endif
 
+unpack_sticky_event_map the_unpack_sticky_event_map;
+
 template<typename T>
 bool data_map<T>::set_dest(T *dest, int toggle_i)
 {
@@ -456,6 +458,13 @@ void enumerate_member_signal_id_map_unpack(const signal_id &id,
 void setup_signal_id_map_unpack_map(void *extra)
 {
   the_unpack_event_map.
+    enumerate_map_members(signal_id(),enumerate_info(),
+			  enumerate_member_signal_id_map_unpack,extra);
+}
+
+void setup_signal_id_map_unpack_sticky_map(void *extra)
+{
+  the_unpack_sticky_event_map.
     enumerate_map_members(signal_id(),enumerate_info(),
 			  enumerate_member_signal_id_map_unpack,extra);
 }
