@@ -490,5 +490,9 @@ void setup_signal_id_map()
 
   extra._map_no = SID_MAP_RAW | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE;
   setup_signal_id_map_raw_reverse_map(&extra);
+
+  extra._map_no =
+    SID_MAP_RAW | SID_MAP_STICKY | SID_MAP_MIRROR_MAP | SID_MAP_REVERSE;
+  setup_signal_id_map_raw_sticky_reverse_map(&extra);
 #endif//!USE_MERGING
 }

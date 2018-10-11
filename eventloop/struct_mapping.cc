@@ -492,3 +492,7 @@ void setup_signal_id_map_raw_reverse_map(void *extra)
 #endif
 }
 
+void setup_signal_id_map_raw_sticky_reverse_map(void *extra)
+{
+
+}
