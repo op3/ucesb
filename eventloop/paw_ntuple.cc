@@ -273,7 +273,7 @@ void enumerate_member_paw_ntuple(const signal_id &id,
       item->_flags |= NTUPLE_ITEM_IS_ARRAY_MASK;
       break;
     default:
-      ERROR("Unhandled ENUM_TYPE (0x%x).",type);
+      ERROR("Unhandled ENUM_TYPE (0x%x) for item '%s'.",type, name);
     }
 
   if (info._type & ENUM_IS_LIST_INDEX)
