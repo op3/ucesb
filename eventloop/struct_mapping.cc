@@ -387,6 +387,8 @@ void do_unpack_map(unpack_event *unpack_ev
 void do_unpack_map(unpack_sticky_event *unpack_ev
 		   MAP_MEMBERS_PARAM)
 {
+  the_unpack_sticky_event_map.map_members(*unpack_ev
+					  MAP_MEMBERS_ARG);
 }
 #endif
 
