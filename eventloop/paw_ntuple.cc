@@ -76,6 +76,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 	return;
       // Do include
     }
+  else if (ntuple->_include_always)
+    return;
   else if (!(ntuple->_requests->
 	     is_channel_requested(id,info._type & (ENUM_IS_LIST_LIMIT |
 						   ENUM_IS_ARRAY_MASK),
@@ -680,7 +682,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 				 block, block_prefix)	    \
   {							    \
     extra._level = (level);				    \
-    extra._detailed_only = true;			    \
+    extra._detailed_only = false;			    \
     extra._block = block;				    \
     extra._block_prefix =				    \
       (prefix_level & (level)) ? block_prefix : "";	    \
