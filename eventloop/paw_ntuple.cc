@@ -753,24 +753,21 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   extra._block = "";
   extra._level = 0;
   extra._toggle_include = toggle_include;
-  extra._include_always = false;
 
   extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
 				 NTUPLE_TYPE_ROOT |
 				 NTUPLE_TYPE_STRUCT_HH |
 				 NTUPLE_TYPE_STRUCT));
 
-    {
-      extra._level = NTUPLE_WRITER_UNPACK;
-      extra._detailed_only = false;
-      extra._block = "UNPACK";
-      extra._block_prefix = (prefix_level & NTUPLE_WRITER_UNPACK) ? "U" : "";
-      _static_sticky_event._unpack.
-	enumerate_members(signal_id(),enumerate_info(),
-					      enumerate_member_paw_ntuple,
-					      &extra);
-    }
+  extra._include_always = true;
 
+  ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._unpack,
+			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+
+  extra._include_always = false;
+
+  ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._unpack,
+			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
 
   }
 
