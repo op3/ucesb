@@ -781,13 +781,17 @@ void external_writer::send_file_open(/*const char *filename,
 
 void external_writer::send_book_ntuple_x(int hid,
 					 const char *id,const char *title,
+					 const char *index_major,
+					 const char *index_minor,
 					 uint32_t struct_index,
 					 uint32_t ntuple_index,
 					 uint32_t max_raw_words)
 {
-  uint32_t space = (uint32_t) (sizeof(external_writer_buf_header) +
-			       (ntuple_index == 0 ? 4 : 3) * sizeof(uint32_t) +
-			       EWB_STRING_SPACE(id) + EWB_STRING_SPACE(title));
+  uint32_t space =
+    (uint32_t) (sizeof(external_writer_buf_header) +
+		(ntuple_index == 0 ? 4 : 3) * sizeof(uint32_t) +
+		EWB_STRING_SPACE(id) + EWB_STRING_SPACE(title) +
+		EWB_STRING_SPACE(index_major) + EWB_STRING_SPACE(index_minor));
 
   // space for header
   void *p = _buf->ensure_buf_space(space);
@@ -807,6 +811,8 @@ void external_writer::send_book_ntuple_x(int hid,
 
   p = insert_buf_string(p,id);
   p = insert_buf_string(p,title);
+  p = insert_buf_string(p,index_major);
+  p = insert_buf_string(p,index_minor);
 
   assert (p == _buf->_cur + space);
 

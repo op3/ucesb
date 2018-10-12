@@ -92,6 +92,8 @@ public:
 	      uint sort_u32_words = 0);
   void stage_x(vect_ntuple_items &list,int hid,
 	       const char *id, const char *title,
+	       const char *index_major,
+	       const char *index_minor,
 	       void *base,
 	       uint max_raw_words = 0);
   void stage_done();

@@ -187,6 +187,8 @@ public:
   void send_file_open(uint32_t sort_u32_words);
   void send_book_ntuple_x(int hid,
 			  const char *id,const char *title,
+			  const char *index_major = "",
+			  const char *index_minor = "",
 			  uint32_t struct_index = 0,
 			  uint32_t ntuple_index = 0,
 			  uint32_t max_raw_words = 0);
@@ -282,6 +284,10 @@ inline uint32_t external_write_float_as_uint32(float src)
  *   @id            [TREE] Name of the ntuple, use for root trees.
  *
  *   @title         Title of the ntuple/tree.
+ *
+ *   @index_major   For BuildIndex (if wanted).
+ *
+ *   @index_minor   See previous.
  *
  *   @ntuple_index  (Usually 0) For having several ntuples (of
  *                  same layout) in the output file.

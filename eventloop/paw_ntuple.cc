@@ -820,11 +820,14 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
       const char *this_id = NULL;
       const char *this_title = NULL;
+      const char *this_index_major = "";
+      const char *this_index_minor = "";
 
       if (i == PAW_NTUPLE_STICKY_EVENT)
 	{
 	  this_id     = "hsticky";
 	  this_title  = "CWNsticky";
+	  this_index_major = "STIDX";
 	}
       else
 	{
@@ -849,6 +852,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       staged->stage_x(i == 0 ? listing : sticky_listing,
 		      hid,
 		      this_id, this_title,
+		      this_index_major, this_index_minor,
 		      i == 0 ? &_static_event : (event_base*) &_static_sticky_event
 #if defined(USE_LMD_INPUT)
 		      ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))

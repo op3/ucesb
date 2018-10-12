@@ -269,6 +269,8 @@ void staged_ntuple::close()
 void staged_ntuple::stage_x(vect_ntuple_items &listing,
 			    int hid,
 			    const char *id, const char *title,
+			    const char *index_major,
+			    const char *index_minor,
 			    void *base,
 			    uint max_raw_words)
 {
@@ -291,6 +293,7 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,
 
   if (_ext)
     _ext->send_book_ntuple_x(hid,id,title,
+			     index_major,index_minor,
 			     _struct_index,0,
 			     max_raw_words);
 

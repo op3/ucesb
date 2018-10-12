@@ -132,7 +132,7 @@ void send_offsets_secondstruct(external_writer *ew)
 {
   struct secondstruct event;
 
-  ew->send_book_ntuple_x(98,"h98","TestTree2",1);
+  ew->send_book_ntuple_x(98,"h98","TestTree2","","",1);
 
   ew->send_alloc_array(sizeof(secondstruct));
 

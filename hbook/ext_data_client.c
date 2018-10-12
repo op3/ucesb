@@ -1391,6 +1391,8 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 
 	    const char *id = NULL;
 	    const char *title = NULL;
+	    const char *index_major = NULL;
+	    const char *index_minor = NULL;
 
 	    uint32_t length_left = ntohl(header->_length) -
 	      sizeof(struct external_writer_buf_header);
@@ -1464,7 +1466,9 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 	      }
 
 	    if ((id = ext_data_extr_str(&p, &length_left)) == NULL ||
-		(title = ext_data_extr_str(&p, &length_left)) == NULL)
+		(title = ext_data_extr_str(&p, &length_left)) == NULL ||
+		(index_major = ext_data_extr_str(&p, &length_left)) == NULL ||
+		(index_minor = ext_data_extr_str(&p, &length_left)) == NULL)
 	      goto book_ntuple_protocol_error;
 
 	    (void) id;
@@ -2014,6 +2018,10 @@ int ext_data_setup(struct ext_data_client *client,
       header->_request = htonl(EXTERNAL_WRITER_BUF_BOOK_NTUPLE |
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
+      *(p++) = htonl(0);
       *(p++) = htonl(0);
       *(p++) = htonl(0);
       *(p++) = htonl(0);

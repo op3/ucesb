@@ -318,6 +318,9 @@ struct global_struct
 
   uint32_t _xor_sum;
 
+  const char *_index_major;
+  const char *_index_minor;
+
 public:
   global_struct()
   {
@@ -337,6 +340,9 @@ public:
     _stage_array._ptr = NULL;
     memset(&_offset_array, 0, sizeof (_offset_array));
     _xor_sum = 0;
+
+    _index_major = NULL;
+    _index_minor = NULL;
   }
 };
 
@@ -647,6 +653,8 @@ void request_book_ntuple(void *msg,uint32_t *left)
     (ntuple_index == 0 ? get_buf_uint32(&msg,left) : 0);
   const char *id = get_buf_string(&msg,left);
   const char *title = get_buf_string(&msg,left);
+  const char *index_major = get_buf_string(&msg,left);
+  const char *index_minor = get_buf_string(&msg,left);
 
   if (struct_index != _structures.size())
     ERR_MSG("Structure index not in order (got %d, expected %zd).",
@@ -669,6 +677,9 @@ void request_book_ntuple(void *msg,uint32_t *left)
   s->_hid   = hid;
   s->_id    = strdup(id);
   s->_title = strdup(title);
+
+  s->_index_major = strdup(index_major);
+  s->_index_minor = strdup(index_minor);
 
   if (ntuple_index == 0)
     {
@@ -758,6 +769,7 @@ void close_structure(global_struct *s, size_t *num_trees)
 void close_output()
 {
   size_t num_trees = 0;
+  uint64_t num_index_entries = 0;
 
   for (global_struct_vector::iterator iter = _structures.begin();
        iter != _structures.end(); ++iter)
@@ -784,6 +796,24 @@ void close_output()
 #if USING_ROOT
   if (_g._root_file)
     {
+      for (global_struct_vector::iterator iter = _structures.begin();
+	   iter != _structures.end(); ++iter)
+	{
+	  global_struct *s = *iter;
+
+	  if (strcmp(s->_index_major,"") != 0)
+	    {
+	      const char *minor = s->_index_minor;
+
+	      if (strcmp(s->_index_minor,"") == 0)
+		minor = "0";
+
+	      for (TTree_vector::iterator iter = s->_root_ntuples.begin();
+		   iter != s->_root_ntuples.end(); ++iter)
+		num_index_entries +=
+		  (*iter)->BuildIndex(s->_index_major, minor);
+	    }
+	}
       if (_config._outfile)
 	_g._root_file->Write();
       _g._root_file->Close();
@@ -792,17 +822,20 @@ void close_output()
       delete _g._root_file;
       char msg_total[64] = "";
       char msg_trees[64] = "";
+      char msg_index[64] = "";
       char msg_hists[64] = "";
       if (_config._timeslice)
 	sprintf (msg_total,", %lld total",
 		 (long long int) _g._num_events_total);
       if (num_trees > 1)
 	sprintf (msg_trees," in %d trees",(int) num_trees);
+      if (num_index_entries)
+	sprintf (msg_index,", %d index-entries",num_index_entries);
       if (_g._num_hists)
 	sprintf (msg_hists,", %d histograms",_g._num_hists);
-      MSG("Closed file (%lld events%s%s%s).",
+      MSG("Closed file (%lld events%s%s%s%s).",
 	  (long long int) _g._num_events,
-	  msg_total,msg_trees,msg_hists);
+	  msg_total,msg_trees,msg_index,msg_hists);
     }
 #endif
 #if USING_CERNLIB || USING_ROOT
