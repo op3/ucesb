@@ -701,7 +701,7 @@ void write_data_lmd()
 		    {
 		      uint32_t *p = (uint32_t *) sev_start;
 
-		      sticky_base = rxs64s(&rstate_sticky_base) % 200;
+		      sticky_base = rxs64s(&rstate_sticky_base) % 20;
 		      *(p++) = sticky_base;
 		  
 		      char *sevp_end = (char *) p;
