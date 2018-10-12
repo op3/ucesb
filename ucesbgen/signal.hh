@@ -218,7 +218,7 @@ public:
 public:
   signal_spec(const file_line &loc,
 	      int signal_count,
-	      int sticky_flag,
+	      int sticky,
 	      const char *name,
 	      const var_name *ident,
 	      const signal_spec_types *types,
@@ -238,7 +238,7 @@ public:
 
     _types = types;
     _tag = tag;
-    _sticky_flag = sticky_flag;
+    _sticky = sticky;
   }
 
 public:
@@ -249,7 +249,7 @@ public:
 
   int             _tag;
 
-  int             _sticky_flag;
+  int             _sticky;
 
 public:
   virtual void dump(dumper &d) const;
@@ -269,14 +269,14 @@ public:
 public:
   signal_spec_range(const file_line &loc,
 		    int signal_count,
-		    int sticky_flag,
+		    int sticky,
 		    const char *name,
 		    const var_name *ident,
 		    const char *name_last,
 		    const var_name *ident_last,
 		    const signal_spec_types *types,
 		    int tag)
-    : signal_spec(loc,signal_count,sticky_flag,name,ident,types,tag)
+    : signal_spec(loc,signal_count,sticky,name,ident,types,tag)
   {
     _name_last = name_last;
     _ident_last = ident_last;

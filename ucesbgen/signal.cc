@@ -873,7 +873,7 @@ void generate_signals()
 	for (int sticky = 0; sticky < 2; sticky++)
 	  for (int type_no = 0; type_no < 2; type_no++)
 	    if (signal_head[sticky][type_no] &&
-		!s->_sticky_flag == !sticky &&
+		!s->_sticky == !sticky &&
 		s->_types->_tu[type_no])
 	      insert_signal(*signal_head[sticky][type_no],
 			    s,s->_id,type_no,true);
@@ -892,7 +892,7 @@ void generate_signals()
 	for (int sticky = 0; sticky < 2; sticky++)
 	  for (int type_no = 0; type_no < 2; type_no++)
 	    if (signal_head[sticky][type_no] &&
-		!s->_sticky_flag == !sticky &&
+		!s->_sticky == !sticky &&
 		s->_types->_tu[type_no])
 	      insert_signal(*signal_head[sticky][type_no],
 			    s,s->_id,type_no,true);
@@ -910,7 +910,7 @@ void generate_signals()
 	for (int sticky = 0; sticky < 2; sticky++)
 	  for (int type_no = 0; type_no < 2; type_no++)
 	    if (signal_head[sticky][type_no] &&
-		/*!s->_sticky_flag*/ 0 == sticky)
+		/*!s->_sticky*/ 0 == sticky)
 	      insert_signal(*signal_head[sticky][type_no],
 			    s,s->_id,type_no,false);
       }
@@ -965,7 +965,7 @@ void generate_signals()
 	{
 	  signal_spec *s = i->second;
 
-	  if (!s->_sticky_flag == !sticky)
+	  if (!s->_sticky == !sticky)
 	    {
 	      if ((s->_tag & (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2)) ==
 		  (SIGNAL_TAG_TOGGLE_1 | SIGNAL_TAG_TOGGLE_2))
@@ -1062,7 +1062,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal)
 
       signal_spec *new_spec = new signal_spec(signal->_loc,
 					      signal->_order_index,
-					      signal->_sticky_flag,
+					      signal->_sticky,
 					      find_str_identifiers(name),ident,
 					      signal->_types,
 					      signal->_tag);
