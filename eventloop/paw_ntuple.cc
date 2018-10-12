@@ -763,11 +763,15 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
   ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._unpack,
 			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+  ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._raw,
+			   NTUPLE_WRITER_UNPACK, "RAW", "R");
 
   extra._include_always = false;
 
   ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._unpack,
 			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+  ENUMERATE_MEMBERS_UNCOND(_static_sticky_event._raw,
+			   NTUPLE_WRITER_UNPACK, "RAW", "W");
 
   }
 
