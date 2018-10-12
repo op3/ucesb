@@ -60,10 +60,17 @@ public:
 			 const enumerate_info &info,
 			 enumerate_fcn callback,void *extra) const
   {
-    callback(signal_id(id,"TRIGGER"),enumerate_info(info,&trigger,ENUM_TYPE_USHORT,0,15),extra);
-    callback(signal_id(id,"EVENTNO"),enumerate_info(info,&event_no,ENUM_TYPE_UINT),extra);
+    callback(signal_id(id,"TRIGGER"),
+	     enumerate_info(info,&trigger,ENUM_TYPE_USHORT |
+			    ENUM_NTUPLE_ALWAYS,0,15),extra);
+    callback(signal_id(id,"EVENTNO"),
+	     enumerate_info(info,&event_no,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS),extra);
 #if STICKY_EVENT_IS_NONTRIVIAL
-    callback(signal_id(id,"STIDX"),enumerate_info(info,&sticky_idx,ENUM_TYPE_UINT),extra);
+    callback(signal_id(id,"STIDX"),
+	     enumerate_info(info,&sticky_idx,
+			    ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS),extra);
 #endif
   }
 
@@ -172,9 +179,15 @@ public:
 			 enumerate_fcn callback,void *extra) const
   {
 #if USING_MULTI_EVENTS
-    callback(signal_id(id,"TRIGGER"),enumerate_info(info,&trigger,ENUM_TYPE_USHORT,0,15),extra);
-    callback(signal_id(id,"EVENTNO"),enumerate_info(info,&event_no,ENUM_TYPE_UINT),extra);
-    callback(signal_id(id,"MEVENTNO"),enumerate_info(info,&event_sub_no,ENUM_TYPE_UINT),extra);
+    callback(signal_id(id,"TRIGGER"),
+	     enumerate_info(info,&trigger,ENUM_TYPE_USHORT |
+			    ENUM_NTUPLE_NEVER,0,15),extra);
+    callback(signal_id(id,"EVENTNO"),
+	     enumerate_info(info,&event_no,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_NEVER),extra);
+    callback(signal_id(id,"MEVENTNO"),
+	     enumerate_info(info,&event_sub_no,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS),extra);
 #endif
   }
 

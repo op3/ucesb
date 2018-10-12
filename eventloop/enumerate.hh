@@ -55,6 +55,9 @@
 
 #define ENUM_HAS_PTR_OFFSET 0x2000
 
+#define ENUM_NTUPLE_ALWAYS  0x4000
+#define ENUM_NTUPLE_NEVER   0x8000
+
 typedef bool(*set_dest_fcn)(void *void_src_map, void *void_dest, int toggle_i);
 
 class prefix_units_exponent;

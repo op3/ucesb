@@ -57,6 +57,7 @@ struct enumerate_ntuple_info
   int                _level;
   bool               _detailed_only;
   int                _toggle_include;
+  bool               _include_always;
   const char        *_block;
   const char        *_block_prefix;
 };
@@ -67,10 +68,18 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 {
   enumerate_ntuple_info *ntuple = (enumerate_ntuple_info *) extra;
 
-  if (!(ntuple->_requests->
-	is_channel_requested(id,info._type & (ENUM_IS_LIST_LIMIT |
-					      ENUM_IS_ARRAY_MASK),
-			     ntuple->_level, ntuple->_detailed_only)))
+  if (info._type & ENUM_NTUPLE_NEVER)
+    return;
+  else if (info._type & ENUM_NTUPLE_ALWAYS)
+    {
+      if (!ntuple->_include_always)
+	return;
+      // Do include
+    }
+  else if (!(ntuple->_requests->
+	     is_channel_requested(id,info._type & (ENUM_IS_LIST_LIMIT |
+						   ENUM_IS_ARRAY_MASK),
+				  ntuple->_level, ntuple->_detailed_only)))
     return;
 
   if (info._type & (ENUM_IS_TOGGLE_I |
@@ -162,6 +171,12 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 	}
     }
 
+  char prel_name[256];
+  {
+    signal_id id_fmt(id);
+    id_fmt.format_paw(prel_name,sizeof(prel_name));
+  }
+
   size_t omit_index = (size_t) -1;
 
   if (limit_addr)
@@ -176,7 +191,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
       i = ntuple->_limits.find(limit_addr);
 
       if (i == ntuple->_limits.end())
-	ERROR("(Internal error?) Failed to find limiting item...");
+	ERROR("(Internal error?) Failed to find limiting item for '%s'...",
+	      prel_name);
 
       omit_index = i->second._omit_index;
       limit_item = i->second._item;
@@ -193,7 +209,8 @@ void enumerate_member_paw_ntuple(const signal_id &id,
       i = ntuple->_limits.find(limit2_addr);
 
       if (i == ntuple->_limits.end())
-	ERROR("(Internal error?) Failed to find limiting item 2...");
+	ERROR("(Internal error?) Failed to find limiting item 2 for '%s'...",
+	      prel_name);
 
       omit_index2 = i->second._omit_index;
       limit_item2 = i->second._item;
@@ -657,6 +674,28 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 				 NTUPLE_TYPE_STRUCT_HH |
 				 NTUPLE_TYPE_STRUCT));
 
+  extra._include_always = true;
+
+#define ENUMERATE_MEMBERS_UNCOND(data, level,		    \
+				 block, block_prefix)	    \
+  {							    \
+    extra._level = (level);				    \
+    extra._detailed_only = true;			    \
+    extra._block = block;				    \
+    extra._block_prefix =				    \
+      (prefix_level & (level)) ? block_prefix : "";	    \
+    data.enumerate_members(signal_id(),enumerate_info(),    \
+			   enumerate_member_paw_ntuple,	    \
+			   &extra);			    \
+  }
+
+  ENUMERATE_MEMBERS_UNCOND(_static_event._unpack,
+			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+  ENUMERATE_MEMBERS_UNCOND(_static_event._raw,
+			   NTUPLE_WRITER_UNPACK, "RAW", "R");
+
+  extra._include_always = false;
+
 #define ENUMERATE_MEMBERS(data, level, block, block_prefix) \
   if ((request_level | request_level_detailed) & (level))   \
     {							    \
@@ -684,10 +723,20 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 
   for (uint i = 0; i < requests._requests.size(); i++)
     if (!requests._requests[i]._checked)
-      ERROR("NTuple request for item %s (level %s) was not considered.  "
-	    "Does that detector exist?",
-	    requests._requests[i]._str,
-	    request_level_str(requests._requests[i]._level));
+      {
+	if (strcmp(requests._requests[i]._str,"EVENTNO") == 0 ||
+	    strcmp(requests._requests[i]._str,"MEVENTNO") == 0 ||
+	    strcmp(requests._requests[i]._str,"TRIGGER") == 0)
+	  WARNING("NTuple request for item %s (level %s) "
+		  "is no longer needed.  Item is always included.",
+		  requests._requests[i]._str,
+		  request_level_str(requests._requests[i]._level));
+	else
+	  ERROR("NTuple request for item %s (level %s) was not considered.  "
+		"Does that signal exist?",
+		requests._requests[i]._str,
+		request_level_str(requests._requests[i]._level));
+      }
   }
 
   sticky_requests.prepare();
@@ -702,6 +751,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   extra._block = "";
   extra._level = 0;
   extra._toggle_include = toggle_include;
+  extra._include_always = false;
 
   extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
 				 NTUPLE_TYPE_ROOT |
