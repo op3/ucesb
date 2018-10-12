@@ -653,51 +653,33 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
     }
 
   extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
-						   NTUPLE_TYPE_ROOT |
-						   NTUPLE_TYPE_STRUCT_HH |
-						   NTUPLE_TYPE_STRUCT));
+				 NTUPLE_TYPE_ROOT |
+				 NTUPLE_TYPE_STRUCT_HH |
+				 NTUPLE_TYPE_STRUCT));
 
-  if ((request_level | request_level_detailed) & NTUPLE_WRITER_UNPACK)
-    {
-      extra._level = NTUPLE_WRITER_UNPACK;
-      extra._detailed_only = !(request_level & NTUPLE_WRITER_UNPACK);
-      extra._block = "UNPACK";
-      extra._block_prefix = (prefix_level & NTUPLE_WRITER_UNPACK) ? "U" : "";
-      _static_event._unpack.enumerate_members(signal_id(),enumerate_info(),
-					      enumerate_member_paw_ntuple,
-					      &extra);
+#define ENUMERATE_MEMBERS(data, level, block, block_prefix) \
+  if ((request_level | request_level_detailed) & (level))   \
+    {							    \
+      extra._level = (level);				    \
+      extra._detailed_only = !(request_level & (level));    \
+      extra._block = block;				    \
+      extra._block_prefix =				    \
+	(prefix_level & (level)) ? block_prefix : "";	    \
+      data.enumerate_members(signal_id(),enumerate_info(),  \
+			     enumerate_member_paw_ntuple,   \
+			     &extra);			    \
     }
-  if ((request_level | request_level_detailed) & NTUPLE_WRITER_RAW)
-    {
-      extra._level = NTUPLE_WRITER_RAW;
-      extra._detailed_only = !(request_level & NTUPLE_WRITER_RAW);
-      extra._block = "RAW";
-      extra._block_prefix = (prefix_level & NTUPLE_WRITER_RAW) ? "R" : "";
-      _static_event._raw.enumerate_members(signal_id(),enumerate_info(),
-					   enumerate_member_paw_ntuple,
-					   &extra);
-    }
-  if ((request_level | request_level_detailed) & NTUPLE_WRITER_CAL)
-    {
-      extra._level = NTUPLE_WRITER_CAL;
-      extra._detailed_only = !(request_level & NTUPLE_WRITER_CAL);
-      extra._block = "CAL";
-      extra._block_prefix = (prefix_level & NTUPLE_WRITER_CAL) ? "C" : "";
-      _static_event._cal.enumerate_members(signal_id(),enumerate_info(),
-					   enumerate_member_paw_ntuple,
-					   &extra);
-    }
+
+  ENUMERATE_MEMBERS(_static_event._unpack,
+		    NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+  ENUMERATE_MEMBERS(_static_event._raw,
+		    NTUPLE_WRITER_RAW, "RAW", "R");
+  ENUMERATE_MEMBERS(_static_event._cal,
+		    NTUPLE_WRITER_CAL, "CAL", "C");
+
 #ifdef USER_STRUCT
-  if ((request_level | request_level_detailed) & NTUPLE_WRITER_USER)
-    {
-      extra._level = NTUPLE_WRITER_USER;
-      extra._detailed_only = !(request_level & NTUPLE_WRITER_USER);
-      extra._block = "USER";
-      extra._block_prefix = (prefix_level & NTUPLE_WRITER_USER) ? "US" : "";
-      _static_event._user.enumerate_members(signal_id(),enumerate_info(),
-					    enumerate_member_paw_ntuple,
-					    &extra);
-    }
+  ENUMERATE_MEMBERS(_static_event._user,
+		    NTUPLE_WRITER_USER, "USER", "US");
 #endif
 
   for (uint i = 0; i < requests._requests.size(); i++)
@@ -722,9 +704,9 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   extra._toggle_include = toggle_include;
 
   extra._cwn = !!(ntuple_type & (NTUPLE_TYPE_CWN |
-						   NTUPLE_TYPE_ROOT |
-						   NTUPLE_TYPE_STRUCT_HH |
-						   NTUPLE_TYPE_STRUCT));
+				 NTUPLE_TYPE_ROOT |
+				 NTUPLE_TYPE_STRUCT_HH |
+				 NTUPLE_TYPE_STRUCT));
 
     {
       extra._level = NTUPLE_WRITER_UNPACK;
