@@ -70,6 +70,8 @@ int main(int argc,char *argv[])
   uint64_t num_good = 0;
   uint64_t num_good_data = 0;
 
+  uint64_t sticky_corr_base_sum = 0;
+
   int hevent_id = -1;
   int hsticky_id = -1;
 
@@ -317,11 +319,18 @@ int main(int argc,char *argv[])
 		       sticky.corrbase, event.STCORR);
 	      exit(1);
 	    }
+
+	  /* Summing this, just to ensure that there is non-zero
+	   * sticky data.
+	   */
+	  sticky_corr_base_sum += sticky.corrbase;
 	}
     }
 
-  printf ("%" PRIu64 " events passed test (%" PRIu64 " words).\n",
-	  num_good, num_good_data);
+  printf ("%" PRIu64 " events passed test (%" PRIu64 " words).\n"
+	  "(Sticky corr base sum: %" PRIu64 ")\n",
+	  num_good, num_good_data,
+	  sticky_corr_base_sum);
 
   ext_data_close_stderr(client);
 
