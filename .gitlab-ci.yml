@@ -334,6 +334,46 @@ debian jessie gcc g++ all:
   image: debian:jessie
   <<: *debian
 
+debian jessie clang-3.6 clang++-3.6 all:
+  stage: build  
+  image: munken/jessie-clang:3.6
+  <<: *debian
+
+debian jessie clang-3.7 clang++-3.7 all:
+  stage: build
+  image: munken/jessie-clang:3.7
+  <<: *debian
+
+debian jessie clang-3.8 clang++-3.8 all:
+  stage: build
+  image: munken/jessie-clang:3.8
+  <<: *debian
+
+debian jessie clang-3.9 clang++-3.9 all:
+  stage: build
+  image: munken/jessie-clang:3.9
+  <<: *debian
+
+debian jessie clang-4.0 clang++-4.0 all:
+  stage: build
+  image: munken/jessie-clang:4.0
+  <<: *debian
+
+debian jessie clang-5.0 clang++-5.0 all:
+  stage: build
+  image: munken/jessie-clang:5.0
+  <<: *debian
+
+debian jessie clang-6.0 clang++-6.0 all:
+  stage: build
+  image: munken/jessie-clang:6.0
+  <<: *debian
+
+debian jessie clang-7 clang++-7 all:
+  stage: build
+  image: munken/jessie-clang:7
+  <<: *debian
+
 debian wheezy gcc g++ all:
   stage: build
   image: debian:wheezy
