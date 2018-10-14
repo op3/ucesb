@@ -235,11 +235,13 @@ ifeq (,$(FILE_ROOTCINT))
 FILE_ROOTCINT=$(shell which $(ROOTSYS)/bin/rootcint 2> /dev/null)
 endif
 
+ifneq (,$(FILE_ROOT_CONFIG))
 ROOT_CXXFLAGS += $(shell $(FILE_ROOT_CONFIG) --cflags)
 ROOT_CXXLINKFLAGS += $(shell $(FILE_ROOT_CONFIG) --ldflags)
 ROOT_CXXLIBS      += $(shell $(FILE_ROOT_CONFIG) --libs)
 
 ROOT_INC_DIR = $(shell $(FILE_ROOT_CONFIG) --incdir | sed -e 's,//,/,g')
+endif
 
 ROOT_CXXFLAGS += $(shell test -e $(ROOT_INC_DIR)/TTreeCompressThreads.h && echo "-DROOT_HAS_TTREE_COMPRESS_THREADS=1")
 endif

@@ -189,9 +189,11 @@ $(error ROOT requested (via USE_ROOT), but 'root-config' cannot be found (even w
 endif
 
 CXXFLAGS += -DUSE_ROOT=$(USE_ROOT) -DUSING_ROOT=$(USE_ROOT)
+ifneq (,$(FILE_ROOT_CONFIG))
 CXXFLAGS += $(shell $(FILE_ROOT_CONFIG) --cflags)
 CXXLINKFLAGS += $(shell $(FILE_ROOT_CONFIG) --ldflags)
 CXXLIBS      += $(shell $(FILE_ROOT_CONFIG) --libs)
+endif
 
 NTUPLE_CREATION=1
 endif #USE_ROOT
