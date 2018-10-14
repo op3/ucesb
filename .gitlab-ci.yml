@@ -71,6 +71,7 @@ stages:
 .prepare-cc7: &cc7
   <<: *common
   before_script:
+    - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
     - yum install -y git bison flex ncurses-devel make perl-Digest-MD5 gcc-c++
         > /dev/null
     - export YACC=bison
@@ -81,6 +82,8 @@ stages:
   before_script:
     - source /opt/rh/devtoolset-4/enable
     - source /opt/rh/python27/enable
+    - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
+    - yum -y install yum-plugin-ovl # docker/overlay fix
     - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
     - export YACC=bison
   <<: *build
