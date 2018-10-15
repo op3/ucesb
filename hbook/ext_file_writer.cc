@@ -830,7 +830,8 @@ void close_output()
       if (num_trees > 1)
 	sprintf (msg_trees," in %d trees",(int) num_trees);
       if (num_index_entries)
-	sprintf (msg_index,", %d index-entries",num_index_entries);
+	sprintf (msg_index,", %lld index-entries",
+		 (long long int) num_index_entries);
       if (_g._num_hists)
 	sprintf (msg_hists,", %d histograms",_g._num_hists);
       MSG("Closed file (%lld events%s%s%s%s).",
