@@ -18,7 +18,8 @@ stages:
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
-    - make -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
+    - echo RUNNER_MAKE_J $RUNNER_MAKE_J
+    - make -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS $RUNNER_MAKE_J
 
 .build-bsd: &build-bsd
   script:
@@ -26,7 +27,8 @@ stages:
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CC --version
-    - gmake -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS
+    - echo RUNNER_MAKE_J $RUNNER_MAKE_J
+    - gmake -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS $RUNNER_MAKE_J
   tags:
     - bsd
 
