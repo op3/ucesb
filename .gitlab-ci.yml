@@ -421,3 +421,72 @@ freebsd 10 clang clang++ all:
 mac sierra gcc g++ all:
   stage: build
   <<: *build-mac-sierra
+
+###
+# qemu builds only do one unpacker, and thus are faster
+
+_qemu arm32v5 gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *debian
+
+_qemu arm32v5 gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *debian
+
+_qemu arm32v5 clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  variables:
+    CXXLIBS: -latomic
+  <<: *debian
+
+_qemu arm32v5 clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  variables:
+    CXXLIBS: -latomic
+  <<: *debian
+
+
+_qemu arm32v7 gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *debian
+
+_qemu arm32v7 gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *debian
+
+_qemu arm32v7 clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *debian
+
+_qemu arm32v7 clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *debian
+
+
+_qemu ppc gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *debian
+
+_qemu ppc gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *debian
+
+_qemu ppc clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *debian
+
+_qemu ppc clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *debian
