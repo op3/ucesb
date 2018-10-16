@@ -231,7 +231,7 @@ mac sierra gcc g++ empty:
   <<: *build-mac-sierra
 
 ###
-# Simulated qemu architectures take long time, begin with those.
+# Simulated full qemu architectures take long time, begin with those.
 
 qemu arm . . empty:
   stage: build
@@ -252,6 +252,88 @@ qemu ppc . . xtst:
   stage: build
   <<: *docker
   <<: *qemu-system-ppc
+
+###
+# User-mode qemu builds only do one unpacker, but are quite slow still.
+
+_qemu arm32v5 gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v5 gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v5 clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  variables:
+    CXXLIBS: -latomic
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v5 clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  variables:
+    CXXLIBS: -latomic
+  <<: *qemu
+  <<: *debian
+
+
+_qemu arm32v7 gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v7 gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v7 clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
+  <<: *debian
+
+_qemu arm32v7 clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
+  <<: *debian
+
+
+_qemu ppc gcc g++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
+  <<: *debian
+
+_qemu ppc gcc g++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
+  <<: *debian
+
+_qemu ppc clang clang++ empty:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
+  <<: *debian
+
+_qemu ppc clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
+  <<: *debian
+
 
 ###
 # And the rest.
@@ -361,22 +443,6 @@ gcc-latest minimal gcc g++ all:
   <<: *docker
   <<: *debian
 
-gcc-latest minimal gcc g++ empty merging:
-  stage: build
-  image: gcc:latest
-  <<: *docker
-  <<: *debian
-  variables:
-    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
-
-gcc-latest minimal gcc g++ xtst merging:
-  stage: build
-  image: gcc:latest
-  <<: *docker
-  <<: *debian
-  variables:
-    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
-
 debian jessie gcc g++ all:
   stage: build
   image: debian:jessie
@@ -475,82 +541,20 @@ mac sierra gcc g++ all:
   <<: *build-mac-sierra
 
 ###
-# qemu builds only do one unpacker, and thus are faster
+# Try the merging mode
 
-_qemu arm32v5 gcc g++ empty:
+gcc-latest minimal gcc g++ empty merging:
   stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v5
-  <<: *qemu
+  image: gcc:latest
+  <<: *docker
   <<: *debian
-
-_qemu arm32v5 gcc g++ xtst:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v5
-  <<: *qemu
-  <<: *debian
-
-_qemu arm32v5 clang clang++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v5
   variables:
-    CXXLIBS: -latomic
-  <<: *qemu
-  <<: *debian
+    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
 
-_qemu arm32v5 clang clang++ xtst:
+gcc-latest minimal gcc g++ xtst merging:
   stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  image: gcc:latest
+  <<: *docker
+  <<: *debian
   variables:
-    CXXLIBS: -latomic
-  <<: *qemu
-  <<: *debian
-
-
-_qemu arm32v7 gcc g++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v7
-  <<: *qemu
-  <<: *debian
-
-_qemu arm32v7 gcc g++ xtst:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v7
-  <<: *qemu
-  <<: *debian
-
-_qemu arm32v7 clang clang++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v7
-  <<: *qemu
-  <<: *debian
-
-_qemu arm32v7 clang clang++ xtst:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v7
-  <<: *qemu
-  <<: *debian
-
-
-_qemu ppc gcc g++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:ppc
-  <<: *qemu
-  <<: *debian
-
-_qemu ppc gcc g++ xtst:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:ppc
-  <<: *qemu
-  <<: *debian
-
-_qemu ppc clang clang++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:ppc
-  <<: *qemu
-  <<: *debian
-
-_qemu ppc clang clang++ xtst:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:ppc
-  <<: *qemu
-  <<: *debian
+    EXTRA_MAKE_FLAGS: "USE_MERGING=1"
