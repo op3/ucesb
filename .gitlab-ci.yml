@@ -120,7 +120,10 @@ stages:
       make gcc gcc-c++ clang perl which > /dev/null
   <<: *build
 
-.qemu-common: &qemu
+#########################################
+### QEMU full system emulation
+
+.qemu-system: &qemu-system
   stage: build
   script:
     - _DISABLE="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
@@ -139,7 +142,7 @@ stages:
   variables:
     PORT: "2222"
 
-.qemu-arm: &qemu-arm
+.qemu-system-arm: &qemu-system-arm
   image: munken/qemu:arm
   before_script:
     - qemu-system-arm -M vexpress-a9 -kernel /qemu/vmlinuz-3.2.0-4-vexpress
@@ -147,15 +150,15 @@ stages:
         if=sd,file=/qemu/debian_wheezy_armhf_apt.qcow2 -append
         "root=/dev/mmcblk0p2" -redir tcp:2222::22 -m 512 -monitor
         unix:/tmp/monitor,server,nowait -daemonize -display none
-  <<: *qemu
+  <<: *qemu-system
 
-.qemu-ppc: &qemu-ppc
+.qemu-system-ppc: &qemu-system-ppc
   image: munken/qemu:ppc
   before_script:
     - qemu-system-ppc -hda /qemu/debian_wheezy_powerpc_gcc.qcow2 -redir
         tcp:${PORT}::22 -m 512 -monitor unix:/tmp/monitor,server,nowait
         -daemonize -display none
-  <<: *qemu
+  <<: *qemu-system
 
 ############################################
 #               TARGETS                    #
@@ -210,25 +213,26 @@ mac sierra gcc g++ empty:
   stage: fast-build
   <<: *build-mac-sierra
 
-
+###
 # Simulated qemu architectures take long time, begin with those.
 
 qemu arm . . empty:
   stage: build
-  <<: *qemu-arm
+  <<: *qemu-system-arm
 
 qemu arm . . xtst:
   stage: build
-  <<: *qemu-arm
+  <<: *qemu-system-arm
 
 qemu ppc . . empty:
   stage: build
-  <<: *qemu-ppc
+  <<: *qemu-system-ppc
 
 qemu ppc . . xtst:
   stage: build
-  <<: *qemu-ppc
+  <<: *qemu-system-ppc
 
+###
 # And the rest.
 
 SLC6 root6 gcc g++ all:
