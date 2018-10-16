@@ -120,6 +120,11 @@ stages:
       make gcc gcc-c++ clang perl which > /dev/null
   <<: *build
 
+# User-mode emulation, requires binfmt_misc to be set up
+.qemu: &qemu
+  tags:
+    - binfmt
+
 #########################################
 ### QEMU full system emulation
 
@@ -428,11 +433,13 @@ mac sierra gcc g++ all:
 _qemu arm32v5 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v5 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v5 clang clang++ empty:
@@ -440,6 +447,7 @@ _qemu arm32v5 clang clang++ empty:
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   variables:
     CXXLIBS: -latomic
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v5 clang clang++ xtst:
@@ -447,46 +455,55 @@ _qemu arm32v5 clang clang++ xtst:
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   variables:
     CXXLIBS: -latomic
+  <<: *qemu
   <<: *debian
 
 
 _qemu arm32v7 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v7 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v7 clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
   <<: *debian
 
 _qemu arm32v7 clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
+  <<: *qemu
   <<: *debian
 
 
 _qemu ppc gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
   <<: *debian
 
 _qemu ppc gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
   <<: *debian
 
 _qemu ppc clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
   <<: *debian
 
 _qemu ppc clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
+  <<: *qemu
   <<: *debian
