@@ -258,27 +258,19 @@ qemu ppc . . ext_writer_test:
 ###
 # User-mode qemu builds only do one unpacker, but are quite slow still.
 
-_qemu arm32v5 gcc g++ empty:
+qemu arm32v5 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   <<: *qemu
   <<: *debian
 
-_qemu arm32v5 gcc g++ xtst:
+qemu arm32v5 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   <<: *qemu
   <<: *debian
 
-_qemu arm32v5 clang clang++ empty:
-  stage: build
-  image: $DOCKER_REG/docker-qemu/debian:arm32v5
-  variables:
-    CXXLIBS: -latomic
-  <<: *qemu
-  <<: *debian
-
-_qemu arm32v5 clang clang++ xtst:
+qemu arm32v5 clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   variables:
@@ -286,51 +278,59 @@ _qemu arm32v5 clang clang++ xtst:
   <<: *qemu
   <<: *debian
 
+qemu arm32v5 clang clang++ xtst:
+  stage: build
+  image: $DOCKER_REG/docker-qemu/debian:arm32v5
+  variables:
+    CXXLIBS: -latomic
+  <<: *qemu
+  <<: *debian
 
-_qemu arm32v7 gcc g++ empty:
+
+qemu arm32v7 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
   <<: *debian
 
-_qemu arm32v7 gcc g++ xtst:
+qemu arm32v7 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
   <<: *debian
 
-_qemu arm32v7 clang clang++ empty:
+qemu arm32v7 clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
   <<: *debian
 
-_qemu arm32v7 clang clang++ xtst:
+qemu arm32v7 clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
   <<: *debian
 
 
-_qemu ppc gcc g++ empty:
+qemu ppc gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
   <<: *debian
 
-_qemu ppc gcc g++ xtst:
+qemu ppc gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
   <<: *debian
 
-_qemu ppc clang clang++ empty:
+qemu ppc clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
   <<: *debian
 
-_qemu ppc clang clang++ xtst:
+qemu ppc clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
