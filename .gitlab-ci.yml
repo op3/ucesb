@@ -233,22 +233,26 @@ mac sierra gcc g++ empty:
 ###
 # Simulated full qemu architectures take long time, begin with those.
 
-qemu arm . . empty:
+# For the fun of it (avoiding bit-rot), the full-mode compilations are
+# kept, but only building some very small programs (instead of empty
+# and xtst), since they are terribly slow.
+
+qemu arm . . tdas_conv:
   stage: build
   <<: *docker
   <<: *qemu-system-arm
 
-qemu arm . . xtst:
+qemu arm . . ext_writer_test:
   stage: build
   <<: *docker
   <<: *qemu-system-arm
 
-qemu ppc . . empty:
+qemu ppc . . tdas_conv:
   stage: build
   <<: *docker
   <<: *qemu-system-ppc
 
-qemu ppc . . xtst:
+qemu ppc . . ext_writer_test:
   stage: build
   <<: *docker
   <<: *qemu-system-ppc
