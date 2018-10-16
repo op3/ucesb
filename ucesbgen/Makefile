@@ -101,10 +101,13 @@ $(GENDIR)/parser.y.incfile: parser.y $(GENDIR)/parser.y.incfile.d
 	@mkdir -p $(dir $@)
 	$(QUIET)perl $(INCLUDE_FILE_PL) --input=$< && touch $@
 
-# TODO: should be automatically determined, i.e. if $(YACC) accepts -Werror
+YACC_SUPPORTS_WERROR := $(shell yacc -Werror --version 2>/dev/null)
+ifneq ($(YACC_SUPPORTS_WERROR),)
 ifeq ($(NO_YACC_WERROR),)
 YACC_WERROR_FLAG=-Werror
 endif
+endif
+
 
 $(GENDIR)/y.tab.c: parser.y $(GENDIR)/parser.y.incfile
 	@echo "  YACC   $@"
