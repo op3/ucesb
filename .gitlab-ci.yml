@@ -45,8 +45,6 @@ stages:
     - bsd
 
 .build-mac-sierra: &build-mac-sierra
-  variables:
-    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *build
   tags:
     - mac
@@ -223,7 +221,7 @@ freebsd 10 gcc g++ empty:
   stage: fast-build
   variables:
     EXTRA_MAKE_FLAGS:
-      "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
+      "CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
 
 mac sierra gcc g++ empty:
@@ -510,8 +508,6 @@ debian wheezy gcc g++ all:
 debian etch gcc g++ all:
   stage: build
   image: munken/debian:etch
-  variables:
-    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *docker
   <<: *old-debian
 
@@ -531,13 +527,11 @@ freebsd 10 gcc g++ all:
   stage: build
   variables:
     EXTRA_MAKE_FLAGS:
-      "NO_YACC_WERROR=1 CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
+      "CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
 
 freebsd 10 clang clang++ all:
   stage: build
-  variables:
-    EXTRA_MAKE_FLAGS: "NO_YACC_WERROR=1"
   <<: *build-bsd
 
 mac sierra gcc g++ all:
