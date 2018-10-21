@@ -235,22 +235,22 @@ mac sierra gcc g++ empty:
 # kept, but only building some very small programs (instead of empty
 # and xtst), since they are terribly slow.
 
-qemu arm . . tdas_conv:
+qemusys arm . . tdas_conv:
   stage: build
   <<: *docker
   <<: *qemu-system-arm
 
-qemu arm . . ext_writer_test:
+qemusys arm . . ext_writer_test:
   stage: build
   <<: *docker
   <<: *qemu-system-arm
 
-qemu ppc . . tdas_conv:
+qemusys ppc . . tdas_conv:
   stage: build
   <<: *docker
   <<: *qemu-system-ppc
 
-qemu ppc . . ext_writer_test:
+qemusys ppc . . ext_writer_test:
   stage: build
   <<: *docker
   <<: *qemu-system-ppc
