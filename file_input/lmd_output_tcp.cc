@@ -338,7 +338,9 @@ lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *s
 
   if (stream->_flags & LOS_FLAGS_STICKY_LOST_AFTER)
     {
+#if DEBUG_REPLAYS
       printf ("Will need recovery stream.\n");
+#endif
       *need_recovery_stream = 1;
     }
 
@@ -387,7 +389,9 @@ lmd_output_stream *lmd_output_state::get_next_client_stream(lmd_output_stream *s
     skip_stream:
       if (next_stream->_flags & LOS_FLAGS_STICKY_LOST_AFTER)
 	{
+#if DEBUG_REPLAYS
 	  printf ("Will need recovery stream II.\n");
+#endif
 	  *need_recovery_stream = 1;
 	}    
     }
@@ -1535,7 +1539,11 @@ void lmd_output_tcp::write_buffer(size_t count, bool has_sticky)
       // Put this one into the output circular buffer
 
       if (_mark_replay_stream)
-	printf ("Mark replay: %02x\n", _mark_replay_stream);
+	{
+#if DEBUG_REPLAYS
+	  printf ("Mark replay: %02x\n", _mark_replay_stream);
+#endif
+	}
 
       _state._fill_stream->_flags |= _mark_replay_stream;
 
@@ -1776,12 +1784,19 @@ void lmd_output_tcp::print_status(double elapsed)
   uint64_t sent = _total_sent;
   double sentrate =
     (double) (sent - _last_sent) * 1.e-6 / elapsed;
-  _last_sent = sent;  
-    
+  _last_sent = sent;
+  double replayrate =
+    (double) (_replays - _last_replays) / elapsed;
+  _last_replays = _replays;
+
   fprintf (stderr,
-	   "\nServer: (%s%.1f%skbuf/s) Sent: %s%.1f%sMB/s   \r",
+	   "\nServer: (%s%.1f%skbuf/s, replay %s%.1f%sbuf/s) "
+	   "Sent: %s%.1f%sMB/s   \r",
 	   CT_ERR(BOLD),
 	   bufrate,
+	   CT_ERR(NORM),
+	   CT_ERR(BOLD),
+	   replayrate,
 	   CT_ERR(NORM),
 	   CT_ERR(BOLD_MAGENTA),
 	   sentrate,

@@ -76,6 +76,7 @@ lmd_output_buffered::lmd_output_buffered()
 
   _buffer_header.l_buf = 1;
   _last_bufno = _buffer_header.l_buf;
+  _last_replays = _replays = 0;
 
   _write_native = true;
   _compact_buffers = false; // to be compatible with eventapi, who
@@ -699,8 +700,11 @@ void lmd_output_buffered::new_buffer(size_t lie_about_used_when_large_dlen)
 
   if (do_sticky_replay())
     {
+#if DEBUG_REPLAYS
       printf ("Sticky replay (buf %d).\n",
 	      _buffer_header.l_buf);
+#endif
+      _replays++;
       
       // Before we continue with normal operation, we can (and shall)
       // now inject the sticky events needed for replay.
@@ -1124,14 +1128,20 @@ void lmd_output_file::print_status(double elapsed)
   double datarate =
     (double) (_total_written - _last_written) * 1.e-6 / elapsed;
   _last_written = _total_written;
+  double replayrate =
+    (double) (_replays - _last_replays) / elapsed;
+  _last_replays = _replays;
   
   fprintf (stderr,
-	   "\nFile: %s%.1f%sMB/s (%s%.1f%skbuf/s)   \r",
+	   "\nFile: %s%.1f%sMB/s (%s%.1f%skbuf/s, replay %s%.1f%sbuf/s)   \r",
 	   CT_ERR(BOLD_MAGENTA),
 	   datarate,
 	   CT_ERR(NORM),
 	   CT_ERR(BOLD),
 	   bufrate,
+	   CT_ERR(NORM),
+	   CT_ERR(BOLD),
+	   replayrate,
 	   CT_ERR(NORM));
 }
 

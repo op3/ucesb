@@ -160,6 +160,10 @@ public:
 public:
   uint32_t           _last_bufno;
 
+public:
+  uint32_t           _replays;
+  uint32_t           _last_replays;
+
 protected:
   lmd_sticky_store   _sticky_store;
 };
