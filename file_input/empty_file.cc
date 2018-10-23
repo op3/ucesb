@@ -452,6 +452,7 @@ void write_data_lmd()
   uint64_t rstate_multi = 7;
   uint64_t rstate_sticky_base = 8;
   uint64_t rstate_sticky_corr = 9;
+  uint64_t rstate_sticky_frac = 10;
 
   uint64_t timeslot_nev = 0;
   struct timeval timeslot_start;
@@ -564,7 +565,7 @@ void write_data_lmd()
 	  // sticky events to modify.
 
 	  if (_conf._sticky_fraction &&
-	      ((nev >> 12) ^ nev) % _conf._sticky_fraction == 0)
+	      rxs64s(&rstate_sticky_frac) % _conf._sticky_fraction == 0)
 	    {
 	      // We after this sticky event want to have sticky
 	      // subevents active given by the 8 low bits of the to-be
