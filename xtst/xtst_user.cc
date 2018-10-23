@@ -38,6 +38,7 @@ static uint32_t _sticky_mark[NUM_CRATES];
 static uint32_t _sticky_last_ev[NUM_CRATES][32];
 
 uint64_t _spurious_revokes = 0;
+uint64_t _same_sticky_ev_seen = 0;
 
 void init_function()
 {
@@ -105,10 +106,16 @@ void sticky_subevent_user_function(unpack_sticky_event *sticky_event,
     {
       if (_sticky_last_ev[crate][isev] == sticky_event->event_no)
 	{
+	  /* It may happen during replay that we get the same
+	   * sticky event multiple times.
+	   */
+	  _same_sticky_ev_seen++;
+	  /*
 	  WARNING("Event %d: crate %d: "
 		  "Sticky subevent (%d) seen for same event no.",
 		  sticky_event->event_no, crate,
 		  isev);
+	  */
 	}      
       _sticky_last_ev[crate][isev] = sticky_event->event_no;
     }
