@@ -25,6 +25,7 @@
 #include "endian.hh"
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #define LMD_TCP_PORT_TRANS          6000
 #define LMD_TCP_PORT_STREAM         6002
@@ -178,10 +179,10 @@ public:
 protected:
   bool parse_connection(const char *server,
 			struct sockaddr_in *p_serv_addr,
-			int *port,
-			int default_port);
+			uint16_t *port,
+			uint16_t default_port);
   bool open_connection(const struct sockaddr_in *p_serv_addr,
-		       int port, bool error_on_failure);
+		       uint16_t port, bool error_on_failure);
   void close_connection();
 
   void do_read(void *buf,size_t count,int timeout = -1);
@@ -214,7 +215,7 @@ protected:
 
 protected:
   size_t do_map_connect(const char *server,
-			int port_map_add, int default_port);
+			int port_map_add, uint16_t default_port);
 
 };
 

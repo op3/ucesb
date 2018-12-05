@@ -915,7 +915,7 @@ void lmd_output_server_con::bind(int mode, int port)
     {
       servAddr.sin_family = AF_INET;
       servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-      servAddr.sin_port = htons(port);
+      servAddr.sin_port = htons((uint16_t) port);
 
       if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
 	ERROR("Failure binding server to port %d.",port);

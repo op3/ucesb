@@ -315,8 +315,8 @@ lmd_input_tcp::~lmd_input_tcp()
 
 bool lmd_input_tcp::parse_connection(const char *server,
 				     struct sockaddr_in *p_serv_addr,
-				     int *port,
-				     int default_port)
+				     uint16_t *port,
+				     uint16_t default_port)
 {
   struct hostent *h;
   char *hostname;
@@ -332,7 +332,16 @@ bool lmd_input_tcp::parse_connection(const char *server,
 
     if (colon)
       {
-	*port = atoi(colon+1);
+	int parsed_port;
+
+	parsed_port = atoi(colon+1);
+	if (parsed_port < 0 || parsed_port > 65535)
+	  {
+	    ERROR("Port out of range [0, 65535], is %d.", parsed_port);
+	    return false;
+	  }
+
+	*port = (uint16_t) parsed_port;
 	*colon = 0; // cut the hostname
       }
 
@@ -359,7 +368,7 @@ bool lmd_input_tcp::parse_connection(const char *server,
 }
 
 bool lmd_input_tcp::open_connection(const struct sockaddr_in *p_serv_addr,
-				    int port, bool error_on_failure)
+				    uint16_t port, bool error_on_failure)
 {
   int rc;
   struct sockaddr_in serv_addr;
@@ -850,10 +859,10 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
 size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
 					    int port_map_add,
-					    int default_port)
+					    uint16_t default_port)
 {
   struct sockaddr_in serv_addr;
-  int port;
+  uint16_t port;
 
   if (!lmd_input_tcp::parse_connection(server, &serv_addr, &port,
 				       default_port))
@@ -865,9 +874,8 @@ size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
   if (port_map_add != -1)
     {
       // First try with port that only might provide mapping.
-
-      if (lmd_input_tcp_buffer::open_connection(&serv_addr,
-						port + port_map_add, false))
+      uint16_t conn_port = (uint16_t) (port + port_map_add);
+      if (lmd_input_tcp_buffer::open_connection(&serv_addr, conn_port, false))
 	ret = lmd_input_tcp_buffer::read_info(&data_port);
     }
 
@@ -881,7 +889,8 @@ size_t lmd_input_tcp_buffer::do_map_connect(const char *server,
   if (data_port != -1)
     {
       lmd_input_tcp_buffer::close_connection();
-      lmd_input_tcp_buffer::open_connection(&serv_addr, data_port, true);
+      lmd_input_tcp_buffer::open_connection(&serv_addr, (uint16_t) data_port,
+					    true);
       ret = lmd_input_tcp_buffer::read_info(NULL);
     }
 
@@ -1193,7 +1202,7 @@ void lmd_input_tcp_event::send_acknowledge()
 size_t lmd_input_tcp_event::connect(const char *server)
 {
   struct sockaddr_in serv_addr;
-  int port;
+  uint16_t port;
   
   // First establish connection
   if (!lmd_input_tcp::parse_connection(server, &serv_addr, &port,
