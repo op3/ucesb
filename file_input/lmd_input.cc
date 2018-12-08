@@ -254,6 +254,29 @@ bool lmd_source::read_record(bool expect_fragment)
       ;
     }
 
+  // Check that buffer header size is not too large for input pipe,
+
+  if (buffer_size_dlen > _input._input->max_item_length())
+    {
+      ERROR("Buffer size (%zd=0x%08zx) too large for for input buffer.  "
+	    "Use at least --input-buffer=%zdMi.",
+	    buffer_size_dlen, buffer_size_dlen,
+	    (buffer_size_dlen * 3 + (1024*1024-1))/(1024*1024));
+    }
+
+  size_t last_ev_size =
+    (size_t) EVENT_DATA_LENGTH_FROM_DLEN(_buffer_header.l_free[1]);
+  if (last_ev_size > _input._input->max_item_length())
+    {
+      /* Add some margin for buffer sizes. */
+      size_t buffers = last_ev_size / buffer_size_dlen;
+      size_t margin = buffers*64;
+      ERROR("Last event size (%zd=0x%08zx) too large for for input buffer.  "
+	    "Use at least --input-buffer=%zdMi.",
+	    last_ev_size, last_ev_size,
+	    ((last_ev_size + margin) * 3 + (1024*1024-1))/(1024*1024));
+    }
+
   // so now we should check if it is a file header
   // or simply a buffer header
 
