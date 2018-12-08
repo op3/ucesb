@@ -87,6 +87,7 @@ void usage()
 #else
   printf (" (stream,event,trans://)  No MBS input support compiled in.\n");
 #endif
+  printf ("  --input-buffer=N  Input buffer size.\n");
 #if defined(USE_EXT_WRITER) && !defined(USE_MERGING)
   printf ("  --in-tuple=LVL,DET,FILE  Read data from ROOT/STRUCT.\n");
   //printf ("  --reverse         Run mapping in reverse (only with --in-tuple).\n");
@@ -623,6 +624,10 @@ int main(int argc, char **argv)
         _conf._ts_align_hist_command = post;
       }
 #endif//USE_LMD_INPUT
+      else if (MATCH_PREFIX("--input-buffer=",post)) {
+	_conf._input_buffer =
+	  parse_size_postfix(post,"kMG","Input buffer size",false);
+      }
 #ifdef USE_MERGING
       else if (MATCH_PREFIX("--merge=",post)) {
 	parse_merge_options(post);

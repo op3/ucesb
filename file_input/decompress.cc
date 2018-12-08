@@ -20,6 +20,7 @@
 
 #include "decompress.hh"
 #include "error.hh"
+#include "config.hh"
 
 #include "file_mmap.hh"
 #include "pipe_buffer.hh"
@@ -621,6 +622,8 @@ void data_input_source::connect(const char *name,int type
 #endif
 
   size_t prefetch_size = MIN_BUFFER_SIZE;
+  if (prefetch_size < _conf._input_buffer)
+    prefetch_size *= 2;
 
   // Three times the size required.  We need twice to handle events
   // fragmented between streams (ucesb generated).  And then another
@@ -869,8 +872,13 @@ void data_input_source::open(const char *filename
 	      push_magic[3],
 	      (int) push_magic_len);
       */
+
+      size_t prefetch_size = MIN_BUFFER_SIZE;
+      if (prefetch_size < _conf._input_buffer)
+	prefetch_size *= 2;
+      
       pb->init(fd,push_magic,push_magic_len,
-	       MIN_BUFFER_SIZE
+	       prefetch_size
 #ifdef USE_PTHREAD
 	       ,block_reader
 #endif
@@ -928,7 +936,11 @@ void data_input_source::open_rfio(const char *filename
   rpb->set_next_file(blocked_next_file,wakeup_next_file);
 #endif
 
-  rpb->init(fd/*,magic*/,MIN_BUFFER_SIZE
+  size_t prefetch_size = MIN_BUFFER_SIZE;
+  if (prefetch_size < _conf._input_buffer)
+    prefetch_size *= 2;
+  
+  rpb->init(fd/*,magic*/,prefetch_size
 #ifdef USE_PTHREAD
 	   ,block_reader
 #endif

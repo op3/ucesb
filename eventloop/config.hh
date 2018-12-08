@@ -89,6 +89,7 @@ struct config_opts
 #ifdef USE_LMD_INPUT
   int _scramble;
 #endif
+  uint64_t _input_buffer;
 
 #ifdef USE_LMD_INPUT
   int _event_stitch_mode;
