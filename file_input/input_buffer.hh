@@ -360,6 +360,9 @@ public:
 #endif
 
 public:
+  virtual size_t max_item_length() = 0;
+
+public:
   bool read_range(void *dest,off_t start,size_t length);
 
 };

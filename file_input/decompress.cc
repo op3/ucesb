@@ -35,6 +35,8 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#define MIN_BUFFER_SIZE 0x01000000 // 16 MB prefetch buffer
+
 decompressor::decompressor()
 {
 }
@@ -618,8 +620,6 @@ void data_input_source::connect(const char *name,int type
   tpb->set_next_file(blocked_next_file,wakeup_next_file);
 #endif
 
-#define MIN_BUFFER_SIZE 0x01000000 // 16 MB prefetch buffer
-
   size_t prefetch_size = MIN_BUFFER_SIZE;
 
   // Three times the size required.  We need twice to handle events
@@ -870,7 +870,7 @@ void data_input_source::open(const char *filename
 	      (int) push_magic_len);
       */
       pb->init(fd,push_magic,push_magic_len,
-	       0x01000000 // 16 MB prefetch buffer
+	       MIN_BUFFER_SIZE
 #ifdef USE_PTHREAD
 	       ,block_reader
 #endif
@@ -928,7 +928,7 @@ void data_input_source::open_rfio(const char *filename
   rpb->set_next_file(blocked_next_file,wakeup_next_file);
 #endif
 
-  rpb->init(fd/*,magic*/,0x01000000 // 16 MB prefetch buffer
+  rpb->init(fd/*,magic*/,MIN_BUFFER_SIZE
 #ifdef USE_PTHREAD
 	   ,block_reader
 #endif
