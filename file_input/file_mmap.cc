@@ -422,3 +422,9 @@ void file_mmap::arrange_release_to(off_t end)
   fmmr->_end = end;
 }
 #endif
+
+size_t file_mmap::max_item_length()
+{
+  // file_mmap will allocate as many chunks as needed, so no limit
+  return (size_t) (ssize_t) -1;
+}

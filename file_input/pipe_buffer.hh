@@ -123,6 +123,9 @@ public:
   virtual void arrange_release_to(off_t end);
 #endif
 
+public:
+  virtual size_t max_item_length();
+
 };
 
 class pipe_buffer

@@ -486,8 +486,11 @@ void pipe_buffer_base::arrange_release_to(off_t end)
 }
 #endif
 
-
-
+size_t pipe_buffer_base::max_item_length()
+{
+  // See comment in decompress.cc
+  return _size / 3;
+}
 
 
 void pipe_buffer_base::init(unsigned char *push_magic,size_t push_magic_len,
