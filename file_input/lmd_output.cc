@@ -1070,14 +1070,22 @@ lmd_output_file::set_file_header(const s_filhe_extra_host *file_header_extra,
 
   size_t comment_index;
 
-  if (_file_header_extra.filhe_lines < (int) countof(_file_header_extra.s_strings))
+  if (_file_header_extra.filhe_lines <
+      (int) countof(_file_header_extra.s_strings))
     comment_index = _file_header_extra.filhe_lines++;
   else
-    comment_index = countof(_file_header_extra.s_strings)-1; // overwrite last line
+    {
+      // overwrite last line
+      comment_index = countof(_file_header_extra.s_strings)-1;
+    }
 
   strncpy((char*) _file_header_extra.s_strings[comment_index].string,
-	  add_comment,sizeof(_file_header_extra.s_strings[comment_index].string));
-  _file_header_extra.s_strings[comment_index].string_l = (uint16) strlen(add_comment);
+	  add_comment,
+	  sizeof(_file_header_extra.s_strings[comment_index].string));
+  
+  _file_header_extra.s_strings[comment_index].string_l =
+    (uint16) strlen(add_comment);
+  
   if (_file_header_extra.s_strings[comment_index].string_l >
       sizeof(_file_header_extra.s_strings[comment_index].string))
     _file_header_extra.s_strings[comment_index].string_l =

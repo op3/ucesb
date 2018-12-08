@@ -270,6 +270,9 @@ bool lmd_source::read_record(bool expect_fragment)
 
       file_header_size = sizeof(_file_header);
 
+      //printf ("file header sz: %zd = 0x%zx\n",
+      //      file_header_size,file_header_size);
+
       // For large buffers, the LMD file format lies about the buffer
       // size in file headers.  Instead it is stored in the i_used
       // member.
