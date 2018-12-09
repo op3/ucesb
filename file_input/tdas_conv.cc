@@ -40,6 +40,7 @@ typedef unsigned char uchar;
 
 #include "lmd_event.cc"
 #include "lmd_output.cc"
+#include "parse_util.cc"
 #include "lmd_sticky_store.cc"
 #include "forked_child.cc"
 #include "limit_file_size.cc"
