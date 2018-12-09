@@ -99,7 +99,6 @@ stages:
     - export YACC=bison
   <<: *build
 
-
 .prepare-ubuntu-gcc6-with-flex: &ubuntu-gcc6
   <<: *debian
   before_script:
@@ -179,43 +178,43 @@ Trusty root5 gcc g++ is446:
   stage: fast-build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root5 gcc g++ empty:
   stage: fast-build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root5 gcc g++ xtst:
   stage: fast-build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root5 clang clang++ empty:
   stage: fast-build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root5 clang clang++ xtst:
   stage: fast-build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty 32bit gcc g++ empty:
   stage: fast-build
   image: daald/ubuntu32:trusty
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty 32bit clang clang++ empty:
   stage: fast-build
   image: daald/ubuntu32:trusty
   <<: *docker
-  <<: *debian
+  <<: *build
 
 freebsd 10 gcc g++ empty:
   stage: fast-build
@@ -262,13 +261,13 @@ qemu arm32v5 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v5 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v5
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v5 clang clang++ empty:
   stage: build
@@ -276,7 +275,7 @@ qemu arm32v5 clang clang++ empty:
   variables:
     CXXLIBS: -latomic
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v5 clang clang++ xtst:
   stage: build
@@ -284,57 +283,57 @@ qemu arm32v5 clang clang++ xtst:
   variables:
     CXXLIBS: -latomic
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 
 qemu arm32v7 gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v7 gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v7 clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu arm32v7 clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:arm32v7
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 
 qemu ppc gcc g++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu ppc gcc g++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu ppc clang clang++ empty:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 qemu ppc clang clang++ xtst:
   stage: build
   image: $DOCKER_REG/docker-qemu/debian:ppc
   <<: *qemu
-  <<: *debian
+  <<: *build
 
 
 ###
@@ -368,55 +367,55 @@ Trusty root5 gcc g++ all:
   stage: build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root5 clang clang++ all:
   stage: build
   image: munken/root:trusty-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root6 gcc g++ all:
   stage: build
   image: munken/root:trusty-root6
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty root6 clang clang++ all:
   stage: build
   image: munken/root:trusty-root6
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Trusty 32bit gcc g++ all:
   stage: build
   image: daald/ubuntu32:trusty
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Xenial root5 gcc g++ all:
   stage: build
   image: munken/root:xenial-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Xenial root5 clang clang++ all:
   stage: build
   image: munken/root:xenial-root5
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Xenial root6 gcc g++ all:
   stage: build
   image: munken/root:xenial-root6
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Xenial root6 clang clang++ all:
   stage: build
   image: munken/root:xenial-root6
   <<: *docker
-  <<: *debian
+  <<: *build
 
 Xenial root6 gcc-6 g++-6 all flex 2.6.1:
   stage: build
@@ -449,61 +448,61 @@ debian jessie gcc g++ all:
   stage: build
   image: debian:jessie
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-3.6 clang++-3.6 all:
   stage: build  
   image: munken/jessie-clang:3.6
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-3.7 clang++-3.7 all:
   stage: build
   image: munken/jessie-clang:3.7
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-3.8 clang++-3.8 all:
   stage: build
   image: munken/jessie-clang:3.8
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-3.9 clang++-3.9 all:
   stage: build
   image: munken/jessie-clang:3.9
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-4.0 clang++-4.0 all:
   stage: build
   image: munken/jessie-clang:4.0
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-5.0 clang++-5.0 all:
   stage: build
   image: munken/jessie-clang:5.0
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-6.0 clang++-6.0 all:
   stage: build
   image: munken/jessie-clang:6.0
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian jessie clang-7 clang++-7 all:
   stage: build
   image: munken/jessie-clang:7
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian wheezy gcc g++ all:
   stage: build
   image: debian:wheezy
   <<: *docker
-  <<: *debian
+  <<: *build
 
 debian etch gcc g++ all:
   stage: build
