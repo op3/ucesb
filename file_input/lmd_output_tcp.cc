@@ -20,6 +20,7 @@
 
 #include "lmd_output_tcp.hh"
 #include "lmd_input_tcp.hh"
+#include "parse_util.hh"
 
 #include "optimise.hh"
 #include "error.hh"

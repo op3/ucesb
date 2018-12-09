@@ -28,6 +28,7 @@
 #include "writing_ntuple.hh"
 #include "ntuple_item.hh"
 
+#include "parse_util.hh"
 #include "lmd_output.hh"
 
 #include "detector_requests.hh"

@@ -23,6 +23,7 @@
 #include "monitor.hh"
 #include "error.hh"
 #include "colourtext.hh"
+#include "parse_util.hh"
 
 #include "mc_def.hh"
 

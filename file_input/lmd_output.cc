@@ -25,6 +25,7 @@
 
 #include "endian.hh"
 #include "event_loop.hh"
+#include "parse_util.hh"
 
 #include "../common/strndup.hh"
 
@@ -193,42 +194,6 @@ uint32 parse_compression_level(const char* post) {
     ERROR("compression level to small - min is 1: %s", post);
 
   return level;
-}
-
-uint64 parse_size_postfix(const char *post,const char *allowed,
-			  const char *error_name,bool fit32bits)
-{
-  char *size_end;
-  uint64 size = (uint64) strtol(post,&size_end,10);
-
-  if (*size_end == 0)
-    return size;
-
-  if (strchr(allowed,*size_end) != NULL)
-    {
-      if (strcmp(size_end,"k") == 0)
-	{ size *= 1000; goto success; }
-      else if (strcmp(size_end,"ki") == 0)
-	{ size <<= 10; goto success; }
-      else if (strcmp(size_end,"M") == 0)
-	{ size *= 1000000; goto success; }
-      else if (strcmp(size_end,"Mi") == 0)
-	{ size <<= 20; goto success; }
-      else if (strcmp(size_end,"G") == 0)
-	{ size *= 1000000000; goto success; }
-      else if (strcmp(size_end,"Gi") == 0)
-	{ size <<= 30; goto success; }
-    }
-
-  ERROR("%s request malformed (number[%s]): %s",error_name,allowed,post);
-
-  // no return needed :-)
-
- success:
-  if (fit32bits && size > 0xffffffff)
-    ERROR("%s request too large (%lld): post",error_name,size);
-
-  return size;
 }
 
 void lmd_out_common_options()

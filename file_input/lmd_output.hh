@@ -168,11 +168,6 @@ protected:
   lmd_sticky_store   _sticky_store;
 };
 
-// This function body (and prototype) should really by placed
-// somewhere else
-uint64 parse_size_postfix(const char *post,const char *allowed,
-			  const char *error_name,bool fit32bits);
-
 void lmd_out_common_options();
 
 bool parse_lmd_out_common(char *request,
