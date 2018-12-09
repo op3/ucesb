@@ -1263,8 +1263,10 @@ get_next_event:
 	    typedef __typeof__(_static_event) event_type;
 	    event_type *event = &_static_event;
 
+#ifdef USE_LMD_INPUT
 	    typedef __typeof__(_static_sticky_event) sticky_event_type;
 	    sticky_event_type *sticky_event = &_static_sticky_event;
+#endif
 
 	    assert (CURRENT_EVENT == &_static_event);
 
