@@ -176,31 +176,31 @@ stages:
 # Has test files.
 Trusty root5 gcc g++ is446:
   stage: fast-build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
 Trusty root5 gcc g++ empty:
   stage: fast-build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
 Trusty root5 gcc g++ xtst:
   stage: fast-build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
 Trusty root5 clang clang++ empty:
   stage: fast-build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-clang
   <<: *docker
   <<: *build
 
 Trusty root5 clang clang++ xtst:
   stage: fast-build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-clang
   <<: *docker
   <<: *build
 
