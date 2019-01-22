@@ -379,8 +379,8 @@ char *create_titris_stamp(char *data_write,
   // Lets write the time-stamp in units of
   // 10 ns...  This is arbitrary.
 
-  uint64_t stamp = (100000000 * now.tv_sec +
-		    (now.tv_nsec / 10));
+  uint64_t stamp = (100000000 * (uint64_t) now.tv_sec +
+		    (uint64_t) (now.tv_nsec / 10));
 
   if (_conf._bad_stamp &&
       (rxs64s(rstate_badtitris) % _conf._bad_stamp) == 0)
@@ -415,8 +415,8 @@ char *create_wr_stamp(char *data_write,
   // Lets write the time-stamp in units of
   // 10 ns...  This is arbitrary.
 
-  uint64_t stamp = (100000000 * now.tv_sec +
-		    (now.tv_nsec / 10));
+  uint64_t stamp = (1000000000 * now.tv_sec +
+		    (now.tv_nsec / 1));
 
   if (_conf._bad_stamp &&
       (rxs64s(rstate_badwr) % _conf._bad_stamp) == 0)
