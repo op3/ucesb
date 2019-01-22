@@ -429,9 +429,10 @@ bool lmd_source::read_record(bool expect_fragment)
 					     _buffer_header.i_used) ==
 	    file_header_used_size))
 	ERROR("Used buffer space double defined differently (large buffer) "
-	      "(i_used:%d, l_free[2]:%d)",
+	      "(i_used:%d, l_free[2]:%d, filehe_eff_used:%zd)",
 	      BUFFER_USED_FROM_IUSED((uint) (ushort) _buffer_header.i_used),
-	      BUFFER_USED_FROM_IUSED(_buffer_header.l_free[2]));
+	      BUFFER_USED_FROM_IUSED(_buffer_header.l_free[2]),
+	      file_header_used_size);
     }
   /*
   INFO(0,"(%zd+%zd=%zd) (%zd)",
@@ -1031,6 +1032,11 @@ void lmd_source::print_buffer_header(const s_bufhe_host *header)
     {
       if (header->l_dlen > LMD_BUF_HEADER_MAX_IUSED_DLEN)
 	{
+	  printf("File header claim size%s%8zd%s\n",
+		 CT_OUT(BOLD),
+		 size,
+		 CT_OUT(NORM));
+
 	  used = (size_t) header->i_used;
 
 	  used = BUFFER_USED_FROM_IUSED(used);
