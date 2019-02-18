@@ -258,9 +258,12 @@ bool lmd_source::read_record(bool expect_fragment)
 
   if (buffer_size_dlen > _input._input->max_item_length())
     {
-      ERROR("Buffer size (%zd=0x%08zx) too large for for input buffer.  "
+      ERROR("LMD buffer size (%zd=0x%08zx) too large for "
+	    "input buffer (%zd=0x%08zx)/3.  "
 	    "Use at least --input-buffer=%zdMi.",
 	    buffer_size_dlen, buffer_size_dlen,
+	    _input._input->buffer_size(),
+	    _input._input->buffer_size(),
 	    (buffer_size_dlen * 3 + (1024*1024-1))/(1024*1024));
     }
 

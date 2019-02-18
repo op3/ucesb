@@ -124,6 +124,7 @@ public:
 #endif
 
 public:
+  virtual size_t buffer_size();
   virtual size_t max_item_length();
 
 };
