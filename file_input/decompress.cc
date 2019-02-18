@@ -622,7 +622,7 @@ void data_input_source::connect(const char *name,int type
 #endif
 
   size_t prefetch_size = MIN_BUFFER_SIZE;
-  if (prefetch_size < _conf._input_buffer)
+  while (prefetch_size < _conf._input_buffer)
     prefetch_size *= 2;
 
   // Three times the size required.  We need twice to handle events
@@ -874,7 +874,7 @@ void data_input_source::open(const char *filename
       */
 
       size_t prefetch_size = MIN_BUFFER_SIZE;
-      if (prefetch_size < _conf._input_buffer)
+      while (prefetch_size < _conf._input_buffer)
 	prefetch_size *= 2;
       
       pb->init(fd,push_magic,push_magic_len,
@@ -937,7 +937,7 @@ void data_input_source::open_rfio(const char *filename
 #endif
 
   size_t prefetch_size = MIN_BUFFER_SIZE;
-  if (prefetch_size < _conf._input_buffer)
+  while (prefetch_size < _conf._input_buffer)
     prefetch_size *= 2;
   
   rpb->init(fd/*,magic*/,prefetch_size
