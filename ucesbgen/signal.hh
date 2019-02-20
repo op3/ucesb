@@ -102,7 +102,9 @@ public:
   event_index_item _items;
 
 public:
-  virtual void dump(dumper &d,int level,const char *zero_suppress_type,
+  virtual void dump(dumper &d,int level,
+		    const char *zero_suppress_type,
+		    const index_info *prev_zero_suppress_index,
 		    const std::string &prefix,
 		    const char *base_suffix,
 		    bool toggle) const;

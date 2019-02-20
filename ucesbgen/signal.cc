@@ -522,7 +522,9 @@ void insert_signal(event_signal &top,
     }
 }
 
-void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
+void event_signal::dump(dumper &d,int level,
+			const char *zero_suppress_type,
+			const index_info *prev_zero_suppress_index,
 			const std::string &prefix,
 			const char *base_suffix,
 			bool toggle) const
@@ -549,7 +551,8 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
       for (di = dump_map.begin(); di != dump_map.end(); ++di)
 	{
 	  di->second->dump(d,0,
-			   zero_suppress_type,prefix+_name+"_",NULL,toggle);
+			   zero_suppress_type,prev_zero_suppress_index,
+			   prefix+_name+"_",NULL,toggle);
 	  d.nl();
 	}
     }
@@ -561,17 +564,23 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
     {
       const index_info *ii = *i;
 
+      printf ("//DUMPY: %d %d\n",ii->_size,ii->_info);
+
       if (ii->_info & (SIGNAL_INFO_ZERO_SUPPRESS |
 		       SIGNAL_INFO_NO_INDEX_LIST |
 		       SIGNAL_INFO_ZERO_SUPPRESS_MULTI))
 	{
-	  if (zero_suppress_index)
+	  if (prev_zero_suppress_index)
 	    {
-	      WARNING_LOC(zero_suppress_index->_info_loc,"Previous was declared here.");
-	      ERROR_LOC(ii->_info_loc,"Several indices requested zero suppression.");
+	      WARNING_LOC(prev_zero_suppress_index->_info_loc,
+			  "Previous was declared here.");
+	      ERROR_LOC(ii->_info_loc,
+			"Several indices requested zero suppression.");
 	    }
 	  zero_suppress_i     = i;
 	  zero_suppress_index = ii;
+
+	  prev_zero_suppress_index = ii; // catch multi-level zero suppression
 
 	  if (ii->_info & SIGNAL_INFO_NO_INDEX_LIST)
 	    zero_suppress_type = "list_ii";
@@ -719,6 +728,7 @@ void event_signal::dump(dumper &d,int level,const char *zero_suppress_type,
 	    {
 	      // sd.text_fmt("/*%d*/",di->first);
 	      di->second->dump(sd,level+1,zero_suppress_type,
+			       zero_suppress_index,
 			       prefix+_name+"_",NULL,toggle);
 	    }
 
@@ -936,6 +946,7 @@ void generate_signals()
 
 	signal_head[sticky][type_no]->dump(d,0,
 					   type_no == 0 ? "array" : "list",
+					   NULL,
 					   "","_base", type_no == 0);
 
 	print_footer(header_name);
