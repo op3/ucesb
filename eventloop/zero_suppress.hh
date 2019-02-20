@@ -914,7 +914,8 @@ public:
 public:
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
   {
-    _item.zero_suppress_info_ptrs(used_info);
+    //_item.zero_suppress_info_ptrs(used_info);
+    call_zero_suppress_info_ptrs(&_item,used_info);
   }
 };
 */

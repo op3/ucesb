@@ -140,7 +140,7 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
   
   used_zero_suppress_info sub_used_info(sub_info);
 
-  _item.zero_suppress_info_ptrs(sub_used_info);
+  call_zero_suppress_info_ptrs(&_item,sub_used_info);
 
   /* We also need to set info up for the index. */
 
@@ -175,11 +175,11 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       zzp_on_insert_index(i,*info);
       used_zero_suppress_info sub_used_info(info);
 
-      _items[i].zero_suppress_info_ptrs(sub_used_info);
+      call_zero_suppress_info_ptrs(&_items[i],sub_used_info);
     }
 #endif
   for (int i = 0; i < n; ++i)
-    _items[i].zero_suppress_info_ptrs(used_info);
+    call_zero_suppress_info_ptrs(&_items[i],used_info);
 }
 
 template<typename Tsingle,typename T,int n>
@@ -195,7 +195,7 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       zzp_on_insert_index(i,*info);
       used_zero_suppress_info sub_used_info(info);
 
-      _items[i].zero_suppress_info_ptrs(sub_used_info);
+      call_zero_suppress_info_ptrs(&_items[i],sub_used_info);
     }
 }
 
@@ -213,8 +213,9 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       used_zero_suppress_info sub_used_info(info);
 
       for (int i1 = 0; i1 < n1; ++i1)
-	(raw_array_zero_suppress<Tsingle,T,n>::
-	 _items[i])[i1].zero_suppress_info_ptrs(sub_used_info);
+	call_zero_suppress_info_ptrs(&(raw_array_zero_suppress<Tsingle,T,n>::
+				       _items[i])[i1],
+				     sub_used_info);
     }
 }
 
@@ -233,8 +234,9 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
 
       for (int i1 = 0; i1 < n1; ++i1)
 	for (int i2 = 0; i2 < n2; ++i2)
-	  (raw_array_zero_suppress<Tsingle,T,n>::
-	   _items[i])[i1][i2].zero_suppress_info_ptrs(sub_used_info);
+	  call_zero_suppress_info_ptrs(&(raw_array_zero_suppress<Tsingle,T,n>::
+					 _items[i])[i1][i2],
+				       sub_used_info);
     }
 }
 
@@ -252,7 +254,7 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
 	zzp_on_insert_index(i,j,*info);
 	used_zero_suppress_info sub_used_info(info);
 
-	_items[i][j].zero_suppress_info_ptrs(sub_used_info);
+	call_zero_suppress_info_ptrs(&_items[i][j],sub_used_info);
       }
 }
 
@@ -269,7 +271,7 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       zzp_on_insert_index(i,*info);
       used_zero_suppress_info sub_used_info(info);
 
-      _items[i].zero_suppress_info_ptrs(sub_used_info);
+      call_zero_suppress_info_ptrs(&_items[i],sub_used_info);
     }
 }
 
@@ -287,8 +289,9 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       used_zero_suppress_info sub_used_info(info);
 
       for (int i1 = 0; i1 < n1; ++i1)
-	(raw_list_zero_suppress<Tsingle,T,n>::
-	 _items[i])._item[i1].zero_suppress_info_ptrs(sub_used_info);
+	call_zero_suppress_info_ptrs(&(raw_list_zero_suppress<Tsingle,T,n>::
+				       _items[i])._item[i1],
+				     sub_used_info);
     }
 }
 
@@ -307,8 +310,9 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
 
       for (int i1 = 0; i1 < n1; ++i1)
 	for (int i2 = 0; i2 < n2; ++i2)
-	  (raw_list_zero_suppress<Tsingle,T,n>::
-	   _items[i])._item[i1][i2].zero_suppress_info_ptrs(sub_used_info);
+	  call_zero_suppress_info_ptrs(&(raw_list_zero_suppress<Tsingle,T,n>::
+					 _items[i])._item[i1][i2],
+				       sub_used_info);
     }
 }
 
@@ -343,7 +347,7 @@ zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
       zzp_on_insert_index(i,*info,new_type);
       used_zero_suppress_info sub_used_info(info);
 
-      _items[i].zero_suppress_info_ptrs(sub_used_info);
+      call_zero_suppress_info_ptrs(&_items[i],sub_used_info);
     }
 }
 
