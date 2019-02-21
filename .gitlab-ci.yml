@@ -364,7 +364,7 @@ Ubuntu Trusty clang clang++ all:
   <<: *build
 
 Ubuntu Trusty-32bit gcc g++ all:
-  stage: fast-build
+  stage: build
   image: munken/build-essential:ubuntu32-trusty-gcc
   <<: *docker
   <<: *build
