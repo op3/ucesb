@@ -23,6 +23,20 @@
 #include "parse_error.hh"
 
 
+void struct_data::check_bits() const
+{
+  if (_bits)
+    {
+      bits_spec_list::const_reverse_iterator ri;
+      ri = _bits->rbegin();
+      bits_spec *b = *ri;
+      if (b->_max >= _size)
+	ERROR_LOC(_loc,"Bits for '%s' outside (%d) type size (%d).",
+		  b->_name ? b->_name : "unnamed",b->_max,_size);
+    }
+}
+
+
 void struct_data::dump(dumper &d,bool /*recursive*/) const
 {
   if (_flags & SD_FLAGS_OPTIONAL)

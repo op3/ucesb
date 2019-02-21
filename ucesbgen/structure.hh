@@ -75,6 +75,8 @@ public:
     _flags = flags;
     _bits  = bits;
     _encode = encode;
+
+    check_bits();
   }
 
 public:
@@ -83,6 +85,9 @@ public:
   int                     _flags;
   const bits_spec_list   *_bits;
   const encode_spec_list *_encode;
+
+protected:
+  void check_bits() const;
 
 public:
   virtual void dump(dumper &d,bool recursive = true) const;
