@@ -91,8 +91,8 @@ stages:
 
 .prepare-slc6: &slc6
   before_script:
-    # - source /opt/rh/devtoolset-4/enable
-    # - source /opt/rh/python27/enable
+    - source /opt/rh/devtoolset-4/enable
+    - source /opt/rh/python27/enable
     # - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
     # - yum -y install yum-plugin-ovl # docker/overlay fix
     # - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
@@ -500,7 +500,7 @@ Debian Etch gcc g++ all:
 
 Opensuse latest gcc g++ all:
   stage: build
-  image: munken/build-essential:opensuse-latest-gcc-c++
+  image: munken/build-essential:opensuse-latest-gcc
   <<: *docker
   <<: *build
 
