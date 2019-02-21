@@ -83,19 +83,19 @@ stages:
 
 .prepare-cc7: &cc7
   before_script:
-    - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
-    - yum install -y git bison flex ncurses-devel make perl-Digest-MD5 gcc-c++
-        > /dev/null
+    # - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
+    # - yum install -y git bison flex ncurses-devel make perl-Digest-MD5 gcc-c++
+    #     > /dev/null
     - export YACC=bison
   <<: *build
 
 .prepare-slc6: &slc6
   before_script:
-    - source /opt/rh/devtoolset-4/enable
-    - source /opt/rh/python27/enable
-    - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
-    - yum -y install yum-plugin-ovl # docker/overlay fix
-    - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
+    # - source /opt/rh/devtoolset-4/enable
+    # - source /opt/rh/python27/enable
+    # - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
+    # - yum -y install yum-plugin-ovl # docker/overlay fix
+    # - yum install -y git bison flex ncurses-devel perl-Digest-MD5 > /dev/null
     - export YACC=bison
   <<: *build
 
@@ -174,45 +174,45 @@ stages:
 # Fast build (only empty or xtst) to quickly see if there is some chance.
 
 # Has test files.
-Trusty root5 gcc g++ is446:
+Ubuntu Trusty gcc g++ is446:
   stage: fast-build
   image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty root5 gcc g++ empty:
+Ubuntu Trusty gcc g++ empty:
   stage: fast-build
   image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty root5 gcc g++ xtst:
+Ubuntu Trusty gcc g++ xtst:
   stage: fast-build
   image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty root5 clang clang++ empty:
+Ubuntu Trusty clang clang++ empty:
   stage: fast-build
   image: munken/build-essential:ubuntu-trusty-clang
   <<: *docker
   <<: *build
 
-Trusty root5 clang clang++ xtst:
+Ubuntu Trusty clang clang++ xtst:
   stage: fast-build
   image: munken/build-essential:ubuntu-trusty-clang
   <<: *docker
   <<: *build
 
-Trusty 32bit gcc g++ empty:
+Ubuntu Trusty-32bit gcc g++ empty:
   stage: fast-build
-  image: daald/ubuntu32:trusty
+  image: munken/build-essential:ubuntu32-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty 32bit clang clang++ empty:
+Ubuntu Trusty-32bit clang clang++ empty:
   stage: fast-build
-  image: daald/ubuntu32:trusty
+  image: munken/build-essential:ubuntu32-trusty-clang
   <<: *docker
   <<: *build
 
@@ -339,83 +339,47 @@ qemu ppc clang clang++ xtst:
 ###
 # And the rest.
 
-SLC6 root6 gcc g++ all:
+SLC latest gcc g++ all:
   stage: build
-  image: munken/root:slc6-root6
+  image: munken/build-essential:slc6-latest-gcc
   <<: *docker
   <<: *slc6
 
-SLC6 root5 gcc g++ all:
+CC7 latest gcc g++ all:
   stage: build
-  image: munken/root:slc6-root5
-  <<: *docker
-  <<: *slc6
-
-CC7 root6 gcc g++ all:
-  stage: build
-  image: munken/root:cc7-root6
+  image: munken/build-essential:cc7-latest-gcc
   <<: *docker
   <<: *cc7
 
-CC7 root5 gcc g++ all:
+Ubuntu Trusty gcc g++ all:
   stage: build
-  image: munken/root:cc7-root5
-  <<: *docker
-  <<: *cc7
-
-Trusty root5 gcc g++ all:
-  stage: build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty root5 clang clang++ all:
+Ubuntu Trusty clang clang++ all:
   stage: build
-  image: munken/root:trusty-root5
+  image: munken/build-essential:ubuntu-trusty-clang
   <<: *docker
   <<: *build
 
-Trusty root6 gcc g++ all:
-  stage: build
-  image: munken/root:trusty-root6
+Ubuntu Trusty-32bit gcc g++ all:
+  stage: fast-build
+  image: munken/build-essential:ubuntu32-trusty-gcc
   <<: *docker
   <<: *build
 
-Trusty root6 clang clang++ all:
+Ubuntu Xenial gcc g++ all:
   stage: build
-  image: munken/root:trusty-root6
+  image: munken/build-essential:ubuntu-xenial-gcc
   <<: *docker
   <<: *build
 
-Trusty 32bit gcc g++ all:
+Ubuntu Xenial clang clang++ all:
   stage: build
-  image: daald/ubuntu32:trusty
+  image: munken/build-essential:ubuntu-xenial-clang
   <<: *docker
-  <<: *build
-
-Xenial root5 gcc g++ all:
-  stage: build
-  image: munken/root:xenial-root5
-  <<: *docker
-  <<: *build
-
-Xenial root5 clang clang++ all:
-  stage: build
-  image: munken/root:xenial-root5
-  <<: *docker
-  <<: *build
-
-Xenial root6 gcc g++ all:
-  stage: build
-  image: munken/root:xenial-root6
-  <<: *docker
-  <<: *build
-
-Xenial root6 clang clang++ all:
-  stage: build
-  image: munken/root:xenial-root6
-  <<: *docker
-  <<: *build
+  <<: *build  
 
 Xenial root6 gcc-6 g++-6 all flex 2.6.1:
   stage: build
@@ -428,6 +392,30 @@ Xenial root6 gcc-6 g++-6 all flex 2.6.2:
   image: munken/root:xenial-root6
   <<: *docker
   <<: *ubuntu-gcc6
+
+Ubuntu Bionic gcc g++ all:
+  stage: build
+  image: munken/build-essential:ubuntu-bionic-gcc
+  <<: *docker
+  <<: *build
+
+Ubuntu Bionic clang clang++ all:
+  stage: build
+  image: munken/build-essential:ubuntu-bionic-clang
+  <<: *docker
+  <<: *build
+
+Ubuntu Disco gcc g++ all:
+  stage: build
+  image: munken/build-essential:ubuntu-disco-gcc
+  <<: *docker
+  <<: *build
+
+Ubuntu Disco clang clang++ all:
+  stage: build
+  image: munken/build-essential:ubuntu-disco-clang
+  <<: *docker
+  <<: *build
 
 Arch minimal gcc g++ all:
   stage: build
@@ -444,9 +432,9 @@ gcc-latest minimal gcc g++ all:
   <<: *docker
   <<: *debian
 
-debian jessie gcc g++ all:
+Debian Jessie gcc g++ all:
   stage: build
-  image: debian:jessie
+  image: munken/build-essential:debian-jessie-gcc
   <<: *docker
   <<: *build
 
@@ -498,29 +486,29 @@ debian jessie clang-7 clang++-7 all:
   <<: *docker
   <<: *build
 
-debian wheezy gcc g++ all:
+Debian Wheezy gcc g++ all:
   stage: build
-  image: debian:wheezy
+  image: munken/build-essential:debian-wheezy-gcc
   <<: *docker
   <<: *build
 
-debian etch gcc g++ all:
+Debian Etch gcc g++ all:
   stage: build
-  image: munken/debian:etch
+  image: munken/build-essential:debian-etch-gcc
   <<: *docker
-  <<: *old-debian
+  <<: *build
 
-opensuse latest gcc g++ all:
+Opensuse latest gcc g++ all:
   stage: build
-  image: opensuse:latest
+  image: munken/build-essential:opensuse-latest-gcc-c++
   <<: *docker
-  <<: *opensuse
+  <<: *build
 
-opensuse latest clang clang++ all:
+Opensuse latest clang clang++ all:
   stage: build
-  image: opensuse:latest
+  image: munken/build-essential:opensuse-latest-clang
   <<: *docker
-  <<: *opensuse
+  <<: *build
 
 freebsd 10 gcc g++ all:
   stage: build
