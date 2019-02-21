@@ -440,49 +440,55 @@ Debian Jessie gcc g++ all:
 
 debian jessie clang-3.6 clang++-3.6 all:
   stage: build  
-  image: munken/jessie-clang:3.6
+  image: munken/build-essential:debian-jessie-clang-3.6
   <<: *docker
   <<: *build
 
 debian jessie clang-3.7 clang++-3.7 all:
   stage: build
-  image: munken/jessie-clang:3.7
+  image: munken/build-essential:debian-jessie-clang-3.7
   <<: *docker
   <<: *build
 
 debian jessie clang-3.8 clang++-3.8 all:
   stage: build
-  image: munken/jessie-clang:3.8
+  image: munken/build-essential:debian-jessie-clang-3.8
   <<: *docker
   <<: *build
 
 debian jessie clang-3.9 clang++-3.9 all:
   stage: build
-  image: munken/jessie-clang:3.9
+  image: munken/build-essential:debian-jessie-clang-3.9
   <<: *docker
   <<: *build
 
 debian jessie clang-4.0 clang++-4.0 all:
   stage: build
-  image: munken/jessie-clang:4.0
+  image: munken/build-essential:debian-jessie-clang-4.0
   <<: *docker
   <<: *build
 
 debian jessie clang-5.0 clang++-5.0 all:
   stage: build
-  image: munken/jessie-clang:5.0
+  image: munken/build-essential:debian-jessie-clang-5.0
   <<: *docker
   <<: *build
 
 debian jessie clang-6.0 clang++-6.0 all:
   stage: build
-  image: munken/jessie-clang:6.0
+  image: munken/build-essential:debian-jessie-clang-6.0
   <<: *docker
   <<: *build
 
 debian jessie clang-7 clang++-7 all:
   stage: build
-  image: munken/jessie-clang:7
+  image: munken/build-essential:debian-jessie-clang-7
+  <<: *docker
+  <<: *build
+
+debian jessie clang-8 clang++-8 all:
+  stage: build
+  image: munken/build-essential:debian-jessie-clang-8
   <<: *docker
   <<: *build
 
