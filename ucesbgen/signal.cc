@@ -246,8 +246,8 @@ void insert_signal(event_signal &top,
 	      part->_index_info = ii;
 	      ++part;
 	    }
-	  // For us it does not matter if we end here completely or with a name,
-	  // since it is the first addition
+	  // For us it does not matter if we end here completely or
+	  // with a name, since it is the first addition
 
 	  node = es;
 	}
@@ -256,7 +256,8 @@ void insert_signal(event_signal &top,
 	  // fprintf (stderr,"Found name: %s\n",part->_id._name);
 	  // So, the correctly named item has been found...
 	  ++part;
-	  // The amount of indices must be the same, but they may be too small...
+	  // The amount of indices must be the same, but they may be
+	  // too small...
 	  // Now, run in parallell with two iterators, one for part,
 	  // one for the indices
 
@@ -401,7 +402,8 @@ void insert_signal(event_signal &top,
 			  node->_multi_size != s_info->_multi_size)
 			{
 			  WARNING_LOC(s_info->_loc,
-				      "Different multi-entry sizes specified.");
+				      "Different multi-entry sizes "
+				      "specified.");
 			  ERROR_LOC(node->_multi_loc,
 				    "Previous declaration was here.");
 			}
@@ -411,7 +413,8 @@ void insert_signal(event_signal &top,
 		    }
 		  else
 		    {
-		      ERROR_LOC(s_info->_loc,"Cannot zero-suppress non-array.");
+		      ERROR_LOC(s_info->_loc,
+				"Cannot zero-suppress non-array.");
 		    }
 
 		      /*
@@ -423,7 +426,8 @@ void insert_signal(event_signal &top,
 	    }
 	  else
 	    {
-	      // We are not terminal.  Also the child may have no children, or no further indices
+	      // We are not terminal.  Also the child may have no
+	      // children, or no further indices
 
 	      if (i != indices.end())
 		{
@@ -542,7 +546,10 @@ void event_signal::dump(dumper &d,int level,
 	{
 	  if (!c->second->_children.empty())
 	    {
-	      dump_map.insert(ordered_event_signal_map::value_type(c->second->_decl->_order_index,c->second));
+	      dump_map.
+		insert(ordered_event_signal_map::
+		       value_type(c->second->_decl->_order_index,
+				  c->second));
 	    }
 	}
 
@@ -560,7 +567,8 @@ void event_signal::dump(dumper &d,int level,
   index_info_vector::const_iterator zero_suppress_i = _indices.end();
   const index_info *zero_suppress_index = NULL;
 
-  for (index_info_vector::const_iterator i = _indices.begin(); i != _indices.end(); ++i)
+  for (index_info_vector::const_iterator i = _indices.begin();
+       i != _indices.end(); ++i)
     {
       const index_info *ii = *i;
 
@@ -604,7 +612,8 @@ void event_signal::dump(dumper &d,int level,
 	  if (indices > 1)
 	    {
 	      WARNING_LOC(zero_suppress_index->_info_loc,
-			"Unhandled amount (%d) of indices between zero suppression",(int) indices-1);
+			"Unhandled amount (%d) of indices "
+			  "between zero suppression",(int) indices-1);
 	      ERROR_LOC(_multi_loc,"and multi-entry leaf node.");
 	    }
 
@@ -649,18 +658,23 @@ void event_signal::dump(dumper &d,int level,
 	{
 	  // d.text("typedef ");
 
-	  ssize_t indices = zero_suppress_index ? distance(zero_suppress_i,_indices.end())-1 : 0;
+	  ssize_t indices =
+	    zero_suppress_index ?
+	    distance(zero_suppress_i,_indices.end())-1 : 0;
 
 	  if (indices)
 	    {
 	      if (indices > 2)
 		{
-		  // one simply need to implement the raw_array_zero_suppress_%d class (very easy)
+		  // one simply need to implement the
+		  // raw_array_zero_suppress_%d class (very easy)
 		  // look at the smaller ones...
 		  ERROR_LOC(zero_suppress_index->_info_loc,
-			    "Unhandled amount (%d) of indices after zero suppressed",(int) indices);
+			    "Unhandled amount (%d) of indices "
+			    "after zero suppressed",(int) indices);
 		}
-	      d.text_fmt("raw_%s_zero_suppress_%d<",zero_suppress_type,(int) indices);
+	      d.text_fmt("raw_%s_zero_suppress_%d<",
+			 zero_suppress_type,(int) indices);
 	    }
 	  else
 	    d.text_fmt("raw_%s_zero_suppress<",zero_suppress_type);
@@ -719,7 +733,10 @@ void event_signal::dump(dumper &d,int level,
 	      // sd.text_fmt("/*%s:%d*/",
 	      //             c->second->_name,c->second->_decl->_order_index);
 	      // sd.nl();
-	      dump_map.insert(ordered_event_signal_map::value_type(c->second->_decl->_order_index,c->second));
+	      dump_map.
+		insert(ordered_event_signal_map::
+		       value_type(c->second->_decl->_order_index,
+				  c->second));
 	    }
 
 	  ordered_event_signal_map::const_iterator di;
@@ -756,7 +773,8 @@ void event_signal::dump(dumper &d,int level,
       else
 	end_index = _indices.end();
 
-      for (index_info_vector::const_iterator i = _indices.begin(); i != end_index; ++i)
+      for (index_info_vector::const_iterator i = _indices.begin();
+	   i != end_index; ++i)
 	{
 	  const index_info *ii = *i;
 
