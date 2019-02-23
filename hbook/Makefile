@@ -119,7 +119,7 @@ CERN_INCLUDE_DIRS += $(addprefix $(CERN_ROOT),/include/cfortran/ /src/cfortran/)
 # We additionally only want to set the flag if we could need it, i.e.
 # are usually compiling 64-bit
 
-DEFAULT_SYSTEM_64:=$(shell cpp -dM /dev/null | grep __amd64__)
+DEFAULT_SYSTEM_64:=$(shell $(CPP) -x c -dM /dev/null | grep __amd64__)
 
 ifneq (,$(DEFAULT_SYSTEM_64))
 FILE_PAWX11:=$(shell which pawX11)

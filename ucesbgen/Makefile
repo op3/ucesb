@@ -58,7 +58,7 @@ include ../makefile_filter_warnings.inc
 
 #########################################
 
-CPP_DEFINES_CYGWIN = $(shell cpp -dM /dev/null | grep __CYGWIN__)
+CPP_DEFINES_CYGWIN = $(shell $(CPP) -x c -dM /dev/null | grep __CYGWIN__)
 
 #########################################
 # Cygwin got vsnprintf problems with -ansi
