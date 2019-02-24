@@ -146,7 +146,7 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 	  break;
 	case ZZP_INFO_CALL_LIST_II_INDEX:
 	  limit_addr = zzp_info->_list_ii._limit;
-	  limit_index = zzp_info->_list_ii._index;
+	  limit_index = zzp_info->_list_ii._index_x;
 	  break;
         case ZZP_INFO_CALL_ARRAY_MULTI_INDEX:
 	  limit_addr = zzp_info->_array._limit_mask;
@@ -162,7 +162,7 @@ void enumerate_member_paw_ntuple(const signal_id &id,
 	  goto limit2_list_ii_index;
 	limit2_list_ii_index:
 	  limit2_addr = zzp_info->_list_ii._limit;
-	  limit2_index = zzp_info->_list_ii._index;
+	  limit2_index = zzp_info->_list_ii._index_x;
 	  if (zzp_info->_type != ZZP_INFO_CALL_ARRAY_MULTI_INDEX)
 	    ERROR("Unimplemented - no support for "
 		  "zero suppression + multi entry in ntuples (%d).",

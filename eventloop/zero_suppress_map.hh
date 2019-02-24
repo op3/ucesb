@@ -109,10 +109,15 @@ public:
     call_on_list_ii_insert_fcn _call_ii;
 
     void                    *_item;
-    uint                     _index;
+    // TODO: is this one really needed for list_ii ???
+    // causes one extra copy of this structure per member!
+    // could be calculated with a base and stride??
+    uint                     _index_x;
 
     // to be subtracted from _dest before use/insert
-    size_t                   _dest_offset;
+    // TODO: is this one really needed for list_ii ???
+    // causes one extra copy of this structure per member!
+    size_t                   _dest_offset_x;
 
     uint32                  *_limit;
   } _list_ii;
@@ -165,10 +170,10 @@ public:
 
     _array._limit_mask = limit_mask;
 
-    _list_ii._index = index_ii;
+    _list_ii._index_x = index_ii;
     _list_ii._limit = limit_ii;
 
-    _list_ii._dest_offset = dest_offset;
+    _list_ii._dest_offset_x = dest_offset;
   }
 
   void set_zzp_list_ii(int new_type,
@@ -181,10 +186,10 @@ public:
     _list_ii._call_ii = call_ii;
 
     _list_ii._item = item;
-    _list_ii._index = index;
+    _list_ii._index_x = index;
     _list_ii._limit = limit;
 
-    _list_ii._dest_offset = dest_offset;
+    _list_ii._dest_offset_x = dest_offset;
   }
 
   const void *const *_ptr_offset;
