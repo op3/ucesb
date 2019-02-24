@@ -129,12 +129,26 @@ public:
   }
 
   void set_zzp_array(call_on_array_insert_fcn call,
+		     call_on_list_insert_fcn call_multi,
 		     void *item, uint index, unsigned long *limit_mask)
   {
     assert (!(_type & ZZP_INFO_MASK));
-    _type |= ZZP_INFO_CALL_ARRAY_INDEX;
+
+    if (call)
+      {
+	_type |= ZZP_INFO_CALL_ARRAY_INDEX;
+	_array._call = call;
+      }
+    else if (call_multi)
+      {
+	_type |= ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
+	_array._call_multi = call_multi;
+      }
+    else
+      {
+	assert(false);
+      }
     
-    _array._call = call;
     _array._item = item;
     _array._index = index;
     _array._limit_mask = limit_mask;
@@ -153,26 +167,6 @@ public:
     _list._limit = limit;
 
     _list._dest_offset = dest_offset;
-  }
-
-  void set_zzp_multi_array(call_on_list_insert_fcn call_multi,
-			   void *item, uint index, unsigned long *limit_mask,
-			   uint index_ii, uint32 *limit_ii,
-			   size_t dest_offset)
-  {
-    assert (!(_type & ZZP_INFO_MASK));
-    _type |= ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
-    _array._call_multi = call_multi;
-
-    _array._item = item;
-    _array._index = index;
-
-    _array._limit_mask = limit_mask;
-
-    _list_ii._index_x = index_ii;
-    _list_ii._limit = limit_ii;
-
-    _list_ii._dest_offset_x = dest_offset;
   }
 
   void set_zzp_list_ii(call_on_list_ii_insert_fcn call_ii,
@@ -194,6 +188,12 @@ public:
 	break;
       default:
 	ERROR("Two levels of unsupported zero suppression combination!");
+	break;
+	
+	/* Special case, set_zzp_array was just called. */
+      case ZZP_INFO_CALL_ARRAY_MULTI_INDEX:
+	new_type       = ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
+	break;
       }
 
     _type &= ~ZZP_INFO_MASK;
@@ -206,6 +206,21 @@ public:
     _list_ii._limit = limit;
 
     _list_ii._dest_offset_x = dest_offset;
+  }
+
+  void set_zzp_multi_array(call_on_list_insert_fcn call_multi,
+			   void *item, uint index, unsigned long *limit_mask,
+			   uint index_ii, uint32 *limit_ii,
+			   size_t dest_offset)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+
+    set_zzp_array(NULL, call_multi,
+		  item, index, limit_mask);
+
+    set_zzp_list_ii(NULL,
+		    NULL, index_ii, limit_ii,
+		    dest_offset);
   }
 
   const void *const *_ptr_offset;
@@ -254,7 +269,8 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
 
   call_on_array_insert_fcn call =
     call_on_insert_array_index< raw_array_zero_suppress<Tsingle,T,n> >;
-  info.set_zzp_array(call, this, i, _valid._bits);
+  info.set_zzp_array(call, NULL,
+		     this, i, _valid._bits);
 }
 
 template<typename T>
