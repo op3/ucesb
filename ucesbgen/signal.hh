@@ -332,4 +332,7 @@ void expand_insert_signal_to_all(signal_spec_range *signal);
 
 const char *data_item_size_to_signal_type(int sz);
 
+const char *add_index_to_identifier(const char *ident,
+				    int index);
+
 #endif//__SIGNAL_HH__

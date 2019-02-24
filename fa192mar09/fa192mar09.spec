@@ -127,6 +127,9 @@ SIGNAL(sadc2_1, vme.sadc[1].data,DATA16);
 SIGNAL(NO_INDEX_LIST: sadcp1_2560);
 SIGNAL(sadcp2_1, ,DATA16);
 
+// Duplicate, for testing.
+SIGNAL(NO_INDEX_LIST(2560): sadcp1);
+
 SIGNAL(sadcpp_trigrec, vme.sadc_pack[0].trig_rec, uint16);
 SIGNAL(sadcpp_vernier, vme.sadc_pack[0].vernier,  uint16);
 

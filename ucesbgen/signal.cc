@@ -34,6 +34,8 @@ char *strndup(const char *src,size_t length)
 {
   // We wast memory in case the string actually is shorter...
   char *dest = (char *) malloc(length+1);
+  if (!dest)
+    return NULL;
   strncpy(dest,src,length);
   dest[length]='\0'; // since strncpy would not handle this
   return dest;
@@ -156,18 +158,42 @@ void signal_spec_range::dump(dumper &d) const
 
 void signal_info::dump(dumper &d) const
 {
+  const char *print_name = _name;
+  char *tmp = NULL;
+
   d.text("SIGNAL(");
   if (_info == SIGNAL_INFO_ZERO_SUPPRESS)
     d.text(" ZERO_SUPPRESS");
   if (_info == SIGNAL_INFO_NO_INDEX_LIST)
-    d.text(" NO_INDEX_LIST");
+    {
+      /* We rather print with the NO_INDEX_LIST(n) format, which means,
+       * that we have to cut one element from the name...
+       *
+       * This is UGLY!
+       */
+      tmp = strdup(_name);
+      char *last_start = tmp+strlen(tmp);
+      int index;
+      while (last_start > tmp &&
+	     isdigit(*(last_start-1)))
+	last_start--;
+      index = atoi(last_start);
+      if (last_start > tmp &&
+	  *(last_start-1) == '_')
+	last_start--;
+      *last_start = 0;
+      print_name = tmp;
+      d.text_fmt(" NO_INDEX_LIST(%d)", index);
+    }
   if (_info == SIGNAL_INFO_ZERO_SUPPRESS_MULTI)
     d.text_fmt(" ZERO_SUPPRESS_MULTI(%d)",_multi_size);
   d.text(":");
 
-  d.text(_name);
+  d.text(print_name);
   d.text(");");
   d.nl();
+
+  free (tmp);
 }
 
 event_signal::event_signal(signal_spec_base *decl,
@@ -1112,4 +1138,23 @@ const char *data_item_size_to_signal_type(int sz)
     case 64: return "uint64";
     }
   assert(false);
+}
+
+/* This is a dirty hack (support function for parser).
+ * Had we been storing signal_id instead of string names,
+ * things would have been more natural.
+ */
+const char *add_index_to_identifier(const char *ident,
+				    int index)
+{
+  const char *extended;
+  char *tmp;
+
+  tmp = (char *) malloc(strlen(ident) + 32);
+  if (!tmp)
+    ERROR("Memory allocation error.");
+  sprintf (tmp, "%s_%d", ident, index);
+  extended = find_str_identifiers(tmp);
+  free(tmp);
+  return extended;
 }

@@ -800,6 +800,13 @@ signal_info:
 		new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
 				$5,SIGNAL_INFO_NO_INDEX_LIST); $$ = signal;
 	    }
+	| SIGNAL '(' NO_INDEX_LIST '(' var_eval_int_const ')' ':'
+	/**/         IDENTIFIER ')'
+	    { signal_info* signal =
+		new signal_info(CURR_FILE_LINE,CURR_SIGNAL_COUNT,
+				add_index_to_identifier($8,$5),
+				SIGNAL_INFO_NO_INDEX_LIST); $$ = signal;
+	    }
 	| SIGNAL '(' ZERO_SUPPRESS_MULTI '(' var_eval_int_const ')' ':'
 	/**/         IDENTIFIER ')'
 	    { CHECK_ARRAY_SIZE($5,0x10000);
