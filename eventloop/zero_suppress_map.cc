@@ -37,7 +37,7 @@ public:
 
 public:
   void              *_ptr;
-  const void *const *_ptr_offset;
+  const void *const *_ptr_offset; // for multi_chunk (i.e. multi-event)
 
 public:
   bool operator<(const zzp_ptr &rhs) const

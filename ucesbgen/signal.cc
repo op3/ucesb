@@ -612,7 +612,7 @@ void event_signal::dump(dumper &d,int level,
 	  if (indices > 1)
 	    {
 	      WARNING_LOC(zero_suppress_index->_info_loc,
-			"Unhandled amount (%d) of indices "
+			  "Unhandled amount (%d) of indices "
 			  "between zero suppression",(int) indices-1);
 	      ERROR_LOC(_multi_loc,"and multi-entry leaf node.");
 	    }
