@@ -117,6 +117,76 @@ public:
     uint32                  *_limit;
   } _list_ii;
 
+  void set_fixed_array(uint index)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+    _type |= ZZP_INFO_FIXED_LIST;
+    _fixed_list._index = index;
+  }
+
+  void set_zzp_array(call_on_array_insert_fcn call,
+		     void *item, uint index, unsigned long *limit_mask)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+    _type |= ZZP_INFO_CALL_ARRAY_INDEX;
+    
+    _array._call = call;
+    _array._item = item;
+    _array._index = index;
+    _array._limit_mask = limit_mask;
+  }
+
+  void set_zzp_list(call_on_list_insert_fcn call,
+		    void *item, uint index, uint32 *limit,
+		    size_t dest_offset)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+    _type |= ZZP_INFO_CALL_LIST_INDEX;
+    _list._call = call;
+
+    _list._item = item;
+    _list._index = index;
+    _list._limit = limit;
+
+    _list._dest_offset = dest_offset;
+  }
+
+  void set_zzp_multi_array(call_on_list_insert_fcn call_multi,
+			   void *item, uint index, unsigned long *limit_mask,
+			   uint index_ii, uint32 *limit_ii,
+			   size_t dest_offset)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+    _type |= ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
+    _array._call_multi = call_multi;
+
+    _array._item = item;
+    _array._index = index;
+
+    _array._limit_mask = limit_mask;
+
+    _list_ii._index = index_ii;
+    _list_ii._limit = limit_ii;
+
+    _list_ii._dest_offset = dest_offset;
+  }
+
+  void set_zzp_list_ii(int new_type,
+		       call_on_list_ii_insert_fcn call_ii,
+		       void *item, uint index, uint32 *limit,
+		       size_t dest_offset)
+  {
+    assert (!(_type & ZZP_INFO_MASK));
+    _type |= new_type;
+    _list_ii._call_ii = call_ii;
+
+    _list_ii._item = item;
+    _list_ii._index = index;
+    _list_ii._limit = limit;
+
+    _list_ii._dest_offset = dest_offset;
+  }
+
   const void *const *_ptr_offset;
 };
 
@@ -135,9 +205,7 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
     ERROR("Attempt to index outside list (%d>=%d)",i,n);
 
-  assert (!(info._type & ZZP_INFO_MASK));
-  info._type |= ZZP_INFO_FIXED_LIST;
-  info._fixed_list._index = i;
+  info.set_fixed_array(i);
 }
 
 template<typename T>
@@ -163,14 +231,9 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
     item_t &item = _items[i];
   */
 
-  assert (!(info._type & ZZP_INFO_MASK));
-  info._type |= ZZP_INFO_CALL_ARRAY_INDEX;
-  info._array._call =
+  call_on_array_insert_fcn call =
     call_on_insert_array_index< raw_array_zero_suppress<Tsingle,T,n> >;
-  info._array._item = this;
-  info._array._index = i;
-
-  info._array._limit_mask = _valid._bits;
+  info.set_zzp_array(call, this, i, _valid._bits);
 }
 
 template<typename T>
@@ -188,18 +251,13 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
     ERROR("Attempt to index outside list (%d>=%d)",i,n);
 
-  assert (!(info._type & ZZP_INFO_MASK));
-  info._type |= ZZP_INFO_CALL_LIST_INDEX;
-  info._list._call =
+  call_on_list_insert_fcn call =
     call_on_insert_list_index< raw_list_zero_suppress<Tsingle,T,n> >;
-  info._list._item = this;
-  info._list._index = i;
-  info._list._limit = &_num_items;
-
   void *ptr   = (void *) &_items[i];
   void *first = (void *) &_items[0];
-
-  info._list._dest_offset = (size_t) (((char*) ptr) - ((char*) first));
+  info.set_zzp_list(call,
+		    this, i, &_num_items,
+		    (size_t) (((char*) ptr) - ((char*) first)));
 }
 
 template<typename Tsingle,typename T,int n,int max_entries>
@@ -222,23 +280,17 @@ zzp_on_insert_index(/*int loc,*/uint32 i,uint32 j,zero_suppress_info &info)
     item_t &item = _items[i];
   */
 
-  assert (!(info._type & ZZP_INFO_MASK));
-  info._type |= ZZP_INFO_CALL_ARRAY_MULTI_INDEX;
-  info._array._call_multi =
+  call_on_list_insert_fcn call_multi =
     call_on_insert_list_index< raw_array_multi_zero_suppress<Tsingle,T,
 							     n,max_entries> >;
-  info._array._item = this;
-  info._array._index = i;
-
-  info._array._limit_mask = _valid._bits;
-
-  info._list_ii._index = j;
-  info._list_ii._limit = &_num_entries[i];
 
   void *ptr   = (void *) &_items[i][j];
   void *first = (void *) &_items[i][0];
 
-  info._list_ii._dest_offset = (size_t) (((char*) ptr) - ((char*) first));
+  info.set_zzp_multi_array(call_multi,
+			   this, i, _valid._bits,
+			   j, &_num_entries[i],
+			   (size_t) (((char*) ptr) - ((char*) first)));
 }
 
 template<typename T>
@@ -256,18 +308,15 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info,int new_type)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
     ERROR("Attempt to index outside list (%d>=%d)",i,n);
 
-  assert (!(info._type & ZZP_INFO_MASK));
-  info._type |= new_type;
-  info._list_ii._call_ii =
+  call_on_list_ii_insert_fcn call_ii =
     call_on_insert_list_ii_item< raw_list_ii_zero_suppress<Tsingle,T,n> >;
-  info._list_ii._item = this;
-  info._list_ii._index = i;
-  info._list_ii._limit = &_num_items;
 
   void *ptr   = (void *) &_items[i];
   void *first = (void *) &_items[0];
 
-  info._list_ii._dest_offset = (size_t) (((char*) ptr) - ((char*) first));
+  info.set_zzp_list_ii(new_type, call_ii,
+		       this, i, &_num_items,
+		       (size_t) (((char*) ptr) - ((char*) first)));
 }
 
 const zero_suppress_info *
