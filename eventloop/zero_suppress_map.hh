@@ -43,13 +43,12 @@ struct zero_suppress_info
 {
 public:
   zero_suppress_info(const zero_suppress_info* src,
-		     int type_mask_away = ~0,
 		     bool ignore_none_check = false)
   {
     _type       = src->_type;
     _toggle_max = src->_toggle_max;
     _ptr_offset = src->_ptr_offset;
-
+    
     if (!ignore_none_check &&
 	(_type & ZZP_INFO_MASK) != ZZP_INFO_NONE)
       {
@@ -176,11 +175,28 @@ public:
     _list_ii._dest_offset_x = dest_offset;
   }
 
-  void set_zzp_list_ii(int new_type,
-		       call_on_list_ii_insert_fcn call_ii,
+  void set_zzp_list_ii(call_on_list_ii_insert_fcn call_ii,
 		       void *item, uint index, uint32 *limit,
 		       size_t dest_offset)
   {
+    int new_type = 0;
+
+    switch (_type & ZZP_INFO_MASK)
+      {
+      case ZZP_INFO_CALL_ARRAY_INDEX:
+	new_type       = ZZP_INFO_CALL_ARRAY_LIST_II_INDEX;
+	break;
+      case ZZP_INFO_CALL_LIST_INDEX:
+	new_type       = ZZP_INFO_CALL_LIST_LIST_II_INDEX;
+	break;
+      case ZZP_INFO_NONE:
+	new_type       = ZZP_INFO_CALL_LIST_II_INDEX;
+	break;
+      default:
+	ERROR("Two levels of unsupported zero suppression combination!");
+      }
+
+    _type &= ~ZZP_INFO_MASK;
     assert (!(_type & ZZP_INFO_MASK));
     _type |= new_type;
     _list_ii._call_ii = call_ii;
@@ -307,7 +323,7 @@ size_t call_on_insert_list_ii_item(void *container)
 
 template<typename Tsingle,typename T,int n>
 void raw_list_ii_zero_suppress<Tsingle,T,n>::
-zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info,int new_type)
+zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info)
 {
   if (i >= n)
     // ERROR_U_LOC(loc,"Attempt to index outside list (%d>=%d)",i,n);
@@ -319,7 +335,7 @@ zzp_on_insert_index(/*int loc,*/uint32 i,zero_suppress_info &info,int new_type)
   void *ptr   = (void *) &_items[i];
   void *first = (void *) &_items[0];
 
-  info.set_zzp_list_ii(new_type, call_ii,
+  info.set_zzp_list_ii(call_ii,
 		       this, i, &_num_items,
 		       (size_t) (((char*) ptr) - ((char*) first)));
 }

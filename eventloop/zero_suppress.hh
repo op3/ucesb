@@ -1000,7 +1000,7 @@ public:
   }
 
   void zzp_on_insert_index(/*int loc,*/
-			   uint32 i,zero_suppress_info &info,int new_type);
+			   uint32 i,zero_suppress_info &info);
 
 public:
   void show_members(const signal_id &id,const char* unit) const

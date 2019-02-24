@@ -320,31 +320,18 @@ template<typename Tsingle,typename T,int n>
 void raw_list_ii_zero_suppress<Tsingle,T,n>::
 zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
 {
-  int type_mask_away = ~0;
-  int new_type = 0;
-
-  switch (used_info._info->_type & ZZP_INFO_MASK)
-    {
-    case ZZP_INFO_CALL_ARRAY_INDEX:
-      type_mask_away = ZZP_INFO_CALL_ARRAY_INDEX;
-      new_type       = ZZP_INFO_CALL_ARRAY_LIST_II_INDEX;
-      break;
-    case ZZP_INFO_CALL_LIST_INDEX:
-      type_mask_away = ZZP_INFO_CALL_ARRAY_INDEX;
-      new_type       = ZZP_INFO_CALL_LIST_LIST_II_INDEX;
-      break;
-    case ZZP_INFO_NONE:
-      new_type       = ZZP_INFO_CALL_LIST_II_INDEX;
-      break;
-    default:
-      ERROR("Two levels of zero suppression not supported!");
-    }
+  // These are handled in zero_suppress_info::set_zzp_list_ii()
+  // via raw_list_ii_zero_suppress::zzp_on_insert_index()
+  /*
+  if ((used_info._info->_type & ZZP_INFO_MASK) != ZZP_INFO_NONE)
+    ERROR("Two levels of zero suppression not supported!");
+  */
 
   for (int i = 0; i < n; ++i)
     {
       zero_suppress_info *info =
-	new zero_suppress_info(used_info._info,type_mask_away);
-      zzp_on_insert_index(i,*info,new_type);
+	new zero_suppress_info(used_info._info,true);
+      zzp_on_insert_index(i,*info);
       used_zero_suppress_info sub_used_info(info);
 
       call_zero_suppress_info_ptrs(&_items[i],sub_used_info);
