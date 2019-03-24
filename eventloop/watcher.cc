@@ -768,39 +768,55 @@ void watcher_init(const char *command)
 		_paw_ntuple._ntuple_type = NTUPLE_TYPE_CWN;
 		else
 	      */
-	      if (MATCH_ARG("RANGE"))
+	      if (MATCH_ARG("help"))
+		{
+		  watcher_usage();
+		  exit(0);
+		}
+	      else if (MATCH_ARG("RANGE") ||
+		       MATCH_ARG("range"))
 		_watcher._show_range_stat = 1;
-	      else if (MATCH_ARG("PRESENT"))
+	      else if (MATCH_ARG("PRESENT") ||
+		       MATCH_ARG("present"))
 		show_present = true;
-	      else if (MATCH_C_PREFIX("MIN=",post))
+	      else if (MATCH_C_PREFIX("MIN=",post) ||
+		       MATCH_C_PREFIX("min=",post))
 		info._rescale_min = (uint) atoi(post);
-	      else if (MATCH_C_PREFIX("MAX=",post))
+	      else if (MATCH_C_PREFIX("MAX=",post) ||
+		       MATCH_C_PREFIX("max=",post))
 		info._rescale_max = (uint) atoi(post);
-	      else if (MATCH_ARG("SPILL"))
+	      else if (MATCH_ARG("SPILL") ||
+		       MATCH_ARG("spill"))
 		info._watcher->_display_at_mask =
 		  WATCHER_DISPLAY_SPILL_BOS |
 		  WATCHER_DISPLAY_SPILL_EOS;
-	      else if (MATCH_ARG("BOS"))
+	      else if (MATCH_ARG("BOS") ||
+		       MATCH_ARG("bos"))
 		info._watcher->_display_at_mask =
 		  WATCHER_DISPLAY_SPILL_BOS;
-	      else if (MATCH_ARG("EOS"))
+	      else if (MATCH_ARG("EOS") ||
+		       MATCH_ARG("eos"))
 		info._watcher->_display_at_mask =
 		  WATCHER_DISPLAY_SPILL_EOS;
-	      else if (MATCH_C_PREFIX("COUNT=",post))
+	      else if (MATCH_C_PREFIX("COUNT=",post) ||
+		       MATCH_C_PREFIX("count=",post))
 		{
 		  info._watcher->_display_at_mask =
 		    WATCHER_DISPLAY_COUNT;
 		  info._watcher->_display_counts = (uint) atoi(post);
 		}
-	      else if (MATCH_C_PREFIX("TIMEOUT=",post))
+	      else if (MATCH_C_PREFIX("TIMEOUT=",post) ||
+		       MATCH_C_PREFIX("timeout=",post))
 		{
 		  info._watcher->_display_at_mask =
 		    WATCHER_DISPLAY_TIMEOUT;
 		  info._watcher->_display_timeout = (uint) atoi(post);
 		}
-	      else
+	      else if (MATCH_C_PREFIX("DET=",post) ||
+		       MATCH_C_PREFIX("det=",post) ||
+		       (post = request))
 		{
-		  requests.add_detector_request(request,0);
+		  requests.add_detector_request(post,0);
 		}
 
 	      free(request);
