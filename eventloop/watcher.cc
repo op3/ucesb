@@ -708,14 +708,26 @@ bool raw_array_watcher_2<Twatcher_channel,Tsingle_watcher,Tsingle,T_watcher,T,n,
 
 
 
-
-
-
-
-
-
-
-
+void watcher_usage()
+{
+  printf ("\n");
+  printf ("Watcher (--watcher) options:\n");
+  printf ("\n");
+  printf ("Use , to separate detectors; use : to start new group.\n");
+  printf ("\n");
+  printf ("min=N               Min value to show.\n");
+  printf ("max=N               Max value to show.\n");
+  printf ("spill               Update display at begin- & end-of-spill.\n");
+  printf ("bos                 Update display at begin-of-spill.\n");
+  printf ("eos                 Update display at end-of-spill.\n");
+  printf ("count=N             Update display every N events.\n");
+  printf ("timeout=N           Update display event N seconds.\n");
+  printf ("range               Show range/correlation with location "
+	  "variable.\n");
+  printf ("present             Show compact channel-present map.\n");
+  printf ("det=NAME            In case detector name collides with option.\n");
+  printf ("\n");
+}
 
 watcher_window _watcher;
 
