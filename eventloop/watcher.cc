@@ -735,9 +735,6 @@ void watcher_init(const char *command)
 {
   enumerate_watchers_info info;
 
-  info._rescale_min = (uint) -1;
-  info._rescale_max = (uint) -1;
-
   info._watcher  = &_watcher;
 
   if (*command)
@@ -749,6 +746,10 @@ void watcher_init(const char *command)
 	  const char *req_end;
 
 	  bool show_present = false;
+
+	  /* New group - reset min and max. */
+	  info._rescale_min = (uint) -1;
+	  info._rescale_max = (uint) -1;
 
 	  for ( ; ; )
 	    {
