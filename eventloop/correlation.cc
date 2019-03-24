@@ -519,6 +519,17 @@ typedef std::vector<correlation_plot *> correlation_plot_vect;
 
 correlation_plot_vect _correlation_plots;
 
+void correlation_usage()
+{
+  printf ("\n");
+  printf ("Correlation (--corr) options:\n");
+  printf ("\n");
+  printf ("Use , to separate detectors; use : to start new group.\n");
+  printf ("\n");
+  printf ("det=NAME            In case detector name collides with option.\n");
+  printf ("\n");
+}
+
 correlation_plot *correlation_init(const char *command)
 {
   correlation_plot *cp = new correlation_plot;
@@ -546,6 +557,9 @@ correlation_plot *correlation_init(const char *command)
 	{
 	  char *request = strndup(command,(size_t) (req_end-command));
 
+	  char *post;
+
+#define MATCH_C_PREFIX(prefix,post) (strncmp(request,prefix,strlen(prefix)) == 0 && *(post = request + strlen(prefix)) != '\0')
 #define MATCH_ARG(name) (strcmp(request,name) == 0)
 
 	  // printf ("Request: %s\n",request);
@@ -564,7 +578,17 @@ correlation_plot *correlation_init(const char *command)
 	    _paw_ntuple._ntuple_type = NTUPLE_TYPE_CWN;
 	    else
 	  */
-	  requests.add_detector_request(request,0);
+	  if (MATCH_ARG("help"))
+	    {
+	      correlation_usage();
+	      exit(0);
+	    }
+	  else if (MATCH_C_PREFIX("DET=",post) ||
+		   MATCH_C_PREFIX("det=",post) ||
+		   (post = request))
+	    {
+	      requests.add_detector_request(post,0);
+	    }
 
 	  free(request);
 	  command = req_end+1;
@@ -609,6 +633,12 @@ correlation_plot *correlation_init(const char *command)
 
       if (!req_end)
 	break;
+    }
+
+  if (strcmp(command,"help") == 0)
+    {
+      correlation_usage();
+      exit(0);
     }
 
   cp->_filename = command;
