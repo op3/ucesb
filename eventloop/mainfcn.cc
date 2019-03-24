@@ -115,9 +115,9 @@ void usage()
   printf ("  --skip-events=N   Skip initial N events.\n");
   printf ("  --first-event=N   Skip initial events until event # N.\n");
   printf ("  --last-event=N    Stop processing at (before) event # N.\n");
-  printf ("  --downscale=N     Only process every Nth event.");
+  printf ("  --downscale=N     Only process every Nth event.\n");
 #if 0
-  printf ("  --rate=real|NHz   Process events at original or given rate.");
+  printf ("  --rate=real|NHz   Process events at original or given rate.\n");
 #endif
   printf ("  --print-buffer    Print buffer headers.\n");
   printf ("  --print           Print event headers.\n");
