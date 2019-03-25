@@ -463,18 +463,44 @@ void watcher_one_event(unpack_sticky_event *unpack_ev
 
 
 
+template<typename T>
+inline uint get_uint_range_type(const T *){ return 0; }
 
+/* Could be handled by the above: rawdata64, uint64, float, double. */
 
-
-
-
+inline uint get_uint_maxval_type(const rawdata8  *) { return 0x00ff; }
+inline uint get_uint_maxval_type(const rawdata12 *) { return 0x0fff; }
+inline uint get_uint_maxval_type(const rawdata14 *) { return 0x3fff; }
+inline uint get_uint_maxval_type(const rawdata16 *) { return 0xffff; }
+inline uint get_uint_maxval_type(const rawdata16plus *) { return 0xffff;}
+inline uint get_uint_maxval_type(const rawdata24 *) { return 0xffffff; }
+inline uint get_uint_maxval_type(const rawdata32 *) { return 0xffffffff; }
+inline uint get_uint_maxval_type(const rawdata64 *) { return 0; }
+inline uint get_uint_maxval_type(const uint64    *) { return 0; }
+inline uint get_uint_maxval_type(const uint32    *) { return 0xffffffff; }
+inline uint get_uint_maxval_type(const uint16    *) { return 0xffff; }
+inline uint get_uint_maxval_type(const uint8     *) { return 0x00ff; }
+inline uint get_uint_maxval_type(const float     *) { return 0; }
+inline uint get_uint_maxval_type(const double    *) { return 0; }
 
 template<typename T>
-bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,const signal_id &id,enumerate_watchers_info *info)
+inline uint get_uint_rangemark_type(const T *){ return 0; }
+
+inline uint get_uint_rangemark_type(const rawdata12 *) { return 0x1000; }
+
+template<typename T>
+bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,
+			const signal_id &id,enumerate_watchers_info *info)
 {
   if (!info->_requests->is_channel_requested(id,false,0,false) ||
       watcher._watch)
     return watcher._watch != NULL; // already seen before?
+
+  int maxval = get_uint_maxval_type((T *) NULL);
+  uint rangemark = get_uint_rangemark_type((T *) NULL);
+
+  if (!maxval)
+    return false;
 
   char name[256];
   {
@@ -486,7 +512,8 @@ bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,const signal_id
 
   // We'd like to add this item!!!
 
-  watcher._watch = new watcher_channel_wrap<T,watcher_channel>;
+  watcher._watch =
+    new watcher_channel_wrap<T,watcher_channel>(maxval,rangemark);
   // watcher._watch = new __typeof__(*watcher._watch);
 
   watcher._watch->_data._name = name;
@@ -501,11 +528,17 @@ bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,const signal_id
 }
 
 template<typename T>
-bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const signal_id &id,enumerate_watchers_info *info)
+bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,
+			const signal_id &id,enumerate_watchers_info *info)
 {
   if (!info->_requests->is_channel_requested(id,false,0,false) ||
       watcher._watch)
     return watcher._watch != NULL; // already seen before?
+
+  uint maxval = get_uint_maxval_type((T *) NULL);
+  
+  if (!maxval)
+    return false;
 
   // Find out parent (watcher_present_channels) item.
   // It is the item with its last index chopped down to an multiple of 32
@@ -579,7 +612,8 @@ bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const s
       fprintf (stderr,"---> %s (%d)\n",name,
 	       (int) info->_watcher->_display_channels.size());
       */
-      info->_id_present_channels.insert(id_present_channels_map::value_type(parent_id,parent));
+      info->_id_present_channels.
+	insert(id_present_channels_map::value_type(parent_id,parent));
 
       // fprintf (stderr,"Enum: %s\n",name);
     }
@@ -588,7 +622,8 @@ bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const s
 
   // We'd like to add this item!!!
 
-  watcher._watch = new watcher_channel_wrap<T,watcher_present_channel>;
+  watcher._watch =
+    new watcher_channel_wrap<T,watcher_present_channel>(maxval,0);
 
   parent->_channels[our_index] = &watcher._watch->_data;
   watcher._watch->_data._container = parent;
@@ -597,6 +632,8 @@ bool enumerate_watchers(data_watcher<T,watcher_present_channel> &watcher,const s
     watcher._watch->_data.set_cut_min(info->_rescale_min);
   if (info->_rescale_max != (uint) -1)
     watcher._watch->_data.set_cut_max(info->_rescale_max);
+  else
+    watcher._watch->_data.set_cut_max(maxval);
 
   /*
   info->_watcher->_channels.push_back(&(watcher._watch->_data));
