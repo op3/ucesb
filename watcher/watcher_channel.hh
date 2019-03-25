@@ -179,7 +179,7 @@ public:
     clear();
     _min = 0;
     _max = _valmask = valmask;
-    (void) rangemark;
+    _rangemark = rangemark;
   }
 
   virtual ~watcher_present_channel() { }
@@ -204,6 +204,7 @@ public:
   uint _min;
   uint _max;
   uint _valmask;
+  uint _rangemark;
 
 public:
   void set_cut_min(uint min) { _min = min; }

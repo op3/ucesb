@@ -139,15 +139,21 @@ void watcher_channel::collect_raw(uint raw,uint type,
 {
   uint range = !!(raw & _rangemark);
   uint value = (raw & _valmask);
-  uint rescaled = value;
+  uint other = (raw & ~(_rangemark | _valmask));
   int bin;
 
-  if (value < (int) _min)
+  if (other)
+    {
+      _data[type]._overflow++;
+      return;
+    }
+
+  if (value < _min)
     {
       _data[type]._zero++;
       return;
     }
-  if (value > (int) _max)
+  if (value > _max)
     {
       _data[type]._overflow++;
       return;
@@ -288,9 +294,11 @@ void watcher_present_channel::collect_raw(uint raw,uint type,
 					  watcher_event_info *watch_info)
 {
   uint value = (raw & _valmask);
+  uint other = (raw & ~(_rangemark | _valmask));
 
-  if (value < _min ||
-      value > _max)
+  if (!other &&
+      (value < _min ||
+       value > _max))
     {
       return;
     }
