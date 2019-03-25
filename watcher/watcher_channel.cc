@@ -137,44 +137,38 @@ void watch_stat_range_bin::forget()
 void watcher_channel::collect_raw(uint raw,uint type,
 				  watcher_event_info *watch_info)
 {
-  if (raw == 0)
-    _data[type]._zero++;
-  else if (raw >= 0x2000)
-    _data[type]._overflow++;
-  else
+  uint range = !!(raw & _rangemark);
+  uint value = (raw & _valmask);
+  uint rescaled = value;
+  int bin;
+
+  if (value < (int) _min)
     {
-      int range = (raw & 0x1000) >> 12;
-      int value = (raw & 0x0fff);
-      int rescaled = value;
+      _data[type]._zero++;
+      return;
+    }
+  if (value > (int) _max)
+    {
+      _data[type]._overflow++;
+      return;
+    }
 
-      if (_rescale)
-	{
-	  if (value < (int) _min)
-	    {
-	      _data[type]._zero++;
-	      return;
-	    }
-	  if (value > (int) _max)
-	    {
-	      _data[type]._overflow++;
-	      return;
-	    }
+  bin = (int) (((value - _min) * (double) NUM_WATCH_BINS) /
+	       (_max - _min + 1));
 
-	  rescaled = ((value - (int) _min) * 4096) / (int) (_rescale);
-	}
-      _range_hit[range] = HI_LOW_HYSTERESIS;
-      _data[type]._bins[range][(rescaled * NUM_WATCH_BINS) / 4096]++;
+  _range_hit[range] = HI_LOW_HYSTERESIS;
+  _data[type]._bins[range][bin]++;
 
-      if (watch_info->_info & WATCHER_DISPLAY_INFO_RANGE)
-	{
-	  int bin = (rescaled * NUM_WATCH_STAT_RANGE_BINS) / 4096;
+  if (watch_info->_info & WATCHER_DISPLAY_INFO_RANGE)
+    {
+      bin = (int) (((value - _min) * (double) NUM_WATCH_STAT_RANGE_BINS) /
+		   (_max - _min + 1));
 
-	  watch_stat_range_bin &stat = _stat_range._bins[range][bin];
+      watch_stat_range_bin &stat = _stat_range._bins[range][bin];
 
-	  stat._history[stat._num & (WATCH_STAT_RANGE_HISTORY - 1)] =
-	    (float) watch_info->_range_loc;
-	  stat._num++;
-	}
+      stat._history[stat._num & (WATCH_STAT_RANGE_HISTORY - 1)] =
+	(float) watch_info->_range_loc;
+      stat._num++;
     }
 }
 
@@ -293,8 +287,10 @@ void watcher_channel::display(watcher_display_info& info/*,
 void watcher_present_channel::collect_raw(uint raw,uint type,
 					  watcher_event_info *watch_info)
 {
-  if (raw < _min ||
-      raw > _max)
+  uint value = (raw & _valmask);
+
+  if (value < _min ||
+      value > _max)
     {
       return;
     }

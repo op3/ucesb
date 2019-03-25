@@ -51,6 +51,12 @@ template<typename T,typename Twatcher_channel>
 class watcher_channel_wrap
 {
 public:
+  watcher_channel_wrap(uint valmask, uint rangemark)
+    : _data(valmask,rangemark)
+  {
+  }
+  
+public:
   Twatcher_channel _data;
 
 public:

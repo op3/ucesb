@@ -84,7 +84,7 @@ struct watch_range
 {
 public:
   uint _zero;
-  uint _bins[2][NUM_WATCH_BINS]; // +1 to avoid trouble from (4096/NUM_WATCH_BINS)
+  uint _bins[2][NUM_WATCH_BINS+1]; // +1 to avoid trouble from (4096/NUM_WATCH_BINS)
   uint _overflow;
 };
 
@@ -102,7 +102,7 @@ public:
 
 struct watch_stat_range
 {
-  watch_stat_range_bin _bins[2][NUM_WATCH_STAT_RANGE_BINS];
+  watch_stat_range_bin _bins[2][NUM_WATCH_STAT_RANGE_BINS+1];
 };
 
 class watcher_channel
@@ -112,13 +112,14 @@ public:
   virtual ~watcher_channel() { }
 
 public:
-  watcher_channel()
+  watcher_channel(uint valmask, uint rangemark)
   {
     clear();
     memset(_range_hit,0,sizeof(_range_hit));
-    _rescale = 0;
+
     _min = 0;
-    _max = 4096;
+    _max = _valmask = valmask;
+    _rangemark = rangemark;
   }
 
   void clear()
@@ -149,13 +150,14 @@ public:
   std::string _name;
 
 public:
-  uint _rescale;
+  uint _valmask;
+  uint _rangemark;
   uint _min;
   uint _max;
 
 public:
-  void set_rescale_min(uint min) { _min = min; _rescale = _max - _min; }
-  void set_rescale_max(uint max) { _max = max; _rescale = _max - _min; }
+  void set_rescale_min(uint min) { _min = min; }
+  void set_rescale_max(uint max) { _max = max; }
 
 public:
   void collect_raw(uint raw,uint type,watcher_event_info *watch_info);
@@ -172,11 +174,12 @@ class watcher_present_channels;
 class watcher_present_channel
 {
 public:
-  watcher_present_channel()
+  watcher_present_channel(uint valmask, uint rangemark)
   {
     clear();
     _min = 0;
-    _max = 4096;
+    _max = _valmask = valmask;
+    (void) rangemark;
   }
 
   virtual ~watcher_present_channel() { }
@@ -200,6 +203,7 @@ public:
 public:
   uint _min;
   uint _max;
+  uint _valmask;
 
 public:
   void set_cut_min(uint min) { _min = min; }
