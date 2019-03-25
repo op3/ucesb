@@ -169,7 +169,6 @@ template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(DATA16_OVERFLOW value,
 						     watcher_event_info *watch_info)
 {
-
   union value_ref_t
   {
     DATA16_OVERFLOW _DATA16_OVERFLOW;
@@ -187,21 +186,31 @@ template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(DATA16 value,
 						     watcher_event_info *watch_info)
 {
-
+  _data.collect_raw(value.value,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(DATA24 value,
 						     watcher_event_info *watch_info)
 {
+  union value_ref_t
+  {
+    DATA24 _DATA24;
+    uint32 _uint32;
+  };
 
+  value_ref_t value_ref;
+
+  value_ref._DATA24 = value;
+
+  _data.collect_raw((uint) value_ref._uint32,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(DATA32 value,
 						     watcher_event_info *watch_info)
 {
-
+  _data.collect_raw(value.value,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
@@ -215,21 +224,21 @@ template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(uint8 value,
 						     watcher_event_info *watch_info)
 {
-
+  _data.collect_raw(value,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(uint16 value,
 						     watcher_event_info *watch_info)
 {
-
+  _data.collect_raw(value,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
 void watcher_channel_wrap<T,Twatcher_channel>::event(uint32 value,
 						     watcher_event_info *watch_info)
 {
-
+  _data.collect_raw(value,_event_info._type,watch_info);
 }
 
 template<typename T,typename Twatcher_channel>
