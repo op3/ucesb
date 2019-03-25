@@ -531,6 +531,8 @@ bool enumerate_watchers(data_watcher<T,watcher_channel> &watcher,
   if (info->_rescale_max != (uint) -1)
     watcher._watch->_data.set_rescale_max(info->_rescale_max);
 
+  watcher._watch->_data._log = info->_log;
+
   info->_watcher->_display_channels.push_back(&(watcher._watch->_data));
 
   return true;
@@ -768,6 +770,7 @@ void watcher_usage()
   printf ("eos                 Update display at end-of-spill.\n");
   printf ("count=N             Update display every N events.\n");
   printf ("timeout=N           Update display event N seconds.\n");
+  printf ("log                 Logarithmic value scale (ignores min).\n");
   printf ("range               Show range/correlation with location "
 	  "variable.\n");
   printf ("present             Show compact channel-present map.\n");
@@ -792,6 +795,7 @@ void watcher_init(const char *command)
 	  const char *req_end;
 
 	  bool show_present = false;
+	  bool show_log = false;
 
 	  /* New group - reset min and max. */
 	  info._rescale_min = (uint) -1;
@@ -838,6 +842,9 @@ void watcher_init(const char *command)
 	      else if (MATCH_ARG("PRESENT") ||
 		       MATCH_ARG("present"))
 		show_present = true;
+	      else if (MATCH_ARG("LOG") ||
+		       MATCH_ARG("log"))
+		show_log = true;
 	      else if (MATCH_C_PREFIX("MIN=",post) ||
 		       MATCH_C_PREFIX("min=",post))
 		info._rescale_min = (uint) atoi(post);
@@ -889,6 +896,7 @@ void watcher_init(const char *command)
 	  requests.prepare();
 
 	  info._requests = &requests;
+	  info._log = show_log;
 
 	  if (!show_present)
 	    {

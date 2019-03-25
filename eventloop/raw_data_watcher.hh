@@ -40,6 +40,8 @@ struct enumerate_watchers_info
   uint _rescale_min;
   uint _rescale_max;
 
+  bool _log;
+
   id_present_channels_map _id_present_channels;
 
   int _map_no;

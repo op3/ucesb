@@ -24,7 +24,7 @@
 #include "util.hh"
 
 #include <assert.h>
-
+#include <math.h>
 
 
 inline void display_bins(watcher_display_info& info,
@@ -159,16 +159,34 @@ void watcher_channel::collect_raw(uint raw,uint type,
       return;
     }
 
-  bin = (int) (((value - _min) * (double) NUM_WATCH_BINS) /
-	       (_max - _min + 1));
+  if (_log)
+    {
+      if (!value)
+	bin = 0;
+      else
+	bin = 1 + (int) ((log(value) * (double) (NUM_WATCH_BINS-1)) /
+			 log(_max + 1));
+    }
+  else
+    bin = (int) (((value - _min) * (double) NUM_WATCH_BINS) /
+		 (_max - _min + 1));
 
   _range_hit[range] = HI_LOW_HYSTERESIS;
   _data[type]._bins[range][bin]++;
 
   if (watch_info->_info & WATCHER_DISPLAY_INFO_RANGE)
     {
-      bin = (int) (((value - _min) * (double) NUM_WATCH_STAT_RANGE_BINS) /
-		   (_max - _min + 1));
+      if (_log)
+	{
+	  if (!value)
+	    bin = 0;
+	  else
+	    bin = (int) ((log(value) * (double) NUM_WATCH_STAT_RANGE_BINS) /
+			 log(_max + 1));
+	}
+      else
+	bin = (int) (((value - _min) * (double) NUM_WATCH_STAT_RANGE_BINS) /
+		     (_max - _min + 1));
 
       watch_stat_range_bin &stat = _stat_range._bins[range][bin];
 

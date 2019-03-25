@@ -155,6 +155,8 @@ public:
   uint _min;
   uint _max;
 
+  bool _log;
+
 public:
   void set_rescale_min(uint min) { _min = min; }
   void set_rescale_max(uint max) { _max = max; }
