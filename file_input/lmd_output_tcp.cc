@@ -900,7 +900,7 @@ lmd_output_server_con::lmd_output_server_con()
   _data_port = -1;
 }
 
-void lmd_output_server_con::bind(int mode, int port)
+void lmd_output_server_con::bind(int mode, int port, int port_range_last)
 {
   struct sockaddr_in servAddr;
 
@@ -914,12 +914,33 @@ void lmd_output_server_con::bind(int mode, int port)
 
   if (port != -1) // otherwise bind to random port (for data)
     {
-      servAddr.sin_family = AF_INET;
-      servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-      servAddr.sin_port = htons((uint16_t) port);
+      for ( ; ; )
+	{
+	  servAddr.sin_family = AF_INET;
+	  servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	  servAddr.sin_port = htons((uint16_t) port);
 
-      if (::bind (_socket,(struct sockaddr *) &servAddr,sizeof(servAddr)) != 0)
-	ERROR("Failure binding server to port %d.",port);
+	  int ret = ::bind (_socket,
+			    (struct sockaddr *) &servAddr,sizeof(servAddr));
+
+	  if (ret != 0)
+	    {
+	      if (errno == EADDRINUSE &&
+		  port_range_last != -1)
+		{
+		  if ((uint16_t) port != (uint16_t) port_range_last)
+		    {
+		      /* Try with next port: */
+		      port++;
+		      continue;
+		    }
+		  /* Give up.  Print error. */
+		}
+
+	      ERROR("Failure binding server to port %d.",port);
+	    }
+	  break;
+	}
     }
 
   if (::listen(_socket,3) != 0)
@@ -1370,7 +1391,8 @@ void *lmd_output_tcp::server()
 
 
 lmd_output_server_con *
-lmd_output_tcp::create_server(int mode, int port, bool allow_data)
+lmd_output_tcp::create_server(int mode, int port, int port_range_last,
+			      bool allow_data)
 {
   lmd_output_server_con *server = NULL;
 
@@ -1379,7 +1401,7 @@ lmd_output_tcp::create_server(int mode, int port, bool allow_data)
   if (!server)
     ERROR("Memory allocation failure, could not allocate server control.");
 
-  server->bind(mode,port);
+  server->bind(mode, port, port_range_last);
 
   server->_allow_data = allow_data;
 
@@ -1388,16 +1410,17 @@ lmd_output_tcp::create_server(int mode, int port, bool allow_data)
   return server;
 }
 
-void lmd_output_tcp::create_server(int mode, int port, bool dataport,
+void lmd_output_tcp::create_server(int mode, int port,
+				   int dataport, int dataport_last,
 				   bool allow_data_on_map_port)
 {
   lmd_output_server_con *server_map  = NULL;
   lmd_output_server_con *server_data = NULL;
 
-  server_map  = create_server(mode, port, allow_data_on_map_port);
+  server_map  = create_server(mode, port, -1, allow_data_on_map_port);
   if (dataport)
     {
-      server_data = create_server(mode, -1, true);
+      server_data = create_server(mode, dataport, dataport_last, true);
 
       // We need to know which port was chosen!
 
@@ -1820,6 +1843,7 @@ void lmd_server_usage()
   printf ("sendonce            Only one receiver per stream, for fan-out.\n");
   printf ("forcemap            No data transmission on fixed port (avoid timeout on bind).\n");
   printf ("nopmap              Do not provide port mapping port.\n");
+  printf ("dataport:PORT       Bind dataport at some [PORT,PORT+100].  Circumv. firewall.\n");
   printf ("\n");
 }
 
@@ -1836,6 +1860,7 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 
   int stream_port = -1;
   int trans_port = -1;
+  int data_port = -1; /* This default will bind to a random port by kernel. */
   bool forcemap = false;
   bool nopmap = false;
 
@@ -1896,6 +1921,15 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
 	trans_port = LMD_TCP_PORT_TRANS;
       else if (MATCH_C_PREFIX("trans:",post))
 	trans_port = atoi(post);
+      else if (MATCH_C_PREFIX("dataport:",post))
+	{
+	  data_port = atoi(post);
+	  if (!data_port)
+	    {
+	      // Either we disallow dataport=0, or we have to set nopmap
+	      nopmap = true;
+	    }
+	}
       else if (MATCH_C_PREFIX("flush=",post))
 	out_tcp->_flush_interval = atoi(post);
       else
@@ -1930,7 +1964,8 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
        out_tcp->_flush_interval);
 
   if (stream_port != -1)
-    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,true,
+    out_tcp->create_server(LMD_OUTPUT_STREAM_SERVER,stream_port,
+			   data_port, data_port + 100,
 			   forcemap ? false : true);
   if (trans_port != -1)
     {
@@ -1940,10 +1975,13 @@ lmd_output_tcp *parse_open_lmd_server(const char *command)
        if (!nopmap)
 	 out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,
 				trans_port + LMD_TCP_PORT_TRANS_MAP_ADD,
-				true,false);
+				data_port, data_port + 100,
+				false);
       if (!forcemap)
 	out_tcp->create_server(LMD_OUTPUT_TRANS_SERVER,trans_port,
-			       nopmap ? true : false,true);
+			       nopmap ? data_port       : 0,
+			       data_port + 100, //does not matter if !data_port
+			       true);
     }
 
   out_tcp->init();

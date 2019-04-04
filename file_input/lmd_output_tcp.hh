@@ -276,7 +276,7 @@ public:
   lmd_output_server_con();
 
 public:
-  void bind(int mode, int port);
+  void bind(int mode, int port, int port_range_last);
 
   void close();
 
@@ -399,10 +399,11 @@ public:
   // the big vacuum when a client disconnects
 
 protected:
-  lmd_output_server_con *create_server(int mode, int port,
+  lmd_output_server_con *create_server(int mode, int port, int port_range_last,
 				       bool allow_data);
 public:
-  void create_server(int mode, int port, bool dataport,
+  void create_server(int mode, int port,
+		     int dataport, int dataport_last,
 		     bool allow_data_on_map_port);
 
 protected:
