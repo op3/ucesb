@@ -440,7 +440,13 @@ bool lmd_input_tcp::open_connection(const struct sockaddr_in *p_serv_addr,
 
 	    if (n == 0)
 	      {
-		ERROR("timeout waiting for connect completion");
+		if (error_on_failure)
+		  ERROR("timeout waiting for connect completion");
+		else
+		  {
+		    WARNING("timeout waiting for connect completion");
+		    return false;
+		  }
 	      }
 
 	    if (_fd != -1 &&
