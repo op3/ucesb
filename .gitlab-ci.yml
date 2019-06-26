@@ -25,11 +25,13 @@ stages:
 
 .build: &build
   script:
+    - test -d /opt/root && source /opt/root/bin/thisroot.sh || echo No ROOT installed
     - JOB_NAME=( $CI_BUILD_NAME )
     - export CC=${JOB_NAME[2]}
     - export CXX=${JOB_NAME[3]}
     - $CXX --version
     - flex --version
+    - root-config --version || true
     - echo RUNNER_MAKE_J $RUNNER_MAKE_J
     - make -k ${JOB_NAME[4]} $EXTRA_MAKE_FLAGS $RUNNER_MAKE_J
 
@@ -123,8 +125,9 @@ stages:
 
 .prepare-opensuse: &opensuse
   before_script:
-  - zypper --non-interactive install git bison flex ncurses-devel
-      make gcc gcc-c++ clang perl which > /dev/null
+  # - zypper --non-interactive install git bison flex ncurses-devel
+  #     make gcc gcc-c++ clang perl which > /dev/null
+    - echo No prep needed
   <<: *build
 
 #########################################
@@ -530,6 +533,16 @@ freebsd 10 clang clang++ all:
 mac sierra gcc g++ all:
   stage: build
   <<: *build-mac-sierra
+
+
+###
+# Builds with ROOT
+
+Ubuntu Xenial gcc g++ all root6:
+  stage: build
+  image: munken/root2:ubuntu-xenial
+  <<: *docker
+  <<: *build
 
 ###
 # Try the merging mode
