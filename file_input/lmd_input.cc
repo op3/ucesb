@@ -521,6 +521,12 @@ bool lmd_source::read_record(bool expect_fragment)
 
   size_t data_size = buffer_size_dlen - header_size;
 
+  if (((ssize_t) data_size) < 0)
+    ERROR("Buffer has (%zd) < 0 bytes for data "
+	  "(buffer is %zd, header uses %zd).",
+	  data_size,
+	  buffer_size_dlen, header_size);
+
   int chunks = 0;
 
   chunks = _input.map_range(data_size,_chunks);
