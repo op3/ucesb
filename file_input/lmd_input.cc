@@ -567,6 +567,12 @@ bool lmd_source::read_record(bool expect_fragment)
       return true;
     }
 
+  if (UNLIKELY(_buffer_header.l_evt == 0))
+    {
+      if (data_size)
+	ERROR("Non-empty buffer has no events.");
+    }
+
   // buffer seems more or less sane...
 
   _last_buffer_no = _buffer_header.l_buf;
