@@ -211,11 +211,11 @@ bool lmd_source::read_record(bool expect_fragment)
     print_buffer_header(&_buffer_header);
 
   if (!_buffer_header.l_dlen)
-    ERROR("Buffer size l_dlen of file header zero.  Cannot be.");
+    ERROR("Buffer size l_dlen header zero.  Cannot be.");
 
   if (/*_buffer_header.l_dlen < 0 || */ /* unsigned, no check needed */
       _buffer_header.l_dlen > 0x20000000)
-    ERROR("Buffer size l_dlen (0x%08x) of file header "
+    ERROR("Buffer size l_dlen (0x%08x) header "
 	  "negative or very large, refusing.",
 	  _buffer_header.l_dlen);
 
@@ -522,7 +522,7 @@ bool lmd_source::read_record(bool expect_fragment)
   size_t data_size = buffer_size_dlen - header_size;
 
   if (((ssize_t) data_size) < 0)
-    ERROR("Buffer has (%zd) < 0 bytes for data "
+    ERROR("Buffer has (%zd) < 0 bytes for data after header"
 	  "(buffer is %zd, header uses %zd).",
 	  data_size,
 	  buffer_size_dlen, header_size);
