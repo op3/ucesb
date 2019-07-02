@@ -444,14 +444,6 @@ bool lmd_source::read_record(bool expect_fragment)
        header_size + buf_used,
        buffer_size_dlen);
   */
-  if (header_size + buf_used >
-      buffer_size_dlen)
-    ERROR("Header says that more bytes (%zd+%zd=%zd) "
-          "than length of buffer (%zd) are used.",
-          header_size,
-          buf_used,
-          header_size + buf_used,
-          buffer_size_dlen);
 
   if ((_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
        _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE))
@@ -475,6 +467,15 @@ bool lmd_source::read_record(bool expect_fragment)
 
       header_size += file_header_size;
     }
+
+  if (header_size + buf_used >
+      buffer_size_dlen)
+    ERROR("Header says that more bytes (%zd+%zd=%zd) "
+          "than length of buffer (%zd) are used.",
+          header_size,
+          buf_used,
+          header_size + buf_used,
+          buffer_size_dlen);
 
   // Check buffer number continuity
 
