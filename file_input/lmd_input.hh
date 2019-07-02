@@ -170,7 +170,7 @@ public:
   bool               _swapping;
   uint32_t           _last_buffer_no;
   bool               _expect_file_header;
-  int                _events_left;
+  uint               _events_left;
 
   bool               _skip_record_try_again;
   off_t              _prev_record_release_to;

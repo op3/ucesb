@@ -762,7 +762,7 @@ lmd_event *lmd_source::get_event()
       if (_chunk_cur == _chunk_end)
 	{
 	  if (_events_left)
-	    WARNING("Too few events were found in record (%d lost).",
+	    WARNING("Too few events were found in record (%u lost).",
 		    _events_left);
 
 	  //printf ("get record...\n");
