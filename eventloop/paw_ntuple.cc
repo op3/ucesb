@@ -858,7 +858,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 		      hid,
 		      this_id, this_title,
 		      this_index_major, this_index_minor,
-		      i == 0 ? &_static_event : (event_base*) &_static_sticky_event
+		      i == 0 ?
+		      (void*) &_static_event : (void*) &_static_sticky_event
 #if defined(USE_LMD_INPUT)
 		      ,(uint) ((max_raw_size + sizeof(uint)-1) / sizeof(uint))
 #endif
@@ -936,7 +937,7 @@ void paw_ntuple::event(int kind)
 #endif
 
   _staged[kind]->event(kind == PAW_NTUPLE_NORMAL_EVENT ?
-		       &_static_event : (event_base*) &_static_sticky_event
+		       (void*) &_static_event : (void*) &_static_sticky_event
 #if defined(USE_LMD_INPUT)
 		       ,&_static_event._unpack.event_no
 		       ,_raw_event ? &fill_raw : NULL
