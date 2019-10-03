@@ -178,9 +178,11 @@ int main(int argc,char *argv[])
 		break;
 
 	      /*
-	      printf ("sticky: %d %d %d %d\n",
+	      printf ("sticky: tr %d ev %d stidx %d c_b %d cb %d zzp %d\n",
+		      sticky.TRIGGER,
 		      sticky.EVENTNO, sticky.STIDX,
-		      sticky.corr_base, sticky.corrbase);
+		      sticky.corr_base, sticky.corrbase,
+		      sticky.zzp);
 	      */
 
 	      continue;
@@ -211,7 +213,9 @@ int main(int argc,char *argv[])
 	  /* Do whatever is wanted with the data. */
 
 	  /*
-	  printf ("%10d: %2d\n",event.EVENTNO,event.TRIGGER);
+	  printf ("%10d: tr %2d stidx %d STC %d\n",
+		  event.EVENTNO, event.TRIGGER, event.STIDX,
+		  event.STCORR);
 	  */
 	  /*
 	  printf ("%d\n",event.regress_v775mod1n);
