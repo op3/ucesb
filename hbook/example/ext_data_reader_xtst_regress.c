@@ -53,6 +53,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc,char *argv[])
 {
@@ -143,6 +144,9 @@ int main(int argc,char *argv[])
       fprintf (stderr,"Failed to setup sticky data structure from stream.\n");
       exit(1);
     }
+
+  /* Clear the sticky event, since we may not get this as first one. */
+  memset(&sticky, 0, sizeof(sticky));
 
   /* printf ("hevent_id: %d  hsticky_id: %d\n", hevent_id, hsticky_id); */
   
