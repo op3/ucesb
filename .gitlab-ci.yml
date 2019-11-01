@@ -530,9 +530,9 @@ freebsd 10 clang clang++ all:
   stage: build
   <<: *build-bsd
 
-mac sierra gcc g++ all:
-  stage: build
-  <<: *build-mac-sierra
+#mac sierra gcc g++ all:
+#  stage: build
+#  <<: *build-mac-sierra
 
 
 ###
