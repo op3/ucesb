@@ -226,9 +226,9 @@ freebsd 10 gcc g++ empty:
       "CXXLINKFLAGS=-Wl,-rpath=/usr/local/lib/gcc48"
   <<: *build-bsd
 
-mac sierra gcc g++ empty:
-  stage: fast-build
-  <<: *build-mac-sierra
+#mac sierra gcc g++ empty:
+#  stage: fast-build
+#  <<: *build-mac-sierra
 
 ###
 # Simulated full qemu architectures take long time, begin with those.
