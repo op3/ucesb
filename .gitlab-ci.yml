@@ -429,6 +429,15 @@ Arch minimal gcc g++ all:
   <<: *docker
   <<: *build
 
+Arch minimal clang clang++ all:
+  stage: build
+  image: archlinux/base
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -S base-devel git flex bison ncurses clang --noconfirm --needed
+  <<: *docker
+  <<: *build
+
 gcc-latest minimal gcc g++ all:
   stage: build
   image: gcc:latest
