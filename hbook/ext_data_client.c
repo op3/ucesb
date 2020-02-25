@@ -108,18 +108,18 @@ struct ext_data_client_struct
    */
   uint32_t  _max_raw_words;
 
-  uint32_t _orig_xor_sum_msg;
-  size_t _orig_struct_size;
-  void  *_orig_array; /* for mapping */
+  uint32_t  _orig_xor_sum_msg;
+  size_t    _orig_struct_size;
+  void     *_orig_array; /* for mapping */
 
-  size_t _struct_size;
-  uint32_t _max_pack_items;
-  uint32_t _static_pack_items;
+  size_t    _dest_struct_size;
+  uint32_t  _dest_max_pack_items;
+  uint32_t  _dest_static_pack_items;
 
-  uint32_t *_pack_list;
-  uint32_t *_pack_list_end;
+  uint32_t *_dest_pack_list;
+  uint32_t *_dest_pack_list_end;
 
-  uint32_t *_reverse_pack;
+  uint32_t *_dest_reverse_pack;
 
   uint32_t *_map_list;
   uint32_t *_map_list_end;
@@ -806,8 +806,8 @@ static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
   free((char *) clistr->_id);
 
   free(clistr->_orig_array);
-  free(clistr->_pack_list);
-  free(clistr->_reverse_pack);
+  free(clistr->_dest_pack_list);
+  free(clistr->_dest_reverse_pack);
   free(clistr->_map_list);
 
   ext_data_struct_info_free(clistr->_struct_info_msg);
@@ -836,13 +836,14 @@ void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
   clistr->_orig_xor_sum_msg = 0;
   clistr->_orig_struct_size = 0;
   clistr->_orig_array = NULL;
-  clistr->_struct_size = 0;
-  clistr->_max_pack_items = 0;
-  clistr->_static_pack_items = 0;
 
-  clistr->_pack_list = NULL;
-  clistr->_pack_list_end = NULL;
-  clistr->_reverse_pack = NULL;
+  clistr->_dest_struct_size = 0;
+  clistr->_dest_max_pack_items = 0;
+  clistr->_dest_static_pack_items = 0;
+
+  clistr->_dest_pack_list = NULL;
+  clistr->_dest_pack_list_end = NULL;
+  clistr->_dest_reverse_pack = NULL;
 
   clistr->_map_list = NULL;
   clistr->_map_list_end = NULL;
@@ -1879,23 +1880,24 @@ int ext_data_setup(struct ext_data_client *client,
        * program just had it as a temporary variable).
        */
 
-      clistr->_pack_list =
+      clistr->_dest_pack_list =
 	(uint32_t *) malloc (slo->_pack_list_items * sizeof(uint32_t));
 
-      if (!clistr->_pack_list)
+      if (!clistr->_dest_pack_list)
 	{
 	  client->_last_error = "Memory allocation failure (pack list).";
 	  errno = ENOMEM;
 	  return -1;
 	}
 
-      clistr->_pack_list_end = clistr->_pack_list + slo->_pack_list_items;
+      clistr->_dest_pack_list_end =
+	clistr->_dest_pack_list + slo->_pack_list_items;
 
       slo_items =
 	((const struct ext_data_structure_layout_item *) (slo + 1)) - 1;
       slo_pack_list = (const uint32_t *) (slo_items + slo->_num_items);
 
-      memcpy(clistr->_pack_list,slo_pack_list,
+      memcpy(clistr->_dest_pack_list,slo_pack_list,
 	     slo->_pack_list_items * sizeof(uint32_t));
 
       /* Make the reverse list, to be able to quickly (directly) look any
@@ -1903,26 +1905,26 @@ int ext_data_setup(struct ext_data_client *client,
        * worst case message size.
        */
 
-      clistr->_reverse_pack =
+      clistr->_dest_reverse_pack =
 	(uint32_t *) malloc (size_buf * sizeof(uint32_t));
 
-      if (!clistr->_reverse_pack)
+      if (!clistr->_dest_reverse_pack)
 	{
 	  client->_last_error = "Memory allocation failure (reverse pack).";
 	  errno = ENOMEM;
 	  return -1;
 	}
 
-      memset(clistr->_reverse_pack,0,size_buf * sizeof(uint32_t));
+      memset(clistr->_dest_reverse_pack,0,size_buf * sizeof(uint32_t));
 
       // Loop over the entire offset buffer...
 
       {
-	uint32_t *o    = clistr->_pack_list;
-	uint32_t *oend = clistr->_pack_list_end;
+	uint32_t *o    = clistr->_dest_pack_list;
+	uint32_t *oend = clistr->_dest_pack_list_end;
 
-	clistr->_max_pack_items = 0;
-	clistr->_static_pack_items = 0;
+	clistr->_dest_max_pack_items = 0;
+	clistr->_dest_static_pack_items = 0;
 
 	while (o < oend)
 	  {
@@ -1930,7 +1932,7 @@ int ext_data_setup(struct ext_data_client *client,
 	    uint32_t offset = offset_mark & 0x3fffffff;
 	    uint32_t mark = offset_mark & 0x80000000;
 
-	    clistr->_static_pack_items++;
+	    clistr->_dest_static_pack_items++;
 
 	    if (mark)
 	      {
@@ -1941,19 +1943,19 @@ int ext_data_setup(struct ext_data_client *client,
 
 		uint32_t *onext = o + items;
 
-		clistr->_max_pack_items += items;
+		clistr->_dest_max_pack_items += items;
 
-		clistr->_reverse_pack[offset] =
-		  (uint32_t) (o - clistr->_pack_list);
+		clistr->_dest_reverse_pack[offset] =
+		  (uint32_t) (o - clistr->_dest_pack_list);
 
 		o = onext;
 	      }
 	  }
-	clistr->_max_pack_items += clistr->_static_pack_items;
+	clistr->_dest_max_pack_items += clistr->_dest_static_pack_items;
       }
     }
 
-  clistr->_struct_size = size_buf;
+  clistr->_dest_struct_size = size_buf;
 
   if (client->_state == EXT_DATA_STATE_OPEN_OUT)
     {
@@ -1976,7 +1978,7 @@ int ext_data_setup(struct ext_data_client *client,
        * The size is limited by the pack list.  Plus the message header.
        */
 
-      size_t bufsize = clistr->_max_pack_items * sizeof(uint32_t) +
+      size_t bufsize = clistr->_dest_max_pack_items * sizeof(uint32_t) +
 	sizeof(struct external_writer_buf_header) + 2 * sizeof(uint32_t);
 
       /* The other messages we send first are fixed length, and
@@ -2039,7 +2041,7 @@ int ext_data_setup(struct ext_data_client *client,
       header->_request = htonl(EXTERNAL_WRITER_BUF_ALLOC_ARRAY |
 			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
       p = (uint32_t *) (header+1);
-      *(p++) = htonl((uint32_t) clistr->_struct_size);
+      *(p++) = htonl((uint32_t) clistr->_dest_struct_size);
       header->_length = htonl((uint32_t) (((char *) p) - ((char *) header)));
 
       // EXTERNAL_WRITER_BUF_RESIZE      /* tell size? */
@@ -2094,7 +2096,7 @@ int ext_data_setup(struct ext_data_client *client,
   /* Now do the checking. */
 
   if (!struct_info &&
-      clistr->_struct_size != clistr->_orig_struct_size)
+      clistr->_dest_struct_size != clistr->_orig_struct_size)
     {
       client->_last_error =
 	"Bad alloc message struct size during setup.";
@@ -2143,7 +2145,7 @@ int ext_data_setup(struct ext_data_client *client,
        */
 
       if (!all_to_same_from ||
-	  clistr->_orig_struct_size != clistr->_struct_size)
+	  clistr->_orig_struct_size != clistr->_dest_struct_size)
 	{
 	  clistr->_orig_array = malloc (clistr->_orig_struct_size);
 
@@ -2266,13 +2268,13 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 
   clistr = &client->_structures[struct_id];
 
-  o    = clistr->_pack_list;
-  oend = clistr->_pack_list_end;
+  o    = clistr->_dest_pack_list;
+  oend = clistr->_dest_pack_list_end;
 
-  if (pend - p < (ssize_t) clistr->_static_pack_items)
+  if (pend - p < (ssize_t) clistr->_dest_static_pack_items)
     return -1;
 
-  uint32_t *pcheck = p + clistr->_static_pack_items;
+  uint32_t *pcheck = p + clistr->_dest_static_pack_items;
 
   while (o < oend)
     {
@@ -2476,7 +2478,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
   clistr = &client->_structures[struct_id];
 
-  if (size != clistr->_struct_size)
+  if (size != clistr->_dest_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
@@ -2766,14 +2768,14 @@ int ext_data_clear_event(struct ext_data_client *client,
 
   clistr = &client->_structures[struct_id];
 
-  if (size != clistr->_struct_size)
+  if (size != clistr->_dest_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
       return -1;
     }
 
-  if (!clistr->_pack_list)
+  if (!clistr->_dest_pack_list)
     {
       /* Setup was called without struct_layout_info (i.e. only with
        * struct_info) - we have no pack list, so do not know where
@@ -2790,8 +2792,8 @@ int ext_data_clear_event(struct ext_data_client *client,
   /* Run through the offset list and clean the data structure.
    */
 
-  o    = clistr->_pack_list;
-  oend = clistr->_pack_list_end;
+  o    = clistr->_dest_pack_list;
+  oend = clistr->_dest_pack_list_end;
 
   b = (char*) buf;
 
@@ -2874,9 +2876,9 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 
   item_offset = (int) ((char *) item - (char *) buf);
 
-  item_info = clistr->_reverse_pack[item_offset];
+  item_info = clistr->_dest_reverse_pack[item_offset];
 
-  o = clistr->_pack_list + item_info;
+  o = clistr->_dest_pack_list + item_info;
 
   value = *((uint32_t *) item);
 
@@ -2951,7 +2953,7 @@ int ext_data_write_event(struct ext_data_client *client,
 
   clistr = &client->_structures[struct_id];
 
-  if (size != clistr->_struct_size)
+  if (size != clistr->_dest_struct_size)
     {
       client->_last_error = "Buffer size mismatch.";
       errno = EINVAL;
@@ -2963,7 +2965,7 @@ int ext_data_write_event(struct ext_data_client *client,
 
   if (client->_buf_alloc - client->_buf_filled <
       sizeof (struct external_writer_buf_header) + 3 * sizeof(uint32_t) +
-      clistr->_max_pack_items * sizeof(uint32_t))
+      clistr->_dest_max_pack_items * sizeof(uint32_t))
     {
       if (ext_data_flush_buffer(client))
 	return -1; // errno has been set
@@ -2981,8 +2983,8 @@ int ext_data_write_event(struct ext_data_client *client,
   /* Run through the offset list and write the data to the buffer.
    */
 
-  o    = clistr->_pack_list;
-  oend = clistr->_pack_list_end;
+  o    = clistr->_dest_pack_list;
+  oend = clistr->_dest_pack_list_end;
 
   b = (char*) buf;
 
