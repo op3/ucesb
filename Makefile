@@ -335,6 +335,22 @@ $(EXTTDIR)/ext_reader_xtst_regress_less.runstamp: $(EXTTDIR)/ext_reader_xtst_reg
 #	#@rm $@.out $@.err $@.err2 $@.err3
 	@touch $@
 
+$(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
+	@echo "  TEST   $@"
+	@$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
+	  xtst/xtst --file=- \
+	    --ntuple=$(XTST_REGRESS_LESS),BITPACK,STRUCT,- 2> $@.err2 | \
+	  ./$< - > $@.out 2> $@.err || echo "fail..."
+	@diff -u hbook/example/$(notdir $<)_less.good $@.out || \
+	  ( echo "Failure while running: xtst_file | xtst | $@:" ; \
+	    echo "--- stdout: ---" ; cat $@.out ; \
+	    echo "--- stderr (xtst_file): ---"; cat $@.err3 ; \
+	    echo "--- stderr (xtst): ---"; cat $@.err2 ; \
+	    echo "--- stderr ($@): ---"; cat $@.err ; \
+	    echo "---------------" ; false)
+#	#@rm $@.out $@.err $@.err2 $@.err3
+	@touch $@
+
 #########################################################
 
 .PHONY: xtst
@@ -342,7 +358,8 @@ xtst: xtst_real
 ifndef USE_MERGING # disabled for the time being (to be fixed...)
 xtst: $(EXTTDIR)/ext_reader_xtst_regress.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_more.runstamp \
-	$(EXTTDIR)/ext_reader_xtst_regress_less.runstamp
+	$(EXTTDIR)/ext_reader_xtst_regress_less.runstamp \
+	$(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp
 endif
 
 #########################################################

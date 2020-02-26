@@ -1005,10 +1005,29 @@ TESTRESULTS := $(filter $(addsuffix %,$(TESTFILES)),$(TESTRESULTS))
 
 $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@echo "TESTFILE $*"
+	@#echo
 	@#echo "FULL: $*"
 	@#echo "SRC.: $(firstword $(subst .ntupleopt., ,$*))"
 	@#echo "OPT.: $(lastword $(subst .ntupleopt., ,$(*:.dump.good=)))"
-	@#echo "$(*:.dump.good=)"
+	@#echo "....: $(*:.dump.good=)"
+	@#echo
+	@(./$< testfiles/$(firstword $(subst .ntupleopt., ,$*)) \
+	    --ntuple=$(lastword $(subst .ntupleopt., ,$(*:.dump.good=))),STRUCT,- > $@.struct 2> $@.unpack.err && \
+	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
+	    > $@.dump 2> $@.dump.err && \
+	  diff -u testfiles/$* $@.dump ) || \
+	  ( echo "Failure while running: './$< testfiles/$(*:.dump.good=)" ; \
+	    echo "Comparing to 'testfiles/$*':" ; \
+	    echo "--- stdout: ---" ; cat $@.unpack.err ; \
+	    echo "--- stderr: ---" ; cat $@.dump.err ; \
+	    echo "---------------" ; \
+	    echo "$@.dump" ; \
+	    echo "---------------" ; false)
+	@rm $@.unpack.err $@.dump.err $@.dump $@.struct
+	@touch $@
+
+$(GENDIR)/$(UNPACKER).bitpack.runfilestamp.%: $(UNPACKER)
+	@echo "TESTFILE (BITPACK) $*"
 	@(./$< testfiles/$(firstword $(subst .ntupleopt., ,$*)) \
 	    --ntuple=$(lastword $(subst .ntupleopt., ,$(*:.dump.good=))),BITPACK,STRUCT,- > $@.struct 2> $@.unpack.err && \
 	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
@@ -1024,7 +1043,9 @@ $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@rm $@.unpack.err $@.dump.err $@.dump $@.struct
 	@touch $@
 
-$(GENDIR)/$(UNPACKER).runstamps: $(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTRESULTS))
+$(GENDIR)/$(UNPACKER).runstamps: \
+	$(addprefix $(GENDIR)/$(UNPACKER).runfilestamp.,$(TESTRESULTS)) \
+	$(addprefix $(GENDIR)/$(UNPACKER).bitpack.runfilestamp.,$(TESTRESULTS))
 
 #########################################################
 # Link
