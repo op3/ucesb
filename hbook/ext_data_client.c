@@ -1420,7 +1420,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 	clistr->_orig_max_pack_items = 0;
 	clistr->_orig_static_pack_items = 0;
 
-	fprintf (stderr, "PACK_LIST: %d\n", pack_list_items);
+	/* fprintf (stderr, "PACK_LIST: %d\n", pack_list_items); */
 
 	while (o < oend)
 	  {
@@ -1430,7 +1430,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 
 	    (void) offset;
 
-	    fprintf (stderr, "PL, OM: %08x\n", offset_mark);
+	    /* fprintf (stderr, "PL, OM: %08x\n", offset_mark); */
 
 	    clistr->_orig_static_pack_items++;
 
@@ -1442,7 +1442,8 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		uint32_t items = max_loops * loop_size;
 		uint32_t i;
 
-		fprintf (stderr, "PL, LOOP: %08x %08x\n", max_loops, loop_size);
+		/*fprintf (stderr, "PL, LOOP: %08x %08x\n",
+		  max_loops, loop_size);*/
 
 		clistr->_orig_max_pack_items += items;
 
@@ -1451,15 +1452,17 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		    offset_mark = *(d++) = ntohl(*(o++));
 		    offset = offset_mark & 0x3fffffff;
 
-		    fprintf (stderr, "PL, Li: %08x\n", offset_mark);
+		    /* fprintf (stderr, "PL, Li: %08x\n", offset_mark); */
 		  }
 	      }
 	  }
 	clistr->_orig_max_pack_items += clistr->_orig_static_pack_items;
+	/*
   	fprintf (stderr,
 		 "PACK_LIST_END: %d %d\n",
 		 clistr->_orig_static_pack_items,
 		 clistr->_orig_max_pack_items);
+	*/
     }
 
             /* TODO: what is this?: */
@@ -1517,7 +1520,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
-	    fprintf (stderr, "STRUCT_INDEX: %d\n", struct_index);
+	    /* fprintf (stderr, "STRUCT_INDEX: %d\n", struct_index); */
 	    clistr = ext_data_alloc_client_struct(client);
 
 	    if (!clistr)
@@ -2358,10 +2361,12 @@ int ext_data_write_packed_event(struct ext_data_client *client,
   o    = clistr->_orig_pack_list;
   oend = clistr->_orig_pack_list_end;
 
+  /*
   fprintf (stderr, "[str: %d] %zd cmp %zd\n",
 	   struct_id,
 	   pend - p,
 	   (ssize_t) clistr->_orig_static_pack_items);
+  */
   
   if (pend - p < (ssize_t) clistr->_orig_static_pack_items)
     return -1;
@@ -2727,7 +2732,7 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
 	if (ret)
 	  {
-	    fprintf (stderr, "ret=%d\n", ret);
+	    /* fprintf (stderr, "ret=%d\n", ret); */
 	    client->_last_error = "Event message unpack failure.";
 	    errno = EBADMSG;
 	    return -1;
