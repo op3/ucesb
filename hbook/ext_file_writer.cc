@@ -2841,6 +2841,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #if STRUCT_WRITER
 	  *(ppp++) = offset;
 	  *(ppp++) = value;
+	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #else
 	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #endif
@@ -2889,6 +2890,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 #if STRUCT_WRITER
 		  *(ppp++) = offset;
 		  *(ppp++) = value;
+		  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #else
 		  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #endif
