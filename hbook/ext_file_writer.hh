@@ -106,6 +106,7 @@ struct ext_write_config
   int         _debug_header;
   int         _port;
   int         _stdout;
+  int         _bitpack;
 
 #define EXT_WRITER_DUMP_FORMAT_NORMAL 1
 #define EXT_WRITER_DUMP_FORMAT_COMPACT_JSON   2

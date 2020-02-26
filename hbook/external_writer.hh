@@ -48,11 +48,12 @@
 
 // Separate variable: (could reuse bits)
 
-#define NTUPLE_OPT_WRITER_NO_SHM     0x4000
-#define NTUPLE_OPT_READER_INPUT      0x8000 // use as a reader!
+#define NTUPLE_OPT_WRITER_BITPACK  0x004000
+#define NTUPLE_OPT_WRITER_NO_SHM   0x008000
+#define NTUPLE_OPT_READER_INPUT    0x010000 // use as a reader!
 
-#define NTUPLE_OPT_EXT_GDB         0x010000
-#define NTUPLE_OPT_EXT_VALGRIND    0x020000
+#define NTUPLE_OPT_EXT_GDB         0x020000
+#define NTUPLE_OPT_EXT_VALGRIND    0x040000
 
 class ext_writer_buf
 {

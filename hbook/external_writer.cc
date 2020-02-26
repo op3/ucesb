@@ -321,6 +321,18 @@ void external_writer::init_x(unsigned int type,unsigned int opt,
       argv[argc++] = strdup(argv0_replace(ext_writer));
     }
 
+  if (opt & NTUPLE_OPT_WRITER_BITPACK)
+    {
+      if (type & (NTUPLE_TYPE_STRUCT | NTUPLE_TYPE_STRUCT_HH))
+	{
+	  argv[argc++] = strdup("--bitpack");
+	}
+      else
+	{
+	  ERROR("Bitpack only makes sense with struct writer.");
+	}
+    }
+
   // fork_pipes points to XXXXX,XXXXX, so that actual numbers can be
   // filled out by the forker
 

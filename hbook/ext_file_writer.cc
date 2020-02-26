@@ -2917,7 +2917,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       /* Do not create the compacted data if we are not writing
        * to network.  It is just expensive.
        */
-      if (_config._port != 0)
+      if (_config._port != 0 ||
+	  _config._bitpack)
 	{
       // uint32_t *_masks[BUCKET_SORT_LEVELS];
       // int       _num_masks[BUCKET_SORT_LEVELS];
@@ -4848,6 +4849,7 @@ void usage(char *cmdname)
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
   printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, [compact_]json)\n");
+  printf ("  --bitpack          Bitpack STRUCT data even if not using network server.\n");
 #endif
   printf ("  --colour=yes|no    Force colour and markup on or off.\n");
   printf ("  --forked=fd1,fd2   File descriptors for forked comm. (internal use only)\n");
@@ -4999,6 +5001,9 @@ int main(int argc,char *argv[])
       }
       else if (MATCH_ARG("--stdout")) {
 	_config._stdout = 1;
+      }
+      else if (MATCH_ARG("--bitpack")) {
+	_config._bitpack = 1;
       }
       else if (MATCH_ARG("--dump")) {
 	_config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;

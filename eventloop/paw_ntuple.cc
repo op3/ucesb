@@ -409,6 +409,7 @@ void paw_ntuple_usage()
   printf ("incl=               Subevent inclusion.\n");
   printf ("excl=               Subevent exclusion.\n");
 #endif
+  printf ("BITPACK             Bitpack STRUCT data even if not using network server.\n");
   printf ("NOSHM               Do not use shared memory communication.\n");
   printf ("GDB                 Run the external program via gdb (backtrace fault).\n");
   printf ("VALGRIND            Run the external program via valgrind.\n");
@@ -592,6 +593,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_PREFIX("excl=",post))
 	ntuple->_raw_select->parse_request(post,false);
 #endif
+      else if (MATCH_ARG("BITPACK"))
+	ntuple_opt |= NTUPLE_OPT_WRITER_BITPACK;
       else if (MATCH_ARG("NOSHM"))
 	ntuple_opt |= NTUPLE_OPT_WRITER_NO_SHM;
       else if (MATCH_ARG("GDB"))
