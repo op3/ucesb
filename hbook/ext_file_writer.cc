@@ -2912,6 +2912,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       ////////////////////////////////////////
 
 #if STRUCT_WRITER
+      /* Do not create the compacted data if we are not writing
+       * to network.  It is just expensive.
+       */
+      if (_config._port != 0)
+	{
       // uint32_t *_masks[BUCKET_SORT_LEVELS];
       // int       _num_masks[BUCKET_SORT_LEVELS];
 
@@ -3358,6 +3363,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       printf ("---> %d %d\n",
 	      ((char *) end) - ((char*) msg),header_dest->_length);
       */
+	}
 #endif
     }
   else

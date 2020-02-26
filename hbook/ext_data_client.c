@@ -112,7 +112,14 @@ struct ext_data_client_struct
   size_t    _orig_struct_size;
   void     *_orig_array; /* for mapping */
 
+  uint32_t  _orig_max_pack_items;
+  uint32_t  _orig_static_pack_items;
+
+  uint32_t *_orig_pack_list;
+  uint32_t *_orig_pack_list_end;
+
   size_t    _dest_struct_size;
+
   uint32_t  _dest_max_pack_items;
   uint32_t  _dest_static_pack_items;
 
@@ -806,6 +813,7 @@ static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
   free((char *) clistr->_id);
 
   free(clistr->_orig_array);
+  free(clistr->_orig_pack_list);
   free(clistr->_dest_pack_list);
   free(clistr->_dest_reverse_pack);
   free(clistr->_map_list);
@@ -836,6 +844,11 @@ void ext_data_clear_client_struct(struct ext_data_client_struct *clistr)
   clistr->_orig_xor_sum_msg = 0;
   clistr->_orig_struct_size = 0;
   clistr->_orig_array = NULL;
+  clistr->_orig_max_pack_items = 0;
+  clistr->_orig_static_pack_items = 0;
+
+  clistr->_orig_pack_list = NULL;
+  clistr->_orig_pack_list_end = NULL;
 
   clistr->_dest_struct_size = 0;
   clistr->_dest_max_pack_items = 0;
@@ -1349,9 +1362,11 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 	case EXTERNAL_WRITER_BUF_ARRAY_OFFSETS:
 	  {
 	    uint32_t *p = (uint32_t *) (header+1);
+	    uint32_t length_left = ntohl(header->_length) -
+	      sizeof(struct external_writer_buf_header);
+	    uint32_t pack_list_items;
 
-	    if (ntohl(header->_length) <
-		sizeof(struct external_writer_buf_header) + sizeof(uint32_t))
+	    if (length_left < sizeof(uint32_t))
 	      {
 		client->_last_error =
 		  "Bad array offsets message size during setup.";
@@ -1369,13 +1384,85 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 
 	    clistr->_orig_xor_sum_msg = ntohl(p[0]);
 
+	    p++;
+	    length_left -= sizeof(uint32_t);
+
 	    /* And then follows the actual offset array... */
+	    /* Make our own copy of the pack list. */
+
+	    pack_list_items = length_left / sizeof(uint32_t);
+
+	    clistr->_orig_pack_list =
+	      (uint32_t *) malloc (pack_list_items * sizeof(uint32_t));
+	    
+	    if (!clistr->_orig_pack_list)
+	      {
+		client->_last_error =
+		  "Memory allocation failure (orig pack list).";
+		errno = ENOMEM;
+		return -1;
+	      }
+
+	    clistr->_orig_pack_list_end =
+	      clistr->_orig_pack_list + pack_list_items;
 
 	    /* TODO: verify that offsets match the list we have! */
 	    /* Note: if it is from a writer, there will be no offsets
 	     * (at least yet), only the xor.
 	     */
 
+      {
+	uint32_t *o    = p;
+	uint32_t *oend = o + pack_list_items;
+
+	uint32_t *d = clistr->_orig_pack_list;
+
+	clistr->_orig_max_pack_items = 0;
+	clistr->_orig_static_pack_items = 0;
+
+	fprintf (stderr, "PACK_LIST: %d\n", pack_list_items);
+
+	while (o < oend)
+	  {
+	    uint32_t offset_mark = *(d++) = ntohl(*(o++));
+	    uint32_t offset = offset_mark & 0x3fffffff;
+	    uint32_t mark = offset_mark & 0x80000000;
+
+	    (void) offset;
+
+	    fprintf (stderr, "PL, OM: %08x\n", offset_mark);
+
+	    clistr->_orig_static_pack_items++;
+
+	    if (mark)
+	      {
+		uint32_t max_loops = *(d++) = ntohl(*(o++));
+		uint32_t loop_size = *(d++) = ntohl(*(o++));
+
+		uint32_t items = max_loops * loop_size;
+		uint32_t i;
+
+		fprintf (stderr, "PL, LOOP: %08x %08x\n", max_loops, loop_size);
+
+		clistr->_orig_max_pack_items += items;
+
+		for (i = items; i; i--)
+		  {
+		    offset_mark = *(d++) = ntohl(*(o++));
+		    offset = offset_mark & 0x3fffffff;
+
+		    fprintf (stderr, "PL, Li: %08x\n", offset_mark);
+		  }
+	      }
+	  }
+	clistr->_orig_max_pack_items += clistr->_orig_static_pack_items;
+  	fprintf (stderr,
+		 "PACK_LIST_END: %d %d\n",
+		 clistr->_orig_static_pack_items,
+		 clistr->_orig_max_pack_items);
+    }
+
+            /* TODO: what is this?: */
 	    clistr = NULL;
 
 	    break;
@@ -1430,6 +1517,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		return -1;
 	      }
 
+	    fprintf (stderr, "STRUCT_INDEX: %d\n", struct_index);
 	    clistr = ext_data_alloc_client_struct(client);
 
 	    if (!clistr)
@@ -1885,7 +1973,7 @@ int ext_data_setup(struct ext_data_client *client,
 
       if (!clistr->_dest_pack_list)
 	{
-	  client->_last_error = "Memory allocation failure (pack list).";
+	  client->_last_error = "Memory allocation failure (dest pack list).";
 	  errno = ENOMEM;
 	  return -1;
 	}
@@ -2251,6 +2339,7 @@ int ext_data_write_bitpacked_event(char *dest,size_t dest_size,
 
 int ext_data_write_packed_event(struct ext_data_client *client,
 				char *dest,
+				int struct_id,
 				uint32_t *src,uint32_t *end_src)
 {
   const struct ext_data_client_struct *clistr;
@@ -2261,20 +2350,23 @@ int ext_data_write_packed_event(struct ext_data_client *client,
   uint32_t *o;
   uint32_t *oend;
 
-  int struct_id = 0;
-
   if (struct_id >= client->_num_structures)
     return -5;
 
   clistr = &client->_structures[struct_id];
 
-  o    = clistr->_dest_pack_list;
-  oend = clistr->_dest_pack_list_end;
+  o    = clistr->_orig_pack_list;
+  oend = clistr->_orig_pack_list_end;
 
-  if (pend - p < (ssize_t) clistr->_dest_static_pack_items)
+  fprintf (stderr, "[str: %d] %zd cmp %zd\n",
+	   struct_id,
+	   pend - p,
+	   (ssize_t) clistr->_orig_static_pack_items);
+  
+  if (pend - p < (ssize_t) clistr->_orig_static_pack_items)
     return -1;
 
-  uint32_t *pcheck = p + clistr->_dest_static_pack_items;
+  uint32_t *pcheck = p + clistr->_orig_static_pack_items;
 
   while (o < oend)
     {
@@ -2614,6 +2706,8 @@ int ext_data_fetch_event(struct ext_data_client *client,
 
     if (compact_marker & 0x40000000)
       {
+	int ret;
+	
 	/* It is not bit-packed.  Use the pack list.
 	 */
 
@@ -2628,9 +2722,12 @@ int ext_data_fetch_event(struct ext_data_client *client,
 	return 2;
 #endif
 
-	if (ext_data_write_packed_event(client,unpack_buf,
-					p,end))
+	ret = ext_data_write_packed_event(client,unpack_buf,
+					  struct_index,p,end);
+
+	if (ret)
 	  {
+	    fprintf (stderr, "ret=%d\n", ret);
 	    client->_last_error = "Event message unpack failure.";
 	    errno = EBADMSG;
 	    return -1;
