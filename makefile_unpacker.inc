@@ -1010,7 +1010,7 @@ $(GENDIR)/$(UNPACKER).runfilestamp.%: $(UNPACKER)
 	@#echo "OPT.: $(lastword $(subst .ntupleopt., ,$(*:.dump.good=)))"
 	@#echo "$(*:.dump.good=)"
 	@(./$< testfiles/$(firstword $(subst .ntupleopt., ,$*)) \
-	    --ntuple=$(lastword $(subst .ntupleopt., ,$(*:.dump.good=))),STRUCT,- > $@.struct 2> $@.unpack.err && \
+	    --ntuple=$(lastword $(subst .ntupleopt., ,$(*:.dump.good=))),BITPACK,STRUCT,- > $@.struct 2> $@.unpack.err && \
 	  cat $@.struct | $(UCESB_BASE_DIR)/hbook/struct_writer - --dump \
 	    > $@.dump 2> $@.dump.err && \
 	  diff -u testfiles/$* $@.dump ) || \
