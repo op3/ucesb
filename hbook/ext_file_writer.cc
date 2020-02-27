@@ -909,7 +909,7 @@ void request_alloc_array(void *msg,uint32_t *left)
   else
     s->_stage_array._rewrite_max_bytes_per_item = 9;
 
-  s->_stage_array._offset_value = (uint32_t*) malloc(size*2);
+  s->_stage_array._offset_value = (uint32_t*) malloc(size/* *2 */);
 
   if (!s->_stage_array._ptr)
     ERR_MSG("Failure allocating offset/value array with size %d.",size*2);
@@ -2840,7 +2840,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 #if STRUCT_WRITER
 	  *(ppp++) = offset;
-	  *(ppp++) = value;
+	  /**(ppp++) = value;*/
 	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #else
 	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
@@ -2889,7 +2889,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 #if STRUCT_WRITER
 		  *(ppp++) = offset;
-		  *(ppp++) = value;
+		  /**(ppp++) = value;*/
 		  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
 #else
 		  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
@@ -2911,6 +2911,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       *left = 0; // consumed all data
       // msg = pend; // not really needed... (as left is 0)
 
+#if STRUCT_WRITER
+      assert(pp <= s->_stage_array._offset_value + s->_stage_array._length);
+#endif
+      
       ////////////////////////////////////////
 
 #if STRUCT_WRITER
@@ -2930,16 +2934,16 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       memset(s->_stage_array._masks[0],0,
 	     s->_stage_array._num_masks[0] * sizeof(uint32_t));
 
-      while (pp + 1 < ppp)
+      while (pp/* + 1*/ < ppp)
 	{
 	  uint32_t offset = *(pp++);
-	  uint32_t value  = *(pp++);
+	  /*uint32_t value  = *(pp++);*/
 
 	  if (offset + sizeof(uint32_t) > s->_stage_array._length)
 	    ERR_MSG("Fill item offset (%" PRIu32 ") outside array (%zd).",
 		    offset,s->_stage_array._length);
 
-	  *((uint32_t *) (s->_stage_array._ptr + offset)) = value;
+	  /**((uint32_t *) (s->_stage_array._ptr + offset)) = value;*/
 
 	  uint32_t mask_item = (offset / sizeof(uint32_t));
 	  uint32_t mask_shift = (BUCKET_SORT_LEVELS - 1) * BUCKET_SORT_SHIFT;
@@ -3084,7 +3088,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       // That way, we save a memcpy operation.
 
       size_t max_length = s->_stage_array._rewrite_max_bytes_per_item *
-	((ppp - s->_stage_array._offset_value) / 2);
+	((ppp - s->_stage_array._offset_value)/* / 2*/);
 
       max_length = (max_length + 3) & ~3; // 4-byte alignment
       max_length += sizeof (external_writer_buf_header);
