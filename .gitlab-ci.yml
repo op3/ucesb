@@ -444,7 +444,43 @@ gcc-latest minimal gcc g++ all:
   <<: *docker
   <<: *debian
 
-Debian Jessie gcc g++ all:
+Debian buster gcc g++ all:
+  stage: build
+  image: munken/build-essential:debian-buster-gcc
+  <<: *docker
+  <<: *build
+
+Debian buster clang clang++ all:
+  stage: build
+  image: munken/build-essential:debian-buster-clang
+  <<: *docker
+  <<: *build
+
+Debian stretch gcc g++ all:
+  stage: build
+  image: munken/build-essential:debian-stretch-gcc
+  <<: *docker
+  <<: *build
+
+Debian stretch clang clang++ all:
+  stage: build
+  image: munken/build-essential:debian-stretch-clang
+  <<: *docker
+  <<: *build
+
+Debian stretch clang-7 clang++-7 all:
+  stage: build
+  image: munken/build-essential:debian-stretch-clang-7
+  <<: *docker
+  <<: *build
+
+Debian stretch clang-8 clang++-8 all:
+  stage: build
+  image: munken/build-essential:debian-stretch-clang-8
+  <<: *docker
+  <<: *build
+
+Debian jessie gcc g++ all:
   stage: build
   image: munken/build-essential:debian-jessie-gcc
   <<: *docker
