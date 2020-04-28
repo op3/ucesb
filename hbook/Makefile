@@ -230,9 +230,18 @@ ifeq (,$(FILE_ROOT_CONFIG))
 FILE_ROOT_CONFIG=$(shell which $(ROOTSYS)/bin/root-config 2> /dev/null)
 endif
 
+ROOTCINT_OPTS=-c
 FILE_ROOTCINT:=$(shell which rootcint 2> /dev/null)
 ifeq (,$(FILE_ROOTCINT))
-FILE_ROOTCINT=$(shell which $(ROOTSYS)/bin/rootcint 2> /dev/null)
+FILE_ROOTCINT:=$(shell which $(ROOTSYS)/bin/rootcint 2> /dev/null)
+endif
+ifeq (,$(FILE_ROOTCINT))
+# rootcling deprecates the -c option
+ROOTCINT_OPTS=
+FILE_ROOTCINT:=$(shell which rootcling 2> /dev/null)
+endif
+ifeq (,$(FILE_ROOTCINT))
+FILE_ROOTCINT:=$(shell which $(ROOTSYS)/bin/rootcling 2> /dev/null)
 endif
 
 ifneq (,$(FILE_ROOT_CONFIG))
@@ -381,7 +390,7 @@ ifneq (,$(FILE_ROOT_CONFIG))
 
 %_dict.cc: %.hh
 	@echo "ROOTCINT $@"
-	$(QUIET)rootcint -f $@ -c $<
+	$(QUIET)$(FILE_ROOTCINT) -f $@ $(ROOTCINT_OPTS) $<
 
 .PRECIOUS: ext_data_clnt_dict.cc ext_data_clnt_stderr_dict.cc online_chain_dict.cc
 
