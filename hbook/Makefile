@@ -234,14 +234,14 @@ ROOTCINT_OPTS=-c
 FILE_ROOTCINT:=$(shell which rootcint 2> /dev/null)
 ifeq (,$(FILE_ROOTCINT))
 FILE_ROOTCINT:=$(shell which $(ROOTSYS)/bin/rootcint 2> /dev/null)
-endif
 ifeq (,$(FILE_ROOTCINT))
 # rootcling deprecates the -c option
 ROOTCINT_OPTS=
 FILE_ROOTCINT:=$(shell which rootcling 2> /dev/null)
-endif
 ifeq (,$(FILE_ROOTCINT))
 FILE_ROOTCINT:=$(shell which $(ROOTSYS)/bin/rootcling 2> /dev/null)
+endif
+endif
 endif
 
 ifneq (,$(FILE_ROOT_CONFIG))
