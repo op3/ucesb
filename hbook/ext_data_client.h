@@ -264,6 +264,7 @@ struct ext_data_client *ext_data_open_out();
  *
  * EINVAL           @struct_layout_info is wrong.
  * ENOMSG           @name_id does not exist in server structure list.
+ * EBUSY            Structure has already been mapped.
  * EPROTO           Protocol error, version mismatch?
  * EBADMSG          Internal protocol fault.  Bug?
  * ENOMEM           Failure to allocate memory.

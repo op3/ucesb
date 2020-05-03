@@ -1894,6 +1894,14 @@ int ext_data_setup(struct ext_data_client *client,
 	  errno = ENOMSG;
 	  return -1;
 	}
+
+      if (clistr->_dest_struct_size)
+	{
+	  client->_last_error = "Requested structure (ntuple) "
+	    "already mapped.";
+	  errno = EBUSY;
+	  return -1;
+	}
     }
 
   /* */
