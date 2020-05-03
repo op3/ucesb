@@ -2262,7 +2262,7 @@ void request_setup_done(void *msg,uint32_t *left,int reader,int writer)
 
       if (ext_data_setup(_reader_client,
 			 &slo,sizeof(slo),
-			 NULL,
+			 NULL, NULL,
 			 s->_stage_array._length,
 			 "", NULL) != 0)
 	{

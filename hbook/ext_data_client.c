@@ -81,6 +81,8 @@ struct ext_data_structure_item
   uint32_t    _limit_min;
   uint32_t    _limit_max;
 
+  uint32_t    _map_success;
+
 #if STRUCT_WRITER
   uint32_t    _ctrl_offset;
 #endif
@@ -95,6 +97,14 @@ struct ext_data_structure_item
 struct ext_data_structure_info
 {
   struct ext_data_structure_item *_items;
+
+  /* Used while returning items for ext_data_struct_info_map_success(). */
+  struct ext_data_structure_item *_ret_item;
+  int         _ret_for_server;
+
+  struct ext_data_structure_info *_server_struct_info;
+
+  uint32_t    _map_success;
 
   const char *_last_error;
 };
@@ -206,6 +216,13 @@ struct ext_data_structure_info *ext_data_struct_info_alloc()
 
   struct_info->_items = NULL;
 
+  struct_info->_map_success = (uint32_t) -1;
+
+  struct_info->_ret_item = NULL;
+  struct_info->_ret_for_server = 0;
+
+  struct_info->_server_struct_info = NULL;
+
   struct_info->_last_error = NULL;
 
   return struct_info;
@@ -244,10 +261,148 @@ ext_data_struct_info_last_error(struct ext_data_structure_info *struct_info)
   return struct_info->_last_error;
 }
 
-
-
 #define DEBUG_MATCHING(...) do { } while (0)
-/*#define DEBUG_MATCHING(...) do { printf (__VA_ARGS__); } while (0)*/
+/*efine DEBUG_MATCHING(...) do { fprintf (stderr,__VA_ARGS__); } while (0)*/
+
+int
+ext_data_struct_info_map_success(struct ext_data_structure_info *struct_info,
+				 int restart,
+				 const char **var_name,
+				 uint32_t *offset,
+				 uint32_t *map_success)
+{
+  struct ext_data_structure_item *item;
+  
+  if (!struct_info)
+    {
+      /* struct_info->_last_error = "Struct_info context NULL."; */
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (restart == 1)
+    {
+      struct_info->_ret_item = struct_info->_items;
+      struct_info->_ret_for_server = 0;
+      /*DEBUG_MATCHING("restart...\n");*/
+    }
+
+  item = struct_info->_ret_item;
+
+  if (!item &&
+      struct_info->_ret_for_server == 0)
+    {
+      /* We are out of client items, continue with the server list. */
+      item = struct_info->_ret_item =
+	struct_info->_server_struct_info->_items;
+      struct_info->_ret_for_server = 1;
+      /*
+      DEBUG_MATCHING("server... %p %p\n",
+		     struct_info->_server_struct_info,
+		     struct_info->_ret_item);
+      */
+    }
+  /*
+  if (item)
+    DEBUG_MATCHING("%s : %x\n", item->_var_name, item->_map_success);
+  */
+  if (struct_info->_ret_for_server)
+    {
+      /* For server list, we only report items that
+       * are missing destination. */
+      while (item &&
+	     item->_map_success != EXT_DATA_ITEM_MAP_NO_DEST)
+	{
+	  /*
+	  if (item)
+	    DEBUG_MATCHING("%s : %x\n", item->_var_name, item->_map_success);
+	  */
+	  struct_info->_ret_item = item = item->_next_off_item;
+	}
+      /*DEBUG_MATCHING("skipped...\n");*/
+  }
+
+  if (!item)
+    return 0;
+
+  if (var_name)
+    *var_name = item->_var_name;
+
+  if (offset)
+    *offset = item->_offset;
+
+  if (map_success)
+    *map_success = item->_map_success;
+
+  /* Prepare to get next item. */
+
+  struct_info->_ret_item = item->_next_off_item;
+
+  return 1;
+}
+
+int
+ext_data_struct_info_print_map_success(struct ext_data_structure_info *
+				       /* */ struct_info,
+				       FILE *stream,
+				       uint32_t exclude_success)
+{
+  int restart = 0;
+  const char *var_name;
+  uint32_t offset;
+  uint32_t map_success;
+
+  fprintf (stream, "%-40s %-8s %-6s\n",
+	   "Item", "Offset", "Success");
+
+  fprintf (stream, "%-40s %-8s %-6s\n",
+	   "----------------------------------------",
+	   "--------", "---------------------------");
+
+  for (restart = 1; ; restart = 0)
+    {
+      int ret;
+
+      ret =
+	ext_data_struct_info_map_success(struct_info,
+					 restart,
+					 &var_name, &offset, &map_success);
+
+      if (ret == -1)
+	return -1;
+
+      if (!ret)
+	break;
+
+      if (!(map_success & ~exclude_success))
+	continue;
+
+      fprintf (stream, "%-40s %-8d (0x%02x)",
+	       var_name, offset, map_success);
+
+#define EXT_DATA_PRINT_MAP_SUCCESS(x,str)  do {		\
+	if (map_success & (EXT_DATA_ITEM_MAP_##x)) {	\
+	  fprintf (stream, " %s", str);			\
+	}						\
+      } while (0)
+
+      EXT_DATA_PRINT_MAP_SUCCESS(MATCH,         "match");
+      EXT_DATA_PRINT_MAP_SUCCESS(NO_DEST,       "no dest - not mapped");
+      EXT_DATA_PRINT_MAP_SUCCESS(NOT_FOUND,     "not found");
+      EXT_DATA_PRINT_MAP_SUCCESS(TYPE_MISMATCH, "type mismatch");
+      EXT_DATA_PRINT_MAP_SUCCESS(CTRL_MISMATCH, "ctrl item mismatch");
+      EXT_DATA_PRINT_MAP_SUCCESS(ARRAY_FEWER,   "array short");
+      EXT_DATA_PRINT_MAP_SUCCESS(ARRAY_MORE,    "array longer");
+
+      fprintf (stream, "\n");
+    }
+
+  fprintf (stream, "%-40s %-8s %-6s\n",
+	   "----------------------------------------",
+	   "--------", "---------------------------");
+
+  return 1;
+}
 
 int ext_data_struct_info_item(struct ext_data_structure_info *struct_info,
 			      size_t offset, size_t size,
@@ -302,6 +457,8 @@ int ext_data_struct_info_item(struct ext_data_structure_info *struct_info,
       item->_limit_max = -1;
     }
   item->_ctrl_item = NULL;
+
+  item->_map_success = (uint32_t) -1;
 
   /* We better be strict.  Ensure that no previously described item
    * has the same name, or overlaps in the structure.
@@ -387,9 +544,11 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 				struct ext_data_client_struct *clistr,
 				const struct ext_data_structure_info *from,
 				const struct ext_data_structure_info *to,
-				int *all_to_same_from)
+				int *all_to_same_from,
+				uint32_t *map_success)
 {
   struct ext_data_structure_item *item;
+  struct ext_data_structure_item *match;
   int items, ctrl_items;
   size_t map_list_items;
 
@@ -408,6 +567,8 @@ int ext_data_struct_match_items(struct ext_data_client *client,
    * garbage.  In such cases, the remap copy is needed.
    */
 
+  *map_success = 0;
+
   /* First clear all temporaries. */
 
   item = to->_items;
@@ -416,7 +577,18 @@ int ext_data_struct_match_items(struct ext_data_client *client,
     {
       item->_match_item = NULL;
       item->_child_item = NULL;
+      item->_map_success = 0;
       item = item->_next_off_item;
+    }
+
+  /* Clear all from temporaries. */
+
+  match = from->_items;
+
+  while (match)
+    {
+      match->_map_success = 0;
+      match = match->_next_off_item;
     }
 
   /* For each item in the @to list, we want to find possible
@@ -429,8 +601,6 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 
   while (item)
     {
-      struct ext_data_structure_item *match;
-
       /* We always find the item by name! */
 
       match = from->_items;
@@ -443,6 +613,7 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	  if (!match)
 	    {
 	      DEBUG_MATCHING("no match.\n");
+	      item->_map_success = EXT_DATA_ITEM_MAP_NOT_FOUND;
 	      goto no_match;
 	    }
 
@@ -459,6 +630,8 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	{
 	  DEBUG_MATCHING("type mismatch (%d -> %d).\n",
 			 match->_var_type, item->_var_type);
+	  item->_map_success =
+	    match->_map_success = EXT_DATA_ITEM_MAP_TYPE_MISMATCH;
 	  goto no_match;
 	}
 
@@ -468,12 +641,30 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	{
 	  DEBUG_MATCHING("ctrl mismatch ([%s] -> ).\n",
 			 match->_var_ctrl_name);
+	  item->_map_success =
+	    match->_map_success = EXT_DATA_ITEM_MAP_CTRL_MISMATCH;
 	  goto no_match;
 	}
 
       /* So it is a good match. */
 
       item->_match_item = match;
+
+      if (item->_length == match->_length)
+	{
+	  item->_map_success =
+	    match->_map_success = EXT_DATA_ITEM_MAP_MATCH;
+	}
+      else if (item->_length < match->_length)
+	{
+	  item->_map_success  = EXT_DATA_ITEM_MAP_ARRAY_FEWER;
+	  match->_map_success = EXT_DATA_ITEM_MAP_ARRAY_MORE;
+	}
+      else /* (item->_length > match->_length) */
+	{
+	  item->_map_success  = EXT_DATA_ITEM_MAP_ARRAY_MORE;
+	  match->_map_success = EXT_DATA_ITEM_MAP_ARRAY_FEWER;
+	}
 
       /* If we have a controlling item, it shall be added to that list.
        */
@@ -496,10 +687,30 @@ int ext_data_struct_match_items(struct ext_data_client *client,
       DEBUG_MATCHING("ok!\n");
 
       goto next_item;
+
     no_match:
       *all_to_same_from = 0;
     next_item:
+      *map_success |= item->_map_success;
       item = item->_next_off_item;
+    }
+
+  DEBUG_MATCHING("Done matching items.\n");
+  
+  /* Mark all source items that were not matched. */
+  
+  match = from->_items;
+
+  while (match)
+    {
+      if (!match->_map_success)
+	{
+	  DEBUG_MATCHING("No match for \'%s\' [%s], missing dest.\n",
+			 match->_var_name, match->_var_ctrl_name);
+	  *map_success |=
+	    match->_map_success = EXT_DATA_ITEM_MAP_NO_DEST;
+	}
+      match = match->_next_off_item;
     }
 
   /* How much will it contribute to the remap list size?
@@ -1777,6 +1988,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 int ext_data_setup(struct ext_data_client *client,
 		   const void *struct_layout_info,size_t size_info,
 		   struct ext_data_structure_info *struct_info,
+		   uint32_t *struct_map_success,
 		   size_t size_buf,
 		   const char *name_id, int *struct_id)
 {
@@ -1786,6 +1998,9 @@ int ext_data_setup(struct ext_data_client *client,
   const struct ext_data_structure_layout_item *slo_items;
   const uint32_t *slo_pack_list;
   uint32_t i;
+
+  if (struct_map_success)
+    *struct_map_success = 0;
 
   if (!client)
     {
@@ -2227,16 +2442,23 @@ int ext_data_setup(struct ext_data_client *client,
     {
       int ret;
       int all_to_same_from;
+      uint32_t map_success;
 
       /* Create mapping between the two structures. */
+
+      struct_info->_server_struct_info = clistr->_struct_info_msg;
 
       ret = ext_data_struct_match_items(client, clistr,
 					clistr->_struct_info_msg,
 					struct_info,
-					&all_to_same_from);
+					&all_to_same_from,
+					&map_success);
 
       if (ret)
 	return ret; /* -1 ? */
+
+      if (struct_map_success)
+	*struct_map_success = map_success;
 
       /* We as an optimisation do *not* use the temporary
        * orig_array buffer if we have an exact structure
@@ -3355,11 +3577,14 @@ int ext_data_setup_stderr(struct ext_data_client *client,
 			  const void *struct_layout_info,
 			  size_t size_info,
 			  struct ext_data_structure_info *struct_info,
+			  uint32_t *struct_map_success,
 			  size_t size_buf,
 			  const char *name_id, int *struct_id)
 {
   int ret = ext_data_setup(client,
-			   struct_layout_info,size_info,struct_info,size_buf,
+			   struct_layout_info, size_info,
+			   struct_info, struct_map_success,
+			   size_buf,
 			   name_id,struct_id);
 
   if (ret == -1)
