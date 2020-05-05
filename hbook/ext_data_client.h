@@ -186,6 +186,7 @@ ext_data_struct_info_last_error(struct ext_data_structure_info *struct_info);
 						    controlling item. */
 #define EXT_DATA_ITEM_MAP_ARRAY_FEWER    0x0020u /* Array, client shorter. */
 #define EXT_DATA_ITEM_MAP_ARRAY_MORE     0x0040u /* Array, client longer. */
+#define EXT_DATA_ITEM_MAP_NOT_DONE       0x0080u /* Never reached mapping. */
 
 /* This mask identifies mappings which loose no data. */
 #define EXT_DATA_ITEM_MAP_OK            (EXT_DATA_ITEM_MAP_MATCH | \

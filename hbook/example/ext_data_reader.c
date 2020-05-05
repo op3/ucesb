@@ -204,7 +204,7 @@ int main(int argc,char *argv[])
        * but general suggestion is to be very wary and not weary about
        * missing or unmapped items.
        */
-      exit(1);
+      goto disconnect;
     }
 #endif
 

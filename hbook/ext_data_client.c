@@ -2000,7 +2000,7 @@ int ext_data_setup(struct ext_data_client *client,
   uint32_t i;
 
   if (struct_map_success)
-    *struct_map_success = 0;
+    *struct_map_success = EXT_DATA_ITEM_MAP_NOT_DONE;
 
   if (!client)
     {
