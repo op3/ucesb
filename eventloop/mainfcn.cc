@@ -192,6 +192,8 @@ void usage()
   USAGE_COMMAND_LINE_OPTIONS();
 #endif
   printf ("\n");
+  printf ("Note: most options offer additional usage info when passed the argument 'help'.\n");
+  printf ("\n");
   /*
   printf ("Parse order: all output options will be effective from start,\n"
 	  "input (files) are treated in order.");
