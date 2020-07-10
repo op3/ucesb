@@ -684,7 +684,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 				 NTUPLE_TYPE_STRUCT_HH |
 				 NTUPLE_TYPE_STRUCT));
 
-  extra._include_always = inc_trig_eventno; /* true */
+  /* Special mode while searching for the ENUM_NTUPLE_ALWAYS items. */
+  extra._include_always = true;
 
 #define ENUMERATE_MEMBERS_UNCOND(data, level,		    \
 				 block, block_prefix)	    \
@@ -699,11 +700,15 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 			   &extra);			    \
   }
 
-  ENUMERATE_MEMBERS_UNCOND(_static_event._unpack,
-			   NTUPLE_WRITER_UNPACK, "UNPACK", "U");
-  ENUMERATE_MEMBERS_UNCOND(_static_event._raw,
-			   NTUPLE_WRITER_UNPACK, "RAW", "R");
+  if (inc_trig_eventno)
+    {
+      ENUMERATE_MEMBERS_UNCOND(_static_event._unpack,
+			       NTUPLE_WRITER_UNPACK, "UNPACK", "U");
+      ENUMERATE_MEMBERS_UNCOND(_static_event._raw,
+			       NTUPLE_WRITER_UNPACK, "RAW", "R");
+    }
 
+  /* Special mode done. */
   extra._include_always = false;
 
 #define ENUMERATE_MEMBERS(data, level, block, block_prefix) \
