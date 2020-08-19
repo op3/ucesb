@@ -376,8 +376,22 @@ ext_data_client.o: ext_data_client.c ext_data_client.d
 
 struct_writer: ext_data_client.o
 
+ext_data_clnt.o: ext_data_clnt.cc
+	@echo "   CXX   $@"
+	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC -o $@ -c $<
+
+libext_data_clnt.so: ext_data_client.o ext_data_clnt.o
+	@echo "  LINK   $@"
+	$(QUIET)$(CXX) -g -shared -o $@ $+
+
+ifneq (,$(FILE_ROOT_CONFIG))
+
 # Would be ext_data_clnt% , but the % wants at least one letter...
-ext_data_cln%.o: ext_data_cln%.cc
+ext_data_cln%_dict.o: ext_data_cln%_dict.cc
+	@echo "   CXX   $@"
+	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
+
+ext_data_cln%_root.o: ext_data_cln%.cc
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
 
@@ -386,26 +400,24 @@ online_chai%.o: online_chai%.cc
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) -fPIC $(ROOT_CXXFLAGS) -o $@ -c $<
 
-ifneq (,$(FILE_ROOT_CONFIG))
-
 %_dict.cc: %.hh
 	@echo "ROOTCINT $@"
 	$(QUIET)$(FILE_ROOTCINT) -f $@ $(ROOTCINT_OPTS) $<
 
 .PRECIOUS: ext_data_clnt_dict.cc ext_data_clnt_stderr_dict.cc online_chain_dict.cc
 
-libext_data_clnt.so: ext_data_client.o ext_data_clnt.o \
+libext_data_clnt_root.so: ext_data_client.o ext_data_clnt_root.o \
 	ext_data_clnt_dict.o ext_data_clnt_stderr_dict.o \
 	online_chain.o online_chain_dict.o
 	@echo "  LINK   $@"
 	$(QUIET)$(CXX) -g -shared $(ROOT_CXXLINKFLAGS) -o $@ $+ \
 	  $(ROOT_CXXLIBS)
 
-struct_writer: libext_data_clnt.so
+struct_writer: libext_data_clnt_root.so
 
 endif
 
-struct_writer: ext_data_clnt.o
+struct_writer: ext_data_clnt.o libext_data_clnt.so
 
 endif # $(MAKECMDGOALS) has struct_writer
 
@@ -421,7 +433,7 @@ clean:
 	rm -f root_reader
 	rm -f ext_data_clnt*_dict.cc ext_data_clnt*_dict.h
 	rm -f online_chain_dict.cc online_chain_dict.h
-	rm -f libext_data_clnt.so
+	rm -f libext_data_clnt.so libext_data_clnt_root.so
 
 ifneq (clean,$(MAKECMDGOALS))
 -include $(AUTO_DEPS) # dependency files (.d)
