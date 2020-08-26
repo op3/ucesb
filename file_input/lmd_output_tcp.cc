@@ -650,7 +650,8 @@ bool lmd_output_client_con::after_select(fd_set *readfds,fd_set *writefds,
       if (_server_con->_data_port != -1)
 	{
 	  // We use the dummy field to transmit the port number
-	  info.streams = LMD_PORT_MAP_MARK | _server_con->_data_port;
+	  info.streams =
+	    LMD_TCP_INFO_STREAMS_PORT_MAP_MARK | _server_con->_data_port;
 	}
 
 

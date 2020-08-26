@@ -728,9 +728,10 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
 	  _info.streams);
   */
   if (data_port &&
-      (_info.streams & LMD_PORT_MAP_MARK_MASK) == LMD_PORT_MAP_MARK)
+      (_info.streams & LMD_TCP_INFO_STREAMS_PORT_MAP_MARK_MASK) ==
+      LMD_TCP_INFO_STREAMS_PORT_MAP_MARK)
     {
-      *data_port = _info.streams & LMD_PORT_MAP_PORT_MASK;
+      *data_port = _info.streams & LMD_TCP_INFO_STREAMS_PORT_MAP_PORT_MASK;
       INFO(0,"Redirected -> port %d", *data_port);
       return 0;
     }
@@ -744,8 +745,28 @@ size_t lmd_input_tcp_buffer::read_info(int *data_port)
 
   if (_info.bufsize == (uint32_t) LMD_TCP_INFO_BUFSIZE_MAXCLIENTS)
     {
-      ERROR("Buffer size -2, "
-	    "hint that maximum number of clients are already connected.");
+      int rate = 0;
+      int sleepy;
+
+      if ((_info.streams & LMD_TCP_INFO_STREAMS_NODATA_HOLDOFF_MARK_MASK) ==
+	  LMD_TCP_INFO_STREAMS_NODATA_HOLDOFF_MARK)
+	rate = (_info.streams & LMD_TCP_INFO_STREAMS_NODATA_HOLDOFF_RATE_MASK);
+      
+      sleepy = rate;
+      if (sleepy < 1)  sleepy = 1;
+      if (sleepy > 10) sleepy = 10;
+
+      /* Close the connection before the sleep, otherwise the server
+       * cannot recover the client slot.
+       */
+      close_connection();
+
+      WARNING("Buffer size -2, "
+	      "hint that maximum number of clients are already connected.");
+      WARNING("Connection rate: %d/s, sleeping %d s.", rate, sleepy);
+      sleep(sleepy);
+      /* Error message must be last. */
+      ERROR("Slept after max clients connection failure.");
     }
 
   if (_info.bufsize % 1024)
