@@ -1042,6 +1042,7 @@ static void ext_data_free(struct ext_data_client *client)
     ext_data_clistr_free(client->_structures+i);
 
   free(client->_structures);
+  free(client->_raw_swapped);
 
   free(client); /* Note! we also free the structure itself. */
 }
