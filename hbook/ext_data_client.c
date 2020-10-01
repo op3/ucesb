@@ -161,8 +161,7 @@ struct ext_data_client
   size_t _buf_used;
   size_t _buf_filled;
 
-  /* Todo: the following is never allocated?? */
-  uint32_t *_raw_ptr;
+  uint32_t *_raw_ptr;  /* This is not allocated; just used. */
   uint32_t  _raw_words;
   uint32_t *_raw_swapped;
 
