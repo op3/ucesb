@@ -443,7 +443,7 @@ int ext_data_struct_info_item(struct ext_data_structure_info *struct_info,
   item->_length = (uint32_t) size;
   item->_block = NULL;
   item->_var_name = strdup(name);
-  item->_var_ctrl_name = ctrl_name ? strdup(ctrl_name) : "";
+  item->_var_ctrl_name = strdup(ctrl_name ? ctrl_name : "");
   item->_var_type = type;
   if (limit_max >= 0)
     {
@@ -1034,7 +1034,7 @@ static void ext_data_clistr_free(struct ext_data_client_struct *clistr)
 static void ext_data_free(struct ext_data_client *client)
 {
   int i;
-  
+
   free(client->_buf);
 
   for (i = 0; i < client->_num_structures; i++)
