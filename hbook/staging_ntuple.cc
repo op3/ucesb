@@ -426,6 +426,9 @@ void stage_ntuple_index_var<Tsni_ind,Tsni_vect>::init_cwn_vars(Tindexed_item &wr
       first_item = false;
       base_indices = indexed_indices;
     }
+
+  assert(write_ptrs._info_slots_per_entry == base_indices._slot_ind);
+  assert(write_ptrs._items_per_entry      == base_indices._dest_ind);
 }
 
 template<typename Tsni_ind,typename Tsni_vect>

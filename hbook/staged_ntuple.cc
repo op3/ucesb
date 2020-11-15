@@ -450,6 +450,9 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,
   assert(_index_item + index_vars == ptr_index_item);
   assert(_array_item + array_vars == ptr_array_item);
 
+  assert(_global_array._info_slots_per_entry == global_indices._slot_ind);
+  assert(_global_array._items_per_entry      == global_indices._dest_ind);
+
   // ERROR("Not finished yet!");
 
   if (_ext)
