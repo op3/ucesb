@@ -588,6 +588,17 @@ void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
   if (d._current > d._indent) d.nl();
 }
 
+void struct_unpack_code::gen(const encode_spec_base *item,
+			     dumper &d,uint32 type,
+			     const prefix_ident *prefix)
+{
+  const encode_spec      *spec;
+  const encode_cond      *cond;
+
+  if ((spec = dynamic_cast<const encode_spec*>(item))) gen(spec,d,type,prefix);
+  if ((cond = dynamic_cast<const encode_cond*>(item))) gen(cond,d,type,prefix);
+}
+
 void struct_unpack_code::gen(const encode_spec *encode,dumper &d,uint32 type,
 			     const prefix_ident *prefix)
 {
@@ -662,6 +673,57 @@ void struct_unpack_code::gen(const encode_spec *encode,dumper &d,uint32 type,
 
       d.text("}\n");
     }
+}
+
+void struct_unpack_code::gen(const encode_cond *cond,dumper &d,uint32 type,
+			     const prefix_ident *prefix)
+{
+  // This is largely duplicated from gen(const struct_cond *cond, ...)
+
+  const var_external *external;
+
+  external = gen_external_header(cond->_expr,d,type);
+
+  if (type & UCT_UNPACK)
+    {
+      d.text("if (");
+
+      if (external)
+	d.text_fmt("%s()",external->_name);
+      else
+	cond->_expr->dump(d,prefix);
+
+      d.text(")\n");
+    }
+
+  gen(cond->_items,d,type,prefix);
+
+  if (cond->_items_else)
+    {
+      if (type & (UCT_UNPACK | UCT_MATCH | UCT_PACKER))
+	{
+	  d.text("else\n");
+	  gen(cond->_items_else,d,type,prefix);
+	}
+    }
+}
+
+void struct_unpack_code::gen(const encode_spec_list *list,dumper &d,uint32 type,
+			     const prefix_ident *prefix)
+{
+  encode_spec_list::const_iterator encode;
+  bool indent = list->size() > 1;
+
+  if (indent)
+    d.text("{\n");
+  dumper sd(d,indent ? 2 : 0);
+
+  for (encode = list->begin();
+       encode != list->end(); ++encode)
+    gen(*encode,sd,type,prefix);
+
+  if (indent)
+    d.text("}\n");
 }
 
 void struct_unpack_code::gen(const struct_encode *encode,dumper &d,uint32 type)
@@ -964,11 +1026,7 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	    name_prefix._list = data->_bits;
 	    name_prefix._prefix = name_prefix_str;
 
-	    encode_spec_list::const_iterator encode;
-
-	    for (encode = data->_encode->begin();
-		 encode != data->_encode->end(); ++encode)
-	      gen(*encode,d,type,&name_prefix);
+	    gen(data->_encode,d,type,&name_prefix);
 	  }
       }
 

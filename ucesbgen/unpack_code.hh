@@ -146,7 +146,14 @@ public:
 
   void gen(const event_definition *evt,dumper &d,uint32 type);
 
+  void gen(const encode_spec_list *list,dumper &d,uint32 type,
+	   const prefix_ident *prefix);
+
+  void gen(const encode_spec_base *encode,   dumper &d,uint32 type,
+	   const prefix_ident *prefix);
   void gen(const encode_spec  *encode,   dumper &d,uint32 type,
+	   const prefix_ident *prefix);
+  void gen(const encode_cond  *cond,   dumper &d,uint32 type,
 	   const prefix_ident *prefix);
 
   const var_external *gen_external_header(const variable *v,dumper &d,uint32 type);
