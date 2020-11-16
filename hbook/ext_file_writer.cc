@@ -3967,25 +3967,25 @@ bool handle_request(ext_write_config_comm *comm,
   send_item_chunk *chunk = NULL;
 #endif
 
-  /*
-  fprintf (stderr,"\nRR %d: %d - %d = %d\n",
-	   request, ntohl(header->_length),sizeof(*header),left);
-  {
-    uint32_t n = ntohl(header->_length) / sizeof (uint32_t);
-    uint32_t *p = (uint32_t *) header;
-    for (int i = 0; i < n; i++)
+  if (_config._dump_raw)
+    {
+      fprintf (stderr,"\nRR %d: %d - %zd = %d = 0x%x\n",
+	       request, ntohl(header->_length),sizeof(*header),left,left);
       {
-	if (i % 8 == 0)
-	  fprintf (stderr,"%4x: ", i);
-	fprintf (stderr,"%08x ", ntohl(*(p++)));
-	if (i % 8 == 7)
-	  fprintf (stderr,"\n");
-
+	uint32_t n = ntohl(header->_length) / sizeof (uint32_t);
+	uint32_t *p = (uint32_t *) header;
+	for (int i = 0; i < n; i++)
+	  {
+	    if (i % 8 == 0)
+	      fprintf (stderr,"%4x: ", i);
+	    fprintf (stderr,"%08x ", ntohl(*(p++)));
+	    if (i % 8 == 7)
+	      fprintf (stderr,"\n");
+	  }
+	fprintf (stderr,"\n");
+	fflush(stderr);
       }
-    fprintf (stderr,"\n");
-    fflush(stderr);
-  }
-  */
+    }
 
   switch (request)
     {
@@ -4850,6 +4850,7 @@ void usage(char *cmdname)
   printf ("  --insrc=SRV:PRT|-  Input src when reading data. (internal use only)\n");
   printf ("  --header=FILE      Write data structure declaration to FILE.\n");
   printf ("  --id=ID            Override ID of header written.\n");
+  printf ("  --dump-raw         Dump raw protocol data.\n");
   printf ("  --debug-header     Litter header declaration with offsets and sizes.\n");
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
@@ -4994,6 +4995,9 @@ int main(int argc,char *argv[])
 	  }
 	else
 	  _config._header_id = post;
+      }
+      else if (MATCH_ARG("--dump-raw")) {
+	_config._dump_raw = 1;
       }
       else if (MATCH_ARG("--debug-header")) {
 	_config._debug_header = 1;

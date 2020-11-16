@@ -414,6 +414,7 @@ void paw_ntuple_usage()
 #endif
   printf ("BITPACK             Bitpack STRUCT data even if not using network server.\n");
   printf ("NOSHM               Do not use shared memory communication.\n");
+  printf ("DUMPRAW             Dump raw protocol data.\n");
   printf ("GDB                 Run the external program via gdb (backtrace fault).\n");
   printf ("VALGRIND            Run the external program via valgrind.\n");
   printf ("\n");
@@ -600,6 +601,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	ntuple_opt |= NTUPLE_OPT_WRITER_BITPACK;
       else if (MATCH_ARG("NOSHM"))
 	ntuple_opt |= NTUPLE_OPT_WRITER_NO_SHM;
+      else if (MATCH_ARG("DUMPRAW"))
+	ntuple_opt |= NTUPLE_OPT_DUMP_RAW;
       else if (MATCH_ARG("GDB"))
 	ntuple_opt |= NTUPLE_OPT_EXT_GDB;
       else if (MATCH_ARG("VALGRIND"))

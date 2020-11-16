@@ -83,6 +83,7 @@ struct ext_write_config
 {
   ext_write_config_comm *_comms;
   bool        _forked;
+  int         _dump_raw;
 
 #if USING_CERNLIB || USING_ROOT
   const char *_outfile;

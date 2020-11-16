@@ -440,6 +440,11 @@ void external_writer::init_x(unsigned int type,unsigned int opt,
 	}
     }
 
+  if (opt & NTUPLE_OPT_DUMP_RAW)
+    {
+      argv[argc++] = strdup("--dump-raw");
+    }
+
   argv[argc++] = NULL; // terminate
 
   int dummy_fd; // so they are not closed
