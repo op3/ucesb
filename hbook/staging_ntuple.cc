@@ -41,6 +41,7 @@ void stage_ntuple_item::storage_size(indexed_item &write_ptrs,size_t &size)
     INFO(0,"Storage:  %s",_item->_name.c_str());
 
   write_ptrs._items_per_entry++;
+
   write_ptrs._info_slots_per_entry += 2;
   if (_item->_ctrl_mask._ptr) // bitmask
     write_ptrs._info_slots_per_entry += 2;
@@ -194,6 +195,15 @@ void init_cwn_var(ntuple_item *item,
     {
       type = "ui";
       var_type |= EXTERNAL_WRITER_FLAG_TYPE_UINT32;
+    }
+  else if (item->_type == ntuple_item::UINT64)
+    {
+      ERROR("64-bit uint not handled.");
+      // TODO: can be fixed; suggestion to make 2 entries, hi and lo.
+      // issue will be in unpacking part to place items correctly.
+      // possibly with the compresed data, which give fixed
+      // locations.  Perhaps give extra word-swap array to make
+      // post-unpack corrections?
     }
   else if (item->_type == ntuple_item::INT_INDEX_CUT ||
 	   item->_type == ntuple_item::INT_INDEX)

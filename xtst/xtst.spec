@@ -558,6 +558,8 @@ SIGNAL(ZERO_SUPPRESS: ZZP1_1_U_10);
 SIGNAL(ZZP1_1_L_1,vme.tdc2.data[8],(DATA12,uint64));
 SIGNAL(ZERO_SUPPRESS: ZZP1_1_L_10);
 
+SIGNAL(ITEMsixtyfour,,uint64);
+
 SIGNAL(STCORR,regress[0].sticky_active.corr,uint32);
 
 SUBEVENT(XTST_STICKY_CORR)
