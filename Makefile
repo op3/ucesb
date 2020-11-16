@@ -25,6 +25,10 @@
 #LEX=flex    # needed on cygwin
 #export LEX  #           cygwin
 
+ifndef QUIET
+QUIET=@
+endif
+
 UCESB_BASE_DIR:=$(shell pwd)
 export UCESB_BASE_DIR
 
@@ -80,7 +84,7 @@ EXTTDIR = ext_test
 $(EXTTDIR)/ext_h99.h: $(EXT_WRITER_TEST)
 	@echo "EXTWRTST $@"
 	@mkdir -p $(EXTTDIR)
-	@$(EXT_WRITER_TEST) --struct_hh=$@ \
+	$(QUIET)$(EXT_WRITER_TEST) --struct_hh=$@ \
 	  > $@.out 2> $@.err || \
 	  ( echo "Failure while running: '$(EXT_WRITER_TEST) --struct_hh=$@':" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
@@ -90,25 +94,25 @@ $(EXTTDIR)/ext_h99.h: $(EXT_WRITER_TEST)
 
 $(EXTTDIR)/ext_reader_h99_stderr: hbook/example/ext_data_reader_h99_stderr.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h99.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  -DEXT_H99 \
 	  hbook/example/ext_data_reader_h99_stderr.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 	@echo "  TEST   $@"
-	@$(EXT_WRITER_TEST) --struct=- 2> $@.err2 | \
+	$(QUIET)$(EXT_WRITER_TEST) --struct=- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || \
 	  ( echo "* FAIL * ..." >> $@.out )
 	@echo "---" >> $@.out
-	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	$(QUIET)$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
 	  ./$< --h99 - >> $@.out 2>> $@.err || \
 	  ( echo "* FAIL * ..." >> $@.out )
 	@echo "---" >> $@.out
-	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	$(QUIET)$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
 	  ./$< --h98 - >> $@.out 2>> $@.err || \
 	  ( echo "* FAIL * ..." >> $@.out )
 	@echo "---" >> $@.out
-	@$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
+	$(QUIET)$(EXT_WRITER_TEST) --struct=- 2>> $@.err2 | \
 	  ./$< --h99-h98 - >> $@.out 2>> $@.err || \
 	  ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
@@ -124,7 +128,7 @@ $(EXTTDIR)/ext_reader_h99_stderr.runstamp: $(EXTTDIR)/ext_reader_h99_stderr
 $(EXTTDIR)/ext_writer_test.root: $(EXT_WRITER_TEST)
 	@echo " EXTWR_R $@"
 	@mkdir -p $(EXTTDIR)
-	@$(EXT_WRITER_TEST) --root=$@ \
+	$(QUIET)$(EXT_WRITER_TEST) --root=$@ \
 	  > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $@).good $@.out || \
 	  ( echo "--- Failure while running: " ; \
@@ -160,7 +164,7 @@ EMPTY_EMPTY_FILE=--lmd --random-trig --events=10
 $(EXTTDIR)/ext_h101.h: empty/empty $(EXT_STRUCT_WRITER)
 	@echo "  EMPTY  $@"
 	@mkdir -p $(EXTTDIR)
-	@empty/empty /dev/null --ntuple=UNPACK,STRUCT_HH,$@ \
+	$(QUIET)empty/empty /dev/null --ntuple=UNPACK,STRUCT_HH,$@ \
 	  > $@.out 2> $@.err || \
 	  ( echo "Failure while running: '$< /dev/null --ntuple=UNPACK,STRUCT_HH,$@':" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
@@ -171,34 +175,34 @@ $(EXTTDIR)/ext_h101.h: empty/empty $(EXT_STRUCT_WRITER)
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
 $(EXTTDIR)/ext_reader_h101: hbook/example/ext_data_reader.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  hbook/example/ext_data_reader.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_h101_items_info: hbook/example/ext_data_reader.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  -DUSE_ITEMS_INFO=1 \
 	  hbook/example/ext_data_reader.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_h101_stderr: hbook/example/ext_data_reader_stderr.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  hbook/example/ext_data_reader_stderr.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_h101_cc: hbook/example/ext_data_reader_cc.cc $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
-	@$(CXX) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CXX) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  hbook/example/ext_data_reader_cc.cc \
 	  hbook/ext_data_client.o hbook/ext_data_clnt.o
 
 $(EXTTDIR)/ext_writer_h101: hbook/example/ext_data_writer.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_h101.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR) -Ihbook \
 	  hbook/example/ext_data_writer.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_h%.runstamp: $(EXTTDIR)/ext_reader_h% $(EMPTY_FILE)
 	@echo "  TEST   $@"
-	@$(EMPTY_FILE) $(EMPTY_EMPTY_FILE) 2> $@.err3 | \
+	$(QUIET)$(EMPTY_FILE) $(EMPTY_EMPTY_FILE) 2> $@.err3 | \
 	  empty/empty --file=- --ntuple=UNPACK,STRUCT,- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
@@ -214,7 +218,7 @@ $(EXTTDIR)/ext_reader_h%.runstamp: $(EXTTDIR)/ext_reader_h% $(EMPTY_FILE)
 
 $(EXTTDIR)/ext_writer_h%.runstamp: $(EXTTDIR)/ext_writer_h% $(EMPTY_FILE)
 	@echo "  TEST   $@"
-	@./$< 10 2> $@.err2 | \
+	$(QUIET)./$< 10 2> $@.err2 | \
 	  empty/empty --in-tuple=UNPACK,STRUCT,- > $@.out 2> $@.err || \
 	  ( echo "* FAIL * ..." >> $@.out )
 	@diff -u hbook/example/$(notdir $<).good $@.out || \
@@ -266,13 +270,13 @@ XTST_REGRESS_LESS=UNPACK,regress1,RAW:STCORR,ID=xtst_regress
 $(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_reader_h101.runstamp
 	@echo "  XTST   $@"
 	@mkdir -p $(EXTTDIR)
-	@xtst/xtst /dev/null \
+	$(QUIET)xtst/xtst /dev/null \
 	  --ntuple=$(XTST_REGRESS),STRUCT,- > $@.extstrdump \
 	  2> $@.err || \
 	  ( echo "Failure while running: '$< /dev/null --ntuple=$(XTST_REGRESS),-':" ; \
 	    echo "--- stderr: ---"; cat $@.err ; \
 	    echo "---------------" ; false)
-	@hbook/struct_writer - --header=$@ < $@.extstrdump \
+	$(QUIET)hbook/struct_writer - --header=$@ < $@.extstrdump \
 	  > $@.out2 2> $@.err2 || \
 	  ( echo "Failure while running: 'hbook/struct_writer --header=$@ < $@.str':" ; \
 	    echo "--- stdout: ---" ; cat $@.out2 ; \
@@ -284,12 +288,12 @@ $(EXTTDIR)/ext_xtst_regress.h: xtst/xtst $(EXT_STRUCT_WRITER) # $(EXTTDIR)/ext_r
 # $(EXT_STRUCT_WRITER) make sure hbook/ext_data_client.o is built
 $(EXTTDIR)/ext_reader_xtst_regress: hbook/example/ext_data_reader_xtst_regress.c $(EXT_STRUCT_WRITER) $(EXTTDIR)/ext_xtst_regress.h hbook/example/test_caen_v775_data.h hbook/example/test_caen_v1290_data.h
 	@echo "  BUILD  $@"
-	@$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR)/ -Ihbook \
+	$(QUIET)$(CC) -W -Wall -Wconversion -g -O3 -o $@ -I$(EXTTDIR)/ -Ihbook \
 	  hbook/example/ext_data_reader_xtst_regress.c hbook/ext_data_client.o
 
 $(EXTTDIR)/ext_reader_xtst_regress.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
 	@echo "  TEST   $@"
-	@$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
+	$(QUIET)$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
 	  xtst/xtst --file=- \
 	    --ntuple=$(XTST_REGRESS),STRUCT,- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || echo "fail..."
@@ -305,7 +309,7 @@ $(EXTTDIR)/ext_reader_xtst_regress.runstamp: $(EXTTDIR)/ext_reader_xtst_regress 
 
 $(EXTTDIR)/ext_reader_xtst_regress_more.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
 	@echo "  TEST   $@"
-	@$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
+	$(QUIET)$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
 	  xtst/xtst --file=- \
 	    --ntuple=$(XTST_REGRESS_MORE),STRUCT,- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || echo "fail..."
@@ -321,7 +325,7 @@ $(EXTTDIR)/ext_reader_xtst_regress_more.runstamp: $(EXTTDIR)/ext_reader_xtst_reg
 
 $(EXTTDIR)/ext_reader_xtst_regress_less.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
 	@echo "  TEST   $@"
-	@$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
+	$(QUIET)$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
 	  xtst/xtst --file=- \
 	    --ntuple=$(XTST_REGRESS_LESS),STRUCT,- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || echo "fail..."
@@ -337,7 +341,7 @@ $(EXTTDIR)/ext_reader_xtst_regress_less.runstamp: $(EXTTDIR)/ext_reader_xtst_reg
 
 $(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
 	@echo "  TEST   $@"
-	@$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
+	$(QUIET)$(EMPTY_FILE) $(XTST_EMPTY_FILE) 2> $@.err3 | \
 	  xtst/xtst --file=- \
 	    --ntuple=$(XTST_REGRESS_LESS),BITPACK,STRUCT,- 2> $@.err2 | \
 	  ./$< - > $@.out 2> $@.err || echo "fail..."
