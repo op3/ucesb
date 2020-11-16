@@ -67,6 +67,8 @@
 #define EXTERNAL_WRITER_MARK_LOOP         0x80000000
 #define EXTERNAL_WRITER_MARK_CLEAR_ZERO   0x40000000 // Clear 0 (else nan).
 #define EXTERNAL_WRITER_MARK_CLEAR_NAN    0          // Dummy!
+#define EXTERNAL_WRITER_MARK_CANARY       0x00a50000
+#define EXTERNAL_WRITER_MARK_CANARY_MASK  0x00ff0000
 
 #define EXTERNAL_WRITER_MAGIC (0x57e65c73u +35) // change with protocol version
 

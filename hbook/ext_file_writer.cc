@@ -1009,10 +1009,15 @@ void request_array_offsets(void *msg,uint32_t *left)
 
   while (o < oend)
     {
-      uint32_t offset_mark = *(d++) = ntohl(*(o++));
-      uint32_t offset = offset_mark & 0x3fffffff;
+      uint32_t mark   = *(d++) = ntohl(*(o++));
+      uint32_t offset = *(d++) = ntohl(*(o++));
 
       // MSG("Offset entry @ %d : %d",(int) (o - (uint32_t *) msg)-1,offset);
+
+      if ((mark & EXTERNAL_WRITER_MARK_CANARY_MASK) !=
+	  EXTERNAL_WRITER_MARK_CANARY)
+	ERR_MSG("Mark entry @ %zd has bad canary (%" PRIx32 ").",
+		(o - (uint32_t *) msg)-2,mark);
 
       if (offset >= s->_stage_array._length)
 	ERR_MSG("Offset entry @ %zd is outside (%" PRIu32 ") stage array "
@@ -1025,17 +1030,19 @@ void request_array_offsets(void *msg,uint32_t *left)
       (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
       s->_offset_array._static_items++;
 
-      // MSG ("offset: %d %c",offset,(offset_mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
+      // MSG ("offset: %d %c",offset,(mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
 
-      if (offset_mark & EXTERNAL_WRITER_MARK_LOOP)
+      if (mark & EXTERNAL_WRITER_MARK_LOOP)
 	{
-	  if (!(offset_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO))
-	    ERR_MSG("Offset ctrl entry @ %zd marker says clean float (NaN).",
-		    (o - (uint32_t *) msg)-1);
+	  if (!(mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO))
+	    ERR_MSG("Offset ctrl entry @ %zd=0x%zx marker "
+		    "says clean float (NaN).",
+		    (o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1);
 
 	  if (o + 2 > oend)
-	    ERR_MSG("Offset ctrl entry @ %zd overflows array (%d).",
-		    (o - (uint32_t *) msg)-1,*left);
+	    ERR_MSG("Offset ctrl entry @ %zd=0x%zx overflows array (%d).",
+		    (o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+		    *left);
 
 	  uint32_t max_loops = *(d++) = ntohl(*(o++));
 	  uint32_t loop_size = *(d++) = ntohl(*(o++));
@@ -1044,11 +1051,12 @@ void request_array_offsets(void *msg,uint32_t *left)
 
 	  uint32_t items = max_loops * loop_size;
 
-	  if (o + items > oend)
-	    ERR_MSG("Offset ctrl entry @ %zd specifies controlled"
+	  if (oend - o < 2 * items)
+	    ERR_MSG("Offset ctrl entry @ %zd=0x%zx specifies controlled "
 		    "entries (%" PRIu32 " * %" PRIu32 ") overflowing array (%"
 		    PRIu32").",
-		    (o - (uint32_t *) msg)-1,max_loops,loop_size,*left);
+		    (o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+		    max_loops,loop_size,*left);
 
 	  s->_offset_array._max_items += items;
 
@@ -1057,23 +1065,29 @@ void request_array_offsets(void *msg,uint32_t *left)
 	      // Make sure there are no markers (although they would
 	      // be ignored)
 
-	      offset_mark = *(d++) = ntohl(*(o++));
-	      offset = offset_mark & 0x3fffffff;
+	      mark   = *(d++) = ntohl(*(o++));
+	      offset = *(d++) = ntohl(*(o++));
 
 	      if (offset >= s->_stage_array._length)
-		ERR_MSG("Offset entry @ %zd is outside (%" PRIu32
-			") stage array (%zd).",
-			(o - (uint32_t *) msg)-1,offset,
+		ERR_MSG("Offset entry @ %zd=0x%zx is outside "
+			"(%" PRIu32 ") stage array (%zd).",
+			(o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+			offset,
 			s->_stage_array._length);
 	      if (offset & 3)
-		ERR_MSG("Offset entry @ %zd is unaligned (%d).",
-			(o - (uint32_t *) msg)-1,offset);
+		ERR_MSG("Offset entry @ %zd=0x%zx is unaligned (%d).",
+			(o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+			offset);
 
 	      (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
 
-	      if (offset_mark & EXTERNAL_WRITER_MARK_LOOP)
-		ERR_MSG("Controlled offset array item @ %zd is marked"
-			"as control item.",(o - (uint32_t *) msg));
+	      if (mark & EXTERNAL_WRITER_MARK_LOOP)
+		ERR_MSG("Controlled offset array item (%d) "
+			"@ %zd=0x%zx is marked "
+			"(0x%08x) as control item.",
+			items - i,
+			(o - (uint32_t *) msg),(o - (uint32_t *) msg),
+			mark);
 	    }
 	}
     }
@@ -2831,13 +2845,13 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       while (o < oend)
 	{
-	  uint32_t offset_mark = *(o++);
-	  uint32_t offset = offset_mark & 0x3fffffff;
-	  uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+	  uint32_t mark   = *(o++);
+	  uint32_t offset = *(o++);
+	  uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
 	  //uint32_t coffset = ntohl(offset);
 	  uint32_t value = ntohl(*(p++));
 
-	  // MSG("%08x : %08x : %08x",coffset,offset,value);
+	  // MSG("%08x : %08x : %08x",offset,offset,value);
 
 #if STRUCT_WRITER
 	  *(ppp++) = offset;
@@ -2858,7 +2872,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	      // MSG ("               %d * %d",max_loops,loop_size);
 
-	      uint32_t *onext = o + max_loops * loop_size;
+	      uint32_t *onext = o + 2 * max_loops * loop_size;
 
 	      if (value > max_loops)
 		ERR_MSG("Fill ctrl item at offset %d "
@@ -2866,6 +2880,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 			offset,value,max_loops);
 
 	      uint32_t items = value * loop_size;
+
+	      // MSG ("               %d * %d => %d",value,loop_size,items);
 
 	      if (pend - pcheck < items)
 		ERR_MSG("Fill value array too short (%zd) "
@@ -2880,7 +2896,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	      for (int i = items; i; i--)
 		{
-		  offset = (*(o++)) & 0x3fffffff;
+		  mark   = *(o++);
+		  offset = *(o++);
 		  //coffset = ntohl(*(p++));
 		  value = ntohl(*(p++));
 
@@ -3650,9 +3667,9 @@ bool ntuple_get_event(char *msg,char **end)
 
     while (o < oend)
       {
-	uint32_t offset_mark = *(o++);
-	uint32_t offset = offset_mark & 0x3fffffff;
-	uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+	uint32_t mark   = *(o++);
+	uint32_t offset = *(o++);
+	uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
 
 	uint32_t value = *((uint32_t *) (s->_stage_array._ptr + offset));
 
@@ -3680,7 +3697,7 @@ bool ntuple_get_event(char *msg,char **end)
 		goto read_abort;
 	      }
 
-	    uint32_t *onext = o + max_loops * loop_size;
+	    uint32_t *onext = o + 2 * max_loops * loop_size;
 	    uint32_t items = value * loop_size;
 
 	    for (int i = items; i; i--)

@@ -98,7 +98,8 @@ public:
   {
     uint32_t offset = (uint32_t) (((char*) dest) - _base_ptr);
     // printf ("%d...\n",offset);
-    *(_p++) = htonl(offset | mark);
+    *(_p++) = htonl(mark | EXTERNAL_WRITER_MARK_CANARY);
+    *(_p++) = htonl(offset);
   }
 
   void dest_int(uint32_t *dest)
@@ -132,11 +133,12 @@ public:
     assert(_iter_info);
 
     uint32_t all_iter_size = (uint32_t) (_p - (_iter_info + 2));
-    uint32_t one_iter_size = all_iter_size / ntohl(_iter_info[0]);
+    uint32_t num_iter = ntohl(_iter_info[0]);
+    uint32_t one_iter_items = all_iter_size / num_iter / 2;
 
-    assert (one_iter_size * ntohl(_iter_info[0]) == all_iter_size);
+    assert (2 * one_iter_items * num_iter == all_iter_size);
 
-    _iter_info[1] = htonl(one_iter_size);
+    _iter_info[1] = htonl(one_iter_items);
 
     _iter_info = NULL;
   }

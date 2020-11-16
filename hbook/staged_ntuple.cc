@@ -492,7 +492,7 @@ void staged_ntuple::stage_x(vect_ntuple_items &listing,
 
       read_write_ptrs_external w;
 
-      size = (_array_entries +
+      size = (2 * _array_entries +
 	      2 * (_entries_index + _entries_array) +
 	      4 * (_entries_array2)) *
 	sizeof(uint32_t);

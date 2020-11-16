@@ -1638,13 +1638,13 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 
 	while (o < oend)
 	  {
-	    uint32_t offset_mark = *(d++) = ntohl(*(o++));
-	    uint32_t offset = offset_mark & 0x3fffffff;
-	    uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+	    uint32_t mark   = *(d++) = ntohl(*(o++));
+	    uint32_t offset = *(d++) = ntohl(*(o++));
+	    uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
 
 	    (void) offset;
 
-	    /* fprintf (stderr, "PL, OM: %08x\n", offset_mark); */
+	    /* fprintf (stderr, "PL, OM: %08x\n", mark); */
 
 	    clistr->_orig_static_pack_items++;
 
@@ -1659,18 +1659,35 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		/*fprintf (stderr, "PL, LOOP: %08x %08x\n",
 		  max_loops, loop_size);*/
 
+		if (oend - o < 2 * items)
+		  {
+		    client->_last_error =
+		      "Pack-list malformed, too many loop items.";
+		    errno = EPROTO;
+		    return -1;
+		  }
+
 		clistr->_orig_max_pack_items += items;
 
 		for (i = items; i; i--)
 		  {
-		    offset_mark = *(d++) = ntohl(*(o++));
-		    offset = offset_mark & 0x3fffffff;
+		    mark   = *(d++) = ntohl(*(o++));
+		    offset = *(d++) = ntohl(*(o++));
 
-		    /* fprintf (stderr, "PL, Li: %08x\n", offset_mark); */
+		    /* fprintf (stderr, "PL, Li: %08x %08x\n", mark, offset); */
 		  }
 	      }
 	  }
 	clistr->_orig_max_pack_items += clistr->_orig_static_pack_items;
+
+	if (d != clistr->_orig_pack_list_end)
+	  {
+	    client->_last_error =
+	      "Pack-list malformed, copy failure.";
+	    errno = EPROTO;
+	    return -1;
+	  }
+	
 	/*
   	fprintf (stderr,
 		 "PACK_LIST_END: %d %d\n",
@@ -2245,9 +2262,9 @@ int ext_data_setup(struct ext_data_client *client,
 
 	while (o < oend)
 	  {
-	    uint32_t offset_mark = *(o++);
-	    uint32_t offset = offset_mark & 0x3fffffff;
-	    uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+	    uint32_t mark   = *(o++);
+	    uint32_t offset = *(o++);
+	    uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
 
 	    clistr->_dest_static_pack_items++;
 
@@ -2258,7 +2275,7 @@ int ext_data_setup(struct ext_data_client *client,
 
 		uint32_t items = max_loops * loop_size;
 
-		uint32_t *onext = o + items;
+		uint32_t *onext = o + 2 * items;
 
 		clistr->_dest_max_pack_items += items;
 
@@ -2608,9 +2625,9 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 
   while (o < oend)
     {
-      uint32_t offset_mark = *(o++);
-      uint32_t offset = offset_mark & 0x3fffffff;
-      uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+      uint32_t mark   = *(o++);
+      uint32_t offset = *(o++);
+      uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
       uint32_t value = ntohl(*(p++));
 
       *((uint32_t *) (dest + offset)) = value;
@@ -2620,7 +2637,7 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 	  uint32_t max_loops = *(o++);
 	  uint32_t loop_size = *(o++);
 
-	  uint32_t *onext = o + max_loops * loop_size;
+	  uint32_t *onext = o + 2 * max_loops * loop_size;
 
 	  if (value > max_loops)
 	    return -2;
@@ -2635,7 +2652,8 @@ int ext_data_write_packed_event(struct ext_data_client *client,
 
 	  for (i = items; i; i--)
 	    {
-	      offset = (*(o++)) & 0x3fffffff;
+	      mark   = *(o++);
+	      offset = *(o++);
 	      value = ntohl(*(p++));
 
 	      *((uint32_t *) (dest + offset)) = value;
@@ -3135,11 +3153,11 @@ int ext_data_clear_event(struct ext_data_client *client,
 
   while (o < oend)
     {
-      uint32_t offset_mark = *(o++);
-      uint32_t offset = offset_mark & 0x3fffffff;
-      uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
+      uint32_t mark   = *(o++);
+      uint32_t offset = *(o++);
+      uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
       uint32_t clear_zero =
-	offset_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
+	mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
 
       // Dirty trick with the NaN clearing, to avoid branching.  If
       // marker (bit 30) shifted down to bit 4, i.e. value 16 is set,
@@ -3156,7 +3174,7 @@ int ext_data_clear_event(struct ext_data_client *client,
 	  uint32_t max_loops = *(o++);
 	  uint32_t loop_size = *(o++);
 
-	  uint32_t *onext = o + max_loops * loop_size;
+	  uint32_t *onext = o + 2 * max_loops * loop_size;
 
 	  if (clear_zzp_lists)
 	    {
@@ -3165,10 +3183,10 @@ int ext_data_clear_event(struct ext_data_client *client,
 
 	      for (i = items; i; i--)
 		{
-		  uint32_t item_offset_mark = *(o++);
-		  uint32_t item_offset = item_offset_mark & 0x3fffffff;
+		  uint32_t item_mark = *(o++);
+		  uint32_t item_offset = *(o++);
 		  uint32_t item_clear_zero =
-		    item_offset_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
+		    item_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
 
 		  // Dirty trick (nan <-> zero)...
 		  (*((uint32_t *) (b + item_offset))) =
@@ -3243,10 +3261,10 @@ void ext_data_clear_zzp_lists(struct ext_data_client *client,
 
   for (i = items; i; i--)
     {
-      uint32_t offset_mark = *(o++);
-      uint32_t offset = offset_mark & 0x3fffffff;
+      uint32_t mark   = *(o++);
+      uint32_t offset = *(o++);
       uint32_t clear_zero =
-	offset_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
+	mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO;
 
       // Dirty trick (nan <-> zero)...
       (*((uint32_t *) (b + offset))) =
@@ -3329,10 +3347,10 @@ int ext_data_write_event(struct ext_data_client *client,
 
   while (o < oend)
     {
-      uint32_t offset_mark = *(o++);
-      uint32_t offset = offset_mark & 0x3fffffff;
-      uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
-      // uint32_t clear_nan_zero = offset_mark & EXTERNAL_WRITER_MARK_CLEAR_NAN;
+      uint32_t mark   = *(o++);
+      uint32_t offset = *(o++);
+      uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
+      // uint32_t clear_nan_zero = mark & EXTERNAL_WRITER_MARK_CLEAR_NAN;
 
       uint32_t value = (*((uint32_t *) (b + offset)));
 
@@ -3353,16 +3371,18 @@ int ext_data_write_event(struct ext_data_client *client,
 	      return (int) offset;
 	    }
 
-	  uint32_t *onext = o + max_loops * loop_size;
+	  uint32_t *onext = o + 2 * max_loops * loop_size;
 	  uint32_t items = value * loop_size;
 	  uint32_t i;
 
 	  for (i = items; i; i--)
 	    {
-	      uint32_t item_offset_mark = *(o++);
-	      uint32_t item_offset = item_offset_mark & 0x3fffffff;
-	      // uint32_t clear_nan_zero =
-	      //   offset_mark & EXTERNAL_WRITER_MARK_CLEAR_NAN;
+	      uint32_t item_mark   = *(o++);
+	      uint32_t item_offset = *(o++);
+	      // uint32_t item_clear_nan_zero =
+	      //   item_mark & EXTERNAL_WRITER_MARK_CLEAR_NAN;
+
+	      (void) item_mark;
 
 	      value = (*((uint32_t *) (b + item_offset)));
 
