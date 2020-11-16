@@ -114,7 +114,7 @@ void send_fill_mystruct(external_writer *ew,
 
   uint32_t *p = ew->prepare_send_fill_x(fill_msg_size, 0, ntuple_index);
 
-  *(p++) = htonl(0x40000000); /* marker */
+  *(p++) = htonl(EXTERNAL_WRITER_COMPACT_NONPACKED);
 
   {
     *(p++) = htonl((s.a));
@@ -176,7 +176,7 @@ void send_fill_secondstruct(external_writer *ew,
   uint32_t *p = ew->prepare_send_fill_x(fill_msg_size,1,ntuple_index,
 					NULL,NULL,0);
 
-  *(p++) = htonl(0x40000000); // marker that we are not compacted
+  *(p++) = htonl(EXTERNAL_WRITER_COMPACT_NONPACKED);
 
   *(p++) = htonl((s.g));
   *(p++) = htonl(external_write_float_as_uint32(s.h));

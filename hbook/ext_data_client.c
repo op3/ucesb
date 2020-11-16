@@ -2929,17 +2929,18 @@ int ext_data_fetch_event(struct ext_data_client *client,
       }
 
     marker = ntohl(*(p++));
-    compact_marker = marker & 0xc0000000;
+    compact_marker = marker & (EXTERNAL_WRITER_COMPACT_PACKED |
+			       EXTERNAL_WRITER_COMPACT_NONPACKED);
 
-    if (compact_marker != 0x80000000 &&
-	compact_marker != 0x40000000)
+    if (compact_marker != EXTERNAL_WRITER_COMPACT_PACKED &&
+	compact_marker != EXTERNAL_WRITER_COMPACT_NONPACKED)
       {
 	client->_last_error = "Compact marker invalid.";
 	errno = EBADMSG;
 	return -1;
       }
 
-    if (compact_marker & 0x40000000)
+    if (compact_marker & EXTERNAL_WRITER_COMPACT_NONPACKED)
       {
 	int ret;
 	
@@ -3313,7 +3314,7 @@ int ext_data_write_event(struct ext_data_client *client,
 
   *(cur++) = htonl(0); /* struct_index */
   *(cur++) = htonl(0); /* ntuple_index */
-  *(cur++) = htonl(0x40000000); /* marker for non-packed event */
+  *(cur++) = htonl(EXTERNAL_WRITER_COMPACT_NONPACKED);
 
   /* Run through the offset list and write the data to the buffer.
    */

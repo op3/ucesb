@@ -1025,7 +1025,7 @@ void request_array_offsets(void *msg,uint32_t *left)
       (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
       s->_offset_array._static_items++;
 
-      // MSG ("offset: %d %c",offset,(offset_mark & 0x80000000) ? '*' : ' ');
+      // MSG ("offset: %d %c",offset,(offset_mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
 
       if (offset_mark & EXTERNAL_WRITER_MARK_LOOP)
 	{
@@ -2768,10 +2768,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 
   uint32_t marker = get_buf_uint32(&msg,left);
-  uint32_t compact_marker = marker & 0xc0000000;
+  uint32_t compact_marker = marker & (EXTERNAL_WRITER_COMPACT_PACKED |
+				      EXTERNAL_WRITER_COMPACT_NONPACKED);
 
-  if (compact_marker != 0x80000000 &&
-      compact_marker != 0x40000000)
+  if (compact_marker != EXTERNAL_WRITER_COMPACT_PACKED &&
+      compact_marker != EXTERNAL_WRITER_COMPACT_NONPACKED)
     {
 	ERR_MSG("Compact marker invalid (0x%08x) .", compact_marker);
     }
@@ -2781,7 +2782,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   if (!s->_stage_array._length)
     ERR_MSG("Cannot fill using unallocated array.");
 
-  if (!(marker & 0x80000000))
+  if (!(marker & EXTERNAL_WRITER_COMPACT_PACKED))
     {
       // Non-compacted array.
 
@@ -3299,7 +3300,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       uint32_t compact_len = ((char *) dest - (char *) (mark_dest + 1));
 
-      *mark_dest = htonl(0x80000000 | compact_len);
+      *mark_dest = htonl(EXTERNAL_WRITER_COMPACT_PACKED | compact_len);
 
       // Pad with zeros (to make comparisons work)
 
@@ -3637,7 +3638,7 @@ bool ntuple_get_event(char *msg,char **end)
 
     start[0] = htonl(0); // struct_index (0, only one when reading)
     start[0] = htonl(0); // ntuple_index (0, only one when reading)
-    start[1] = htonl(0x40000000); // marker, non-compacted
+    start[1] = htonl(EXTERNAL_WRITER_COMPACT_NONPACKED);
 
     uint32_t *cur = start + 3;
 

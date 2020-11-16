@@ -591,7 +591,7 @@ void staged_ntuple::event(void *base,uint *sort_u32,
       if (fill_raw)
 	fill_raw->_callback(fill_raw);
 
-      start[0] = htonl(0x40000000); // marker that we're not compacted
+      start[0] = htonl(EXTERNAL_WRITER_COMPACT_NONPACKED);
 
       w._p = start + 1;
 
@@ -649,7 +649,7 @@ bool staged_ntuple::get_event()
       if (end < start+3 ||
 	  ntohl(start[0]) != 0 || // struct_index != 0
 	  ntohl(start[1]) != 0 || // ntuple_index != 0
-	  ntohl(start[2]) != 0x40000000)   // non-packed
+	  ntohl(start[2]) != EXTERNAL_WRITER_COMPACT_NONPACKED)
 	ERROR("Malformed event message from external reader.");
 
 
