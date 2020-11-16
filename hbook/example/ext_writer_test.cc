@@ -86,16 +86,22 @@ void send_offsets_mystruct(external_writer *ew)
   {
     uint32_t *o = ew->prepare_send_offsets(offset_msg_size);
 
-    *(o++) = htonl((uint32_t) offsetof(mystruct,a) | 0x40000000);
-    *(o++) = htonl((uint32_t) offsetof(mystruct,c));
-    *(o++) = htonl((uint32_t) offsetof(mystruct,b) | 0x80000000 | 0x40000000);
+    *(o++) = htonl((uint32_t) offsetof(mystruct,a) |
+		   EXTERNAL_WRITER_MARK_CLEAR_ZERO);
+    *(o++) = htonl((uint32_t) offsetof(mystruct,c) |
+		   EXTERNAL_WRITER_MARK_CLEAR_NAN);
+    *(o++) = htonl((uint32_t) offsetof(mystruct,b) |
+		   EXTERNAL_WRITER_MARK_LOOP |
+		   EXTERNAL_WRITER_MARK_CLEAR_ZERO);
     *(o++) = htonl(4);
     *(o++) = htonl(1);
     for (int l = 0; l < 4; l++) {
-      *(o++) = htonl((uint32_t) ((offsetof(mystruct,d)+l*sizeof(float))));
+      *(o++) = htonl((uint32_t) ((offsetof(mystruct,d)+l*sizeof(float))) |
+		     EXTERNAL_WRITER_MARK_CLEAR_NAN);
     }
     for (int i = 0; i < 7; i++)
-      *(o++) = htonl((uint32_t) ((offsetof(mystruct,e)+i*sizeof(float))));
+      *(o++) = htonl((uint32_t) ((offsetof(mystruct,e)+i*sizeof(float))) |
+		     EXTERNAL_WRITER_MARK_CLEAR_NAN);
     ew->send_offsets_fill(o);
   }
 }
@@ -152,8 +158,10 @@ void send_offsets_secondstruct(external_writer *ew)
   {
     uint32_t *o = ew->prepare_send_offsets(offset_msg_size);
 
-    *(o++) = htonl((uint32_t) offsetof(secondstruct,g) | 0x40000000);
-    *(o++) = htonl((uint32_t) offsetof(secondstruct,h));
+    *(o++) = htonl((uint32_t) offsetof(secondstruct,g) |
+		   EXTERNAL_WRITER_MARK_CLEAR_ZERO);
+    *(o++) = htonl((uint32_t) offsetof(secondstruct,h) |
+		   EXTERNAL_WRITER_MARK_CLEAR_NAN);
 
     ew->send_offsets_fill(o);
   }

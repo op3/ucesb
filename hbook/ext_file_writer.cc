@@ -1027,10 +1027,10 @@ void request_array_offsets(void *msg,uint32_t *left)
 
       // MSG ("offset: %d %c",offset,(offset_mark & 0x80000000) ? '*' : ' ');
 
-      if (offset_mark & 0x80000000)
+      if (offset_mark & EXTERNAL_WRITER_MARK_LOOP)
 	{
-	  if (!(offset_mark & 0x40000000))
-	    ERR_MSG("Offset ctrl entry @ %zd marker says clean float.",
+	  if (!(offset_mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO))
+	    ERR_MSG("Offset ctrl entry @ %zd marker says clean float (NaN).",
 		    (o - (uint32_t *) msg)-1);
 
 	  if (o + 2 > oend)
@@ -1071,7 +1071,7 @@ void request_array_offsets(void *msg,uint32_t *left)
 
 	      (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
 
-	      if (offset_mark & 0x80000000)
+	      if (offset_mark & EXTERNAL_WRITER_MARK_LOOP)
 		ERR_MSG("Controlled offset array item @ %zd is marked"
 			"as control item.",(o - (uint32_t *) msg));
 	    }
@@ -2832,7 +2832,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	{
 	  uint32_t offset_mark = *(o++);
 	  uint32_t offset = offset_mark & 0x3fffffff;
-	  uint32_t mark = offset_mark & 0x80000000;
+	  uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
 	  //uint32_t coffset = ntohl(offset);
 	  uint32_t value = ntohl(*(p++));
 
@@ -2850,7 +2850,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	  // was it an controlling variable?
 
-	  if (mark)
+	  if (loop)
 	    {
 	      uint32_t max_loops = *(o++);
 	      uint32_t loop_size = *(o++);
@@ -3651,7 +3651,7 @@ bool ntuple_get_event(char *msg,char **end)
       {
 	uint32_t offset_mark = *(o++);
 	uint32_t offset = offset_mark & 0x3fffffff;
-	uint32_t mark = offset_mark & 0x80000000;
+	uint32_t loop = offset_mark & EXTERNAL_WRITER_MARK_LOOP;
 
 	uint32_t value = *((uint32_t *) (s->_stage_array._ptr + offset));
 
@@ -3659,7 +3659,7 @@ bool ntuple_get_event(char *msg,char **end)
 	// anyhow
 	*(cur++) = htonl(value);
 
-	if (mark)
+	if (loop)
 	  {
 	    // It's a loop control.  Make sure the value was within
 	    // limits.

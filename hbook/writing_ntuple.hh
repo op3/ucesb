@@ -22,6 +22,7 @@
 #define __WRITING_NTUPLE_H__
 
 #include "ntuple_item.hh"
+#include "ext_data_proto.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -102,12 +103,12 @@ public:
 
   void dest_int(uint32_t *dest)
   {
-    dest_offset(dest,0x40000000);
+    dest_offset(dest,EXTERNAL_WRITER_MARK_CLEAR_ZERO);
   }
 
   void dest_float(float *dest)
   {
-    dest_offset(dest,0);
+    dest_offset(dest,EXTERNAL_WRITER_MARK_CLEAR_NAN);
   }
 
   void dest_int_ctrl(uint32_t *dest,uint32_t max_items)
@@ -115,7 +116,9 @@ public:
     assert(_iter_info == NULL);
     assert(max_items);
 
-    dest_offset(dest,0x80000000 | 0x40000000);
+    dest_offset(dest,
+		EXTERNAL_WRITER_MARK_LOOP |
+		EXTERNAL_WRITER_MARK_CLEAR_ZERO);
     // And the information about the step size!
     _iter_info = _p;
     *(_p++) = htonl(max_items);
