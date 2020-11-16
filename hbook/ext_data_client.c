@@ -21,7 +21,7 @@
 #include "ext_data_proto.h"
 #include "ext_data_client.h"
 
-#include "ext_file_writer.hh"
+/* #include "ext_file_writer.hh" */
 
 #include <unistd.h>
 #include <errno.h>
