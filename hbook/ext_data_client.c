@@ -539,6 +539,9 @@ int ext_data_struct_info_item(struct ext_data_structure_info *struct_info,
   return -1;
 }
 
+#define MAP_LIST_MARK_LOOP        0x80000000
+#define MAP_LIST_SRC_OFFSET_MASK  0x7fffffff
+
 int ext_data_struct_match_items(struct ext_data_client *client,
 				struct ext_data_client_struct *clistr,
 				const struct ext_data_structure_info *from,
@@ -801,7 +804,7 @@ int ext_data_struct_match_items(struct ext_data_client *client,
 	      if (item->_limit_max < max_loops)
 		max_loops = item->_limit_max;
 
-	      *o_mark |= EXTERNAL_WRITER_MARK_LOOP; /* mark | [dest] */
+	      *o_mark |= MAP_LIST_MARK_LOOP; /* mark | [dest] */
 	      *(o++) = max_loops;              /* loops */
 	      o_loop_size = o++;               /* items */
 
@@ -851,12 +854,12 @@ ext_data_struct_map_items(const struct ext_data_client_struct *clistr,
     {
       uint32_t offset_src_mark = *(o++);
       uint32_t offset_dest     = *(o++);
-      uint32_t offset_src = offset_src_mark & 0x3fffffff;
-      uint32_t loop = offset_src_mark & EXTERNAL_WRITER_MARK_LOOP;
+      uint32_t offset_src = offset_src_mark & MAP_LIST_SRC_OFFSET_MASK;
+      uint32_t loop = offset_src_mark & MAP_LIST_MARK_LOOP;
       uint32_t value;
       /*
       printf ("0x%08x 0x%08x : %5d %5d %s\n",
-	      offset_src_mark, offset_dest,
+              offset_src_mark, offset_dest,
 	      offset_src, offset_dest, mark ? "l" : "");
       fflush(stdout);
       */
