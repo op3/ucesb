@@ -1,21 +1,6 @@
 --- === --- === ---
 TRIGGER =              2
 EVENTNO =       27744691
-vme_tdc1n =            0
-vme_tdc1eob =
-                       0
-vme_tdc2n =            0
-vme_tdc2eob =
-                       0
-vme_tdc3n =            0
-vme_tdc3eob =
-                       0
-vme_tdc4n =            0
-vme_tdc4eob =
-                       0
-vme_tdc5n =            0
-vme_tdc5eob =
-                       0
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -49,9 +34,6 @@ vme_adc7data[vme_adc7n] =
                      237
 vme_adc7eob =
               4237156430
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744692
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -67,6 +49,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744692
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -96,9 +81,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744693
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -114,6 +96,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744693
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -143,9 +128,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744694
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -161,6 +143,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744694
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -194,9 +179,6 @@ vme_adc7data[vme_adc7n] =
                      304
 vme_adc7eob =
               4237156433
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744695
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -212,6 +194,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744695
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -241,32 +226,24 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744696
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            1
-vme_tdc3nI[vme_tdc3n] =
-                       8
-vme_tdc3data[vme_tdc3n] =
-                    1561
+vme_tdc3n =            0
 vme_tdc3eob =
-              4237161013
+                       0
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    3696
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161012
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744696
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -296,24 +273,32 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744697
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            0
+vme_tdc3n =            1
+vme_tdc3nI[vme_tdc3n] =
+                       8
+vme_tdc3data[vme_tdc3n] =
+                    1561
 vme_tdc3eob =
-                       0
+              4237161013
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                    3696
 vme_tdc5eob =
-                       0
+              4237161012
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744697
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -347,9 +332,6 @@ vme_adc7data[vme_adc7n] =
                      404
 vme_adc7eob =
               4237156436
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744698
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -362,13 +344,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    4051
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161014
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744698
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -402,22 +383,15 @@ vme_adc7data[vme_adc7n] =
                      224
 vme_adc7eob =
               4237156437
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744699
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            1
-vme_tdc3nI[vme_tdc3n] =
-                       8
-vme_tdc3data[vme_tdc3n] =
-                    1556
+vme_tdc3n =            0
 vme_tdc3eob =
-              4237161016
+                       0
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
@@ -425,9 +399,12 @@ vme_tdc5n =            1
 vme_tdc5nI[vme_tdc5n] =
                        2
 vme_tdc5data[vme_tdc5n] =
-                    3252
+                    4051
 vme_tdc5eob =
-              4237161015
+              4237161014
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744699
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -457,28 +434,32 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744700
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            0
+vme_tdc3n =            1
+vme_tdc3nI[vme_tdc3n] =
+                       8
+vme_tdc3data[vme_tdc3n] =
+                    1556
 vme_tdc3eob =
-                       0
+              4237161016
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            2
+vme_tdc5n =            1
 vme_tdc5nI[vme_tdc5n] =
-                       1          2
+                       2
 vme_tdc5data[vme_tdc5n] =
-                    1558       2206
+                    3252
 vme_tdc5eob =
-              4237161016
+              4237161015
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744700
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -512,9 +493,6 @@ vme_adc7data[vme_adc7n] =
                      506
 vme_adc7eob =
               4237156439
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744701
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -527,9 +505,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            2
+vme_tdc5nI[vme_tdc5n] =
+                       1          2
+vme_tdc5data[vme_tdc5n] =
+                    1558       2206
 vme_tdc5eob =
-                       0
+              4237161016
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744701
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -559,9 +544,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744702
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -577,6 +559,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744702
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -610,9 +595,6 @@ vme_adc7data[vme_adc7n] =
                      330
 vme_adc7eob =
               4237156441
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744703
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -628,6 +610,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744703
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -661,9 +646,6 @@ vme_adc7data[vme_adc7n] =
                      230
 vme_adc7eob =
               4237156442
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744704
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -679,6 +661,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744704
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -712,9 +697,6 @@ vme_adc7data[vme_adc7n] =
                      264
 vme_adc7eob =
               4237156443
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744705
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -730,6 +712,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744705
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -759,9 +744,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744706
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -774,13 +756,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                     989
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161022
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744706
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -814,9 +795,6 @@ vme_adc7data[vme_adc7n] =
                      203
 vme_adc7eob =
               4237156445
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744707
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -829,9 +807,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                     989
 vme_tdc5eob =
-                       0
+              4237161022
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744707
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -865,9 +850,6 @@ vme_adc7data[vme_adc7n] =
                      184
 vme_adc7eob =
               4237156446
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744708
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -883,6 +865,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744708
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -912,9 +897,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744709
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -930,6 +912,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744709
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -963,9 +948,6 @@ vme_adc7data[vme_adc7n] =
                      431
 vme_adc7eob =
               4237156448
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744710
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -981,6 +963,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744710
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1010,9 +995,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744711
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1025,13 +1007,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    2144
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161027
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744711
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1065,9 +1046,6 @@ vme_adc7data[vme_adc7n] =
                      337
 vme_adc7eob =
               4237156450
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744712
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1080,9 +1058,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                    2144
 vme_tdc5eob =
-                       0
+              4237161027
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744712
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1112,9 +1097,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744713
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1130,6 +1112,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744713
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1159,9 +1144,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744714
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1177,6 +1159,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744714
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1206,9 +1191,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744715
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1224,6 +1206,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744715
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1257,9 +1242,6 @@ vme_adc7data[vme_adc7n] =
                      502
 vme_adc7eob =
               4237156454
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744716
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1275,6 +1257,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744716
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1304,9 +1289,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744717
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1322,6 +1304,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744717
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1355,9 +1340,6 @@ vme_adc7data[vme_adc7n] =
                      245
 vme_adc7eob =
               4237156456
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744718
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1373,6 +1355,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744718
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1402,9 +1387,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744719
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1420,6 +1402,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744719
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1453,9 +1438,6 @@ vme_adc7data[vme_adc7n] =
                      247
 vme_adc7eob =
               4237156458
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744720
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1468,13 +1450,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    2223
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161036
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744720
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1508,22 +1489,15 @@ vme_adc7data[vme_adc7n] =
                      344
 vme_adc7eob =
               4237156459
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744721
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            1
-vme_tdc3nI[vme_tdc3n] =
-                       8
-vme_tdc3data[vme_tdc3n] =
-                    1560
+vme_tdc3n =            0
 vme_tdc3eob =
-              4237161038
+                       0
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
@@ -1531,9 +1505,12 @@ vme_tdc5n =            1
 vme_tdc5nI[vme_tdc5n] =
                        2
 vme_tdc5data[vme_tdc5n] =
-                     773
+                    2223
 vme_tdc5eob =
-              4237161037
+              4237161036
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744721
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1563,24 +1540,32 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744722
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            0
+vme_tdc3n =            1
+vme_tdc3nI[vme_tdc3n] =
+                       8
+vme_tdc3data[vme_tdc3n] =
+                    1560
 vme_tdc3eob =
-                       0
+              4237161038
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                     773
 vme_tdc5eob =
-                       0
+              4237161037
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744722
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1610,9 +1595,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744723
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1628,6 +1610,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744723
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1661,28 +1646,24 @@ vme_adc7data[vme_adc7n] =
                      268
 vme_adc7eob =
               4237156462
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744724
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            1
-vme_tdc3nI[vme_tdc3n] =
-                       8
-vme_tdc3data[vme_tdc3n] =
-                    1556
+vme_tdc3n =            0
 vme_tdc3eob =
-              4237161041
+                       0
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744724
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1712,28 +1693,28 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744725
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            0
+vme_tdc3n =            1
+vme_tdc3nI[vme_tdc3n] =
+                       8
+vme_tdc3data[vme_tdc3n] =
+                    1556
 vme_tdc3eob =
-                       0
+              4237161041
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       1
-vme_tdc5data[vme_tdc5n] =
-                    1922
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161041
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744725
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1767,9 +1748,6 @@ vme_adc7data[vme_adc7n] =
                      526
 vme_adc7eob =
               4237156464
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744726
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1782,9 +1760,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       1
+vme_tdc5data[vme_tdc5n] =
+                    1922
 vme_tdc5eob =
-                       0
+              4237161041
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744726
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1814,9 +1799,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744727
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1832,6 +1814,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744727
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1861,9 +1846,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744728
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1876,13 +1858,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    2019
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161044
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744728
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1916,9 +1897,6 @@ vme_adc7data[vme_adc7n] =
                      330
 vme_adc7eob =
               4237156467
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744729
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1931,9 +1909,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                    2019
 vme_tdc5eob =
-                       0
+              4237161044
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744729
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -1967,9 +1952,6 @@ vme_adc7data[vme_adc7n] =
                      265
 vme_adc7eob =
               4237156468
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744730
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -1985,6 +1967,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744730
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2014,9 +1999,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744731
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2029,13 +2011,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    2898
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161047
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744731
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2069,9 +2050,6 @@ vme_adc7data[vme_adc7n] =
                      261
 vme_adc7eob =
               4237156470
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744732
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2088,9 +2066,12 @@ vme_tdc5n =            1
 vme_tdc5nI[vme_tdc5n] =
                        2
 vme_tdc5data[vme_tdc5n] =
-                    2365
+                    2898
 vme_tdc5eob =
-              4237161048
+              4237161047
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744732
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2124,28 +2105,28 @@ vme_adc7data[vme_adc7n] =
                      275
 vme_adc7eob =
               4237156471
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744733
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            1
-vme_tdc3nI[vme_tdc3n] =
-                       8
-vme_tdc3data[vme_tdc3n] =
-                    1558
+vme_tdc3n =            0
 vme_tdc3eob =
-              4237161050
+                       0
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                    2365
 vme_tdc5eob =
-                       0
+              4237161048
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744733
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2175,24 +2156,28 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744734
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
 vme_tdc2n =            0
 vme_tdc2eob =
                        0
-vme_tdc3n =            0
+vme_tdc3n =            1
+vme_tdc3nI[vme_tdc3n] =
+                       8
+vme_tdc3data[vme_tdc3n] =
+                    1558
 vme_tdc3eob =
-                       0
+              4237161050
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744734
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2226,9 +2211,6 @@ vme_adc7data[vme_adc7n] =
                      263        291
 vme_adc7eob =
               4237156473
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744735
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2244,6 +2226,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744735
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2273,9 +2258,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744736
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2288,13 +2270,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       2
-vme_tdc5data[vme_tdc5n] =
-                    2905
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161052
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744736
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2328,9 +2309,6 @@ vme_adc7data[vme_adc7n] =
                      255
 vme_adc7eob =
               4237156475
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744737
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2343,9 +2321,16 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       2
+vme_tdc5data[vme_tdc5n] =
+                    2905
 vme_tdc5eob =
-                       0
+              4237161052
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744737
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2379,9 +2364,6 @@ vme_adc7data[vme_adc7n] =
                      242
 vme_adc7eob =
               4237156476
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744738
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2397,6 +2379,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744738
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2426,9 +2411,6 @@ vme_adc6eob =
 vme_adc7n =            0
 vme_adc7eob =
                        0
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744739
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2444,6 +2426,9 @@ vme_tdc4eob =
 vme_tdc5n =            0
 vme_tdc5eob =
                        0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744739
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2477,9 +2462,6 @@ vme_adc7data[vme_adc7n] =
                      206
 vme_adc7eob =
               4237156478
---- === --- === ---
-TRIGGER =              2
-EVENTNO =       27744740
 vme_tdc1n =            0
 vme_tdc1eob =
                        0
@@ -2492,13 +2474,12 @@ vme_tdc3eob =
 vme_tdc4n =            0
 vme_tdc4eob =
                        0
-vme_tdc5n =            1
-vme_tdc5nI[vme_tdc5n] =
-                       1
-vme_tdc5data[vme_tdc5n] =
-                    1857
+vme_tdc5n =            0
 vme_tdc5eob =
-              4237161056
+                       0
+--- === --- === ---
+TRIGGER =              2
+EVENTNO =       27744740
 vme_scaler1n =
                        3
 vme_scaler1nI[vme_scaler1n] =
@@ -2532,3 +2513,22 @@ vme_adc7data[vme_adc7n] =
                      479
 vme_adc7eob =
               4237156479
+vme_tdc1n =            0
+vme_tdc1eob =
+                       0
+vme_tdc2n =            0
+vme_tdc2eob =
+                       0
+vme_tdc3n =            0
+vme_tdc3eob =
+                       0
+vme_tdc4n =            0
+vme_tdc4eob =
+                       0
+vme_tdc5n =            1
+vme_tdc5nI[vme_tdc5n] =
+                       1
+vme_tdc5data[vme_tdc5n] =
+                    1857
+vme_tdc5eob =
+              4237161056
