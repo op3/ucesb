@@ -36,7 +36,8 @@
 struct indexed_type_ind
 {
 public:
-  indexed_type_ind(const char *type,int max_items,int max_items2,int opts);
+  indexed_type_ind(const char *type,int max_items,int max_items2,int opts,
+		   const file_line &loc);
 
 public:
   const char *_type;
@@ -44,9 +45,19 @@ public:
   int         _max_items2;
 
   int         _opts;
+
+  file_line   _loc; // for sorting items
+
+public:
+  bool operator<(const indexed_type_ind &rhs) const {
+    return _loc._internal < rhs._loc._internal;
+  }
 };
 
 typedef std::map<const char*/*name*/,indexed_type_ind*> indexed_decl_map;
+
+typedef std::map<indexed_type_ind*,const char*,
+		 compare_ptr<indexed_type_ind> > indexed_decl_map_rev_sort;
 
 struct match_info
 {

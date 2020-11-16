@@ -399,16 +399,27 @@ void struct_unpack_code::gen(const struct_definition *str,
 
 void gen_indexed_decl(indexed_decl_map &indexed_decl,dumper &d)
 {
+  indexed_decl_map_rev_sort indexed_decl_rev_sort;
+
   for (indexed_decl_map::iterator array = indexed_decl.begin();
        array != indexed_decl.end(); array++)
     {
-      indexed_type_ind *info = array->second;
+      indexed_decl_rev_sort.
+	insert(indexed_decl_map_rev_sort::value_type(array->second,
+						     array->first));
+    }
+
+  for (indexed_decl_map_rev_sort::iterator array =
+	 indexed_decl_rev_sort.begin();
+       array != indexed_decl_rev_sort.end(); array++)
+    {
+      indexed_type_ind *info = array->first;
 
       d.text_fmt("%s(",
 		 (info->_opts & STRUCT_DECL_OPTS_MULTI) ?
 		 "MULTI" : "SINGLE");
       d.text_fmt("%s,",info->_type);
-      d.text_fmt("%s",array->first);
+      d.text_fmt("%s",array->second);
       if (info->_max_items)
 	d.text_fmt("[%d]",info->_max_items);
       if (info->_max_items2)
@@ -485,12 +496,15 @@ void struct_unpack_code::gen(const file_line &loc,
     }
 }
 
-indexed_type_ind::indexed_type_ind(const char *type,int max_items,int max_items2,int opts)
+indexed_type_ind::indexed_type_ind(const char *type,
+				   int max_items,int max_items2,int opts,
+				   const file_line &loc)
 {
   _type       = type;
   _max_items  = max_items;
   _max_items2 = max_items2;
   _opts       = opts;
+  _loc        = loc;
 }
 
 void insert_indexed_decl(indexed_decl_map &indexed_decl,
@@ -507,7 +521,8 @@ void insert_indexed_decl(indexed_decl_map &indexed_decl,
   indexed_type_ind *info = new indexed_type_ind(type,
 					      vi->_index+1,
 					      vi->_index2+1,
-					      opts);
+					      opts,
+					      decl->_loc);
 
   exist = indexed_decl.insert(indexed_decl_map::value_type(name,info));
 
