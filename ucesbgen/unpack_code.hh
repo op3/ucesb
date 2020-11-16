@@ -46,7 +46,7 @@ public:
   int         _opts;
 };
 
-typedef std::map<const char*/*name*/,indexed_type_ind> indexed_decl_map;
+typedef std::map<const char*/*name*/,indexed_type_ind*> indexed_decl_map;
 
 struct match_info
 {

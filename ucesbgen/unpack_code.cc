@@ -402,13 +402,17 @@ void gen_indexed_decl(indexed_decl_map &indexed_decl,dumper &d)
   for (indexed_decl_map::iterator array = indexed_decl.begin();
        array != indexed_decl.end(); array++)
     {
-      d.text_fmt("%s(",(array->second._opts & STRUCT_DECL_OPTS_MULTI) ? "MULTI" : "SINGLE");
-      d.text_fmt("%s,",array->second._type);
+      indexed_type_ind *info = array->second;
+
+      d.text_fmt("%s(",
+		 (info->_opts & STRUCT_DECL_OPTS_MULTI) ?
+		 "MULTI" : "SINGLE");
+      d.text_fmt("%s,",info->_type);
       d.text_fmt("%s",array->first);
-      if (array->second._max_items)
-	d.text_fmt("[%d]",array->second._max_items);
-      if (array->second._max_items2)
-	d.text_fmt("[%d]",array->second._max_items2);
+      if (info->_max_items)
+	d.text_fmt("[%d]",info->_max_items);
+      if (info->_max_items2)
+	d.text_fmt("[%d]",info->_max_items2);
       d.text(");\n");
     }
 }
@@ -500,39 +504,39 @@ void insert_indexed_decl(indexed_decl_map &indexed_decl,
 
   std::pair<indexed_decl_map::iterator,bool> exist;
 
-  exist = indexed_decl.insert(
-			      indexed_decl_map::value_type(name,
-							   indexed_type_ind(type,
-									    vi->_index+1,
-									    vi->_index2+1,
-									    opts)));
+  indexed_type_ind *info = new indexed_type_ind(type,
+					      vi->_index+1,
+					      vi->_index2+1,
+					      opts);
+
+  exist = indexed_decl.insert(indexed_decl_map::value_type(name,info));
 
   if (!exist.second) // name was already in list
     {
-      indexed_type_ind &info = exist.first->second;
+      info = exist.first->second;
 
-      if (strcmp(info._type,type) != 0)
+      if (strcmp(info->_type,type) != 0)
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different types (%s != %s)",
-		  name,info._type,type);
+		  name,info->_type,type);
 
-      if (info._opts != opts)
+      if (info->_opts != opts)
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different options (multi)",
 		  name);
 
-      if ((info._max_items == 0) !=
+      if ((info->_max_items == 0) !=
 	  (vi->_index == -1))
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different array [] / not array",
 		  name);
 
-      if ((info._max_items2 == 0) !=
+      if ((info->_max_items2 == 0) !=
 	  (vi->_index2 == -1))
 	ERROR_LOC(decl->_loc,"Items with same name (%s), has different array [] depths",
 		  name);
 
-      if (info._max_items < vi->_index+1)
-	info._max_items = vi->_index+1;
-      if (info._max_items2 < vi->_index2+1)
-	info._max_items2 = vi->_index2+1;
+      if (info->_max_items < vi->_index+1)
+	info->_max_items = vi->_index+1;
+      if (info->_max_items2 < vi->_index2+1)
+	info->_max_items2 = vi->_index2+1;
     }
 }
 
