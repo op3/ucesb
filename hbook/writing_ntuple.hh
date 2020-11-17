@@ -102,9 +102,9 @@ public:
     *(_p++) = htonl(offset);
   }
 
-  void dest_int(uint32_t *dest)
+  void dest_int(uint32_t *dest, uint32_t mark = 0)
   {
-    dest_offset(dest,EXTERNAL_WRITER_MARK_CLEAR_ZERO);
+    dest_offset(dest,mark | EXTERNAL_WRITER_MARK_CLEAR_ZERO);
   }
 
   void dest_float(float *dest)
@@ -181,6 +181,12 @@ public:
 #define IND_ITEM_TYPE_INT_USHORT    0x0008
 #define IND_ITEM_TYPE_INT_UCHAR     0x0010
 #define IND_ITEM_TYPE_INT_INDEX_CUT 0x0020 // reuse IND_ITEM_OFFSET_SHIFT
+
+/* Timestamp info for time-stitching in struct_writer. */
+#define IND_ITEM_TYPE_TS_LO         0x0100
+#define IND_ITEM_TYPE_TS_HI         0x0200
+#define IND_ITEM_TYPE_TS_SRCID      0x0400
+#define IND_ITEM_TYPE_MEVENTNO      0x0800
 
 /*
 #define IND_ITEM_OFFSET_SHIFT       5 // 0x0020 and above

@@ -252,7 +252,18 @@ void cwn_ptrs_indexed_item(read_write_ptrs_external &w,indexed_item *array,
 	}
       else // integer
 	{
-	  w.dest_int((uint32_t *) dest);
+	  uint32_t mark = 0;
+
+	  if (info & IND_ITEM_TYPE_TS_LO)
+	    mark |= EXTERNAL_WRITER_MARK_TS_LO;
+	  if (info & IND_ITEM_TYPE_TS_HI)
+	    mark |= EXTERNAL_WRITER_MARK_TS_HI;
+	  if (info & IND_ITEM_TYPE_TS_SRCID)
+	    mark |= EXTERNAL_WRITER_MARK_TS_SRCID;
+	  if (info & IND_ITEM_TYPE_MEVENTNO)
+	    mark |= EXTERNAL_WRITER_MARK_MEVENTNO;
+
+	  w.dest_int((uint32_t *) dest, mark);
 	}
     }
 }

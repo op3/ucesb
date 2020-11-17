@@ -187,7 +187,8 @@ public:
 			    ENUM_NTUPLE_NEVER),extra);
     callback(signal_id(id,"MEVENTNO"),
 	     enumerate_info(info,&event_sub_no,ENUM_TYPE_UINT |
-			    ENUM_NTUPLE_ALWAYS),extra);
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_MEVENTNO),extra);
 #endif
   }
 

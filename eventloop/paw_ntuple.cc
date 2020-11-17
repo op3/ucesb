@@ -360,6 +360,11 @@ void enumerate_member_paw_ntuple(const signal_id &id,
   if (info._type & ENUM_IS_LIST_LIMIT2)
     item->_flags |= NTUPLE_ITEM_OMIT;
 
+  if (info._type & ENUM_NTUPLE_TS_LO)    item->_flags |= NTUPLE_ITEM_TS_LO;
+  if (info._type & ENUM_NTUPLE_TS_HI)    item->_flags |= NTUPLE_ITEM_TS_HI;
+  if (info._type & ENUM_NTUPLE_TS_SRCID) item->_flags |= NTUPLE_ITEM_TS_SRCID;
+  if (info._type & ENUM_NTUPLE_MEVENTNO) item->_flags |= NTUPLE_ITEM_MEVENTNO;
+
   ntuple->_listing->push_back(item);
 
   //printf ("\n");

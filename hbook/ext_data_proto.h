@@ -70,6 +70,12 @@
 #define EXTERNAL_WRITER_MARK_CANARY       0x00a50000
 #define EXTERNAL_WRITER_MARK_CANARY_MASK  0x00ff0000
 
+/* Timestamp info for time-stitching in struct_writer. */
+#define EXTERNAL_WRITER_MARK_TS_LO        0x00000100
+#define EXTERNAL_WRITER_MARK_TS_HI        0x00000200
+#define EXTERNAL_WRITER_MARK_TS_SRCID     0x00000400
+#define EXTERNAL_WRITER_MARK_MEVENTNO     0x00000800
+
 #define EXTERNAL_WRITER_MAGIC (0x57e65c73u +35) // change with protocol version
 
 #define EXTERNAL_WRITER_REQUEST_HI_MASK   0xffff0000u

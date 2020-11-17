@@ -222,6 +222,11 @@ void init_cwn_var(ntuple_item *item,
   else
     assert (false);
 
+  if (item->_flags & NTUPLE_ITEM_TS_LO)    write_info |= IND_ITEM_TYPE_TS_LO;
+  if (item->_flags & NTUPLE_ITEM_TS_HI)    write_info |= IND_ITEM_TYPE_TS_HI;
+  if (item->_flags & NTUPLE_ITEM_TS_SRCID) write_info |= IND_ITEM_TYPE_TS_SRCID;
+  if (item->_flags & NTUPLE_ITEM_MEVENTNO) write_info |= IND_ITEM_TYPE_MEVENTNO;
+
   info.fix_case(var_name);
 
   //Warning("Storing:  %s %d+%d %s",vars,ind,index_offset,type);
