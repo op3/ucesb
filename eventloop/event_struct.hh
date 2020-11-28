@@ -157,6 +157,11 @@ public:
   uint32 event_no;
   uint32 event_sub_no;
 #endif
+#if USING_TSTAMP
+  uint32 tstamp_lo;
+  uint32 tstamp_hi;
+  uint32 tstamp_srcid;
+#endif
 
 public:
   void __clean()
@@ -165,6 +170,11 @@ public:
     trigger      = 0;
     event_no     = 0;
     event_sub_no = 0;
+#endif
+#if USING_TSTAMP
+    tstamp_lo    = 0;
+    tstamp_hi    = 0;
+    tstamp_srcid = 0;
 #endif
   }
 
@@ -190,6 +200,20 @@ public:
 			    ENUM_NTUPLE_ALWAYS |
 			    ENUM_NTUPLE_MEVENTNO),extra);
 #endif
+#if USING_TSTAMP
+    callback(signal_id(id,"TSTAMPLO"),
+	     enumerate_info(info,&tstamp_lo,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_TS_LO),extra);
+    callback(signal_id(id,"TSTAMPHI"),
+	     enumerate_info(info,&tstamp_hi,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_TS_HI),extra);
+    callback(signal_id(id,"TSTAMPSRCID"),
+	     enumerate_info(info,&tstamp_srcid,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_TS_SRCID),extra);
+#endif
   }
 
   void zero_suppress_info_ptrs(used_zero_suppress_info &used_info)
@@ -198,6 +222,11 @@ public:
     ::zero_suppress_info_ptrs(&trigger,used_info);
     ::zero_suppress_info_ptrs(&event_no,used_info);
     ::zero_suppress_info_ptrs(&event_sub_no,used_info);
+#endif
+#if USING_TSTAMP
+    ::zero_suppress_info_ptrs(&tstamp_lo,used_info);
+    ::zero_suppress_info_ptrs(&tstamp_hi,used_info);
+    ::zero_suppress_info_ptrs(&tstamp_srcid,used_info);
 #endif
   }
 

@@ -37,6 +37,8 @@
 
 #define USING_MULTI_EVENTS 1
 
+#define USING_TSTAMP 1
+
 #endif//UNPACKER_IS_xtst_toggle
 
 #endif//__CONTROL_HH__
