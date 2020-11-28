@@ -29,6 +29,10 @@
 
 #define UNPACK_EVENT_USER_FUNCTION    user_function
 
+#define RAW_EVENT_USER_FUNCTION       raw_user_function
+
+#define USING_TSTAMP 1
+
 #endif//UNPACKER_IS_xtst
 
 #ifdef UNPACKER_IS_xtst_toggle
@@ -36,8 +40,6 @@
 #define UNPACK_EVENT_USER_FUNCTION  user_function_multi
 
 #define USING_MULTI_EVENTS 1
-
-#define USING_TSTAMP 1
 
 #endif//UNPACKER_IS_xtst_toggle
 
