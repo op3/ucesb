@@ -240,14 +240,6 @@ struct stage_array
 #endif
 };
 
-struct offset_array
-{
-  size_t    _length; // in uint32_t words
-  uint32_t* _ptr;
-  uint32_t  _static_items;
-  uint32_t  _max_items;
-};
-
 #if USING_ROOT
 typedef std::vector<TTree *> TTree_vector;
 #endif

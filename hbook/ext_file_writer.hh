@@ -118,6 +118,18 @@ struct ext_write_config
 
 extern ext_write_config _config;
 
+/* ****************************************************************** */
+
+struct offset_array
+{
+  size_t    _length; // in uint32_t words
+  uint32_t* _ptr;
+  uint32_t  _static_items;
+  uint32_t  _max_items;
+};
+
+/* ****************************************************************** */
+
 struct ext_file_net_stat
 {
   uint64_t _committed_size;
