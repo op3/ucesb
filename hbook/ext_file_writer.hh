@@ -126,6 +126,11 @@ struct offset_array
   uint32_t* _ptr;
   uint32_t  _static_items;
   uint32_t  _max_items;
+
+  uint32_t  _poffset_ts_lo;
+  uint32_t  _poffset_ts_hi;
+  uint32_t  _poffset_ts_srcid;
+  uint32_t  _poffset_meventno;
 };
 
 /* ****************************************************************** */

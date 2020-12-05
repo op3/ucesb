@@ -979,6 +979,11 @@ void request_array_offsets(void *msg,uint32_t *left)
   s->_offset_array._static_items = 0;
   s->_offset_array._max_items = 0;
 
+  s->_offset_array._poffset_ts_lo    = (uint32_t) -1;
+  s->_offset_array._poffset_ts_hi    = (uint32_t) -1;
+  s->_offset_array._poffset_ts_srcid = (uint32_t) -1;
+  s->_offset_array._poffset_meventno = (uint32_t) -1;
+
   // MSG ("offsets: %d \n", _offset_array._length);
 
   if (!s->_offset_array._ptr)
@@ -991,6 +996,9 @@ void request_array_offsets(void *msg,uint32_t *left)
   uint32_t *oend = (uint32_t *) (((char*) msg) + *left);
 
   uint32_t *d    = s->_offset_array._ptr;
+
+  uint32_t p_offset = 0;
+  bool had_loop = false;
 
   // We reset the entire stage array, to use that to verify that each
   // item is used once
@@ -1022,10 +1030,37 @@ void request_array_offsets(void *msg,uint32_t *left)
       (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
       s->_offset_array._static_items++;
 
+      if ((mark & (EXTERNAL_WRITER_MARK_TS_LO |
+		   EXTERNAL_WRITER_MARK_TS_HI |
+		   EXTERNAL_WRITER_MARK_TS_SRCID |
+		   EXTERNAL_WRITER_MARK_MEVENTNO)) &&
+	  had_loop)
+	{
+	  /* The offset to the item in the raw (before stage) data
+	   * could vary due to loops.  Offset would be jumping around.
+	   */
+	  ERR_MSG("Mark entry @ %zd has merge info (%08x) after loop item, "
+		  "offset not fixed.",
+		  (o - (uint32_t *) msg)-2, mark);
+	}
+
+      if (mark & EXTERNAL_WRITER_MARK_TS_LO)
+	s->_offset_array._poffset_ts_lo = p_offset;
+      if (mark & EXTERNAL_WRITER_MARK_TS_HI)
+	s->_offset_array._poffset_ts_hi = p_offset;
+      if (mark & EXTERNAL_WRITER_MARK_TS_SRCID)
+	s->_offset_array._poffset_ts_srcid = p_offset;
+      if (mark & EXTERNAL_WRITER_MARK_MEVENTNO)
+	s->_offset_array._poffset_meventno = p_offset;
+
       // MSG ("offset: %d %c",offset,(mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
+
+      p_offset++; /* No need to increment in loop, will vary. */
 
       if (mark & EXTERNAL_WRITER_MARK_LOOP)
 	{
+	  had_loop = true;
+
 	  if (!(mark & EXTERNAL_WRITER_MARK_CLEAR_ZERO))
 	    ERR_MSG("Offset ctrl entry @ %zd=0x%zx marker "
 		    "says clean float (NaN).",
