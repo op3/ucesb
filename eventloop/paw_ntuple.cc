@@ -390,6 +390,9 @@ const char *request_level_str(int level)
 
 void paw_ntuple_usage()
 {
+  // Note: options with CAPITAL letters change the structure layout.
+  // Other options change the behaviour of the export.
+
   printf ("\n");
   printf ("HBOOK/ROOT/STRUCT output (--ntuple) options:\n");
   printf ("\n");
@@ -419,10 +422,10 @@ void paw_ntuple_usage()
   printf ("excl=               Subevent exclusion.\n");
 #endif
   printf ("BITPACK             Bitpack STRUCT data even if not using network server.\n");
-  printf ("NOSHM               Do not use shared memory communication.\n");
-  printf ("DUMPRAW             Dump raw protocol data.\n");
-  printf ("GDB                 Run the external program via gdb (backtrace fault).\n");
-  printf ("VALGRIND            Run the external program via valgrind.\n");
+  printf ("noshm               Do not use shared memory communication.\n");
+  printf ("dumpraw             Dump raw protocol data.\n");
+  printf ("gdb                 Run the external program via gdb (backtrace fault).\n");
+  printf ("valgrind            Run the external program via valgrind.\n");
   printf ("\n");
 }
 
@@ -609,12 +612,36 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       else if (MATCH_ARG("BITPACK"))
 	ntuple_opt |= NTUPLE_OPT_WRITER_BITPACK;
       else if (MATCH_ARG("NOSHM"))
+	{
+	  WARNING("Option --ntuple=NOSHM is deprecated, "
+		  "use --ntuple=noshm instead.");
+	  ntuple_opt |= NTUPLE_OPT_WRITER_NO_SHM;
+	}
+      else if (MATCH_ARG("noshm"))
 	ntuple_opt |= NTUPLE_OPT_WRITER_NO_SHM;
       else if (MATCH_ARG("DUMPRAW"))
+	{
+	  WARNING("Option --ntuple=DUMPRAW is deprecated, "
+		  "use --ntuple=dumpraw instead.");
+	  ntuple_opt |= NTUPLE_OPT_DUMP_RAW;
+	}
+      else if (MATCH_ARG("dumpraw"))
 	ntuple_opt |= NTUPLE_OPT_DUMP_RAW;
       else if (MATCH_ARG("GDB"))
+	{
+	  WARNING("Option --ntuple=GDB is deprecated, "
+		  "use --ntuple=gdb instead.");
+	  ntuple_opt |= NTUPLE_OPT_EXT_GDB;
+	}
+      else if (MATCH_ARG("gdb"))
 	ntuple_opt |= NTUPLE_OPT_EXT_GDB;
       else if (MATCH_ARG("VALGRIND"))
+	{
+	  WARNING("Option --ntuple=VALGRIND is deprecated, "
+		  "use --ntuple=valgrind instead.");
+	  ntuple_opt |= NTUPLE_OPT_EXT_VALGRIND;
+	}
+      else if (MATCH_ARG("valgrind"))
 	ntuple_opt |= NTUPLE_OPT_EXT_VALGRIND;
       else
 	requests.add_detector_request(request,0);
