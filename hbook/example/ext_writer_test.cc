@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 
   ew->init_x(type | NTUPLE_CASE_KEEP, opt,
 	     filename,"Title",-1,generate_header,
-	     false,false,false);
+	     false,false,false, 0);
 
   ew->send_file_open(0);
 

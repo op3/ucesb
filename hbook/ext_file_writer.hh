@@ -82,6 +82,8 @@ struct ext_write_config
   bool        _forked;
   int         _dump_raw;
 
+  uint32_t    _ts_merge_window;
+
 #if USING_CERNLIB || USING_ROOT
   const char *_outfile;
   const char *_infile;

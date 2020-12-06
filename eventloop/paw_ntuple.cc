@@ -411,6 +411,7 @@ void paw_ntuple_usage()
   printf ("UPPER               Make all variable names upper case.\n");
   printf ("LOWER               Make all variable names lower case.\n");
   printf ("H2ROOT              Make all variable names like h2root.\n");
+  printf ("time-stitch=N       Combine events with timestamps with difference <= N.\n");
   printf ("id=ID               Set the ntuple ID.\n");
   printf ("title=TITLE         Set the tree TITLE.\n");
   printf ("ftitle=FTITLE       Set the File TITLE.\n");
@@ -469,6 +470,7 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
   int toggle_include = ENUM_IS_TOGGLE_I;
   bool inc_trig_eventno = true;
   bool as_info = true;
+  int ts_merge_window = 0;
 
   uint ntuple_type = 0;
   uint ntuple_opt = 0;
@@ -582,6 +584,8 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
 	ntuple_type |= NTUPLE_CASE_LOWER;
       else if (MATCH_ARG("H2ROOT"))
 	ntuple_type |= NTUPLE_CASE_H2ROOT;
+      else if (MATCH_PREFIX("time-stitch=",post))
+	ts_merge_window = atoi(post);
       else if (MATCH_PREFIX("ID=",post) || MATCH_PREFIX("id=",post))
 	id = strdup(post);
       else if (MATCH_PREFIX("TITLE=",post) || MATCH_PREFIX("title=",post))
@@ -904,11 +908,11 @@ paw_ntuple *paw_ntuple_open_stage(const char *command,bool reading)
       staged->_struct_index = i;
 
       if (i == 0)
-	staged->open_x(filename,ftitle,
+	staged->open_xx(filename,ftitle,
 		       ntuple_type, ntuple_opt,
 		       struct_server_port,
 		       timeslice, timeslice_subdir,
-		       autosave
+		       autosave, ts_merge_window
 #if defined(USE_LMD_INPUT)
 		       ,1
 #endif

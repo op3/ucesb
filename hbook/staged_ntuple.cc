@@ -59,13 +59,14 @@ void staged_ntuple::set_ext(external_writer *ext)
   _external_ext = true;
 }
 
-void staged_ntuple::open_x(const char *filename,
+void staged_ntuple::open_xx(const char *filename,
 			   const char *ftitle,
 			   int ntuple_type,
 			   int ntuple_opt,
 			   int server_port,
 			   int timeslice, int timeslice_subdir,
 			   int autosave,
+			   int ts_merge_window,
 			   uint sort_u32_words)
 {
   _ext = new external_writer();
@@ -77,7 +78,8 @@ void staged_ntuple::open_x(const char *filename,
 	       filename,ftitle,
 	       server_port,
 	       !!(ntuple_type & NTUPLE_TYPE_STRUCT_HH),
-	       timeslice,timeslice_subdir,autosave);
+	       timeslice,timeslice_subdir,autosave,
+	       ts_merge_window);
   _ext->send_file_open(sort_u32_words);
 
   _x_ntuple_type = ntuple_type;

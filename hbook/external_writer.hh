@@ -182,7 +182,7 @@ public:
 	      const char *filename,const char *ftitle,
 	      int server_port,int generate_header,
 	      int timeslice,int timeslice_subdir,
-	      int autosave);
+	      int autosave,int ts_merge_window);
   void close();
 
 public:

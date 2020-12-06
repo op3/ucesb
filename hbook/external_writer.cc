@@ -218,7 +218,8 @@ void external_writer::init_x(unsigned int type,unsigned int opt,
 			     const char *filename,const char *ftitle,
 			     int server_port,int generate_header,
 			     int timeslice,int timeslice_subdir,
-			     int autosave)
+			     int autosave,
+			     int ts_merge_window)
 {
   int fd_mem = -1;
   bool shm = !(opt & NTUPLE_OPT_WRITER_NO_SHM);
@@ -331,6 +332,13 @@ void external_writer::init_x(unsigned int type,unsigned int opt,
 	{
 	  ERROR("Bitpack only makes sense with struct writer.");
 	}
+    }
+
+  if (ts_merge_window)
+    {
+      snprintf (tmp,sizeof(tmp),
+		"--time-stitch=%d",ts_merge_window);
+      argv[argc++] = strdup(tmp);
     }
 
   // fork_pipes points to XXXXX,XXXXX, so that actual numbers can be

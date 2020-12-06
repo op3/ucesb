@@ -4929,6 +4929,7 @@ void usage(char *cmdname)
   printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, [compact_]json)\n");
   printf ("  --bitpack          Bitpack STRUCT data even if not using network server.\n");
 #endif
+  printf ("  --time-stitch=N    Combine events with timestamps with difference <= N.\n");
   printf ("  --colour=yes|no    Force colour and markup on or off.\n");
   printf ("  --forked=fd1,fd2   File descriptors for forked comm. (internal use only)\n");
   printf ("  --shm-forked=fd,fd1,fd2  Use shared memory communication. (internal use only)\n");
@@ -5022,6 +5023,9 @@ int main(int argc,char *argv[])
 	  ERR_MSG("Bad option '%s' for --colour=",post);
 
 	colourtext_setforce(force);
+      }
+      else if (MATCH_PREFIX("--time-stitch=",post)) {
+	_config._ts_merge_window = atoi(post);
       }
 #if USING_CERNLIB || USING_ROOT
       else if (MATCH_PREFIX("--outfile=",post)) {
