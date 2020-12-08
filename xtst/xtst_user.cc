@@ -185,10 +185,11 @@ void raw_user_function(unpack_event *unpack_event,
     }
 
   /*
-  printf ("TS: %08x %08x:%08x\n",
-	  raw_event->tstamp_srcid,
-	  raw_event->tstamp_hi,
-	  raw_event->tstamp_lo);
+  fprintf (stderr,
+	   "TS: %08x %08x:%08x\n",
+	   raw_event->tstamp_srcid,
+	   raw_event->tstamp_hi,
+	   raw_event->tstamp_lo);
   */
 }
 
