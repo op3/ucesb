@@ -1148,6 +1148,12 @@ void request_array_offsets(void *msg,uint32_t *left)
 
   // MSG("Offsets...");
 
+  fprintf(stderr, "merge offsets: %d %d %d %d\n",
+	  s->_offset_array._poffset_ts_lo,
+	  s->_offset_array._poffset_ts_hi,
+	  s->_offset_array._poffset_ts_srcid,
+	  s->_offset_array._poffset_meventno);
+
   /* This structure is done. */
   _cur_structure = NULL;
 }
@@ -2735,9 +2741,8 @@ void prehandle_ntuple_fill(ext_write_config_comm *comm,
 
 void request_ntuple_fill(ext_write_config_comm *comm,
 			 void *msg,uint32_t *left,
-			 external_writer_buf_header *header,
-			 uint32_t length
-			 )
+			 external_writer_buf_header *header, uint32_t length,
+			 bool from_merge)
 {
   uint32_t *raw_sort_u32 = NULL;
   uint32_t *raw_ptr = NULL;
@@ -2802,6 +2807,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 #endif
 
+  uint32_t *msgstart = (uint32_t *) msg;
+  uint32_t msglen   = *left;
+
   // MSG("left %d.",*left);
 
   raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
@@ -2842,6 +2850,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   if (!s->_stage_array._length)
     ERR_MSG("Cannot fill using unallocated array.");
 
+  if (_config._ts_merge_window &&
+      (marker & EXTERNAL_WRITER_COMPACT_PACKED))
+    ERR_MSG("Cannot merge (time_stitch) from compacted array.");
+
   if (!(marker & EXTERNAL_WRITER_COMPACT_PACKED))
     {
       // Non-compacted array.
@@ -2867,8 +2879,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       uint32_t *o    = s->_offset_array._ptr;
       uint32_t *oend = s->_offset_array._ptr + s->_offset_array._length;
 
-      uint32_t *p    = (uint32_t *) msg;
-      uint32_t *pend = (uint32_t *) (((char*) msg) + *left);
+      uint32_t *pstart = (uint32_t *) msg;
+      uint32_t plen   = *left;
+
+      uint32_t *p    = pstart;
+      uint32_t *pend = (uint32_t *) (((char*) pstart) + plen);
 
 #if STRUCT_WRITER
       uint32_t *pp    = (uint32_t *) s->_stage_array._offset_value;
@@ -2979,6 +2994,27 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       assert(pp <= s->_stage_array._offset_value + s->_stage_array._length);
 #endif
       
+      fprintf (stderr,"merge: %d\n", _config._ts_merge_window);
+
+      if (!from_merge &&
+	  _config._ts_merge_window)
+	{
+	  ext_merge_insert_chunk(comm,
+				 &s->_offset_array,
+				 msgstart,
+				 (uint32_t) ((char *) pstart -
+					     (char *) msgstart),
+				 (uint32_t) ((char *) pend -
+					     (char *) pstart),
+				 s->_stage_array._length);
+
+	  /* After the event was inserted into the merge queue,
+	   * we drop it.  It will eventually come back here with
+	   * from_merge set.
+	   */
+	  return;
+	}
+
       ////////////////////////////////////////
 
 #if STRUCT_WRITER
@@ -4121,7 +4157,8 @@ bool handle_request(ext_write_config_comm *comm,
       // May change the message inline (including header)
       request_ntuple_fill(comm,
 			  header+1,&left,
-			  header,length);
+			  header,length,
+			  false);
       break;
     case EXTERNAL_WRITER_BUF_KEEP_ALIVE:
       request_keep_alive(comm,

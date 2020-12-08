@@ -455,6 +455,12 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
   uint32_t left = length - sizeof (external_writer_buf_header);
 
+  request_ntuple_fill(comm,
+		      pre, &left,
+		      header, length,
+		      true);
+
+  assert(left == 0);
 
   MRG_DBG ("-------------------------------------------------------\n");
 

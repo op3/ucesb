@@ -159,6 +159,11 @@ void ext_net_io_server_close();
 
 /* ****************************************************************** */
 
+void request_ntuple_fill(ext_write_config_comm *comm,
+			 void *msg,uint32_t *left,
+			 external_writer_buf_header *header, uint32_t length,
+			 bool from_merge);
+
 void ext_merge_insert_chunk(ext_write_config_comm *comm,
 			    offset_array *oa,
 			    uint32_t *msgstart,
