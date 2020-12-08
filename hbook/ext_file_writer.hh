@@ -159,7 +159,8 @@ void ext_net_io_server_close();
 
 /* ****************************************************************** */
 
-void ext_merge_insert_chunk(offset_array *oa,
+void ext_merge_insert_chunk(ext_write_config_comm *comm,
+			    offset_array *oa,
 			    uint32_t *msgstart,
 			    uint32_t prelen, uint32_t plen,
 			    uint32_t maxdestplen);

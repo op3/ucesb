@@ -264,7 +264,8 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 }
 
 
-bool ext_merge_sort_until(offset_array *oa,
+bool ext_merge_sort_until(ext_write_config_comm *comm,
+			  offset_array *oa,
 			  uint64_t t_until,
 			  uint32_t maxdestplen)
 {
@@ -401,7 +402,8 @@ bool ext_merge_sort_until(offset_array *oa,
 
   /* We have now found all the items to include in the merge. */
 
-  size_t need = incl0_prelen + maxdestplen;
+  size_t need =
+    sizeof (external_writer_buf_header) + incl0_prelen + maxdestplen;
 
   if (need > _merge_dest_alloc)
     {
@@ -415,32 +417,55 @@ bool ext_merge_sort_until(offset_array *oa,
 		"merger destination (%zd bytes).", _merge_dest_alloc);
     }
 
-  memcpy(_merge_dest, incl0_msg, incl0_prelen);
+  external_writer_buf_header *header =
+    (external_writer_buf_header *) _merge_dest;
 
-  uint32_t *pdest = (uint32_t *) (((char *) _merge_dest) + incl0_prelen);
+  header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL |
+			   EXTERNAL_WRITER_REQUEST_HI_MAGIC);
+  header->_length = (uint32_t) -1;
+
+  uint32_t *pre = (uint32_t *) (header + 1);
+
+  memcpy(pre, incl0_msg, incl0_prelen);
+
+  uint32_t *pdest = (uint32_t *) (((char *) pre) + incl0_prelen);
 
   uint32_t *pend = ext_merge_do_merge(oa, pdest, &result);
 
+  uint32_t length = (uint32_t) ((char *) pend - (char *) _merge_dest);
+
+  header->_length = htonl(length);
+
   printf ("merged: %x %zd\n", result._flags, pend - _merge_dest);
+
+  for (uint32_t *p = _merge_dest; p < pend; p++)
+    {
+      printf ("%08x\n", *p);
+    }
+
+  uint32_t left = length - sizeof (external_writer_buf_header);
+
 
   printf ("-------------------------------------------------------\n");
 
   return true;
 }
 
-void ext_merge_sort_all_until(offset_array *oa,
+void ext_merge_sort_all_until(ext_write_config_comm *comm,
+			      offset_array *oa,
 			      uint64_t t_until,
 			      uint32_t maxdestplen)
 {
 
   for ( ; ; )
     {
-      if (!ext_merge_sort_until(oa, t_until, maxdestplen))
+      if (!ext_merge_sort_until(comm, oa, t_until, maxdestplen))
 	break;
     }
 }
 
-void ext_merge_insert_chunk(offset_array *oa,
+void ext_merge_insert_chunk(ext_write_config_comm *comm,
+			    offset_array *oa,
 			    uint32_t *msgstart,
 			    uint32_t prelen, uint32_t plen,
 			    uint32_t maxdestplen)
@@ -452,6 +477,12 @@ void ext_merge_insert_chunk(offset_array *oa,
   uint32_t tstamp_lo;
 
   uint32_t *pstart = (uint32_t *) (((char *) msgstart) + prelen);
+  uint32_t *pend = (uint32_t *) (((char *) pstart) + plen);
+
+  for (uint32_t *p = msgstart; p < pend; p++)
+    {
+      printf ("%08x\n", *p);
+    }
 
   tstamp_lo = ntohl(pstart[oa->_poffset_ts_lo]);
   tstamp_hi = ntohl(pstart[oa->_poffset_ts_hi]);
@@ -472,7 +503,8 @@ void ext_merge_insert_chunk(offset_array *oa,
   if (meventno == 0)
     {
 
-      ext_merge_sort_until(oa, tstamp - _config._ts_merge_window,
+      ext_merge_sort_until(comm, oa,
+			   tstamp - _config._ts_merge_window,
 			   maxdestplen);
 
 

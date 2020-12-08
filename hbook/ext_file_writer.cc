@@ -225,6 +225,8 @@ struct stage_array
   size_t _length;
   char*  _ptr;
 
+  // char*  _merge_ptr;
+
 #if STRUCT_WRITER
   uint32_t *_offset_value;
 
@@ -888,6 +890,12 @@ void request_alloc_array(void *msg,uint32_t *left)
     ERR_MSG("Failure allocating array with size %d.",size);
 
   memset(s->_stage_array._ptr,0,s->_stage_array._length);
+
+  // TODO: This is only used when merging (time stitching).
+  // For now: be lazy and always allocate it.
+  // s->_stage_array._merge_ptr = (char*) malloc(size);
+  // if (!s->_stage_array._merge_ptr)
+  //   ERR_MSG("Failure allocating merge array with size %d.",size);
 
 #if STRUCT_WRITER
   if (s->_stage_array._length < (1 << (4 + 2)))
