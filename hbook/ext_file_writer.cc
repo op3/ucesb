@@ -2727,12 +2727,14 @@ void prehandle_ntuple_fill(ext_write_config_comm *comm,
 
 void request_ntuple_fill(ext_write_config_comm *comm,
 			 void *msg,uint32_t *left,
-			 external_writer_buf_header **header
-#if STRUCT_WRITER
-			 ,send_item_chunk **chunk
-#endif
+			 external_writer_buf_header *header,
+			 uint32_t length
 			 )
 {
+#if STRUCT_WRITER
+  send_item_chunk *chunk = NULL;
+#endif
+
 #if USING_CERNLIB || USING_ROOT
   if (_got_sigalarm_timesliced)
     {
@@ -3144,16 +3146,17 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	sizeof (uint32_t);
 
       char *net_io_chunk =
-	ext_net_io_reserve_chunk(max_length,false,chunk);
+	ext_net_io_reserve_chunk(max_length,false,&chunk);
 
-      memcpy(net_io_chunk,*header,sizeof(**header));
-      (*header)->_length = (uint32_t) -1; // force error if someone uses the old data!
+      header = (external_writer_buf_header *) net_io_chunk;
 
-      *header = (external_writer_buf_header *) net_io_chunk;
+      header->_request = htonl(EXTERNAL_WRITER_BUF_NTUPLE_FILL |
+			       EXTERNAL_WRITER_REQUEST_HI_MAGIC);
+      header->_length = (uint32_t) -1;
 
       // sizeof (external_writer_buf_header)
 
-      uint32_t *sort_u32_dest = (uint32_t*) (*header + 1);
+      uint32_t *sort_u32_dest = (uint32_t*) (header + 1);
       for (uint32_t i = 0; i < _g._sort_u32_words; i++)
 	sort_u32_dest[i] = comm->_sort_u32_raw[i];
 
@@ -3348,10 +3351,10 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       // Pad with zeros (to make comparisons work)
 
-      memset(dest,0,(-((char *) dest - (char *) *header))&3);
+      memset(dest,0,(-((char *) dest - (char *) header)) & 3);
 
       uint32_t new_length =
-	((((char *) dest - (char *) *header) + 3) & ~3);
+	((((char *) dest - (char *) header) + 3) & ~3);
       /*
       MSG("rewrite: %d items (%d bpi), %d / nl: %d ml: %d",
 	  (ppp - _stage_array._offset_value) / 2,
@@ -3360,7 +3363,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 	  new_length,max_length);
       */
       assert(new_length <= max_length);
-      (*header)->_length = htonl(new_length);
+      header->_length = htonl(new_length);
+
+      length = new_length;
 
       // note, we cannot commit the chunk yet, as we also intend to
       // use it as a source if writing to stdout.  And after
@@ -3565,6 +3570,24 @@ void request_ntuple_fill(ext_write_config_comm *comm,
   else if (_config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON ||
 	   _config._dump == EXT_WRITER_DUMP_FORMAT_COMPACT_JSON)
     dump_array_json(s);
+
+  if (!chunk)
+    {
+      // We have not compacted the data, so emit as it is.
+
+      char *net_io_chunk =
+	ext_net_io_reserve_chunk(length,
+				 false /* request <
+					  EXTERNAL_WRITER_BUF_NTUPLE_FILL */,
+				 &chunk);
+
+      memcpy(net_io_chunk,header,length);
+    }
+
+  if (_config._stdout)
+    full_write(STDOUT_FILENO,header,length);
+
+  ext_net_io_commit_chunk(length,chunk);
 #endif
 
  statistics:
@@ -4007,10 +4030,6 @@ bool handle_request(ext_write_config_comm *comm,
   bool quit = false;
   size_t expand = 0;
 
-#if STRUCT_WRITER
-  send_item_chunk *chunk = NULL;
-#endif
-
   if (_config._dump_raw)
     {
       fprintf (stderr,"\nRR %d: %d - %zd = %d = 0x%x\n",
@@ -4084,11 +4103,8 @@ bool handle_request(ext_write_config_comm *comm,
     case EXTERNAL_WRITER_BUF_NTUPLE_FILL:
       // May change the message inline (including header)
       request_ntuple_fill(comm,
-			  header+1,&left,&header
-#if STRUCT_WRITER
-			  ,&chunk
-#endif
-			  );
+			  header+1,&left,
+			  header,length);
       break;
     case EXTERNAL_WRITER_BUF_KEEP_ALIVE:
       request_keep_alive(comm,
@@ -4112,23 +4128,26 @@ bool handle_request(ext_write_config_comm *comm,
 	    request,left);
 
 #if STRUCT_WRITER
-  // re-read the length if it was changed
-  length  = ntohl(header->_length);
-
-  if (!chunk)
+  if (request != EXTERNAL_WRITER_BUF_NTUPLE_FILL)
     {
+      // We no longer change the header (ntuple fill handles writing
+      // by itself).  So just check that the length was not changed.
+      assert (length == ntohl(header->_length));
+
+      send_item_chunk *chunk = NULL;
+
       char *net_io_chunk =
 	ext_net_io_reserve_chunk(length,
 				 request < EXTERNAL_WRITER_BUF_NTUPLE_FILL,
 				 &chunk);
 
       memcpy(net_io_chunk,header,length);
+
+      if (_config._stdout)
+	full_write(STDOUT_FILENO,header,length);
+
+      ext_net_io_commit_chunk(length,chunk);
     }
-
-  if (_config._stdout)
-    full_write(STDOUT_FILENO,header,length);
-
-  ext_net_io_commit_chunk(length,chunk);
 #endif
 
   if (expand)
