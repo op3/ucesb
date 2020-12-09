@@ -182,30 +182,33 @@ $(error Cannot compile with cernlib (using deduced flags+libs \
 endif
 endif
 
-AUTO_DEPS += ext_hbook_writer.d
+HBOOK_OBJS = ext_hbook_writer.o
+HBOOK_DEPS = $(HBOOK_OBJS:%.o=%.d)
 
-ext_hbook_writer.d: ext_file_writer.cc
+AUTO_DEPS += $(HBOOK_DEPS)
+
+ext_hbook_%.d: ext_file_%.cc
 	@echo "  DEPS   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
-ext_hbook_writer.o: ext_file_writer.cc ext_hbook_writer.d
+ext_hbook_%.o: ext_file_%.cc ext_hbook_%.d
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(HBOOK_CXXFLAGS) -o $@ -c $<
 
-hbook_writer: ext_hbook_writer.o hbook_writer.base.dep
+hbook_writer: $(HBOOK_OBJS) hbook_writer.base.dep
 	@echo "  LINK   $@"
-	$(QUIET)$(CXX) $(LDFLAGS) $(HBOOK_CXXLINKFLAGS) -o $@ $< \
+	$(QUIET)$(CXX) $(LDFLAGS) $(HBOOK_CXXLINKFLAGS) -o $@ $(HBOOK_OBJS) \
 	  $(HBOOK_CXXLIBS) $(CXXLIBS) || \
 	  echo "Linking $@ failed, perhaps not using CERNLIB" \
 	  "installation correctly.  If not needed, try to make with" \
 	  "NO_CERNLIB=1"
 
-hbook_writer.dep: ext_hbook_writer.d
+hbook_writer.dep: $(HBOOK_DEPS)
 	@echo " FULLDEP $@"
 	$(QUIET)echo "$@ hbook_writer: \\" > $@
-	$(QUIET)cat ext_hbook_writer.d | sed -e 's,^.*:,,g' |\
+	$(QUIET)cat $(HBOOK_DEPS) | sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
 	  $(SPACE_TO_NEWLINE) |\
