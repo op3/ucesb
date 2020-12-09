@@ -269,27 +269,30 @@ all: root_writer
 
 ROOT_CXXFLAGS += -DUSING_ROOT=1
 
-AUTO_DEPS += ext_root_writer.d
+ROOT_OBJS = ext_root_writer.o
+ROOT_DEPS = $(ROOT_OBJS:%.o=%.d)
 
-ext_root_writer.d: ext_file_writer.cc
+AUTO_DEPS += $(ROOT_DEPS)
+
+ext_root_%.d: ext_file_%.cc
 	@echo "  DEPS   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
-ext_root_writer.o: ext_file_writer.cc ext_root_writer.d
+ext_root_%.o: ext_file_%.cc ext_root_%.d
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(ROOT_CXXFLAGS) -o $@ -c $<
 
-root_writer: ext_root_writer.o root_writer.base.dep
+root_writer: $(ROOT_OBJS) root_writer.base.dep
 	@echo "  LINK   $@"
-	$(QUIET)$(CXX) $(LDFLAGS) $(ROOT_CXXLINKFLAGS) -o $@ $< \
+	$(QUIET)$(CXX) $(LDFLAGS) $(ROOT_CXXLINKFLAGS) -o $@ $(ROOT_OBJS) \
 	  $(ROOT_CXXLIBS) $(CXXLIBS)
 
-root_writer.dep: ext_root_writer.d
+root_writer.dep: $(ROOT_DEPS)
 	@echo " FULLDEP $@"
 	$(QUIET)echo "$@ root_writer: \\" > $@
-	$(QUIET)cat ext_root_writer.d | sed -e 's,^.*:,,g' |\
+	$(QUIET)cat $(ROOT_DEPS) | sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
 	  $(SPACE_TO_NEWLINE) |\
