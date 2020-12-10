@@ -224,10 +224,12 @@ endif # $(MAKECMDGOALS) has hbook_writer
 
 #####################################################################
 
+ifndef NO_ROOT
 ifneq (,$(filter root_writer struct_writer,$(MAKECMDGOALS)))
 FILE_ROOT_CONFIG:=$(shell which root-config 2> /dev/null)
 ifeq (,$(FILE_ROOT_CONFIG))
 FILE_ROOT_CONFIG=$(shell which $(ROOTSYS)/bin/root-config 2> /dev/null)
+endif
 endif
 
 ROOTCINT_OPTS=
