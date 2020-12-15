@@ -195,7 +195,7 @@ EXT_DECL_DATA_SRC_FCN_ARG(void,EXT_SST::__unpack,uint32 sam,uint32 gtb,uint32 si
   decode_stream(src,src_end,
 		dest,dest_end);
 
-  uint16* ped_add = _sst_ped_add[branch][sam][gtb][siderem];
+  uint32* ped_add = _sst_ped_add[branch][sam][gtb][siderem];
 
   if (!ped_add)
     ERROR("(compression) pedestals for branch%d sam%dgtb%dsid%d not known",

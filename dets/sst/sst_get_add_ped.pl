@@ -75,7 +75,7 @@ print <<"EndOfText";
 
 \#include <memory.h>
 
-uint16 *_sst_ped_add[4][16][2][16];
+uint32 *_sst_ped_add[4][16][2][16];
 
 void init_sst_ped_add()
 {
