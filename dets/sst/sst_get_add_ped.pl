@@ -47,7 +47,7 @@ while(my $line = <>)
 	my $varname = "_sst_ped_add_branch${branch}sam${sam}gtb${gtb}sid${sid}";
 	$varnames{"[$branch][$sam][$gtb][$sid]"} = $varname;
 
-	print ("uint16 ${varname}[1024] = {\n");
+	print ("uint32 ${varname}[1024] = {\n");
 	for (my $i = 0; $i < 1024; $i += 16) {
 	    my $valline = <>;
 
