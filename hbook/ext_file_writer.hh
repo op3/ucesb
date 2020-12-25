@@ -157,6 +157,15 @@ void ext_net_io_commit_chunk(size_t length,send_item_chunk *chunk);
 
 void ext_net_io_server_close();
 
+/* ****************************************************************** */
+
+void ext_merge_insert_chunk(offset_array *oa,
+			    uint32_t *msgstart,
+			    uint32_t prelen, uint32_t plen,
+			    uint32_t maxdestplen);
+
+/* ****************************************************************** */
+
 #endif/*DO_EXT_NET_DECL*/
 
 #endif/*__EXT_FILE_WRITER_HH__*/

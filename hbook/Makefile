@@ -182,10 +182,10 @@ $(error Cannot compile with cernlib (using deduced flags+libs \
 endif
 endif
 
-HBOOK_OBJS = ext_hbook_writer.o
+HBOOK_OBJS = ext_hbook_writer.o ext_hbook_merge.o
 HBOOK_DEPS = $(HBOOK_OBJS:%.o=%.d)
 
-AUTO_DEPS += $(HBOOK_DEPS)
+AUTO_DEPS += ext_hbook_writer.d
 
 ext_hbook_%.d: ext_file_%.cc
 	@echo "  DEPS   $@"
@@ -272,7 +272,7 @@ all: root_writer
 
 ROOT_CXXFLAGS += -DUSING_ROOT=1
 
-ROOT_OBJS = ext_root_writer.o
+ROOT_OBJS = ext_root_writer.o ext_root_merge.o
 ROOT_DEPS = $(ROOT_OBJS:%.o=%.d)
 
 AUTO_DEPS += $(ROOT_DEPS)
@@ -323,7 +323,7 @@ STRUCT_CXXFLAGS +=
 STRUCT_CXXLINKFLAGS +=
 STRUCT_CXXLIBS      +=
 
-STRUCT_OBJS = ext_struct_writer.o ext_struct_net_io.o
+STRUCT_OBJS = ext_struct_writer.o ext_struct_net_io.o ext_struct_merge.o
 STRUCT_DEPS = $(STRUCT_OBJS:%.o=%.d)
 
 AUTO_DEPS += $(STRUCT_DEPS)
