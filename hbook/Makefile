@@ -317,37 +317,31 @@ STRUCT_CXXFLAGS +=
 STRUCT_CXXLINKFLAGS +=
 STRUCT_CXXLIBS      +=
 
-AUTO_DEPS += ext_struct_writer.d ext_struct_net_io.d
+STRUCT_OBJS = ext_struct_writer.o ext_struct_net_io.o
+STRUCT_DEPS = $(STRUCT_OBJS:%.o=%.d)
 
-ext_struct_writer.d: ext_file_writer.cc
+AUTO_DEPS += $(STRUCT_DEPS)
+
+ext_struct_%.d: ext_file_%.cc
 	@echo "  DEPS   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
 	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
 	> $@
 
-ext_struct_writer.o: ext_file_writer.cc ext_struct_writer.d
+ext_struct_%.o: ext_file_%.cc ext_struct_%.d
 	@echo "   CXX   $@"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
 
-ext_struct_net_io.d: ext_file_net_io.cc
-	@echo "  DEPS   $@"
-	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -MM -MG $< | \
-	  sed -e 's,\($(*F)\)\.o[ :]*,$*.o $@ : ,g' \
-	> $@
-
-ext_struct_net_io.o: ext_file_net_io.cc ext_struct_net_io.d
-	@echo "   CXX   $@"
-	$(QUIET)$(CXX) $(CXXFLAGS) $(STRUCT_CXXFLAGS) -o $@ -c $<
-
-struct_writer: ext_struct_writer.o ext_struct_net_io.o struct_writer.base.dep
+struct_writer: $(STRUCT_OBJS) struct_writer.base.dep
 	@echo "  LINK   $@"
 	$(QUIET)$(CXX) $(LDFLAGS) $(STRUCT_CXXLINKFLAGS) -o $@ \
-	  ext_struct_writer.o ext_struct_net_io.o $(STRUCT_CXXLIBS) $(CXXLIBS)
+	  $(STRUCT_OBJS) \
+	  $(STRUCT_CXXLIBS) $(CXXLIBS)
 
-struct_writer.dep: ext_struct_writer.d ext_struct_net_io.d ext_data_client.d
+struct_writer.dep: $(STRUCT_DEPS) ext_data_client.d
 	@echo " FULLDEP $@"
 	$(QUIET)echo "$@ struct_writer: \\" > $@
-	$(QUIET)cat ext_struct_writer.d ext_struct_net_io.d ext_data_client.d | \
+	$(QUIET)cat $(STRUCT_DEPS) ext_data_client.d | \
 	  sed -e 's,^.*:,,g' |\
 	  sed -e 's,^#.*,,g' |\
 	  sed -e 's,^.*:,,g' |\
