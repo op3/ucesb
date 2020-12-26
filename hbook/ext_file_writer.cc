@@ -2731,6 +2731,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 			 uint32_t length
 			 )
 {
+  uint32_t *raw_sort_u32 = NULL;
   uint32_t *raw_ptr = NULL;
   uint32_t  raw_words = 0;
 
@@ -2795,7 +2796,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   // MSG("left %d.",*left);
 
-  comm->_raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+  comm->_raw_sort_u32 = raw_sort_u32 =
+    get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 
   uint32_t struct_index = get_buf_uint32(&msg,left);
@@ -3161,7 +3163,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       uint32_t *sort_u32_dest = (uint32_t*) (header + 1);
       for (uint32_t i = 0; i < _g._sort_u32_words; i++)
-	sort_u32_dest[i] = comm->_sort_u32_raw[i];
+	sort_u32_dest[i] = raw_sort_u32[i];
 
       uint32_t *struct_index_dest =
 	sort_u32_dest + _g._sort_u32_words;
