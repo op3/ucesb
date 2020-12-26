@@ -2796,9 +2796,13 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   // MSG("left %d.",*left);
 
-  comm->_raw_sort_u32 = raw_sort_u32 =
-    get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
-  comm->_keep_alive_event = 0;
+  raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+
+  if (comm)
+    {
+      comm->_raw_sort_u32 = raw_sort_u32;
+      comm->_keep_alive_event = 0;
+    }
 
   uint32_t struct_index = get_buf_uint32(&msg,left);
   uint32_t ntuple_index = get_buf_uint32(&msg,left);
