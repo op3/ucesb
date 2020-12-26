@@ -2707,21 +2707,21 @@ void radix_sort(uint32_t *src,
 void request_keep_alive(ext_write_config_comm *comm,
 			void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+  comm->_raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
 
 void prehandle_keep_alive(ext_write_config_comm *comm,
 			  void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+  comm->_raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 1;
 }
 
 void prehandle_ntuple_fill(ext_write_config_comm *comm,
 			   void *msg,uint32_t *left)
 {
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+  comm->_raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 }
 
@@ -2795,7 +2795,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   // MSG("left %d.",*left);
 
-  comm->_sort_u32_raw = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
+  comm->_raw_sort_u32 = get_buf_raw_ptr(&msg,left,_g._sort_u32_words);
   comm->_keep_alive_event = 0;
 
   uint32_t struct_index = get_buf_uint32(&msg,left);
@@ -4619,8 +4619,8 @@ int comm_next_item_compare_less(ext_write_config_comm *comm1,
 {
   for (uint32_t i = 0; i < _g._sort_u32_words; i++)
     {
-      uint32_t v1 = ntohl(comm1->_sort_u32_raw[i]);
-      uint32_t v2 = ntohl(comm2->_sort_u32_raw[i]);
+      uint32_t v1 = ntohl(comm1->_raw_sort_u32[i]);
+      uint32_t v2 = ntohl(comm2->_raw_sort_u32[i]);
 
       if (v1 < v2)
 	return 1;

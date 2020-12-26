@@ -72,7 +72,7 @@ struct ext_write_config_comm
 
   ext_write_config_comm *_next;
 
-  uint32_t   *_sort_u32_raw; // For next event in buffer
+  uint32_t   *_raw_sort_u32; // For next event in buffer
   uint32_t    _keep_alive_event;
 };
 
