@@ -749,6 +749,18 @@ void request_named_string(void *msg,uint32_t *left)
 
 void full_write(int fd,const void *buf,size_t count);
 
+void merge_all_remaining()
+{
+  for (global_struct_vector::iterator iter = _structures.begin();
+       iter != _structures.end(); ++iter)
+    {
+      global_struct *s = *iter;
+
+      ext_merge_sort_all(&s->_offset_array,
+			 s->_stage_array._length);
+    }
+}
+
 void close_structure(global_struct *s, size_t *num_trees)
 {
 #if USING_CERNLIB
@@ -4165,6 +4177,16 @@ bool handle_request(ext_write_config_comm *comm,
 			 header+1,&left);
       break;
     case EXTERNAL_WRITER_BUF_DONE:
+      /* Dump all merge data we have before we copy the 'done/abort'
+       * entry.
+       */
+      merge_all_remaining();
+      /* Note: there is also an exit path internally on abort.  Since
+       * that is an uncontrolled exit, we do not emit incomplete merges
+       * for that one.  Consequently, we also do not merge remaining
+       * for ABORT messages.
+       */
+      /*FALLTHROUGH*/
     case EXTERNAL_WRITER_BUF_ABORT:
       quit = true;
       break; // not very reachable

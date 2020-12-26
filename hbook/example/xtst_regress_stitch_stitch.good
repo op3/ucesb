@@ -38,3 +38,23 @@ regress1wr5srcid =
                        0
 regress1wr6srcid =
                        0
+--- === --- === ---
+TRIGGER =             14
+EVENTNO =              3
+STIDX =                0
+TSTAMPLO =    4294951270
+TSTAMPHI =             3
+TSTAMPSRCID =
+                       2
+regress1wr1srcid =
+                       0
+regress1wr2srcid =
+                       0
+regress1wr3srcid =
+                       2
+regress1wr4srcid =
+                       0
+regress1wr5srcid =
+                       0
+regress1wr6srcid =
+                       0

@@ -629,3 +629,12 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
   //store->_offset_last = store->_used;
   store->_used = need;
 }
+
+void ext_merge_sort_all(offset_array *oa,
+			uint32_t maxdestplen)
+{
+  ext_merge_sort_all_until(NULL /* no comm */,
+			   oa,
+			   (uint64_t) -1,
+			   maxdestplen);
+}
