@@ -74,9 +74,6 @@ struct ext_write_config_comm
 
   uint32_t   *_sort_u32_raw; // For next event in buffer
   uint32_t    _keep_alive_event;
-
-  uint32_t   *_raw_ptr;
-  uint32_t    _raw_words;
 };
 
 struct ext_write_config

@@ -2731,6 +2731,9 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 			 uint32_t length
 			 )
 {
+  uint32_t *raw_ptr = NULL;
+  uint32_t  raw_words = 0;
+
 #if STRUCT_WRITER
   send_item_chunk *chunk = NULL;
 #endif
@@ -2806,8 +2809,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
   if (s->_max_raw_words)
     {
-      comm->_raw_words = get_buf_uint32(&msg,left);
-      comm->_raw_ptr = get_buf_raw_ptr(&msg,left,comm->_raw_words);
+      raw_words = get_buf_uint32(&msg,left);
+      raw_ptr = get_buf_raw_ptr(&msg,left,raw_words);
     }
 
   uint32_t marker = get_buf_uint32(&msg,left);
@@ -3141,7 +3144,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       max_length += sizeof (external_writer_buf_header);
       max_length +=
 	(_g._sort_u32_words +
-	 (s->_max_raw_words ? 1 + comm->_raw_words : 0) +
+	 (s->_max_raw_words ? 1 + raw_words : 0) +
 	 3) * // 3: struct_index + ntuple_index + mark_dest
 	sizeof (uint32_t);
 
@@ -3173,11 +3176,11 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
       if (s->_max_raw_words)
 	{
-	  *(raw_dest++) = htonl(comm->_raw_words);
-	  memcpy(raw_dest, comm->_raw_ptr,
-		 sizeof(uint32_t) * comm->_raw_words);
+	  *(raw_dest++) = htonl(raw_words);
+	  memcpy(raw_dest, raw_ptr,
+		 sizeof(uint32_t) * raw_words);
 
-	  raw_dest += comm->_raw_words;
+	  raw_dest += raw_words;
 	}
 
       uint32_t *mark_dest = raw_dest;
