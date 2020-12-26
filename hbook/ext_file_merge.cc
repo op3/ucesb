@@ -30,6 +30,16 @@
 extern const char *_argv0;
 extern int _got_sigio;
 
+#if 0
+#define MRG_DBG(...) {				\
+    fprintf(stdout,__VA_ARGS__);		\
+    fprintf(stdout,"\n");			\
+  }
+#else
+#define MRG_DBG(...) ((void) 0)
+#endif
+
+
 /* Handling of merging (time stitching) of events.
  *
  * All events are handed over to us, and not processed further.
@@ -258,7 +268,7 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 	}
     }
 
-  printf ("merged: %zd\n", pp - pdest);
+  MRG_DBG ("merged: %zd\n", pp - pdest);
 
   return pp;
 }
@@ -294,8 +304,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	}
     }
 
-  printf ("merge_until %016llx , oldest: %016llx\n",
-	  t_until, toldest);
+  MRG_DBG ("merge_until %016llx , oldest: %016llx\n",
+	   t_until, toldest);
 
   if (toldest >= t_until)
     {
@@ -303,9 +313,9 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
       return false;
     }
 
-  printf ("-------------------------------------------------------\n");
-  printf ("merge %016llx...\n",
-	  toldest);
+  MRG_DBG ("-------------------------------------------------------\n");
+  MRG_DBG ("merge %016llx...\n",
+	   toldest);
 
   /* Look through the chunks to find which can contribute an event
    * (i.e. are within window).
@@ -395,8 +405,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	}
     }
 
-  printf ("merge %016llx...  %d chunks\n",
-	  toldest, _num_merge_incl);
+  MRG_DBG ("merge %016llx...  %d chunks\n",
+	   toldest, _num_merge_incl);
 
   assert(_num_merge_incl >= 1);
 
@@ -436,17 +446,17 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
   header->_length = htonl(length);
 
-  printf ("merged: %x %zd\n", result._flags, pend - _merge_dest);
+  MRG_DBG ("merged: %x %zd\n", result._flags, pend - _merge_dest);
 
   for (uint32_t *p = _merge_dest; p < pend; p++)
     {
-      printf ("%08x\n", *p);
+      MRG_DBG ("%08x\n", *p);
     }
 
   uint32_t left = length - sizeof (external_writer_buf_header);
 
 
-  printf ("-------------------------------------------------------\n");
+  MRG_DBG ("-------------------------------------------------------\n");
 
   return true;
 }
@@ -456,7 +466,6 @@ void ext_merge_sort_all_until(ext_write_config_comm *comm,
 			      uint64_t t_until,
 			      uint32_t maxdestplen)
 {
-
   for ( ; ; )
     {
       if (!ext_merge_sort_until(comm, oa, t_until, maxdestplen))
@@ -481,7 +490,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
   for (uint32_t *p = msgstart; p < pend; p++)
     {
-      printf ("%08x\n", *p);
+      MRG_DBG ("%08x\n", *p);
     }
 
   tstamp_lo = ntohl(pstart[oa->_poffset_ts_lo]);
@@ -510,8 +519,8 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
     }
 
-  printf("merge_insert: srcid:%d ts:%08x:%08x meventno:%d (%d+%d)\n",
-	 srcid, tstamp_hi, tstamp_lo, meventno, prelen, plen);
+  MRG_DBG("merge_insert: srcid:%d ts:%08x:%08x meventno:%d (%d+%d)\n",
+	  srcid, tstamp_hi, tstamp_lo, meventno, prelen, plen);
 
   if (srcid >= _alloc_items_store)
     {
