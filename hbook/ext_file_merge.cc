@@ -74,7 +74,7 @@ extern int _got_sigio;
 struct merge_item_incl
 {
   uint32_t *_p;
-  uint32_t  _length;
+  uint32_t *_pend;
 };
 
 struct merge_result
@@ -156,7 +156,7 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 
 	  if (val)
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_IVALUE;
-	  /* We must go through all sources, to increment
+	  /* We must anyhow go through all sources, to increment
 	   * their pointers.
 	   */
 	}
@@ -204,6 +204,8 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
   uint32_t *pp = pdest;
 
+  size_t s;
+
   while (o < oend)
     {
       uint32_t mark   = *(o++);
@@ -230,11 +232,9 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 	   */
 
 	  /* Remember the address of the destination controlling item. */
-	  uint32_t *pploop = pp;
+	  uint32_t *pploop = pp++;
 
 	  uint32_t loops = 0;
-
-	  size_t s;
 
 	  for (s = 0; s < _num_merge_incl; s++)
 	    {
@@ -266,6 +266,17 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
 	  o = onext;
 	}
+    }
+
+  /* Check that all sources reached their end exactly. */
+
+  for (s = 0; s < _num_merge_incl; s++)
+    {
+      merge_item_incl *incl = &_merge_incl[s];
+
+      if (incl->_p != incl->_pend)
+	ERR_MSG("Source (%zd) not used fully for merging, %zd items left.",
+		s, incl->_pend - incl->_p);
     }
 
   MRG_DBG ("merged: %zd\n", pp - pdest);
@@ -366,7 +377,7 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
 	  /* The item data begins after the header. */
 	  incl->_p = (uint32_t *) (msg + item->_prelen);
-	  incl->_length = item->_plen;
+	  incl->_pend = (uint32_t *) (((char *) incl->_p) + item->_plen);
 
 	  /* Move the store forward. */
 	  store->_offset_first +=
@@ -576,6 +587,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
       //store->_offset_last = 0;
       store->_used = 0;
       store->_alloc = 0;
+      store->_buf = NULL;
     }
   else if (store->_offset_first >= store->_used)
     {
