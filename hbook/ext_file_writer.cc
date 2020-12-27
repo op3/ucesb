@@ -1160,11 +1160,13 @@ void request_array_offsets(void *msg,uint32_t *left)
 
   // MSG("Offsets...");
 
+  /*
   fprintf(stderr, "merge offsets: %d %d %d %d\n",
 	  s->_offset_array._poffset_ts_lo,
 	  s->_offset_array._poffset_ts_hi,
 	  s->_offset_array._poffset_ts_srcid,
 	  s->_offset_array._poffset_meventno);
+  */
 
   /* This structure is done. */
   _cur_structure = NULL;
@@ -3008,7 +3010,7 @@ void request_ntuple_fill(ext_write_config_comm *comm,
       assert(pp <= s->_stage_array._offset_value + s->_stage_array._length);
 #endif
       
-      fprintf (stderr,"merge: %d\n", _config._ts_merge_window);
+      // fprintf (stderr,"merge: %d\n", _config._ts_merge_window);
 
       if (!from_merge &&
 	  _config._ts_merge_window)

@@ -699,3 +699,20 @@ void ext_merge_sort_all(offset_array *oa,
 			   (uint64_t) -1,
 			   maxdestplen);
 }
+
+
+
+/*
+  file_input/empty_file --lmd --random-trig --caen-v775=2 --caen-v1290=2 \
+    --wr-stamp=mergetest --events=30 > \
+    file30.lmd
+
+  xtst/xtst file30.lmd \
+    --ntuple=UNPACK,regress1,ID=xtst_regress,STRUCT,gdb,- > \
+    ext30_many.dump
+
+  hbook/struct_writer - --header=ext30_many.hh < ext30_many.dump
+
+  hbook/struct_writer - --time-stitch=1000 < ext30_many.dump | less
+*/
+
