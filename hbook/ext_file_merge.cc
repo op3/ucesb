@@ -30,10 +30,11 @@
 extern const char *_argv0;
 extern int _got_sigio;
 
-#if 0
+#define DO_MRG_DBG 0
+
+#if DO_MRG_DBG
 #define MRG_DBG(...) {				\
     fprintf(stdout,__VA_ARGS__);		\
-    fprintf(stdout,"\n");			\
   }
 #else
 #define MRG_DBG(...) ((void) 0)
@@ -135,6 +136,7 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
       for (s = 0; s < _num_merge_incl; s++)
 	{
 	  merge_item_incl *incl = &_merge_incl[s];
+	  MRG_DBG("i0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 	  uint32_t val = *(incl->_p++);
 
 	  /* We always set the value.  Cheaper than a branch,
@@ -152,6 +154,7 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
       for (s++ ; s < _num_merge_incl; s++)
 	{
 	  merge_item_incl *incl = &_merge_incl[s];
+	  MRG_DBG("i1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 	  uint32_t val = *(incl->_p++);
 
 	  if (val)
@@ -171,9 +174,12 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
       for (s = 0; s < _num_merge_incl; s++)
 	{
 	  merge_item_incl *incl = &_merge_incl[s];
+	  MRG_DBG("f0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 	  uint32_t val = *(incl->_p++);
 
 	  *pp = val;
+
+	  val = ntohl(val);
 
 	  if ((val & 0x7f800000) == 0x7f800000)
 	    break;
@@ -181,7 +187,10 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
       for (s++ ; s < _num_merge_incl; s++)
 	{
 	  merge_item_incl *incl = &_merge_incl[s];
+	  MRG_DBG("f1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 	  uint32_t val = *(incl->_p++);
+
+	  val = ntohl(val);
 
 	  if ((val & 0x7f800000) == 0x7f800000)
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_FVALUE;
@@ -206,11 +215,24 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
   size_t s;
 
+#if DO_MRG_DBG
+  for (s = 0; s < _num_merge_incl; s++)
+    {
+      merge_item_incl *incl = &_merge_incl[s];
+
+      MRG_DBG ("Source %zd: %p - %p\n",
+	       s, incl->_p, incl->_pend);
+    }
+#endif
+
   while (o < oend)
     {
       uint32_t mark   = *(o++);
       uint32_t offset = *(o++);
       uint32_t loop = mark & EXTERNAL_WRITER_MARK_LOOP;
+
+      MRG_DBG("[%4zd]: %08x %08x\n",
+	      o - 2 - oa->_ptr, mark, offset);
 
       (void) offset;
 
@@ -222,6 +244,9 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 	  uint32_t loop_size = *(o++);
 
 	  uint32_t *onext = o + 2 * max_loops * loop_size;
+
+	  MRG_DBG("loop: %d * %d = %d\n",
+		  max_loops, loop_size, max_loops * loop_size);
 
 	  /* For lists (loops) we add data from all sources,
 	   * individually.  Thus the peril is if there are too many
@@ -240,11 +265,30 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 	    {
 	      merge_item_incl *incl = &_merge_incl[s];
 
-	      uint32_t val = *(incl->_p++);
+	      MRG_DBG("l0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 
-	      loops += val;
+	      uint32_t val = htonl(*(incl->_p++));
 
-	      uint32_t items = val * loop_size;
+	      uint32_t use_loops;
+
+	      if (loops + val > max_loops)
+		{
+		  use_loops = max_loops - loops;
+		  result->_flags |= EXT_FILE_MERGE_ARRAY_OVERFLOW;
+		}
+	      else
+		use_loops = val;
+
+	      loops += use_loops;
+
+	      uint32_t skip_loops = val - use_loops;
+
+	      uint32_t items = use_loops * loop_size;
+	      uint32_t skip_items = skip_loops * loop_size;
+
+	      MRG_DBG("loop: v:%d use: %d items: %d skip_items: %d\n",
+		      val, use_loops, items, skip_items);
+
 	      uint32_t i;
 
 	      for (i = items; i; i--)
@@ -255,14 +299,19 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 		  (void) item_mark;
 		  (void) item_offset;
 
+		  MRG_DBG("l1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
+
 		  uint32_t val = *(incl->_p++);
 
 		  /* Simply copy the item. */
 		  *(pp++) = val;
 		}
+
+	      /* Jump past the items that would not fit. */
+	      incl->_p += skip_items;
 	    }
 
-	  *pploop = loops;
+	  *pploop = ntohl(loops);
 
 	  o = onext;
 	}

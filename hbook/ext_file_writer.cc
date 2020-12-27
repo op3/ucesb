@@ -2956,6 +2956,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
 
 	      // MSG ("               %d * %d => %d",value,loop_size,items);
 
+	      // onext has already been checked in request_array_offsets()
+
 	      if (pend - pcheck < items)
 		ERR_MSG("Fill value array too short (%zd) "
 			"for offset array controlled items (%" PRIu32 "*"

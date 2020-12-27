@@ -274,9 +274,9 @@ ext_data_struct_info_print_map_success(struct ext_data_structure_info *
 /* Several sources had non-zero value for a static integer value. */
 #define EXT_FILE_MERGE_MULTIPLE_IVALUE           0x04
 /* Several sources had non-zero value for a static float value. */
-#define EXT_FILE_MERGE_MULTIPLE_FVALUE           0x04
-
-
+#define EXT_FILE_MERGE_MULTIPLE_FVALUE           0x08
+/* Too many items for array - overflow. */
+#define EXT_FILE_MERGE_ARRAY_OVERFLOW            0x10
 
 /*************************************************************************/
 
