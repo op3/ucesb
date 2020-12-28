@@ -262,6 +262,8 @@ void cwn_ptrs_indexed_item(read_write_ptrs_external &w,indexed_item *array,
 	    mark |= EXTERNAL_WRITER_MARK_TS_SRCID;
 	  if (info & IND_ITEM_TYPE_MEVENTNO)
 	    mark |= EXTERNAL_WRITER_MARK_MEVENTNO;
+	  if (info & IND_ITEM_TYPE_MRG_STAT)
+	    mark |= EXTERNAL_WRITER_MARK_MRG_STAT;
 
 	  w.dest_int((uint32_t *) dest, mark);
 	}

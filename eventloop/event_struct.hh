@@ -161,6 +161,8 @@ public:
   uint32 tstamp_lo;
   uint32 tstamp_hi;
   uint32 tstamp_srcid;
+  // This is filled by merger in ext_writer, here to provide member:
+  uint32 merge_status;
 #endif
 
 public:
@@ -175,6 +177,7 @@ public:
     tstamp_lo    = 0;
     tstamp_hi    = 0;
     tstamp_srcid = 0;
+    merge_status = 0;
 #endif
   }
 
@@ -213,6 +216,10 @@ public:
 	     enumerate_info(info,&tstamp_srcid,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
 			    ENUM_NTUPLE_TS_SRCID),extra);
+    callback(signal_id(id,"MERGE_STATUS"),
+	     enumerate_info(info,&merge_status,ENUM_TYPE_UINT |
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_MRG_STAT),extra);
 #endif
   }
 
@@ -227,6 +234,7 @@ public:
     ::zero_suppress_info_ptrs(&tstamp_lo,used_info);
     ::zero_suppress_info_ptrs(&tstamp_hi,used_info);
     ::zero_suppress_info_ptrs(&tstamp_srcid,used_info);
+    ::zero_suppress_info_ptrs(&merge_status,used_info);
 #endif
   }
 

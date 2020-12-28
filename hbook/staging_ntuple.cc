@@ -226,6 +226,7 @@ void init_cwn_var(ntuple_item *item,
   if (item->_flags & NTUPLE_ITEM_TS_HI)    write_info |= IND_ITEM_TYPE_TS_HI;
   if (item->_flags & NTUPLE_ITEM_TS_SRCID) write_info |= IND_ITEM_TYPE_TS_SRCID;
   if (item->_flags & NTUPLE_ITEM_MEVENTNO) write_info |= IND_ITEM_TYPE_MEVENTNO;
+  if (item->_flags & NTUPLE_ITEM_MRG_STAT) write_info |= IND_ITEM_TYPE_MRG_STAT;
 
   info.fix_case(var_name);
 

@@ -1003,6 +1003,7 @@ void request_array_offsets(void *msg,uint32_t *left)
   s->_offset_array._poffset_ts_hi    = (uint32_t) -1;
   s->_offset_array._poffset_ts_srcid = (uint32_t) -1;
   s->_offset_array._poffset_meventno = (uint32_t) -1;
+  s->_offset_array._poffset_mrg_stat = (uint32_t) -1;
 
   // MSG ("offsets: %d \n", _offset_array._length);
 
@@ -1053,7 +1054,8 @@ void request_array_offsets(void *msg,uint32_t *left)
       if ((mark & (EXTERNAL_WRITER_MARK_TS_LO |
 		   EXTERNAL_WRITER_MARK_TS_HI |
 		   EXTERNAL_WRITER_MARK_TS_SRCID |
-		   EXTERNAL_WRITER_MARK_MEVENTNO)) &&
+		   EXTERNAL_WRITER_MARK_MEVENTNO |
+		   EXTERNAL_WRITER_MARK_MRG_STAT)) &&
 	  had_loop)
 	{
 	  /* The offset to the item in the raw (before stage) data
@@ -1072,6 +1074,8 @@ void request_array_offsets(void *msg,uint32_t *left)
 	s->_offset_array._poffset_ts_srcid = p_offset;
       if (mark & EXTERNAL_WRITER_MARK_MEVENTNO)
 	s->_offset_array._poffset_meventno = p_offset;
+      if (mark & EXTERNAL_WRITER_MARK_MRG_STAT)
+	s->_offset_array._poffset_mrg_stat = p_offset;
 
       // MSG ("offset: %d %c",offset,(mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
 
@@ -1161,11 +1165,12 @@ void request_array_offsets(void *msg,uint32_t *left)
   // MSG("Offsets...");
 
   /*
-  fprintf(stderr, "merge offsets: %d %d %d %d\n",
+  fprintf(stderr, "merge offsets: %d %d %d %d %d\n",
 	  s->_offset_array._poffset_ts_lo,
 	  s->_offset_array._poffset_ts_hi,
 	  s->_offset_array._poffset_ts_srcid,
-	  s->_offset_array._poffset_meventno);
+	  s->_offset_array._poffset_meventno,
+	  s->_offset_array._poffset_mrg_stat);
   */
 
   /* This structure is done. */

@@ -6,6 +6,8 @@ TSTAMPLO =    4294950912
 TSTAMPHI =             3
 TSTAMPSRCID =
                        2
+MERGE_STATUS =
+                       0
 regress1wr1srcid =
                        0
 regress1wr2srcid =
@@ -26,6 +28,8 @@ TSTAMPLO =    4294951091
 TSTAMPHI =             3
 TSTAMPSRCID =
                        2
+MERGE_STATUS =
+                       0
 regress1wr1srcid =
                        0
 regress1wr2srcid =
@@ -46,6 +50,8 @@ TSTAMPLO =    4294951270
 TSTAMPHI =             3
 TSTAMPSRCID =
                        2
+MERGE_STATUS =
+                       0
 regress1wr1srcid =
                        0
 regress1wr2srcid =

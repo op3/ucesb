@@ -130,6 +130,7 @@ struct offset_array
   uint32_t  _poffset_ts_hi;
   uint32_t  _poffset_ts_srcid;
   uint32_t  _poffset_meventno;
+  uint32_t  _poffset_mrg_stat;
 };
 
 /* ****************************************************************** */

@@ -364,6 +364,7 @@ void enumerate_member_paw_ntuple(const signal_id &id,
   if (info._type & ENUM_NTUPLE_TS_HI)    item->_flags |= NTUPLE_ITEM_TS_HI;
   if (info._type & ENUM_NTUPLE_TS_SRCID) item->_flags |= NTUPLE_ITEM_TS_SRCID;
   if (info._type & ENUM_NTUPLE_MEVENTNO) item->_flags |= NTUPLE_ITEM_MEVENTNO;
+  if (info._type & ENUM_NTUPLE_MRG_STAT) item->_flags |= NTUPLE_ITEM_MRG_STAT;
 
   ntuple->_listing->push_back(item);
 

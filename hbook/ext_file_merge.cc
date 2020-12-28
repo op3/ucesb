@@ -330,6 +330,11 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
   MRG_DBG ("merged: %zd\n", pp - pdest);
 
+  /* result->_flags = 7; */
+
+  if (oa->_poffset_mrg_stat != (uint32_t) -1)
+    pdest[oa->_poffset_mrg_stat] = htonl(result->_flags);
+
   return pp;
 }
 
