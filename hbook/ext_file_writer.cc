@@ -1021,6 +1021,8 @@ void request_array_offsets(void *msg,uint32_t *left)
   uint32_t p_offset = 0;
   bool had_loop = false;
 
+  bool expect_mind_loop2 = false;
+
   // We reset the entire stage array, to use that to verify that each
   // item is used once
 
@@ -1077,6 +1079,31 @@ void request_array_offsets(void *msg,uint32_t *left)
       if (mark & EXTERNAL_WRITER_MARK_MRG_STAT)
 	s->_offset_array._poffset_mrg_stat = p_offset;
 
+      if (!(mark & EXTERNAL_WRITER_MARK_LOOP) &&
+	  (mark & (EXTERNAL_WRITER_MARK_ARRAY_IND1 |
+		   EXTERNAL_WRITER_MARK_ARRAY_MIND)))
+	ERR_MSG("Mark entry @ %zd has loop specialisation info (%08x) "
+		"but is not loop control.",
+		(o - (uint32_t *) msg)-2, mark);
+
+      if ((mark & EXTERNAL_WRITER_MARK_LOOP) &&
+	  (mark & (EXTERNAL_WRITER_MARK_ITEM_INDEX |
+		   EXTERNAL_WRITER_MARK_ITEM_ENDNUM)))
+	ERR_MSG("Mark entry @ %zd has array index item info (%08x) "
+		"but is loop control.",
+		(o - (uint32_t *) msg)-2, mark);
+
+      if (expect_mind_loop2 &&
+	  !(mark & EXTERNAL_WRITER_MARK_LOOP))
+	{
+	  ERR_MSG("Mark entry @ %zd expected to be 2nd loop after m-ind loop, "
+		  "but is not loop control (%08x).",
+		  (o - (uint32_t *) msg)-2, mark);
+	}
+
+      bool loop_mark_array_ind1 = !!(mark & EXTERNAL_WRITER_MARK_ARRAY_IND1);
+      bool loop_mark_array_mind = !!(mark & EXTERNAL_WRITER_MARK_ARRAY_MIND);
+
       // MSG ("offset: %d %c",offset,(mark & EXTERNAL_WRITER_COMPACT_PACKED) ? '*' : ' ');
 
       p_offset++; /* No need to increment in loop, will vary. */
@@ -1098,6 +1125,13 @@ void request_array_offsets(void *msg,uint32_t *left)
 	  uint32_t max_loops = *(d++) = ntohl(*(o++));
 	  uint32_t loop_size = *(d++) = ntohl(*(o++));
 
+	  if ((mark & EXTERNAL_WRITER_MARK_ARRAY_MIND) &&
+	      loop_size != 2)
+	    ERR_MSG("Mark ctrl entry @ %zd=0x%zx specifies multi-index "
+		    "loop, but loop_size (%d) != 2.",
+		    (o - (uint32_t *) msg)-4,(o - (uint32_t *) msg)-4,
+		    loop_size);
+
 	  // MSG ("               %d * %d",max_loops,loop_size);
 
 	  uint32_t items = max_loops * loop_size;
@@ -1111,37 +1145,85 @@ void request_array_offsets(void *msg,uint32_t *left)
 
 	  s->_offset_array._max_items += items;
 
-	  for (int i = items; i; i--)
-	    {
-	      // Make sure there are no markers (although they would
-	      // be ignored)
+	  for (int l = 0; l < max_loops; l++)
+	    for (int i = 0; i < loop_size; i++)
+	      {
+		// Make sure there are no markers (although they would
+		// be ignored)
 
-	      mark   = *(d++) = ntohl(*(o++));
-	      offset = *(d++) = ntohl(*(o++));
+		mark   = *(d++) = ntohl(*(o++));
+		offset = *(d++) = ntohl(*(o++));
 
-	      if (offset >= s->_stage_array._length)
-		ERR_MSG("Offset entry @ %zd=0x%zx is outside "
-			"(%" PRIu32 ") stage array (%zd).",
-			(o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
-			offset,
-			s->_stage_array._length);
-	      if (offset & 3)
-		ERR_MSG("Offset entry @ %zd=0x%zx is unaligned (%d).",
-			(o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
-			offset);
+		if (offset >= s->_stage_array._length)
+		  ERR_MSG("Offset entry @ %zd=0x%zx is outside "
+			  "(%" PRIu32 ") stage array (%zd).",
+			  (o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+			  offset,
+			  s->_stage_array._length);
+		if (offset & 3)
+		  ERR_MSG("Offset entry @ %zd=0x%zx is unaligned (%d).",
+			  (o - (uint32_t *) msg)-1,(o - (uint32_t *) msg)-1,
+			  offset);
 
-	      (*((uint32_t *) (s->_stage_array._ptr + offset)))++;
+		(*((uint32_t *) (s->_stage_array._ptr + offset)))++;
 
-	      if (mark & EXTERNAL_WRITER_MARK_LOOP)
-		ERR_MSG("Controlled offset array item (%d) "
-			"@ %zd=0x%zx is marked "
-			"(0x%08x) as control item.",
-			items - i,
-			(o - (uint32_t *) msg),(o - (uint32_t *) msg),
-			mark);
-	    }
+		if (mark & EXTERNAL_WRITER_MARK_LOOP)
+		  ERR_MSG("Controlled offset array item (%d,%d) "
+			  "@ %zd=0x%zx is marked "
+			  "(0x%08x) as control item.",
+			  l,i,
+			  (o - (uint32_t *) msg)-2,(o - (uint32_t *) msg)-2,
+			  mark);
+
+		bool mark_item_index =
+		  !!(mark & EXTERNAL_WRITER_MARK_ITEM_INDEX);
+		bool mark_item_endnum =
+		  !!(mark & EXTERNAL_WRITER_MARK_ITEM_ENDNUM);
+
+		if (mark_item_index && (i != 0))
+		  ERR_MSG("Controlled offset array item (%d,%d) "
+			  "@ %zd=0x%zx is marked "
+			  "(0x%08x) as index at non-0 index.",
+			  l,i,
+			  (o - (uint32_t *) msg)-2,(o - (uint32_t *) msg)-2,
+			  mark);
+
+		if (mark_item_endnum && (i != 1))
+		  ERR_MSG("Controlled offset array item (%d,%d) "
+			  "@ %zd=0x%zx is marked "
+			  "(0x%08x) as endnum at non-1 index.",
+			  l,i,
+			  (o - (uint32_t *) msg)-2,(o - (uint32_t *) msg)-2,
+			  mark);
+
+		if ((loop_mark_array_ind1 ||
+		     loop_mark_array_mind) && i == 0 &&
+		    !mark_item_index)
+		  ERR_MSG("Controlled offset array item (%d,%d) "
+			  "@ %zd=0x%zx is not marked "
+			  "(0x%08x) as index, "
+			  "but at index 0 of ind1/m-ind loop.",
+			  l,i,
+			  (o - (uint32_t *) msg)-2,(o - (uint32_t *) msg)-2,
+			  mark);
+
+		if (loop_mark_array_mind && i == 1 &&
+		    !mark_item_endnum)
+		  ERR_MSG("Controlled offset array item (%d,%d) "
+			  "@ %zd=0x%zx is not marked "
+			  "(0x%08x) as index, "
+			  "but at index 1 of ind1/m-ind loop.",
+			  l,i,
+			  (o - (uint32_t *) msg)-2,(o - (uint32_t *) msg)-2,
+			  mark);
+	      }
 	}
+
+      expect_mind_loop2 = loop_mark_array_mind;
     }
+
+  if (expect_mind_loop2)
+    ERR_MSG("Missing expected 2nd loop after m-ind loop.");
 
   s->_offset_array._max_items += s->_offset_array._static_items;
 
