@@ -199,6 +199,93 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 
 }
 
+void ext_merge_array(uint32_t **ptr_o,
+		     uint32_t **ptr_pp,
+		     merge_result *result)
+{
+  uint32_t *o  = *ptr_o;
+  uint32_t *pp = *ptr_pp;
+
+  uint32_t max_loops = *(o++);
+  uint32_t loop_size = *(o++);
+
+  uint32_t *onext = o + 2 * max_loops * loop_size;
+
+  MRG_DBG("loop: %d * %d = %d\n",
+	  max_loops, loop_size, max_loops * loop_size);
+
+  /* For lists (loops) we add data from all sources,
+   * individually.  Thus the peril is if there are too many
+   * items, which cannot be accomodated.
+   *
+   * We also want keep the sorting of items, in case they were
+   * delivered in index order.
+   */
+
+  /* Remember the address of the destination controlling item. */
+  uint32_t *pploop = pp++;
+
+  uint32_t loops = 0;
+  size_t s;
+
+  for (s = 0; s < _num_merge_incl; s++)
+    {
+      merge_item_incl *incl = &_merge_incl[s];
+
+      MRG_DBG("l0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
+
+      uint32_t val = htonl(*(incl->_p++));
+
+      uint32_t use_loops;
+
+      if (loops + val > max_loops)
+	{
+	  use_loops = max_loops - loops;
+	  result->_flags |= EXT_FILE_MERGE_ARRAY_OVERFLOW;
+	}
+      else
+	use_loops = val;
+
+      loops += use_loops;
+
+      uint32_t skip_loops = val - use_loops;
+
+      uint32_t items = use_loops * loop_size;
+      uint32_t skip_items = skip_loops * loop_size;
+
+      MRG_DBG("loop: v:%d use: %d items: %d skip_items: %d\n",
+	      val, use_loops, items, skip_items);
+
+      uint32_t i;
+
+      for (i = items; i; i--)
+	{
+	  uint32_t item_mark = *(o++);
+	  uint32_t item_offset = *(o++);
+
+	  (void) item_mark;
+	  (void) item_offset;
+
+	  MRG_DBG("l1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
+
+	  uint32_t val = *(incl->_p++);
+
+	  /* Simply copy the item. */
+	  *(pp++) = val;
+	}
+
+      /* Jump past the items that would not fit. */
+      incl->_p += skip_items;
+    }
+
+  *pploop = ntohl(loops);
+
+  o = onext;
+
+  *ptr_o  = o;
+  *ptr_pp = pp;
+}
+
 uint32_t *ext_merge_do_merge(offset_array *oa,
 			     uint32_t *pdest,
 			     merge_result *result)
@@ -239,82 +326,7 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
       if (!loop)
 	ext_merge_item(mark, pp++, result);
       else
-	{
-	  uint32_t max_loops = *(o++);
-	  uint32_t loop_size = *(o++);
-
-	  uint32_t *onext = o + 2 * max_loops * loop_size;
-
-	  MRG_DBG("loop: %d * %d = %d\n",
-		  max_loops, loop_size, max_loops * loop_size);
-
-	  /* For lists (loops) we add data from all sources,
-	   * individually.  Thus the peril is if there are too many
-	   * items, which cannot be accomodated.
-	   *
-	   * We also want keep the sorting of items, in case they were
-	   * delivered in index order.
-	   */
-
-	  /* Remember the address of the destination controlling item. */
-	  uint32_t *pploop = pp++;
-
-	  uint32_t loops = 0;
-
-	  for (s = 0; s < _num_merge_incl; s++)
-	    {
-	      merge_item_incl *incl = &_merge_incl[s];
-
-	      MRG_DBG("l0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
-
-	      uint32_t val = htonl(*(incl->_p++));
-
-	      uint32_t use_loops;
-
-	      if (loops + val > max_loops)
-		{
-		  use_loops = max_loops - loops;
-		  result->_flags |= EXT_FILE_MERGE_ARRAY_OVERFLOW;
-		}
-	      else
-		use_loops = val;
-
-	      loops += use_loops;
-
-	      uint32_t skip_loops = val - use_loops;
-
-	      uint32_t items = use_loops * loop_size;
-	      uint32_t skip_items = skip_loops * loop_size;
-
-	      MRG_DBG("loop: v:%d use: %d items: %d skip_items: %d\n",
-		      val, use_loops, items, skip_items);
-
-	      uint32_t i;
-
-	      for (i = items; i; i--)
-		{
-		  uint32_t item_mark = *(o++);
-		  uint32_t item_offset = *(o++);
-
-		  (void) item_mark;
-		  (void) item_offset;
-
-		  MRG_DBG("l1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
-
-		  uint32_t val = *(incl->_p++);
-
-		  /* Simply copy the item. */
-		  *(pp++) = val;
-		}
-
-	      /* Jump past the items that would not fit. */
-	      incl->_p += skip_items;
-	    }
-
-	  *pploop = ntohl(loops);
-
-	  o = onext;
-	}
+	ext_merge_array(&o, &pp, result);
     }
 
   /* Check that all sources reached their end exactly. */
