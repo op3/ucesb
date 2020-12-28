@@ -64,9 +64,20 @@
 #define EXTERNAL_WRITER_COMPACT_PACKED    0x80000000
 #define EXTERNAL_WRITER_COMPACT_NONPACKED 0x40000000
 
+/* ARRAY_IND1 is LOOP with indices of items in first member of each entry */
+/* ARRAY_MIND is a first LOOP with index and end-number of items as
+ * the items of the loop.  It is then followed by a LOOP with contains
+ * the data.
+ */
+
 #define EXTERNAL_WRITER_MARK_LOOP         0x80000000
+/* CLEAR_ZERO must stay at bit 30! (fixed shift in client to deal with NaN) */
 #define EXTERNAL_WRITER_MARK_CLEAR_ZERO   0x40000000 // Clear 0 (else nan).
 #define EXTERNAL_WRITER_MARK_CLEAR_NAN    0          // Dummy!
+#define EXTERNAL_WRITER_MARK_ARRAY_IND1   0x20000000
+#define EXTERNAL_WRITER_MARK_ARRAY_MIND   0x10000000
+#define EXTERNAL_WRITER_MARK_ITEM_INDEX   0x08000000
+#define EXTERNAL_WRITER_MARK_ITEM_ENDNUM  0x04000000
 #define EXTERNAL_WRITER_MARK_CANARY       0x00a50000
 #define EXTERNAL_WRITER_MARK_CANARY_MASK  0x00ff0000
 
