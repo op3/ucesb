@@ -356,16 +356,17 @@ $(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp: $(EXTTDIR)/ext_reader_
 	@touch $@
 
 XTST_EMPTY_FILE_STITCH=--lmd --random-trig --caen-v775=2 --caen-v1290=2 \
-   --wr-stamp=mergetest --events=3
-XTST_REGRESS_STITCH=UNPACK,regress1wr1-6srcid,time-stitch=10,ID=xtst_regress
+   --wr-stamp=mergetest --events=30
+XTST_REGRESS_STITCH=UNPACK,regress1wr1-6srcid,ID=xtst_regress
 
-$(EXTTDIR)/ext_reader_xtst_regress_stitch.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
+$(EXTTDIR)/ext_reader_xtst_regress_stitch%.runstamp: $(EXTTDIR)/ext_reader_xtst_regress $(XTST_FILE)
 	@echo "  TEST   $@"
 	$(QUIET)$(EMPTY_FILE) $(XTST_EMPTY_FILE_STITCH) 2> $@.err3 | \
 	  xtst/xtst --file=- \
-	    --ntuple=$(XTST_REGRESS_STITCH),STRUCT,- 2> $@.err2 | \
+	    --ntuple=$(XTST_REGRESS_STITCH),time-stitch=$(notdir $*),STRUCT,- \
+	    2> $@.err2 | \
 	  hbook/struct_writer - --dump > $@.out 2> $@.err || echo "fail..."
-	@diff -u hbook/example/$(notdir xtst_regress_stitch)_stitch.good $@.out || \
+	@diff -u hbook/example/xtst_regress_stitch_stitch$(notdir $*).good $@.out || \
 	  ( echo "Failure while running: xtst_file | xtst | struct_writer --dump :" ; \
 	    echo "--- stdout: ---" ; cat $@.out ; \
 	    echo "--- stderr (xtst_file): ---"; cat $@.err3 ; \
@@ -384,7 +385,7 @@ xtst: $(EXTTDIR)/ext_reader_xtst_regress.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_more.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_less.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp \
-	$(EXTTDIR)/ext_reader_xtst_regress_stitch.runstamp
+	$(EXTTDIR)/ext_reader_xtst_regress_stitch10.runstamp
 endif
 
 #########################################################
