@@ -385,7 +385,9 @@ xtst: $(EXTTDIR)/ext_reader_xtst_regress.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_more.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_less.runstamp \
 	$(EXTTDIR)/ext_reader_xtst_regress_less_bitpack.runstamp \
-	$(EXTTDIR)/ext_reader_xtst_regress_stitch10.runstamp
+	$(EXTTDIR)/ext_reader_xtst_regress_stitch1.runstamp \
+	$(EXTTDIR)/ext_reader_xtst_regress_stitch10.runstamp \
+	$(EXTTDIR)/ext_reader_xtst_regress_stitch1000.runstamp
 endif
 
 #########################################################
