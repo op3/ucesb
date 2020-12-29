@@ -174,6 +174,8 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 void ext_merge_sort_all(offset_array *oa,
 			uint32_t maxdestplen);
 
+extern uint32_t _max_loop_size;
+
 /* ****************************************************************** */
 
 #endif/*DO_EXT_NET_DECL*/

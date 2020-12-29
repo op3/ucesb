@@ -277,6 +277,8 @@ ext_data_struct_info_print_map_success(struct ext_data_structure_info *
 #define EXT_FILE_MERGE_MULTIPLE_FVALUE           0x08
 /* Too many items for array - overflow. */
 #define EXT_FILE_MERGE_ARRAY_OVERFLOW            0x10
+/* Too many items for multi-item indexed array - overflow. */
+#define EXT_FILE_MERGE_ARRAY_MINDEX_OVERFLOW     0x20
 
 /*************************************************************************/
 

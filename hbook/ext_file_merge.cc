@@ -27,6 +27,8 @@
 #include <assert.h>
 #include <arpa/inet.h>
 
+#include <algorithm>
+
 extern const char *_argv0;
 extern int _got_sigio;
 
@@ -39,7 +41,6 @@ extern int _got_sigio;
 #else
 #define MRG_DBG(...) ((void) 0)
 #endif
-
 
 /* Handling of merging (time stitching) of events.
  *
@@ -236,7 +237,7 @@ void ext_merge_array(uint32_t **ptr_o,
 
       MRG_DBG("l0 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 
-      uint32_t val = htonl(*(incl->_p++));
+      uint32_t val = ntohl(*(incl->_p++));
 
       uint32_t use_loops;
 
@@ -280,7 +281,282 @@ void ext_merge_array(uint32_t **ptr_o,
       incl->_p += skip_items;
     }
 
-  *pploop = ntohl(loops);
+  *pploop = htonl(loops);
+
+  o = onext;
+
+  *ptr_o  = o;
+  *ptr_pp = pp;
+}
+
+struct multi_array_index_item
+{
+  merge_item_incl *_src;
+  int      _s;
+  uint32_t _index;
+  uint32_t _endnum;
+  uint32_t _items;
+  uint32_t _indices_left;
+
+public:
+  bool operator<(const multi_array_index_item &rhs) const
+  {
+    /* Note: STL heap makes maximum number first, so we have to
+     * reverse the sort order.
+     */
+    if (_index > rhs._index)
+      return true;
+    if (_index < rhs._index)
+      return false;
+    /* If indices are the same, prefer the earlier source. */
+    return _s > rhs._s;
+  }
+};
+
+multi_array_index_item *_maii_items = NULL;
+size_t                  _maii_items_alloc = 0;
+
+struct multi_array_copy_item
+{
+  merge_item_incl *_src;
+  uint32_t         _items;
+};
+
+multi_array_copy_item *_maci_items = NULL;
+size_t                 _maci_items_alloc = 0;
+
+/* To know how many items we at worst can have. */
+uint32_t _max_loop_size = 0;
+
+void ext_merge_multi_array(uint32_t **ptr_o,
+			   uint32_t **ptr_pp,
+			   merge_result *result)
+{
+  /* A multi-array is two arrays.  First is an array with indices and
+   * the end item number of each index in the main second array.
+   *
+   * When merging such we must first go through the first arrays of
+   * all sources and merge them together.  I.e. entries wth the same
+   * index should be merged.
+   */
+
+  uint32_t *o  = *ptr_o;
+  uint32_t *pp = *ptr_pp;
+
+  uint32_t max_loops = *(o++);
+  uint32_t loop_size = *(o++);
+
+  uint32_t *data_o = o + 2 * max_loops * loop_size;
+  uint32_t *o2 = data_o;
+
+  o2 += 2; /* Marker and offset for data loop ctrl item. */
+
+  uint32_t data_max_loops = *(o2++);
+  uint32_t data_loop_size = *(o2++);
+
+  uint32_t *onext = o2 + 2 * data_max_loops * data_loop_size;
+
+  /* End of heap where pending sources are stored. */
+  multi_array_index_item *maii_end = _maii_items;
+
+  size_t s;
+
+  /* First find out the first item of each source. */
+  for (s = 0; s < _num_merge_incl; s++)
+    {
+      merge_item_incl *src = &_merge_incl[s];
+
+      /* This is the count of items, i.e. first loop. */
+      uint32_t indices = ntohl(*(src->_p++));
+
+      if (!indices)
+	continue; // This source has no items.
+
+      /* Pick the first index/end info for the source. */
+      uint32_t index  = ntohl(*(src->_p++));
+      uint32_t endnum = ntohl(*(src->_p++));
+
+      /* Set the entry (into last entry of destination array). */
+      maii_end->_s            = s; /* For sort order. */
+      maii_end->_src          = src;
+      maii_end->_index        = index;
+      maii_end->_endnum       = endnum;
+      maii_end->_items        = endnum;
+      maii_end->_indices_left = indices - 1;
+      /* Insert the entry into the correct location. */
+      maii_end++;
+      std::push_heap(_maii_items, maii_end);
+    }
+
+  /* Remember the address of the destination controlling item of the
+   * index/end array.
+   */
+  uint32_t *pploop = pp++;
+
+  uint32_t loops = 0;
+
+  multi_array_copy_item *maci_end  = _maci_items;
+
+  uint32_t cur_index = -1;
+  uint32_t cur_end = 0;
+
+  /* While there are source items with entries to pick... */
+  while (maii_end > _maii_items)
+    {
+      /* Get the first item. */
+      std::pop_heap(_maii_items, maii_end);
+      maii_end--;
+
+      /* Does it continue the previus item, or is it a new one? */
+      if (maii_end->_index != cur_index)
+	{
+	  /* New index.  First make a dummy with zero entries. */
+	  cur_index = maii_end->_index;
+	  *(pp++) = htonl(cur_index);
+	  *(pp++) = htonl(cur_end);
+
+	  loops++;
+	}
+
+      uint32_t use = maii_end->_items;
+
+      /* Try to fill onto the current item.  Do we have too many in total? */
+      if (cur_end + maii_end->_items > data_max_loops)
+	use = data_max_loops - cur_end;
+
+      /* Record for copying. */
+      maci_end->_src   = maii_end->_src;
+      maci_end->_items = use;
+      maci_end++;
+
+      /* Fill last item completely. */
+      cur_end += use;
+      *(pp-1) = htonl(cur_end);
+
+      if (use < maii_end->_items) // Too many
+	{
+	  /* Re-insert item into list, such that we also handle
+	   * the discarding of items properly by the loop below.
+	   */
+	  maii_end->_items -= use;
+	  maii_end++;
+	  std::push_heap(_maii_items, maii_end);
+
+	  result->_flags |= EXT_FILE_MERGE_ARRAY_MINDEX_OVERFLOW;
+	  break;
+	}
+
+      /* Does this source have more indices to handle? */
+      if (!maii_end->_indices_left)
+	continue;
+
+      /* Pick the data for the item. */
+      uint32_t index  = ntohl(*(maii_end->_src->_p++));
+      uint32_t endnum = ntohl(*(maii_end->_src->_p++));
+
+      /* Set the entry (last entry of array). */
+      maii_end->_index  = index;
+      maii_end->_items  = endnum - maii_end->_endnum;
+      maii_end->_endnum = endnum; // prev used line above, so must be here
+      maii_end->_indices_left--;
+      /* Insert the entry into the correct location. */
+      maii_end++;
+      std::push_heap(_maii_items, maii_end);
+    }
+
+  /* Number of unique indices. */
+  *pploop = htonl(loops);
+
+  /* Number of data items, which now will be filled. */
+  (*pp++) = htonl(cur_end);
+
+  /* When we end up here, we have to check if there are any sources
+   * left.  If so, they are not fitting, so we must add them.
+   */
+  multi_array_copy_item *maci_ovfl = maci_end;
+
+  while (maii_end > _maii_items)
+    {
+      /* Get the first item. */
+      std::pop_heap(_maii_items, maii_end);
+      maii_end--;
+
+      maci_ovfl->_src   = maii_end->_src;
+      maci_ovfl->_items = maii_end->_items;
+
+      uint32_t i;
+
+      uint32_t prev_endnum = maii_end->_endnum;
+
+      for (i = maii_end->_indices_left; i; i--)
+	{
+	  /* Pick the data for the item. */
+	  uint32_t index  = ntohl(*(maii_end->_src->_p++));
+	  uint32_t endnum = ntohl(*(maii_end->_src->_p++));
+
+	  (void) index;
+
+	  uint32_t items = endnum - prev_endnum;
+	  prev_endnum = endnum;
+
+	  maci_ovfl->_items += items;
+	}
+      maci_ovfl++;
+    }
+
+  /* For each source, get the second loop count.
+   * Values as such are not needed.
+   */
+  for (s = 0; s < _num_merge_incl; s++)
+    {
+      merge_item_incl *src = &_merge_incl[s];
+
+      /* This is the count of items. */
+      uint32_t val = ntohl(*(src->_p++));
+
+      /* TODO: verify that this count matches the counts we've found above,
+       * and that they match with the total.
+       */
+      (void) val;
+    }
+
+  multi_array_copy_item *maci = _maci_items;
+
+  /* Then we copy the data that shall be copied. */
+  for (maci = _maci_items; maci < maci_end; maci++)
+    {
+      merge_item_incl *src = maci->_src;
+      uint32_t items       = maci->_items;
+
+      uint32_t copy_items = items * data_loop_size;
+      uint32_t i;
+
+      for (i = copy_items; i; i--)
+	{
+	  /* The offset and mark entries we need not look at. */
+
+	  uint32_t val = *(src->_p++);
+
+	  *(pp++) = val;
+	}
+    }
+
+  /* If there were items that simply became too many, then skip
+   * those from the sources.
+   */
+  for ( ; maci < maci_ovfl; maci++)
+    {
+      merge_item_incl *src = maci->_src;
+      uint32_t items       = maci->_items;
+
+      uint32_t copy_items = items * data_loop_size;
+
+      src->_p += copy_items;
+    }
+
+  /* All source items have been consumed, and all destination items
+   * have been set.  We are done.
+   */
 
   o = onext;
 
@@ -327,9 +603,13 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
       if (!loop)
 	ext_merge_item(mark, pp++, result);
+      else if (mark & EXTERNAL_WRITER_MARK_ARRAY_MIND)
+	ext_merge_multi_array(&o, &pp, result);
       else
 	ext_merge_array(&o, &pp, result);
     }
+
+  assert(o == oend);
 
   /* Check that all sources reached their end exactly. */
 
@@ -506,6 +786,33 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
       if (!_merge_incl)
 	ERR_MSG("Failure (re)allocating memory for "
 		"merger destination (%zd bytes).", _merge_dest_alloc);
+    }
+
+  if (_num_merge_incl > _maii_items_alloc)
+    {
+      _maii_items_alloc = 2 * _num_merge_incl; /* factor 2 - hysteresis */
+
+      _maii_items = (multi_array_index_item *)
+	realloc (_maii_items,
+		 _maii_items_alloc * sizeof (multi_array_index_item));
+
+      if (!_maii_items)
+	ERR_MSG("Failure (re)allocating memory for "
+		"merger array index (%zd items).", _maii_items_alloc);
+    }
+
+  if (_num_merge_incl > _maci_items_alloc)
+    {
+      _maci_items_alloc =
+	2 * _num_merge_incl; /* for overflow, and factor 2 */
+
+      _maci_items = (multi_array_copy_item *)
+	realloc (_maci_items,
+		 _maci_items_alloc * sizeof (multi_array_copy_item));
+
+      if (!_maci_items)
+	ERR_MSG("Failure (re)allocating memory for "
+		"merger array copy (%zd items).", _maci_items_alloc);
     }
 
   external_writer_buf_header *header =

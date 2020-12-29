@@ -1145,6 +1145,9 @@ void request_array_offsets(void *msg,uint32_t *left)
 
 	  s->_offset_array._max_items += items;
 
+	  if (loop_size > _max_loop_size)
+	    _max_loop_size = loop_size;
+
 	  for (int l = 0; l < max_loops; l++)
 	    for (int i = 0; i < loop_size; i++)
 	      {
