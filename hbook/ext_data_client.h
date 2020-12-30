@@ -269,7 +269,7 @@ ext_data_struct_info_print_map_success(struct ext_data_structure_info *
 /* There was another (unmerged) event within the timestamp merge window. */
 #define EXT_FILE_MERGE_NEXT_SRCID_WITHIN_WINDOW  0x01
 /* There was a previous (unmerged) event within the timestamp merge window. */
-/* The previous event will have EXT_FILE_MERGE_NEXT_SRCID_WITHIN_WINDOW set.*/
+/* The previous event would have EXT_FILE_MERGE_NEXT_SRCID_WITHIN_WINDOW set.*/
 #define EXT_FILE_MERGE_PREV_SRCID_WITHIN_WINDOW  0x02
 /* Several sources had non-zero value for a static integer value. */
 #define EXT_FILE_MERGE_MULTIPLE_IVALUE           0x04
