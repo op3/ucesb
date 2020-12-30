@@ -447,6 +447,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	  incl->_p = (uint32_t *) (msg + item->_prelen);
 	  incl->_pend = (uint32_t *) (((char *) incl->_p) + item->_plen);
 
+	  result._flags |= item->_flags;
+
 	  /* Move the store forward. */
 	  store->_offset_first +=
 	    sizeof (merge_item_chunk) + item->_prelen + item->_plen;
@@ -465,7 +467,7 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	  uint64_t tstamp2 =
 	    (((uint64_t) item2->_tstamp_hi) << 32) + item2->_tstamp_lo;
 
-	  if (tstamp <= twindow_end)
+	  if (tstamp2 <= twindow_end)
 	    {
 	      /* Mark the current event as having missed
 	       * some (duplicate?) data.
@@ -475,12 +477,12 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	      /* Also mark the item that it should possibly
 	       * have been merged with the previous.
 	       */
-	      item->_flags |=
+	      item2->_flags |=
 		EXT_FILE_MERGE_PREV_SRCID_WITHIN_WINDOW;
 	    }
 
-	  if (tstamp < toldest_cur)
-	    toldest_cur = tstamp;
+	  if (tstamp2 < toldest_cur)
+	    toldest_cur = tstamp2;
 	}
     }
 
