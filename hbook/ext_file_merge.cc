@@ -359,6 +359,14 @@ void ext_merge_multi_array(uint32_t **ptr_o,
   /* End of heap where pending sources are stored. */
   multi_array_index_item *maii_end = _maii_items;
 
+  MRG_DBG("--- multi-array --- \n");
+
+  MRG_DBG("loop: %d * %d = %d    data: %d * %d = %d\n",
+	  max_loops, loop_size,
+	  max_loops * loop_size,
+	  data_max_loops, data_loop_size,
+	  data_max_loops * data_loop_size);
+
   size_t s;
 
   /* First find out the first item of each source. */
@@ -375,6 +383,9 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       /* Pick the first index/end info for the source. */
       uint32_t index  = ntohl(*(src->_p++));
       uint32_t endnum = ntohl(*(src->_p++));
+
+      MRG_DBG("                 [%d] ind:%d num:%d end:%d left:%d\n",
+	      s, index, endnum, endnum, indices - 1);
 
       /* Set the entry (into last entry of destination array). */
       maii_end->_s            = s; /* For sort order. */
@@ -407,6 +418,11 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       std::pop_heap(_maii_items, maii_end);
       maii_end--;
 
+      MRG_DBG("[%d] ind:%d num:%d\n",
+	      maii_end->_s,
+	      maii_end->_index,
+	      maii_end->_items);
+
       /* Does it continue the previus item, or is it a new one? */
       if (maii_end->_index != cur_index)
 	{
@@ -433,6 +449,10 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       cur_end += use;
       *(pp-1) = htonl(cur_end);
 
+      MRG_DBG("pp-ind:%d pp-end:%d\n",
+	      ntohl(*(pp-2)),
+	      ntohl(*(pp-1)));
+
       if (use < maii_end->_items) // Too many
 	{
 	  /* Re-insert item into list, such that we also handle
@@ -454,6 +474,11 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       uint32_t index  = ntohl(*(maii_end->_src->_p++));
       uint32_t endnum = ntohl(*(maii_end->_src->_p++));
 
+      MRG_DBG("                 [%d] ind:%d num:%d end:%d left:%d\n",
+	      maii_end->_s, index,
+	      endnum - maii_end->_endnum, endnum,
+	      maii_end->_indices_left - 1);
+
       /* Set the entry (last entry of array). */
       maii_end->_index  = index;
       maii_end->_items  = endnum - maii_end->_endnum;
@@ -469,6 +494,8 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 
   /* Number of data items, which now will be filled. */
   (*pp++) = htonl(cur_end);
+
+  MRG_DBG("---> %d indices, %d data items\n", loops, cur_end);
 
   /* When we end up here, we have to check if there are any sources
    * left.  If so, they are not fitting, so we must add them.
