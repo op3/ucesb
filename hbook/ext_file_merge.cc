@@ -157,7 +157,8 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 	  MRG_DBG("i1 s: %zd p: %p *p: %08x\n", s, incl->_p, *incl->_p);
 	  uint32_t val = *(incl->_p++);
 
-	  if (val)
+	  if (val &&
+	      !(mark & EXTERNAL_WRITER_MARK_MULT_NON0))
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_IVALUE;
 	  /* We must anyhow go through all sources, to increment
 	   * their pointers.
@@ -192,7 +193,8 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 
 	  val = ntohl(val);
 
-	  if ((val & 0x7f800000) == 0x7f800000)
+	  if ((val & 0x7f800000) == 0x7f800000 &&
+	      !(mark & EXTERNAL_WRITER_MARK_MULT_NON0))
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_FVALUE;
 	}
     }
