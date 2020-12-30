@@ -62,15 +62,18 @@ public:
   {
     callback(signal_id(id,"TRIGGER"),
 	     enumerate_info(info,&trigger,ENUM_TYPE_USHORT |
-			    ENUM_NTUPLE_ALWAYS,0,15),extra);
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_MULT_NON0,0,15),extra);
     callback(signal_id(id,"EVENTNO"),
 	     enumerate_info(info,&event_no,ENUM_TYPE_UINT |
-			    ENUM_NTUPLE_ALWAYS),extra);
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_MULT_NON0),extra);
 #if STICKY_EVENT_IS_NONTRIVIAL
     callback(signal_id(id,"STIDX"),
 	     enumerate_info(info,&sticky_idx,
 			    ENUM_TYPE_UINT |
-			    ENUM_NTUPLE_ALWAYS),extra);
+			    ENUM_NTUPLE_ALWAYS |
+			    ENUM_NTUPLE_MULT_NON0),extra);
 #endif
   }
 
@@ -194,32 +197,39 @@ public:
 #if USING_MULTI_EVENTS
     callback(signal_id(id,"TRIGGER"),
 	     enumerate_info(info,&trigger,ENUM_TYPE_USHORT |
-			    ENUM_NTUPLE_NEVER,0,15),extra);
+			    ENUM_NTUPLE_NEVER |
+			    ENUM_NTUPLE_MULT_NON0,0,15),extra);
     callback(signal_id(id,"EVENTNO"),
 	     enumerate_info(info,&event_no,ENUM_TYPE_UINT |
-			    ENUM_NTUPLE_NEVER),extra);
+			    ENUM_NTUPLE_NEVER |
+			    ENUM_NTUPLE_MULT_NON0),extra);
     callback(signal_id(id,"MEVENTNO"),
 	     enumerate_info(info,&event_sub_no,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
-			    ENUM_NTUPLE_MEVENTNO),extra);
+			    ENUM_NTUPLE_MEVENTNO |
+			    ENUM_NTUPLE_MULT_NON0),extra);
 #endif
 #if USING_TSTAMP
     callback(signal_id(id,"TSTAMPLO"),
 	     enumerate_info(info,&tstamp_lo,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
-			    ENUM_NTUPLE_TS_LO),extra);
+			    ENUM_NTUPLE_TS_LO |
+			    ENUM_NTUPLE_MULT_NON0),extra);
     callback(signal_id(id,"TSTAMPHI"),
 	     enumerate_info(info,&tstamp_hi,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
-			    ENUM_NTUPLE_TS_HI),extra);
+			    ENUM_NTUPLE_TS_HI |
+			    ENUM_NTUPLE_MULT_NON0),extra);
     callback(signal_id(id,"TSTAMPSRCID"),
 	     enumerate_info(info,&tstamp_srcid,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
-			    ENUM_NTUPLE_TS_SRCID),extra);
+			    ENUM_NTUPLE_TS_SRCID |
+			    ENUM_NTUPLE_MULT_NON0),extra);
     callback(signal_id(id,"MERGE_STATUS"),
 	     enumerate_info(info,&merge_status,ENUM_TYPE_UINT |
 			    ENUM_NTUPLE_ALWAYS |
-			    ENUM_NTUPLE_MRG_STAT),extra);
+			    ENUM_NTUPLE_MRG_STAT |
+			    ENUM_NTUPLE_MULT_NON0),extra);
 #endif
   }
 

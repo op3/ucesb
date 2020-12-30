@@ -70,6 +70,7 @@ struct ntuple_mask
 #define NTUPLE_ITEM_TS_SRCID       0x0400
 #define NTUPLE_ITEM_MEVENTNO       0x0800
 #define NTUPLE_ITEM_MRG_STAT       0x1000
+#define NTUPLE_ITEM_MULT_NON0      0x2000
 
 struct ntuple_item
 {

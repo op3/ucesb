@@ -59,11 +59,12 @@
 #define ENUM_NTUPLE_NEVER   0x8000
 
 /* Timestamp info for time-stitching in struct_writer. */
-#define ENUM_NTUPLE_TS_LO    0x00010000
-#define ENUM_NTUPLE_TS_HI    0x00020000
-#define ENUM_NTUPLE_TS_SRCID 0x00040000
-#define ENUM_NTUPLE_MEVENTNO 0x00080000
-#define ENUM_NTUPLE_MRG_STAT 0x00100000
+#define ENUM_NTUPLE_TS_LO      0x00010000
+#define ENUM_NTUPLE_TS_HI      0x00020000
+#define ENUM_NTUPLE_TS_SRCID   0x00040000
+#define ENUM_NTUPLE_MEVENTNO   0x00080000
+#define ENUM_NTUPLE_MRG_STAT   0x00100000
+#define ENUM_NTUPLE_MULT_NON0  0x00200000
 
 typedef bool(*set_dest_fcn)(void *void_src_map, void *void_dest, int toggle_i);
 

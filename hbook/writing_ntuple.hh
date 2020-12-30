@@ -190,6 +190,7 @@ public:
 #define IND_ITEM_TYPE_TS_SRCID      0x0400
 #define IND_ITEM_TYPE_MEVENTNO      0x0800
 #define IND_ITEM_TYPE_MRG_STAT      0x1000
+#define IND_ITEM_TYPE_MULT_NON0     0x2000
 
 /*
 #define IND_ITEM_OFFSET_SHIFT       5 // 0x0020 and above
