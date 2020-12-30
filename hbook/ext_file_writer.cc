@@ -2219,6 +2219,8 @@ void write_structure_header(FILE *fid, global_struct *s,
     {
       if ((i & 3) == 0 && i)
 	fprintf (fid," \\\n   ");
+      if ((i & 3) == 0)
+	fprintf (fid,"/* %4d */", i);
       fprintf (fid," 0x%08x,",s->_offset_array._ptr[i]);
     }
 
