@@ -959,9 +959,20 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
   if (meventno == 0)
     {
 
-      ext_merge_sort_until(comm, oa,
-			   tstamp - _config._ts_merge_window,
-			   maxdestplen);
+      /* There may be multiple events to create. */
+
+      for ( ; ; )
+	{
+	  toldest_next = (uint64_t) -1;
+
+	  if (!ext_merge_sort_until(comm, oa,
+				    tstamp - _config._ts_merge_window,
+				    maxdestplen))
+	    break;
+
+	  if (toldest_next == (uint64_t) -1)
+	    break;
+	}
     }
 
   MRG_DBG("merge_insert: srcid:%d ts:%08x:%08x meventno:%d (%d+%d)\n",
