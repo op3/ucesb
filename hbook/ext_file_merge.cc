@@ -369,6 +369,8 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 	  data_max_loops, data_loop_size,
 	  data_max_loops * data_loop_size);
 
+  uint32_t tot_indices = 0;
+
   size_t s;
 
   /* First find out the first item of each source. */
@@ -381,6 +383,8 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 
       if (!indices)
 	continue; // This source has no items.
+
+      tot_indices += indices;
 
       /* Pick the first index/end info for the source. */
       uint32_t index  = ntohl(*(src->_p++));
@@ -400,6 +404,27 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       maii_end++;
       std::push_heap(_maii_items, maii_end);
     }
+
+  /* At the most, we'll need one maci item per index per source, and
+   * one overflow item.  Overflow is extra since that item may be
+   * split. Only one item will be split; the one that overflows.
+   */
+
+  size_t max_maci_items = tot_indices + 1;
+
+  if (max_maci_items > _maci_items_alloc)
+    {
+      _maci_items_alloc = 2 * max_maci_items; /* factor 2 - hysteresis */
+
+      _maci_items = (multi_array_copy_item *)
+	realloc (_maci_items,
+		 _maci_items_alloc * sizeof (multi_array_copy_item));
+
+      if (!_maci_items)
+	ERR_MSG("Failure (re)allocating memory for "
+		"merger array copy info (%zd items).", _maci_items_alloc);
+    }
+
 
   /* Remember the address of the destination controlling item of the
    * index/end array.
@@ -534,6 +559,9 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 	}
       maci_ovfl++;
     }
+
+  if (maci_ovfl - _maci_items > max_maci_items)
+    ERR_MSG("Overflowed merger array copy info array.");
 
   /* For each source, get the second loop count.
    * Values as such are not needed.  But pointers must be moved forward.
@@ -835,20 +863,6 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
       if (!_maii_items)
 	ERR_MSG("Failure (re)allocating memory for "
 		"merger array index (%zd items).", _maii_items_alloc);
-    }
-
-  if (_num_merge_incl > _maci_items_alloc)
-    {
-      _maci_items_alloc =
-	2 * _num_merge_incl; /* for overflow, and factor 2 */
-
-      _maci_items = (multi_array_copy_item *)
-	realloc (_maci_items,
-		 _maci_items_alloc * sizeof (multi_array_copy_item));
-
-      if (!_maci_items)
-	ERR_MSG("Failure (re)allocating memory for "
-		"merger array copy (%zd items).", _maci_items_alloc);
     }
 
   external_writer_buf_header *header =
