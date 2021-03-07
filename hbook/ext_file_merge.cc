@@ -222,7 +222,7 @@ void ext_merge_array(uint32_t **ptr_o,
    * individually.  Thus the peril is if there are too many
    * items, which cannot be accomodated.
    *
-   * We also want keep the sorting of items, in case they were
+   * TODO: We also want keep the sorting of items, in case they were
    * delivered in index order.
    */
 
@@ -958,6 +958,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
   if (meventno == 0)
     {
+      /* TODO: we cannot do this if the timestamp we got is broken. */
 
       /* There may be multiple events to create. */
 
