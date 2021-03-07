@@ -162,7 +162,8 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 	  if (val &&
 	      !(mark & EXTERNAL_WRITER_MARK_MULT_NON0))
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_IVALUE;
-	  /* We must anyhow go through all sources, to increment
+
+	  /* Note: we must anyhow go through all sources, to increment
 	   * their pointers.
 	   */
 	}
@@ -170,7 +171,7 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
   else
     {
       /* Floating-point.  All except one should be NaN. */
-      /* Same logic as above. */
+      /* Otherwise, same logic as above. */
 
       size_t s;
 
@@ -184,8 +185,8 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 
 	  val = ntohl(val);
 
-	  if ((val & 0x7f800000) == 0x7f800000)
-	    break;
+	  if ((val & 0x7f800000) != 0x7f800000)
+	    break; /* Non-NaN value seen, check remaining. */
 	}
       for (s++ ; s < _num_merge_incl; s++)
 	{
@@ -195,12 +196,11 @@ void ext_merge_item(uint32_t mark, uint32_t *pp,
 
 	  val = ntohl(val);
 
-	  if ((val & 0x7f800000) == 0x7f800000 &&
+	  if ((val & 0x7f800000) != 0x7f800000 &&
 	      !(mark & EXTERNAL_WRITER_MARK_MULT_NON0))
 	    result->_flags |= EXT_FILE_MERGE_MULTIPLE_FVALUE;
 	}
     }
-
 }
 
 void ext_merge_array(uint32_t **ptr_o,
