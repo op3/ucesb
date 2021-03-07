@@ -92,8 +92,8 @@ struct merge_item_chunk
   //uint32_t  _offset_next;
   uint32_t  _tstamp_lo;
   uint32_t  _tstamp_hi;
-  uint32_t  _prelen;
-  uint32_t  _plen;
+  uint32_t  _prelen;          /* Length of pre-item (header) data. */
+  uint32_t  _plen;            /* Length of data. */
 
   uint32_t  _flags;
 };
@@ -102,12 +102,11 @@ struct merge_item_chunk
 struct merge_item_store
 {
   //uint32_t  _events;
-  uint32_t  _offset_first;
+  uint32_t  _offset_first;    /* Offset to start of first item. */
   //uint32_t  _offset_last;
-  uint32_t  _alloc;
-  uint32_t  _used;
+  uint32_t  _used;            /* Offset to end of last item. */
+  uint32_t  _alloc;           /* Total allocated space. */
   void     *_buf;
-
 };
 
 
@@ -245,6 +244,7 @@ void ext_merge_array(uint32_t **ptr_o,
 
       if (loops + val > max_loops)
 	{
+	  /* We truncate the number of items from this source. */
 	  use_loops = max_loops - loops;
 	  result->_flags |= EXT_FILE_MERGE_ARRAY_OVERFLOW;
 	}
@@ -338,7 +338,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
    * the end item number of each index in the main second array.
    *
    * When merging such we must first go through the first arrays of
-   * all sources and merge them together.  I.e. entries wth the same
+   * all sources and merge them together.  I.e. entries with the same
    * index should be merged.
    */
 
@@ -351,7 +351,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
   uint32_t *data_o = o + 2 * max_loops * loop_size;
   uint32_t *o2 = data_o;
 
-  o2 += 2; /* Marker and offset for data loop ctrl item. */
+  o2 += 2; /* Skip past marker and offset for data loop ctrl item. */
 
   uint32_t data_max_loops = *(o2++);
   uint32_t data_loop_size = *(o2++);
@@ -408,7 +408,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 
   uint32_t loops = 0;
 
-  multi_array_copy_item *maci_end  = _maci_items;
+  multi_array_copy_item *maci_end = _maci_items;
 
   uint32_t cur_index = -1;
   uint32_t cur_end = 0;
@@ -465,6 +465,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 	  std::push_heap(_maii_items, maii_end);
 
 	  result->_flags |= EXT_FILE_MERGE_ARRAY_MINDEX_OVERFLOW;
+	  /* Abort the entire loop.  Anything left-over is overflow! */
 	  break;
 	}
 
@@ -517,6 +518,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
 
       uint32_t prev_endnum = maii_end->_endnum;
 
+      /* Get additional remaining items. */
       for (i = maii_end->_indices_left; i; i--)
 	{
 	  /* Pick the data for the item. */
@@ -534,7 +536,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
     }
 
   /* For each source, get the second loop count.
-   * Values as such are not needed.
+   * Values as such are not needed.  But pointers must be moved forward.
    */
   for (s = 0; s < _num_merge_incl; s++)
     {
@@ -599,7 +601,7 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 {
   /* We go through the items according to the pack list.
    *
-   * The items are then combined.
+   * The items are combined as we move along.
    */
 
   uint32_t *o    = oa->_ptr;
@@ -711,6 +713,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
   uint64_t twindow_end = toldest + _config._ts_merge_window;
 
+  /* This tells how many items for which we hold pointers of data. */
+  /* Always reset here, means: no pointers held when we come here. */
   _num_merge_incl = 0;
 
   char    *incl0_msg = NULL;
@@ -744,6 +748,9 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	  merge_item_incl *incl = &_merge_incl[_num_merge_incl++];
 	  char *msg = (char *) (item + 1);
 
+	  /* For the header, we will keep the data from the oldest
+	   * item.
+	   */
 	  if (!incl0_msg ||
 	      tstamp < incl0_tstamp)
 	    {
@@ -753,12 +760,12 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	    }
 
 	  /* The item data begins after the header. */
-	  incl->_p = (uint32_t *) (msg + item->_prelen);
+	  incl->_p    = (uint32_t *) (msg + item->_prelen);
 	  incl->_pend = (uint32_t *) (((char *) incl->_p) + item->_plen);
 
 	  result._flags |= item->_flags;
 
-	  /* Move the store forward. */
+	  /* Move the store forward.  (It _will_ be consumed.) */
 	  store->_offset_first +=
 	    sizeof (merge_item_chunk) + item->_prelen + item->_plen;
 	  // store->_events--;
@@ -772,7 +779,7 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
 	  merge_item_chunk *item2 =
 	    (merge_item_chunk*) (((char *) store->_buf) +
-				     store->_offset_first);
+				 store->_offset_first);
 	  uint64_t tstamp2 =
 	    (((uint64_t) item2->_tstamp_hi) << 32) + item2->_tstamp_lo;
 
@@ -783,7 +790,7 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	       */
 	      result._flags |=
 		EXT_FILE_MERGE_NEXT_SRCID_WITHIN_WINDOW;
-	      /* Also mark the item that it should possibly
+	      /* Also mark the next item that it should possibly
 	       * have been merged with the previous.
 	       */
 	      item2->_flags |=
@@ -938,8 +945,6 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
       ext_merge_sort_until(comm, oa,
 			   tstamp - _config._ts_merge_window,
 			   maxdestplen);
-
-
     }
 
   MRG_DBG("merge_insert: srcid:%d ts:%08x:%08x meventno:%d (%d+%d)\n",
