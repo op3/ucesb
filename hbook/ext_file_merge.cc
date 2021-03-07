@@ -1011,16 +1011,43 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
   if (need > store->_alloc)
     {
-      if (!store->_alloc)
-	store->_alloc = 0x1000;
-      while (store->_alloc < need)
-	store->_alloc *= 2;
+      if (store->_offset_first &&
+	  store->_offset_first * 2 < need)
+	{
+	  /* We have more then half the buffer free.
+	   *
+	   * Instead of allocating more memory, move the existing
+	   * items to the beginning of the buffer.
+	   *
+	   * When we are here, no pointers to the items are held.
+	   */
 
-      store->_buf = realloc (store->_buf, store->_alloc);
+	  MRG_DBG("merge_insert: srcid:%d memmove [%d,%d/%d]\n",
+		  srcid, store->_offset_first, store->_used, store->alloc);
 
-      if (!store->_buf)
-	ERR_MSG("Failure (re)allocating memory for "
-		"merger reorder store (%zd bytes).", store->_alloc);
+	  memmove(store->_buf,
+		  (char *) store->_buf + store->_offset_first,
+		  store->_used - store->_offset_first);
+
+	  store->_used -= store->_offset_first;
+	  store->_offset_first = 0;
+	}
+      else
+	{
+	  if (!store->_alloc)
+	    store->_alloc = 0x1000;
+	  while (store->_alloc < need)
+	    store->_alloc *= 2;
+
+	  MRG_DBG("merge_insert: srcid:%d realloc [%d]\n",
+		  srcid, store->alloc);
+
+	  store->_buf = realloc (store->_buf, store->_alloc);
+
+	  if (!store->_buf)
+	    ERR_MSG("Failure (re)allocating memory for "
+		    "merger reorder store (%zd bytes).", store->_alloc);
+	}
     }
 
   merge_item_chunk *item =
