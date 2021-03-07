@@ -464,7 +464,7 @@ void ext_merge_multi_array(uint32_t **ptr_o,
       uint32_t use = maii_end->_items;
 
       /* Try to fill onto the current item.  Do we have too many in total? */
-      if (cur_end + maii_end->_items > data_max_loops)
+      if (cur_end + use > data_max_loops)
 	use = data_max_loops - cur_end;
 
       /* Record for copying. */
