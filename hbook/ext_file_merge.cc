@@ -51,26 +51,28 @@ extern int _got_sigio;
  * The assumption is that events are delivered with increasing
  * timestamps for each source identifier.
  *
- * And that events which have multi-event marker 0 (i.e. are the first
- * that comes from an original collection of events from the same
- * source) are in order relative to all other source IDs with
- * multi-event marker 0.
+ * We also expect that events which have multi-event marker 0
+ * (i.e. are the first that comes from an original collection of
+ * events from the same source) are in order relative to all other
+ * source IDs when delivering multi-event marker 0.
  *
- * Therefore, whenever a event with multi-event mark 0 arrives, all
- * earlier events are merged, since it the ordering means that no
- * other source can contribute earlier events.
+ * Therefore, whenever an event with multi-event mark 0 arrives, all
+ * earlier events are merged, since the ordering means that no other
+ * source can any longer contribute earlier events.
  *
- * In case a source provides events with broken timestamps, those
- * events are dumped immediately.  Note! they will even be dumped
- * before events from the same source id with earlier timestamps!
- * This to allow such earlier events to still merge with events from
- * other sources that may not have arrived yet.  Since we do not know
- * with the global (i.e. multi-event marker 0) timestamp would have
- * been, we do not know how far in time the original time-sorter has
- * reached.  This reordering allows to most correct events to be
+ * In case a source provides events with broken (=early) timestamps,
+ * those events are dumped immediately.  Note! they will even be
+ * dumped before events from the same source id with earlier (but
+ * well-ordered) timestamps!  This to allow such earlier events to
+ * still merge with events from other sources that may not have
+ * arrived yet.
+ *
+ * If this happens for global (i.e. multi-event marker 0) timestamps,
+ * we do not know how far in time the original time-sorter has
+ * reached, so cannot use it to flush other events.  This reordering
+ * (immediate dump strategy) allows the most correct events to be
  * merged.  Events with broken timestamps can anyhow not be merged
  * with anything.
-
  */
 
 struct merge_item_incl
