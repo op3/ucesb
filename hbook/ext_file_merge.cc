@@ -866,6 +866,9 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
   uint32_t *pend = ext_merge_do_merge(oa, pdest, &result);
 
+  if (pend > (uint32_t *) ((char *) _merge_dest + need))
+    ERR_MSG("Merging overflowed output.");
+
   uint32_t length = (uint32_t) ((char *) pend - (char *) _merge_dest);
 
   header->_length = htonl(length);
