@@ -431,8 +431,10 @@ Arch minimal gcc g++ all:
   stage: build
   image: archlinux/base
   before_script:
-    - pacman -Syu --noconfirm
-    - pacman -S base-devel git flex bison ncurses --noconfirm --needed
+    # - pacman -Syu --noconfirm
+    # - pacman -S base-devel git flex bison ncurses --noconfirm --needed
+    # - pacman/arch broken, workaround: combine into one command
+    - pacman -Syu --noconfirm --needed base-devel git flex bison ncurses
   <<: *docker
   <<: *build
 
@@ -440,8 +442,10 @@ Arch minimal clang clang++ all:
   stage: build
   image: archlinux/base
   before_script:
-    - pacman -Syu --noconfirm
-    - pacman -S base-devel git flex bison ncurses clang --noconfirm --needed
+    # - pacman -Syu --noconfirm
+    # - pacman -S base-devel git flex bison ncurses clang --noconfirm --needed
+    # - pacman/arch broken, workaround: combine into one command
+    - pacman -Syu --noconfirm --needed base-devel git flex bison ncurses clang
   <<: *docker
   <<: *build
 
