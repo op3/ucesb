@@ -116,7 +116,7 @@ size_t             _alloc_items_store = 0;
 merge_item_incl   *_merge_incl = NULL;
 size_t             _num_merge_incl;
 
-uint64_t toldest_cur = (uint64_t) -1;
+uint64_t toldest_next = (uint64_t) -1;
 
 uint32_t *_merge_dest = NULL;
 size_t    _merge_dest_alloc = 0;
@@ -740,8 +740,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	    {
 	      /* The event is too new, not included in merge. */
 	      /* But perhaps it is the oldest of the next one? */
-	      if (tstamp < toldest_cur)
-		toldest_cur = tstamp;
+	      if (tstamp < toldest_next)
+		toldest_next = tstamp;
 	      continue;
 	    }
 
@@ -797,8 +797,8 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 		EXT_FILE_MERGE_PREV_SRCID_WITHIN_WINDOW;
 	    }
 
-	  if (tstamp2 < toldest_cur)
-	    toldest_cur = tstamp2;
+	  if (tstamp2 < toldest_next)
+	    toldest_next = tstamp2;
 	}
     }
 
