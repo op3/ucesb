@@ -109,30 +109,35 @@ tstamp_alignment::tstamp_alignment(char const *a_command, int a_merge_style):
           _is_lin = 0;
           goto parse_time_stamp_hist_options_next;
         }
-#define TIME_HIST_COMPONENT(dst, src)\
-      do {\
-        char const *opt = #src"=";\
-        size_t optlen = strlen(opt);\
-        if (strncmp(p, opt, optlen) == 0) {\
-          p += optlen;\
-          char *end;\
-          int value = (int)strtod(p, &end);\
-          if (p == end || end[0] != '\0') {\
-            ERROR("Invalid number for \""#src"\" in time stamp histogram option \"%s\".", a_command);\
-          }\
-          dst = value;\
-          goto parse_time_stamp_hist_options_next;\
-        }\
+
+#define TIME_HIST_COMPONENT(dst, src)					\
+      do {								\
+        char const *opt = #src"=";					\
+        size_t optlen = strlen(opt);					\
+        if (strncmp(p, opt, optlen) == 0) {				\
+          p += optlen;							\
+          char *end;							\
+          int value = (int)strtod(p, &end);				\
+          if (p == end || end[0] != '\0') {				\
+            ERROR("Invalid number for \""#src"\" in "			\
+		  "time stamp histogram option \"%s\".", a_command);	\
+	  }								\
+	  dst = value;							\
+	  goto parse_time_stamp_hist_options_next;			\
+	}								\
       } while (0)
+
       TIME_HIST_COMPONENT(_range, range);
       TIME_HIST_COMPONENT(_bin_num, bins);
-      ERROR("Unknown time stamp histogram option \"%s\", in \"%s\".",request,a_command);
+      ERROR("Unknown time stamp histogram option \"%s\", in \"%s\".",
+	    request,a_command);
 parse_time_stamp_hist_options_next:
       free(request);
       cmd = req_end + (*req_end == ',');
     }
   if (_style <= 0)
-    ERROR("No time stamp histogram style in \"%s\" or by merge style %d.",a_command,a_merge_style);
+    ERROR("No time stamp histogram style in \"%s\" or by merge style %d.",
+	  a_command,a_merge_style);
 }
 
 ssize_t tstamp_alignment::get_index(const lmd_subevent *subevent_info,
