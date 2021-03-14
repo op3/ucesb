@@ -1033,7 +1033,13 @@ int main(int argc, char **argv)
       )
     {
 #ifdef USE_LMD_INPUT
-      _ts_align_hist = new tstamp_alignment(_conf._ts_align_hist_command);
+      _ts_align_hist = new tstamp_alignment(_conf._ts_align_hist_command,
+# ifdef USE_MERGING
+          _conf._merge_event_mode
+# else
+          0
+# endif
+          );
 #endif
     }
 
