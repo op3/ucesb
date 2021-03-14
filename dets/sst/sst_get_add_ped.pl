@@ -22,6 +22,17 @@
 use strict;
 use warnings;
 
+# Default to shift of 3 (old value).
+my $pedshift = 3;
+
+if (defined($ARGV[0]) &&
+    $ARGV[0] =~ /^--ped-shift=(\d+)$/)
+{
+    $pedshift = $1;
+
+    shift @ARGV;
+}
+
 print <<"EndOfText";
 
 /*************************************************************
@@ -57,7 +68,7 @@ while(my $line = <>)
 
 	    for (my $j = 0; $j < 16; $j ++) {
 		my $index = $i + $j;
-		my $value = hex($values[$j]) >> 3;
+		my $value = hex($values[$j]) >> $pedshift;
 		print "$value,";
 	    }
 	    print ("\n");
