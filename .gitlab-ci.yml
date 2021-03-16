@@ -113,9 +113,9 @@ stages:
         software-properties-common wget m4 help2man > /dev/null
     - add-apt-repository ppa:ubuntu-toolchain-r/test > /dev/null
     - apt-get update -yq > /dev/null
-    - apt-get install -y gcc-6 g++-6 > /dev/null
-    - export CC=gcc-6
-    - export CXX=g++-6
+    - apt-get install -y gcc g++ > /dev/null
+    - export CC=gcc
+    - export CXX=g++
     - export FLEXURL=https://github.com/westes/flex/releases/download
     - wget ${FLEXURL}/v${FLEX}/flex-${FLEX}.tar.gz > /dev/null
     - tar -xf flex-${FLEX}.tar.gz
@@ -391,15 +391,15 @@ Ubuntu Xenial clang clang++ all:
   <<: *docker
   <<: *build  
 
-Xenial root6 gcc-6 g++-6 all flex 2.6.1:
+Xenial root6 gcc g++ all flex 2.6.1:
   stage: build
-  image: munken/root:xenial-root6
+  image: munken/root2:ubuntu-xenial
   <<: *docker
   <<: *ubuntu-gcc6
 
-Xenial root6 gcc-6 g++-6 all flex 2.6.2:
+Xenial root6 gcc g++ all flex 2.6.2:
   stage: build
-  image: munken/root:xenial-root6
+  image: munken/root2:ubuntu-xenial
   <<: *docker
   <<: *ubuntu-gcc6
 
