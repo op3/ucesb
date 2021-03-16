@@ -211,7 +211,13 @@ EXT_DECL_DATA_SRC_FCN_ARG(void,EXT_SST::__unpack,uint32 sam,uint32 gtb,uint32 si
 
   if (first_word == 0x01c0ffee)
     {
-      uint32 chunk[1028];
+      /* 1028 was not correct as worst-case length.
+       * In case the packaging has jumped over single values,
+       * then there will be an additional chunk, which uses two values
+       * to pack.  Packaging should have merged these as well, as
+       * that would be cheaper.  Anyhow, no major harm.
+       */
+      uint32 chunk[2048];
       // forgot XOR
 
       uint32 huff_len = coffee_info & 0xffff;
@@ -262,7 +268,11 @@ EXT_DECL_DATA_SRC_FCN_ARG(void,EXT_SST::__unpack,uint32 sam,uint32 gtb,uint32 si
 	  len   = *(plens++);
           end   = start + len;
 
-	  //printf ("%d..%d:\n", start, end);
+	  //printf ("[%d..%d]:\n", start, end-1);
+	  /*
+	  if (huff_len > 1028)
+	    printf ("[%d..%d]:\n", start, end-1);
+	  */
 
           for (; j < start; j++)
             {
