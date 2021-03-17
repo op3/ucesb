@@ -1075,7 +1075,8 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
 	  if (!store->_buf)
 	    ERR_MSG("Failure (re)allocating memory for "
-		    "merger reorder store (%zd bytes).", store->_alloc);
+		    "merger reorder store (%zd bytes).",
+		    (size_t) store->_alloc);
 	}
     }
 
