@@ -1690,7 +1690,8 @@ get_next_event:
 		  if (!stitch._combine || stitch._badstamp)
 		    output._event.clear();
 
-		  if (!output._dest->_select.accept_event(&file_event->_header))
+		  if (!output._dest->_select.accept_event(file_event,
+							  &file_event->_header))
 		    continue;
 
 #ifdef COPY_OUTPUT_FILE_EVENT

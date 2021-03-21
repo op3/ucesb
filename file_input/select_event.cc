@@ -102,6 +102,12 @@ int select_event_request::add_item(const char *cmd)
   /**/ if (MATCH_SELECT_ITEM("trig") || MATCH_SELECT_ITEM("trigger"))
     MATCH_SELECT_ITEM_MEMBER(lmd_event_10_1_host,_info.i_trigger,-2,
 			     REQUEST_TYPE_EVENT);
+  else if (MATCH_SELECT_ITEM("wr_id"))
+    {
+      item._offset = -1;
+      item._size = 0;
+      request_type = REQUEST_TYPE_EVENT;
+    }
   else if (MATCH_SELECT_ITEM("type"))
     MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_type,-2,
 			     REQUEST_TYPE_SUBEVENT);
@@ -229,24 +235,38 @@ void select_event::parse_request(const char *command,bool incl)
 }
 
 
-bool select_event_request::match(const void *ptr) const
+bool select_event_request::match(lmd_event *event,
+				 const void *ptr) const
 {
   for (size_t i = 0; i < _items.size(); i++)
     {
       const select_event_request_item &item = _items[i];
 
-      const char *p = ((const char *) ptr) + item._offset;
-
       int value;
 
-      if (item._size == -1)
-	value = *((const sint8 *) p);
-      else if (item._size == -2)
-	value = *((const sint16*) p);
-      else if (item._size == -4)
-	value = *((const sint32*) p);
+      if (item._offset == -1)
+	{
+	  // WR ID
+
+#if defined(USE_LMD_INPUT)
+	  value = get_wr_id(event);
+#else
+	  value = 0;
+#endif
+	}
       else
-	ERROR("Internal error.");
+	{
+	  const char *p = ((const char *) ptr) + item._offset;
+
+	  if (item._size == -1)
+	    value = *((const sint8 *) p);
+	  else if (item._size == -2)
+	    value = *((const sint16*) p);
+	  else if (item._size == -4)
+	    value = *((const sint32*) p);
+	  else
+	    ERROR("Internal error.");
+	}
 
       if (value < item._min || value > item._max)
 	return false;
@@ -254,48 +274,48 @@ bool select_event_request::match(const void *ptr) const
   return true;
 }
 
-
-
-
-bool select_event_requests::match(const void *ptr) const
+bool select_event_requests::match(lmd_event *event,
+				  const void *ptr) const
 {
   for (size_t i = 0; i < _items.size(); i++)
     {
       const select_event_request &item = _items[i];
 
-      if (item.match(ptr))
+      if (item.match(event, ptr))
 	return true;
     }
   return false;
 }
 
-bool select_event_requests::accept(const void *ptr) const
+bool select_event_requests::accept(lmd_event *event,
+				   const void *ptr) const
 {
   if (!_flags)
     return true;
 
   if (_flags & SELECT_FLAG_INCLUDE)
-    return match(ptr);
+    return match(event, ptr);
 
   if (_flags & SELECT_FLAG_EXCLUDE)
-    return !match(ptr);
+    return !match(event, ptr);
 
   assert (false);
   return true;
 }
 
-bool select_event::accept_event(const lmd_event_10_1_host *header) const
+bool select_event::accept_event(lmd_event *event,
+				const lmd_event_10_1_host *header) const
 {
   if (header->_header.i_type == LMD_EVENT_STICKY_TYPE &&
       header->_header.i_subtype == LMD_EVENT_STICKY_SUBTYPE)
     return true;
   
-  return _event.accept(header);
+  return _event.accept(event, header);
 }
 
 bool select_event::accept_subevent(const lmd_subevent_10_1_host *header) const
 {
-  return _subevent.accept(header);
+  return _subevent.accept(NULL, header);
 }
 
 bool select_event::accept_final_event(lmd_event_out *event) const

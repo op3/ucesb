@@ -49,6 +49,7 @@
 
 #include "event_sizes.hh"
 #include "tstamp_alignment.hh"
+#include "select_event.hh"
 
 #include "../common/strndup.hh"
 
@@ -462,6 +463,65 @@ bool get_titris_timestamp(FILE_INPUT_EVENT *src_event,
   return true;
 }
 
+int get_wr_id(FILE_INPUT_EVENT *src_event)
+{
+  if (src_event->_nsubevents < 1)
+    ERROR("No subevents, cannot get a WR time stamp.");
+
+  typedef __typeof__(*src_event->_subevents) subevent_t;
+
+  subevent_t *subevent_info = &src_event->_subevents[0 /* subevent */];
+
+  char *start;
+  char *end;
+
+  src_event->get_subevent_data_src(subevent_info,start,end);
+
+  // The timestamp info is as 32-bit words, so we need only care about
+  // swapping.
+
+  uint32_t *data     = (uint32_t *) start;
+  uint32_t *data_end = (uint32_t *) end;
+
+  if (data + 1 > data_end)
+    ERROR("First subevent does not have data enough for WR time stamp branch"
+	  " id.");
+
+  int swapping = src_event->_swapping;
+
+  uint32_t error_branch_id = SWAPPING_BSWAP_32(data[0]);
+
+  if (error_branch_id & WR_STAMP_EBID_UNUSED)
+    ERROR("Unused bits set in WR time stamp branch ID word: 0x%08x "
+	  "(full: 0x%08x).",
+	  error_branch_id & WR_STAMP_EBID_UNUSED,
+	  error_branch_id);
+
+  /* Even if we only want to get the ID, make sure the rest of the data
+   * is fine too.
+   */
+
+  if (data + 5 > data_end)
+    ERROR("First subevent does not have data enough "
+	  "for WR time stamp values.");
+
+  uint32_t id      = SWAPPING_BSWAP_32(data[0]);
+  uint32_t ts_0_16 = SWAPPING_BSWAP_32(data[1]);
+  uint32_t ts_1_16 = SWAPPING_BSWAP_32(data[2]);
+  uint32_t ts_2_16 = SWAPPING_BSWAP_32(data[3]);
+  uint32_t ts_3_16 = SWAPPING_BSWAP_32(data[4]);
+
+  if ((ts_0_16 & WR_STAMP_DATA_ID_MASK) != WR_STAMP_DATA_0_16_ID ||
+      (ts_1_16 & WR_STAMP_DATA_ID_MASK) != WR_STAMP_DATA_1_16_ID ||
+      (ts_2_16 & WR_STAMP_DATA_ID_MASK) != WR_STAMP_DATA_2_16_ID ||
+      (ts_3_16 & WR_STAMP_DATA_ID_MASK) != WR_STAMP_DATA_3_16_ID)
+    ERROR("WR time stamp word has wrong marker.  "
+	  "(0x%08x 0x%08x 0x%08x 0x%08x)",
+	  ts_0_16, ts_1_16, ts_2_16, ts_3_16);
+
+  return (id & WR_STAMP_EBID_BRANCH_ID_MASK) >> 8;
+}
+
 bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
 		      uint64_t *timestamp,
 		      ssize_t *ts_align_index)
@@ -537,6 +597,7 @@ bool get_wr_timestamp(FILE_INPUT_EVENT *src_event,
       ((            ts_1_16 & WR_STAMP_DATA_TIME_MASK)  << 16) |
       (((uint64_t) (ts_2_16 & WR_STAMP_DATA_TIME_MASK)) << 32) |
       (((uint64_t) (ts_3_16 & WR_STAMP_DATA_TIME_MASK)) << 48);
+
   apply_timestamp_slope(subevent_info->_header, id, *timestamp);
 
   return true;
