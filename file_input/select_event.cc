@@ -100,27 +100,37 @@ int select_event_request::add_item(const char *cmd)
 
 #ifdef USE_LMD_INPUT
   /**/ if (MATCH_SELECT_ITEM("trig") || MATCH_SELECT_ITEM("trigger"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_event_10_1_host,_info.i_trigger,-2,REQUEST_TYPE_EVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_event_10_1_host,_info.i_trigger,-2,
+			     REQUEST_TYPE_EVENT);
   else if (MATCH_SELECT_ITEM("type"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_type,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_type,-2,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("subtype"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_subtype,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_subtype,-2,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("procid") || MATCH_SELECT_ITEM("id"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,i_procid,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,i_procid,-2,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("subcrate") || MATCH_SELECT_ITEM("crate"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,h_subcrate,-1,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,h_subcrate,-1,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("control") || MATCH_SELECT_ITEM("ctrl"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,h_control,-1,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,h_control,-1,
+			     REQUEST_TYPE_SUBEVENT);
 #endif
 #ifdef USE_RIDF_INPUT
   /**/ if (MATCH_SELECT_ITEM("dev") || MATCH_SELECT_ITEM("device"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_event_10_1_host,_info.i_dev,-2,REQUEST_TYPE_EVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_event_10_1_host,_info.i_dev,-2,
+			     REQUEST_TYPE_EVENT);
   else if (MATCH_SELECT_ITEM("fp") || MATCH_SELECT_ITEM("focalplane"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_fp,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_fp,-2,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("det") || MATCH_SELECT_ITEM("detector"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_det,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_det,-2,
+			     REQUEST_TYPE_SUBEVENT);
   else if (MATCH_SELECT_ITEM("mod") || MATCH_SELECT_ITEM("module"))
-    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_mod,-2,REQUEST_TYPE_SUBEVENT);
+    MATCH_SELECT_ITEM_MEMBER(lmd_subevent_10_1_host,_header.i_mod,-2,
+			     REQUEST_TYPE_SUBEVENT);
 #endif
   else
     ERROR("Malformed select request (unknown item): %s",cmd);
