@@ -236,7 +236,7 @@ bool select_event_request::match(const void *ptr) const
       else if (item._size == -4)
 	value = *((const sint32*) p);
       else
-	ERROR("Iternal error.");
+	ERROR("Internal error.");
 
       if (value < item._min || value > item._max)
 	return false;
