@@ -248,7 +248,7 @@ bool select_event_request::match(lmd_event *event,
 	{
 	  // WR ID
 
-#if defined(USE_LMD_INPUT)
+#if defined(USE_LMD_INPUT) && !defined(TDAS_CONV)
 	  value = get_wr_id(event);
 #else
 	  value = 0;
