@@ -1245,6 +1245,16 @@ void request_array_offsets(void *msg,uint32_t *left)
   if (s->_offset_array._max_items > _g._max_offset_array_items)
     _g._max_offset_array_items = s->_offset_array._max_items;
 
+  if (_config._ts_merge_window &&
+      s->_offset_array._poffset_ts_lo == (uint32_t) -1)
+    ERR_MSG("Cannot merge (time_stitch) without TSTAMPLO.");
+  if (_config._ts_merge_window &&
+      s->_offset_array._poffset_ts_hi == (uint32_t) -1)
+    ERR_MSG("Cannot merge (time_stitch) without TSTAMPHI.");
+  if (_config._ts_merge_window &&
+      s->_offset_array._poffset_ts_srcid == (uint32_t) -1)
+    ERR_MSG("Cannot merge (time_stitch) without TSTAMPSRCID.");
+
   // OK, we are happy with the offset array
 
   // MSG("Offsets...");
