@@ -110,6 +110,7 @@ struct merge_item_chunk
 /* Store for data from one srcid. */
 struct merge_item_store
 {
+  uint32_t  _prev_meventno;
   //uint32_t  _events;
   uint32_t  _offset_first;    /* Offset to start of first item. */
   //uint32_t  _offset_last;
@@ -1031,6 +1032,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 
       _items_store[srcid] = store;
 
+      store->_prev_meventno = 0;
       //store->_events = 0;
       store->_offset_first = 0;
       //store->_offset_last = 0;
@@ -1044,6 +1046,15 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
       store->_offset_first = 0;
       store->_used = 0;
     }
+
+  if (meventno != 0 &&
+      meventno <= store->_prev_meventno)
+    {
+      WARN_MSG("Inserting event for merging (time stitching) for src id %d"
+	       "with non-zero meventno (%d) <= prev meventno (%d).",
+	       srcid, meventno, store->_prev_meventno);
+    }
+  store->_prev_meventno = meventno;
 
   size_t need = store->_used + sizeof (merge_item_chunk) + prelen + plen;
 
