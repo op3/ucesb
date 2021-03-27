@@ -37,7 +37,7 @@ extern int _got_sigio;
 
 #if DO_MRG_DBG
 #define MRG_DBG(...) {				\
-    fprintf(stdout,__VA_ARGS__);		\
+    fprintf(stderr,__VA_ARGS__);		\
   }
 #else
 #define MRG_DBG(...) ((void) 0)
@@ -45,7 +45,7 @@ extern int _got_sigio;
 
 #if DO_MRG_TS_DBG || DO_MRG_DBG
 #define MRG_TS_DBG(...) {			\
-    fprintf(stdout,__VA_ARGS__);		\
+    fprintf(stderr,__VA_ARGS__);		\
   }
 #else
 #define MRG_TS_DBG(...) ((void) 0)
