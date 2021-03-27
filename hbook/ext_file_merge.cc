@@ -1061,7 +1061,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 	   */
 
 	  MRG_TS_DBG("merge_insert: srcid:%d memmove [%d,%d/%d]\n",
-		     srcid, store->_offset_first, store->_used, store->alloc);
+		     srcid, store->_offset_first, store->_used, store->_alloc);
 
 	  memmove(store->_buf,
 		  (char *) store->_buf + store->_offset_first,
@@ -1078,7 +1078,7 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
 	    store->_alloc *= 2;
 
 	  MRG_TS_DBG("merge_insert: srcid:%d realloc [%d]\n",
-		     srcid, store->alloc);
+		     srcid, store->_alloc);
 
 	  store->_buf = realloc (store->_buf, store->_alloc);
 
