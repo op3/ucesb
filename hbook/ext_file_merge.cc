@@ -955,7 +955,20 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
   srcid     = ntohl(pstart[oa->_poffset_ts_srcid]);
 
   if (oa->_poffset_meventno != (uint32_t) -1)
-    meventno  = ntohl(pstart[oa->_poffset_meventno]);
+    {
+      meventno  = ntohl(pstart[oa->_poffset_meventno]);
+
+      /* Non-multi-event unpackers will not have any meventno,
+       * so do not check for them.
+       */
+      if (meventno == 0)
+	{
+	  WARN_MSG("Got event for merging (time stitching) for src id %d "
+		   "with explicit 0 meventno.",
+		   srcid);
+	}
+    }
+
 
   uint64_t tstamp =
     (((uint64_t) tstamp_hi) << 32) + tstamp_lo;
@@ -965,13 +978,6 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
    * timestamps.  We can therefore sort the data for all
    * times up to the given time.
    */
-
-  if (meventno == 0)
-    {
-      WARN_MSG("Got event for merging (time stitching) for src id %d "
-	       "with none or 0 meventno.",
-	       srcid);
-    }
 
   if (meventno <= 1)
     {
