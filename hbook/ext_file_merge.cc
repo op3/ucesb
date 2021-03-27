@@ -960,13 +960,20 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
   uint64_t tstamp =
     (((uint64_t) tstamp_hi) << 32) + tstamp_lo;
 
-  /* When we receive data for a chunk with meventno == 0, then
+  /* When we receive data for a chunk with meventno == 1, then
    * we know that we will not get any further data with smaller
    * timestamps.  We can therefore sort the data for all
    * times up to the given time.
    */
 
   if (meventno == 0)
+    {
+      WARN_MSG("Got event for merging (time stitching) for src id %d "
+	       "with none or 0 meventno.",
+	       srcid);
+    }
+
+  if (meventno <= 1)
     {
       /* TODO: we cannot do this if the timestamp we got is broken. */
 
@@ -1047,10 +1054,10 @@ void ext_merge_insert_chunk(ext_write_config_comm *comm,
       store->_used = 0;
     }
 
-  if (meventno != 0 &&
+  if (meventno > 1 &&
       meventno <= store->_prev_meventno)
     {
-      WARN_MSG("Inserting event for merging (time stitching) for src id %d"
+      WARN_MSG("Inserting event for merging (time stitching) for src id %d "
 	       "with non-zero meventno (%d) <= prev meventno (%d).",
 	       srcid, meventno, store->_prev_meventno);
     }
