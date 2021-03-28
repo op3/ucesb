@@ -710,16 +710,16 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 			  uint64_t t_until,
 			  uint32_t maxdestplen)
 {
-  size_t i;
+  size_t srcid;
 
   merge_result result;
 
   /* Look through the chunks we have to find the oldest item. */
   uint64_t toldest = (uint64_t) -1;
 
-  for (i = 0; i < _alloc_items_store; i++)
+  for (srcid = 0; srcid < _alloc_items_store; srcid++)
     {
-      merge_item_store *store = _items_store[i];
+      merge_item_store *store = _items_store[srcid];
 
       if (store &&
 	  store->_offset_first < store->_used)
@@ -765,9 +765,9 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
   result._flags = 0;
   result._srcid_mask = 0;
 
-  for (i = 0; i < _alloc_items_store; i++)
+  for (srcid = 0; srcid < _alloc_items_store; srcid++)
     {
-      merge_item_store *store = _items_store[i];
+      merge_item_store *store = _items_store[srcid];
 
       if (store &&
 	  store->_offset_first < store->_used)
@@ -806,6 +806,10 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 	  incl->_pend = (uint32_t *) (((char *) incl->_p) + item->_plen);
 
 	  result._flags |= item->_flags;
+	  if (srcid == 0)
+	    result._srcid_mask |= 0x80000000;
+	  else
+	    result._srcid_mask |= (uint32_t) (1 << (srcid - 1));
 
 	  /* Move the store forward.  (It _will_ be consumed.) */
 	  store->_offset_first +=
