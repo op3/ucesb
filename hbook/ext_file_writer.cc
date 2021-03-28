@@ -2452,6 +2452,13 @@ void dump_array_normal(global_struct *s)
 {
   // Dump all entries...
 
+  // 10 * 6 + 5 = 65 tokens, i.e. 14 left (from 79)
+  // eating into the 10 available for the value itself, 24
+
+  int cols =
+    (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL_WIDE) ? 4 : 6;
+  int startcol = 80 - cols * 11 - 1;
+
   printf ("--- === --- === ---\n");
 
   for (stage_array_item_map::iterator iter = s->_stage_array._items.begin();
@@ -2460,7 +2467,7 @@ void dump_array_normal(global_struct *s)
       stage_array_item &item = iter->second;
       uint32_t offset = iter->first;
 
-      char tmp[64];
+      char tmp1[64];
 
       int items = 1;
 
@@ -2476,58 +2483,71 @@ void dump_array_normal(global_struct *s)
 	      if (items == 0)
 		continue;
 
-	      snprintf (tmp,sizeof(tmp),"%s[%s]",
-			item._var_name,item._var_ctrl_name);
+	      snprintf (tmp1, sizeof(tmp1), "%s[%s]",
+			item._var_name, item._var_ctrl_name);
 	    }
 	  else
 	    {
 	      items = item._var_array_len;
 
-	      snprintf (tmp,sizeof(tmp),"%s[%d]",
-			item._var_name,item._var_array_len);
+	      snprintf (tmp1, sizeof(tmp1), "%s[%d]",
+			item._var_name, item._var_array_len);
 	    }
 	}
       else
-	snprintf (tmp,sizeof(tmp),"%s",item._var_name);
+	snprintf (tmp1, sizeof(tmp1), "%s", item._var_name);
 
-      printf ("%s =",tmp);
-
-      size_t l = strlen(tmp) + 2;
-
-      if (l < 13)
-	printf ("%*s",(int) (13 - l),"");
-      else
-	printf ("\n%*s",13,"");
-
-      // 11 * 6 = 66 tokens, i.e. 14 left
+      if (items == 0)
+	printf ("%s =", tmp1);
 
       char *p = s->_stage_array._ptr + offset;
 
       for (int i = 0; i < items; i++, p += sizeof(uint32_t))
 	{
-	  if (i && (i % 6) == 0)
-	    printf ("\n%*s",13,"");
+	  char tmp2[64];
 
 	  switch (item._var_type & EXTERNAL_WRITER_FLAG_TYPE_MASK)
 	    {
 	    case EXTERNAL_WRITER_FLAG_TYPE_INT32: {
-	      printf (" %10d",(int) *((int32_t *) p)); // PRId32
+	      snprintf (tmp2, sizeof(tmp2),
+		       "%d",(int) *((int32_t *) p)); // PRId32
 	      break;
 	    }
 	    case EXTERNAL_WRITER_FLAG_TYPE_UINT32: {
-	      printf (" %10u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      snprintf (tmp2, sizeof(tmp2),
+		       "%u",(unsigned int) *((uint32_t *) p)); // PRIu32
 	      break;
 	    }
 	    case EXTERNAL_WRITER_FLAG_TYPE_FLOAT32: {
 	      float f = *((float *) p);
 	      if (fabs(f) < 0.01 || fabs(f) > 1000000)
-		printf (" %10.3e",f); // x.yyyE+02
+		snprintf (tmp2, sizeof(tmp2), "%.3e",f); // x.yyyE+02
 	      else if (fabs(f) >= 9)
-		printf (" %10.6g",f); // x.yyyyyy
+		snprintf (tmp2, sizeof(tmp2), "%.6g",f); // x.yyyyyy
 	      else
-		printf (" %10.6f",f); // x.yyyyyy
+		snprintf (tmp2, sizeof(tmp2), "%.6f",f); // x.yyyyyy
 	      break;
 	    }
+	    }
+
+	  if (i == 0)
+	    {
+	      size_t l1 = strlen(tmp1);
+	      size_t l2 = strlen(tmp2);
+
+	      if (l1 + 3 + l2 <= startcol + 11)
+		printf ("%s = %*s",
+			tmp1, startcol + 11 - l1 - 3, tmp2);
+	      else
+		printf ("%s =\n%*s %10s",
+			tmp1, startcol, "", tmp2);
+	    }
+	  else
+	    {
+	      if (i && (i % 6) == 0)
+		printf ("\n%*s", startcol, "");
+
+	      printf (" %10s", tmp2);
 	    }
 	}
 
@@ -3736,7 +3756,8 @@ void request_ntuple_fill(ext_write_config_comm *comm,
     }
 #endif
 #if STRUCT_WRITER
-  if (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL)
+  if (_config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL ||
+      _config._dump == EXT_WRITER_DUMP_FORMAT_NORMAL_WIDE)
     dump_array_normal(s);
   else if (_config._dump == EXT_WRITER_DUMP_FORMAT_HUMAN_JSON ||
 	   _config._dump == EXT_WRITER_DUMP_FORMAT_COMPACT_JSON)
@@ -5099,7 +5120,7 @@ void usage(char *cmdname)
   printf ("  --debug-header     Litter header declaration with offsets and sizes.\n");
   printf ("  --server[=PORT]    Run a external data server (at PORT).\n");
   printf ("  --stdout           Write data to stdout.\n");
-  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, [compact_]json)\n");
+  printf ("  --dump[=FORMAT]    Make text dump of data.  (FORMAT: normal, wide, [compact_]json)\n");
   printf ("  --bitpack          Bitpack STRUCT data even if not using network server.\n");
 #endif
   printf ("  --time-stitch=N    Combine events with timestamps with difference <= N.\n");
@@ -5269,6 +5290,8 @@ int main(int argc,char *argv[])
       else if (MATCH_PREFIX("--dump=",post)) {
 	if (strcmp(post,"normal") == 0)
 	  _config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL;
+	else if (strcmp(post,"wide") == 0)
+	  _config._dump = EXT_WRITER_DUMP_FORMAT_NORMAL_WIDE;
 	else if (strcmp(post,"json") == 0)
 	  _config._dump = EXT_WRITER_DUMP_FORMAT_HUMAN_JSON;
 	else if (strcmp(post,"compact_json") == 0)

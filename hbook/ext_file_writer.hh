@@ -108,9 +108,10 @@ struct ext_write_config
   int         _stdout;
   int         _bitpack;
 
-#define EXT_WRITER_DUMP_FORMAT_NORMAL 1
-#define EXT_WRITER_DUMP_FORMAT_COMPACT_JSON   2
-#define EXT_WRITER_DUMP_FORMAT_HUMAN_JSON   3    
+#define EXT_WRITER_DUMP_FORMAT_NORMAL        1
+#define EXT_WRITER_DUMP_FORMAT_NORMAL_WIDE   2
+#define EXT_WRITER_DUMP_FORMAT_COMPACT_JSON  3
+#define EXT_WRITER_DUMP_FORMAT_HUMAN_JSON    4
   int         _dump;
 #endif
 };
