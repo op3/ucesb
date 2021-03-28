@@ -64,7 +64,8 @@
 #define ENUM_NTUPLE_TS_SRCID   0x00040000
 #define ENUM_NTUPLE_MEVENTNO   0x00080000
 #define ENUM_NTUPLE_MRG_STAT   0x00100000
-#define ENUM_NTUPLE_MULT_NON0  0x00200000
+#define ENUM_NTUPLE_MRG_MASK   0x00200000
+#define ENUM_NTUPLE_MULT_NON0  0x00400000
 
 typedef bool(*set_dest_fcn)(void *void_src_map, void *void_dest, int toggle_i);
 

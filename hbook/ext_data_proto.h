@@ -88,6 +88,7 @@
 #define EXTERNAL_WRITER_MARK_MEVENTNO     0x00000800
 #define EXTERNAL_WRITER_MARK_MRG_STAT     0x00001000
 #define EXTERNAL_WRITER_MARK_MULT_NON0    0x00002000 // Likely set in each ev.
+#define EXTERNAL_WRITER_MARK_MRG_MASK     0x00004000 // out-of-order
 
 #define EXTERNAL_WRITER_MAGIC (0x57e65c73u +35) // change with protocol version
 

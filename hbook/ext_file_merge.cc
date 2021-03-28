@@ -93,6 +93,7 @@ struct merge_item_incl
 struct merge_result
 {
   uint32_t  _flags;
+  uint32_t  _srcid_mask;
 };
 
 /* One event, pre-merge. */
@@ -697,6 +698,8 @@ uint32_t *ext_merge_do_merge(offset_array *oa,
 
   if (oa->_poffset_mrg_stat != (uint32_t) -1)
     pdest[oa->_poffset_mrg_stat] = htonl(result->_flags);
+  if (oa->_poffset_mrg_mask != (uint32_t) -1)
+    pdest[oa->_poffset_mrg_mask] = htonl(result->_srcid_mask);
 
   return pp;
 }
@@ -760,6 +763,7 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
   uint64_t incl0_tstamp = 0;
 
   result._flags = 0;
+  result._srcid_mask = 0;
 
   for (i = 0; i < _alloc_items_store; i++)
     {
@@ -897,7 +901,9 @@ bool ext_merge_sort_until(ext_write_config_comm *comm,
 
   header->_length = htonl(length);
 
-  MRG_TS_DBG ("merged: %x %zd\n", result._flags, pend - _merge_dest);
+  MRG_TS_DBG ("merged: %x [%x] %zd\n",
+	      result._flags, result._srcid_mask,
+	      pend - _merge_dest);
 
   for (uint32_t *p = _merge_dest; p < pend; p++)
     {
