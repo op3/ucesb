@@ -810,10 +810,10 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
       return count;
     }
 
-  // we first make sure enough space is available in the output 'pipe'
-  // memory
+  // We first make sure enough space for the buffer header is
+  // available in the output 'pipe' memory.
 
-  do_read(buf,_info.bufsize);
+  do_read(buf,sizeof (s_bufhe_host));
 
   // Make sure enough of the buffer is intact, such that the lmd input
   // reader (also in case it detects an error) would be able to
@@ -845,9 +845,14 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
   size_t buffer_size_dlen = BUFFER_SIZE_FROM_DLEN(l_dlen);
 
-  if (buffer_size_dlen != _info.bufsize)
-    ERROR("Buffer size mismatch (buf:0x%x != info:0x%x).",
+  if (buffer_size_dlen > _info.bufsize)
+    ERROR("Buffer size mismatch (buf:0x%x > info:0x%x).",
 	  (int) buffer_size_dlen,_info.bufsize);
+
+  // Read the remaining data.
+
+  do_read(((char *) buf) + sizeof (s_bufhe_host),
+	  buffer_size_dlen - sizeof (s_bufhe_host));
 
   // Check if it is the keep-alive buffer.  In that case, silently eat
   // it!  Careful: we have not been byte-swapped.  But the entries
@@ -873,7 +878,7 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   if (((sint32) l_evt) < 0)
     *nbufs = -1;
 
-  return _info.bufsize;
+  return buffer_size_dlen;
 }
 
 /////////////////////////////////////////////////////////////////////
