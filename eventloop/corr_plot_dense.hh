@@ -83,7 +83,7 @@ public:
   }
 
 public:
-  void add(const int *start,const int *end)
+  void add_list_diag(const int *start,const int *end)
   {
     _events++;
     _total_counts += (double) (end - start);

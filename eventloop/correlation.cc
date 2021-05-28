@@ -386,7 +386,8 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
 
   // printf ("c2 %d\n",plot->_list->_cur - plot->_list->_buffer);
 
-  plot->_corr->add(plot->_list->_buffer,plot->_list->_cur);
+  plot->_corr->add_list_diag(plot->_list->_buffer,
+			     plot->_list->_cur);
 
   // printf (".%d",plot->_list->_cur - plot->_list->_buffer);
 }
