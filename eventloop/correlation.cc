@@ -356,9 +356,13 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   //	  (int) (size_t) plot->_raw_event_correlation);
 
   if (plot->_unpack_event_correlation)
-    plot->_unpack_event_correlation->add_corr_members(_static_event._unpack,plot->_list WATCH_MEMBERS_ARG);
+    plot->_unpack_event_correlation->
+      /**/add_corr_members(_static_event._unpack,
+			   plot->_list WATCH_MEMBERS_ARG);
   if (plot->_raw_event_correlation)
-    plot->_raw_event_correlation->add_corr_members(_static_event._raw,plot->_list WATCH_MEMBERS_ARG);
+    plot->_raw_event_correlation->
+      /**/add_corr_members(_static_event._raw,
+			   plot->_list WATCH_MEMBERS_ARG);
 
   //the_cal_event_correlation   .watch_members(_event._cal   ,list);
 #ifdef USER_STRUCT
@@ -538,7 +542,8 @@ correlation_plot *correlation_init(const char *command)
   cp->_filename = NULL;
   cp->_list = NULL;
   cp->_corr = NULL;
-  cp->_need_sort = false; // must be set if we call the enumerate functions more than once!
+  cp->_need_sort = false; // must be set if we call the enumerate
+			  // functions more than once!
 
   cp->_unpack_event_correlation = NULL;
   cp->_raw_event_correlation = NULL;
@@ -595,7 +600,8 @@ correlation_plot *correlation_init(const char *command)
 
 	  if (*req_end == ':')
 	    {
-	      // Since we'll run over the data more than once, we may need sorting...
+	      // Since we'll run over the data more than once, we may
+	      // need sorting...
 	      cp->_need_sort = true;
 	      break;
 	    }
@@ -610,12 +616,14 @@ correlation_plot *correlation_init(const char *command)
       if (!cp->_raw_event_correlation)
 	cp->_raw_event_correlation = new raw_event_correlation;
 
-      if (!cp->_unpack_event_correlation->enumerate_correlations(signal_id(),&info) && 0)
+      if (!cp->_unpack_event_correlation->
+	  /**/enumerate_correlations(signal_id(),&info) && 0)
 	{
 	  delete cp->_unpack_event_correlation;
 	  cp->_unpack_event_correlation = NULL;
 	}
-      if (!cp->_raw_event_correlation->enumerate_correlations(signal_id(),&info) && 0)
+      if (!cp->_raw_event_correlation->
+	  /**/enumerate_correlations(signal_id(),&info) && 0)
 	{
 	  delete cp->_raw_event_correlation;
 	  cp->_raw_event_correlation = NULL;
@@ -684,7 +692,8 @@ void correlation_event(unpack_event *unpack_ev
 
   correlation_plot_vect::iterator iter;
 
-  for (iter = _correlation_plots.begin(); iter != _correlation_plots.end(); ++iter)
+  for (iter = _correlation_plots.begin();
+       iter != _correlation_plots.end(); ++iter)
     {
       correlation_plot *cp = *iter;
 
@@ -703,7 +712,8 @@ void correlation_exit()
 {
   correlation_plot_vect::iterator iter;
 
-  for (iter = _correlation_plots.begin(); iter != _correlation_plots.end(); ++iter)
+  for (iter = _correlation_plots.begin();
+       iter != _correlation_plots.end(); ++iter)
     {
       correlation_plot *cp = *iter;
 
