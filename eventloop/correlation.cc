@@ -315,6 +315,8 @@ void raw_array_correlation<Tsingle_correlation,Tsingle,T_correlation,T,n>::add_c
 #undef STRUCT_ONLY_LAST_UNION_MEMBER
 
 
+typedef std::vector<correlation_list *> correlation_list_vect;
+
 struct correlation_plot
 {
 
@@ -323,8 +325,12 @@ public:
   const char *_filename;
 
 public:
-  correlation_list *_list;
-  dense_corr       *_corr;
+  correlation_list_vect _lists;
+  dense_corr            *_corr;
+
+  int  _list_n;
+  int  _list_i;
+  bool _wrapped_i;
 
   bool  _need_sort; // list may be unsorted
 
@@ -340,6 +346,21 @@ public:
 #ifndef USE_MERGING
 void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
 {
+  correlation_list *list_i;   // The list that we fill this time
+  correlation_list *list_old; // The oldest list (that we correlate against)
+  // If there is only one list, list_i and list_i_old will be the same
+
+  list_i = plot->_lists[plot->_list_i];
+
+  plot->_list_i++;
+  if (plot->_list_i >= plot->_list_n)
+    {
+      plot->_list_i    = 0;
+      plot->_wrapped_i = true;
+    }
+
+  list_old = plot->_lists[plot->_list_i];
+
   /*
   memset(&_event_info,0,sizeof(_event_info));
 
@@ -349,7 +370,7 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
 #endif
   */
 
-  plot->_list->reset();
+  list_i->reset();
 
   //printf ("c1 %x %x\n",
   //	  (int) (size_t) plot->_unpack_event_correlation,
@@ -358,11 +379,11 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   if (plot->_unpack_event_correlation)
     plot->_unpack_event_correlation->
       /**/add_corr_members(_static_event._unpack,
-			   plot->_list WATCH_MEMBERS_ARG);
+			   list_i WATCH_MEMBERS_ARG);
   if (plot->_raw_event_correlation)
     plot->_raw_event_correlation->
       /**/add_corr_members(_static_event._raw,
-			   plot->_list WATCH_MEMBERS_ARG);
+			   list_i WATCH_MEMBERS_ARG);
 
   //the_cal_event_correlation   .watch_members(_event._cal   ,list);
 #ifdef USER_STRUCT
@@ -379,15 +400,22 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
       // (most useful events for plot have a small number of
       // correlations however)
       // printf ("%d ",plot->_list->_cur - plot->_list->_buffer);
-      qsort(plot->_list->_buffer,
-	    (size_t) (plot->_list->_cur - plot->_list->_buffer),
+      qsort(list_i->_buffer,
+	    (size_t) (list_i->_cur - list_i->_buffer),
 	    sizeof(int),compare_values<int>);
     }
 
   // printf ("c2 %d\n",plot->_list->_cur - plot->_list->_buffer);
 
-  plot->_corr->add_list_diag(plot->_list->_buffer,
-			     plot->_list->_cur);
+  // Only use the lists for filling if we have wrapped.
+  // Happens immediately for the one-list case.
+  if (plot->_wrapped_i)
+    {
+      plot->_corr->add_list_diag(list_i->_buffer,
+				 list_i->_cur);
+    }
+
+  (void) list_old;
 
   // printf (".%d",plot->_list->_cur - plot->_list->_buffer);
 }
@@ -541,7 +569,9 @@ correlation_plot *correlation_init(const char *command)
 
   cp->_command = command; // just for debugging...
   cp->_filename = NULL;
-  cp->_list = NULL;
+  cp->_list_n = 1;
+  cp->_list_i = 0;
+  cp->_wrapped_i = false;
   cp->_corr = NULL;
   cp->_need_sort = false; // must be set if we call the enumerate
 			  // functions more than once!
@@ -659,8 +689,14 @@ correlation_plot *correlation_init(const char *command)
   cp->_corr = new dense_corr();
   cp->_corr->clear((size_t) n);
 
-  cp->_list = new correlation_list;
-  cp->_list->init(n);
+  for (int i = 0; i < cp->_list_n; i++)
+    {
+      correlation_list *list = new correlation_list;
+
+      list->init(n);
+
+      cp->_lists.push_back(list);
+    }
 
   return cp;
 }
