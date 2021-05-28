@@ -147,7 +147,8 @@ GENERATED = $(GENDIR)/clean_structures.hh \
 	$(GENDIR)/revoke.hh \
 	$(GENDIR)/unpacker_defines.hh
 
-OBJS    = unpacker.o event_loop.o correlation.o corr_plot_dense.o \
+OBJS    = unpacker.o event_loop.o \
+	correlation.o corr_plot_dense.o corr_plot_dense2.o\
 	convert_picture.o pretty_dump.o \
 	event_sizes.o tstamp_alignment.o \
 	mainfcn.o parse_util.o location.o \

@@ -36,6 +36,7 @@
 #include "user.hh"
 
 #include "corr_plot_dense.hh"
+#include "corr_plot_dense2.hh"
 
 #ifdef USER_CORRELATION_STRUCT_INCLUDE
 #include USER_CORRELATION_STRUCT_INCLUDE
@@ -327,6 +328,7 @@ public:
 public:
   correlation_list_vect _lists;
   dense_corr            *_corr;
+  dense_corr2           *_corr2;
 
   int  _list_n;
   int  _list_i;
@@ -411,8 +413,14 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   // Happens immediately for the one-list case.
   if (plot->_wrapped_i)
     {
-      plot->_corr->add_list_diag(list_i->_buffer,
-				 list_i->_cur);
+      if (plot->_corr)
+	plot->_corr->add_list_diag(list_i->_buffer,
+				   list_i->_cur);
+      if (plot->_corr2)
+	plot->_corr2->add_lists_two(list_i->_buffer,
+				    list_i->_cur,
+				    list_old->_buffer,
+				    list_old->_cur);
     }
 
   (void) list_old;
@@ -559,6 +567,8 @@ void correlation_usage()
   printf ("\n");
   printf ("Use , to separate detectors; use : to start new group.\n");
   printf ("\n");
+  printf ("mix=N               Correlate between events (1=self, 2=next, ...).\n");
+  printf ("2d                  Make full square plot also for mix=1.\n");
   printf ("det=NAME            In case detector name collides with option.\n");
   printf ("\n");
 }
@@ -572,12 +582,15 @@ correlation_plot *correlation_init(const char *command)
   cp->_list_n = 1;
   cp->_list_i = 0;
   cp->_wrapped_i = false;
-  cp->_corr = NULL;
+  cp->_corr  = NULL;
+  cp->_corr2 = NULL;
   cp->_need_sort = false; // must be set if we call the enumerate
 			  // functions more than once!
 
   cp->_unpack_event_correlation = NULL;
   cp->_raw_event_correlation = NULL;
+
+  bool corr2_plot = false;
 
   enumerate_correlations_info info;
 
@@ -619,6 +632,10 @@ correlation_plot *correlation_init(const char *command)
 	      correlation_usage();
 	      exit(0);
 	    }
+	  else if (MATCH_C_PREFIX("mix=",post))
+	    cp->_list_n = (uint) atoi(post);
+	  else if (MATCH_ARG("2d"))
+	    corr2_plot = true;
 	  else if (MATCH_C_PREFIX("DET=",post) ||
 		   MATCH_C_PREFIX("det=",post) ||
 		   (post = request))
@@ -680,14 +697,28 @@ correlation_plot *correlation_init(const char *command)
       exit(0);
     }
 
+  if (cp->_list_n < 1)
+    ERROR("Correlation plot must have mix (%d) >= 1.\n", cp->_list_n);
+
+  if (cp->_list_n > 1)
+    corr2_plot = true;
+
   cp->_filename = command;
 
   // now, how many items did we get?
 
   int n = info._next_index;
 
-  cp->_corr = new dense_corr();
-  cp->_corr->clear((size_t) n);
+  if (!corr2_plot)
+    {
+      cp->_corr = new dense_corr();
+      cp->_corr->clear((size_t) n);
+    }
+  else
+    {
+      cp->_corr2 = new dense_corr2();
+      cp->_corr2->clear((size_t) n);
+    }
 
   for (int i = 0; i < cp->_list_n; i++)
     {
@@ -754,7 +785,10 @@ void correlation_exit()
     {
       correlation_plot *cp = *iter;
 
-      cp->_corr->picture(cp->_filename);
+      if (cp->_corr)
+	cp->_corr->picture(cp->_filename);
+      if (cp->_corr2)
+	cp->_corr2->picture(cp->_filename);
    }
 }
 
