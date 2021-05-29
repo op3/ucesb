@@ -1659,7 +1659,7 @@ static int ext_data_setup_messages(struct ext_data_client *client)
 		/*fprintf (stderr, "PL, LOOP: %08x %08x\n",
 		  max_loops, loop_size);*/
 
-		if (oend - o < 2 * items)
+		if (oend - o < (ssize_t) (2 * items))
 		  {
 		    client->_last_error =
 		      "Pack-list malformed, too many loop items.";
