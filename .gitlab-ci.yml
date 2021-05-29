@@ -429,7 +429,8 @@ Ubuntu Disco clang clang++ all:
 
 Arch minimal gcc g++ all:
   stage: build
-  image: archlinux/base
+  # also see drasi CI for more archlinux fixes
+  image: archlinux/archlinux:base
   before_script:
     # - pacman -Syu --noconfirm
     # - pacman -S base-devel git flex bison ncurses --noconfirm --needed
@@ -440,7 +441,7 @@ Arch minimal gcc g++ all:
 
 Arch minimal clang clang++ all:
   stage: build
-  image: archlinux/base
+  image: archlinux/archlinux:base
   before_script:
     # - pacman -Syu --noconfirm
     # - pacman -S base-devel git flex bison ncurses clang --noconfirm --needed
