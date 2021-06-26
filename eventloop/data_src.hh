@@ -37,7 +37,7 @@
 
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
 
-template<int swapping,int scramble>
+template<int swapping,int scramble,int account>
 class __data_src
 {
 public:
@@ -259,7 +259,7 @@ public:
 
 #if defined(USE_PAX_INPUT) || defined(USE_GENF_INPUT) || defined(USE_EBYE_INPUT_16)
 
-template<int swapping>
+template<int swapping,int account>
 class __data_src
 {
 public:
@@ -349,7 +349,7 @@ public:
 
 #ifdef USE_EBYE_INPUT_32
 
-template<int swapping>
+template<int swapping,int account>
 class __data_src
 {
 public:

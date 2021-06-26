@@ -1380,7 +1380,7 @@ void ucesb_event_loop::stitch_event(event_base &eb,
 }
 #endif
 
-template<typename T_event_base>
+template<typename T_event_base,int account>
 void ucesb_event_loop::unpack_event(T_event_base &eb)
 {
   eb._unpack_fail._prev = eb._unpack_fail._this = eb._unpack_fail._next = NULL;
@@ -1470,12 +1470,12 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 	{
 	  if (scramble)
 	    {
-	      __data_src<1,1> src(start,end);
+	      __data_src<1,1,account> src(start,end);
 	      unpack_subevent(eb,&subevent_info->_header,src,start);
 	    }
 	  else
 	    {
-	      __data_src<1,0> src(start,end);
+	      __data_src<1,0,account> src(start,end);
 	      unpack_subevent(eb,&subevent_info->_header,src,start);
 	    }
 	}
@@ -1483,12 +1483,12 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 	{
 	  if (scramble)
 	    {
-	      __data_src<0,1> src(start,end);
+	      __data_src<0,1,account> src(start,end);
 	      unpack_subevent(eb,&subevent_info->_header,src,start);
 	    }
 	  else
 	    {
-	      __data_src<0,0> src(start,end);
+	      __data_src<0,0,account> src(start,end);
 	      unpack_subevent(eb,&subevent_info->_header,src,start);
 	    }
 	}
@@ -1496,17 +1496,17 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 #ifdef USE_HLD_INPUT
       if (subevent_info->_swapping)
 	{
-	  __data_src<1,0> src(start,end);
+	  __data_src<1,0,account> src(start,end);
 	  unpack_subevent(eb,&subevent_info->_header,src,start);
 	}
       else
 	{
-	  __data_src<0,0> src(start,end);
+	  __data_src<0,0,account> src(start,end);
 	  unpack_subevent(eb,&subevent_info->_header,src,start);
 	}
 #endif
 #ifdef USE_RIDF_INPUT
-      __data_src<0,0> src(start,end);
+      __data_src<0,0,account> src(start,end);
       unpack_subevent(eb,&subevent_info->_header,src,start);
 #endif
     }
@@ -1527,13 +1527,13 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 
   if (src_event->_swapping)
     {
-      __data_src<1> src(start,end);
+      __data_src<1,account> src(start,end);
 
       unpack_subevent(eb,&src_event->_header,src,start);
     }
   else
     {
-      __data_src<0> src(start,end);
+      __data_src<0,account> src(start,end);
 
       unpack_subevent(eb,&src_event->_header,src,start);
     }
@@ -1544,9 +1544,13 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 
 // Force instantiation
 template
-void ucesb_event_loop::unpack_event<event_base>(event_base &eb);
+void ucesb_event_loop::unpack_event<event_base,0>(event_base &eb);
 template
-void ucesb_event_loop::unpack_event<sticky_event_base>(sticky_event_base &eb);
+void ucesb_event_loop::unpack_event<event_base,1>(event_base &eb);
+template
+void ucesb_event_loop::unpack_event<sticky_event_base,0>(sticky_event_base &eb);
+template
+void ucesb_event_loop::unpack_event<sticky_event_base,1>(sticky_event_base &eb);
 
 void ucesb_event_loop::force_event_data(event_base &eb
 #if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)

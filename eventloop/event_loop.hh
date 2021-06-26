@@ -212,7 +212,7 @@ public:
   static void stitch_event(event_base &eb,
 			   stitch_info *stitch);
 
-  template<typename T_event_base>
+  template<typename T_event_base,int account>
   static void unpack_event(T_event_base &eb);
   // the following is used before error printing, to ensure that
   // whatever data is available, is available unfragmented.

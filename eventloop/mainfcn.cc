@@ -1452,10 +1452,10 @@ get_next_event:
 
 #if defined(USE_LMD_INPUT)
 	      if (file_event->is_sticky())
-		loop.unpack_event(*sticky_event);
+		loop.unpack_event<sticky_event_base,0>(*sticky_event);
 	      else
 #endif
-	      loop.unpack_event(*event);
+	      loop.unpack_event<event_base,0>(*event);
 		}
 
 	      int num_multi = 0;
