@@ -255,6 +255,14 @@ void sigint_handler(int sig)
     }
 }
 
+volatile int _update_progress = 0;
+
+void sigalarm_handler(int sig)
+{
+  _update_progress = 1;
+}
+
+
 /********************************************************************/
 
 #ifdef USE_LMD_INPUT
@@ -912,6 +920,19 @@ int main(int argc, char **argv)
   sigemptyset(&action.sa_mask);
   action.sa_flags   = 0;
   sigaction(SIGINT,&action,NULL);
+
+  // Copied from hbook/ext_file_writer.cc
+  struct itimerval ival;
+  memset(&ival,0,sizeof(ival));
+  ival.it_interval.tv_usec = 200000; // 200000 us == 0.2 s
+  ival.it_value.tv_usec    = 200000;
+  setitimer(ITIMER_REAL,&ival,NULL);
+
+  memset(&action,0,sizeof(action));
+  action.sa_handler = sigalarm_handler;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags   = 0;
+  sigaction(SIGALRM,&action,NULL);
 
   // We don't want any SIGPIPE signals to kill us
 
@@ -1786,8 +1807,10 @@ get_next_event:
 #endif
 #endif
 	      {
-		if (_status._events >= next_show)
+		if (_status._events >= next_show || _update_progress)
 		  {
+                    _update_progress=0;
+
 		    timeval now;
 
 		    gettimeofday(&now,NULL);
