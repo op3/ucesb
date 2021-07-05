@@ -1809,6 +1809,13 @@ get_next_event:
 	      {
 		if (_status._events >= next_show || _update_progress)
 		  {
+                    const static char spinner_symbols[] = "-/|\\";
+                    const static size_t spinner_symbols_len =
+		      strlen(spinner_symbols);
+                    static uint8_t spinner_count = 0;
+                    int spinner_current =
+		      spinner_symbols[(spinner_count++) % spinner_symbols_len];
+
                     _update_progress=0;
 
 		    timeval now;
@@ -1888,15 +1895,15 @@ get_next_event:
 				if (prev_event_merge_order)
 				  print_current_merge_order(prev_event_merge_order);
 
-				fprintf(stderr,"   \r");
+				fprintf(stderr,"%c   \r", spinner_current);
 			      }
-			    else
-#endif
+			    else // !(_conf._merge_concurrent_files > 1)
+#endif // USE_MERGING
 			      {
 			    fprintf(stderr,"Processed: "
 				    "%s%" PRIu64 "%s  (%s%.1f%sk/s)  "
 				    "%s%" PRIu64 "%s  (%s%.1f%sk/s) "
-				    "(%s%" PRIu64 "%s errors)      \r",
+				    "(%s%" PRIu64 "%s errors) %c     \r",
 				    CT_ERR(BOLD_GREEN),
 				    _status._events,
 				    CT_ERR(NORM_DEF_COL),
@@ -1912,7 +1919,8 @@ get_next_event:
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_RED),
 				    _status._errors,
-				    CT_ERR(NORM_DEF_COL));
+				    CT_ERR(NORM_DEF_COL),
+                                    spinner_current);
 			      }
 			    unsigned int nlines = 0;
 #if defined(USE_LMD_INPUT)
