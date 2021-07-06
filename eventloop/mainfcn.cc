@@ -924,8 +924,8 @@ int main(int argc, char **argv)
   // Copied from hbook/ext_file_writer.cc
   struct itimerval ival;
   memset(&ival,0,sizeof(ival));
-  ival.it_interval.tv_usec = 200000; // 200000 us == 0.2 s
-  ival.it_value.tv_usec    = 200000;
+  ival.it_interval.tv_usec = 250000; // 250000 us == 0.25 s
+  ival.it_value.tv_usec    = 250000;
   setitimer(ITIMER_REAL,&ival,NULL);
 
   memset(&action,0,sizeof(action));
@@ -1809,18 +1809,19 @@ get_next_event:
 	      {
 		if (_status._events >= next_show || _update_progress)
 		  {
-                    const static char spinner_symbols[] = "-/|\\";
-                    const static size_t spinner_symbols_len =
-		      strlen(spinner_symbols);
-                    static uint8_t spinner_count = 0;
-                    int spinner_current =
-		      spinner_symbols[(spinner_count++) % spinner_symbols_len];
-
-                    _update_progress=0;
-
 		    timeval now;
 
 		    gettimeofday(&now,NULL);
+
+                    const static char spinner_symbols[] = "-\\|/";
+                    const static size_t spinner_symbols_len =
+		      strlen(spinner_symbols);
+                    int spinner_current =
+		      spinner_symbols[(now.tv_sec * 2 +
+				       (now.tv_usec / 500000)) %
+				      spinner_symbols_len];
+
+                    _update_progress=0;
 
 		    _ti_info.update();
 
@@ -2038,7 +2039,7 @@ get_next_event:
     timeval next_show_time;
 
     show_interval.tv_sec  = 0;
-    show_interval.tv_usec = 200000; // 200 ms, 5 Hz
+    show_interval.tv_usec = 250000; // 250 ms, 4 Hz
 
     next_show_time = last_show_time;
 
