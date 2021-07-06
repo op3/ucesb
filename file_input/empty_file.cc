@@ -219,7 +219,8 @@ int main(int argc,char *argv[])
       else if (MATCH_PREFIX("--events=",post)) {
 	_conf._max_events = atol(post);
       }
-      else if (MATCH_PREFIX("--first-event-no=",post)) {
+      else if (MATCH_PREFIX("--first-event-no=",post) ||
+	       MATCH_PREFIX("--first-ev-no=",post)) {
 	_conf._first_event_no = atol(post);
       }
       else if (MATCH_PREFIX("--rate=",post)) {
