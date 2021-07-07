@@ -164,7 +164,7 @@ OBJS    = unpacker.o event_loop.o \
 	decompress.o forked_child.o logfile.o \
 	map_info.o calib_info.o mc_def.o \
 	mille_output.o \
-	set_thread_name.o \
+	set_thread_name.o format_prefix.o \
 	mc_parser.o mc_lexer.o
 GENOBJS =
 

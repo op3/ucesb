@@ -24,6 +24,7 @@
 #include "error.hh"
 #include "colourtext.hh"
 #include "parse_util.hh"
+#include "format_prefix.hh"
 
 #include "mc_def.hh"
 
@@ -201,6 +202,12 @@ void usage()
 }
 
 status_monitor _status;
+
+format_diff_info _ev_diff_info;
+format_diff_info _evr_diff_info;
+format_diff_info _mev_diff_info;
+format_diff_info _mevr_diff_info;
+format_diff_info _err_diff_info;
 
 config_opts _conf;
 
@@ -1904,26 +1911,48 @@ get_next_event:
                                   ((double) (_status._multi_events-
                                              last_show_multi)) / elapsed;
 
-			    fprintf(stderr,"Processed: "
-				    "%s%" PRIu64 "%s  (%s%.1f%sk/s)  "
-				    "%s%" PRIu64 "%s  (%s%.1f%sk/s) "
-				    "(%s%" PRIu64 "%s errors) %c     \r",
+				char ev_str[64];
+				char evr_str[64];
+				char mev_str[64];
+				char mevr_str[64];
+				char err_str[64];
+
+				format_prefix(ev_str, sizeof (ev_str),
+					      (double) _status._events, 7,
+					      &_ev_diff_info);
+				format_prefix(evr_str, sizeof (evr_str),
+					      event_rate, 5,
+					      &_evr_diff_info);
+				format_prefix(mev_str, sizeof (mev_str),
+					      (double) _status._multi_events, 7,
+					      &_mev_diff_info);
+				format_prefix(mevr_str, sizeof (mevr_str),
+					      mevent_rate, 5,
+					      &_mevr_diff_info);
+				format_prefix(err_str, sizeof (err_str),
+					      (double) _status._errors, 5,
+					      &_err_diff_info);
+
+				fprintf(stderr,"Processed: "
+				    "%s%s%s (%s%s%s/s)  "
+				    "%s%s%s (%s%s%s/s) "
+				    "(%s%s%s errors) %c     \r",
 				    CT_ERR(BOLD_GREEN),
-				    _status._events,
+				    ev_str,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
-				    0.001 * event_rate,
+				    evr_str,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_BLUE),
-				    _status._multi_events,
+				    mev_str,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
-				    0.001 * mevent_rate,
+				    mevr_str,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_RED),
-				    _status._errors,
+				    err_str,
 				    CT_ERR(NORM_DEF_COL),
-                                    spinner_current);
+				    spinner_current);
 			      }
 			    unsigned int nlines = 0;
 #if defined(USE_LMD_INPUT)
