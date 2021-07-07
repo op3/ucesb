@@ -1870,39 +1870,42 @@ get_next_event:
 				      elapsed;
 				    seb->_events_last_show = seb->_events;
 
-				    if (rate < 19)
-				      fprintf (stderr,
-					       "[%s%5.2f%s/s] ",
-					       CT_ERR(BOLD),
-					       rate,
-					       CT_ERR(NORM));
-				    else if (rate < 19999)
-				      fprintf (stderr,
-					       "[%s%5.0f%s/s] ",
-					       CT_ERR(BOLD),
-					       rate,
-					       CT_ERR(NORM));
-				    else
-				      fprintf (stderr,
-					       "[%s%4.0f%sk/s] ",
-					       CT_ERR(BOLD),
-					       0.001 * rate,
-					       CT_ERR(NORM));
+				    char r_str[64];
+
+				    format_prefix(r_str, sizeof (r_str),
+						  rate, 5,
+						  &seb->_ev_diff_info);
+
+				    fprintf (stderr,
+					     "[%s%s%s/s] ",
+					     CT_ERR(BOLD),
+					     r_str,
+					     CT_ERR(NORM));
 				  }
 
+				char ev_str[64];
+				char evr_str[64];
+
+				format_prefix(ev_str, sizeof (ev_str),
+					      (double) _status._events, 7,
+					      &_ev_diff_info);
+				format_prefix(evr_str, sizeof (evr_str),
+					      event_rate, 5,
+					      &_evr_diff_info);
+
 				fprintf(stderr,
-					"%s%" PRIu64 "%s  (%s%.1f%sk/s)  ",
+					"%s%s%s  (%s%s%s/s)  ",
 					CT_ERR(BOLD_GREEN),
-					_status._events,
+					ev_str,
 					CT_ERR(NORM_DEF_COL),
 					CT_ERR(BOLD),
-					0.001 * event_rate,
+					evr_str,
 					CT_ERR(NORM));
 
 				if (prev_event_merge_order)
 				  print_current_merge_order(prev_event_merge_order);
 
-				fprintf(stderr,"%c   \r", spinner_current);
+				fprintf(stderr," %c   \r", spinner_current);
 			      }
 			    else // !(_conf._merge_concurrent_files > 1)
 #endif // USE_MERGING
