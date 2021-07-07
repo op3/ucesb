@@ -40,6 +40,7 @@
 #include <sys/select.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#include <math.h>
 
 #include "util.hh"
 #include "worker_thread.hh"
@@ -1814,6 +1815,8 @@ get_next_event:
 	      {
 		if (_update_progress)
 		  {
+		    _update_progress=0;
+
 		    timeval now;
 
 		    gettimeofday(&now,NULL);
@@ -1821,12 +1824,11 @@ get_next_event:
                     const static char spinner_symbols[] = "-\\|/";
                     const static size_t spinner_symbols_len =
 		      strlen(spinner_symbols);
+		    static int spinner_count = 0;
                     int spinner_current =
-		      spinner_symbols[(now.tv_sec * 2 +
-				       (now.tv_usec / 500000)) %
+		      spinner_symbols[spinner_count %
 				      spinner_symbols_len];
-
-                    _update_progress=0;
+		    spinner_count++;
 
 		    _ti_info.update();
 
@@ -1841,7 +1843,7 @@ get_next_event:
 			double elapsed = (double) (now.tv_sec - last_show_time.tv_sec) +
 			  1.0e-6 * (double) (now.tv_usec - last_show_time.tv_usec);
 
-			if (elapsed > 0.2)
+			if (elapsed > 0.05)
 			  {
 			    /* Do not update the time for the first events,
 			     * to quickly slow progress >= 1. */
@@ -1851,6 +1853,28 @@ get_next_event:
 			    double event_rate =
 			      ((double) (_status._events - last_show)) /
 			      elapsed;
+
+			    // Come up with a new interval such that spinner
+			    // rate corresponds to log unpack speed.
+
+			    // At 1 Hz (and lower) we want 1 update/s.
+			    // At 1 MHz, we want say 11 updates/s.
+
+			    double update_freq = 1. * log(event_rate) / M_LN10;
+			    double interval = 1. / update_freq;
+
+			    if (interval > 1) // 999999 to not set seconds
+			      ival.it_value.tv_usec = 999999;
+			    else if (interval < 0.05)
+			      ival.it_value.tv_usec = 20000;
+			    else
+			      ival.it_value.tv_usec =
+				(int) (1.e6 * interval);
+
+			    setitimer(ITIMER_REAL,&ival,NULL);
+
+			    //printf ("ival: %d   \n",
+			    //    (int) ival.it_value.tv_usec);
 
 #ifdef USE_MERGING
 			    if (_conf._merge_concurrent_files > 1)
