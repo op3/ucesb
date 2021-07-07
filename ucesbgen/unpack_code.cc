@@ -24,6 +24,7 @@
 #include "dump_list.hh"
 #include "parse_error.hh"
 #include "str_set.hh"
+#include "account.hh"
 
 // We generate the unpack code recursively, i.e. whenever an subevent
 // needs another subevent, that other subevent has to be processed
@@ -348,7 +349,7 @@ void struct_unpack_code::gen(const struct_definition *str,
       d.text(")\n");
     }
 
-  gen(str->_body,d,type,mei,!!subevent_header,true);
+  gen(str->_header,str->_body,d,type,mei,!!subevent_header,true);
 
   if (type & UCT_HEADER)
     {
@@ -428,7 +429,8 @@ void gen_indexed_decl(indexed_decl_map &indexed_decl,dumper &d)
     }
 }
 
-void struct_unpack_code::gen(const struct_item_list *list,
+void struct_unpack_code::gen(const struct_header *header,
+			     const struct_item_list *list,
 			     dumper &d,uint32 type,
 			     match_end_info *mei,
 			     bool last_subevent_item,
@@ -455,7 +457,8 @@ void struct_unpack_code::gen(const struct_item_list *list,
 
       sd.nl();
 
-      gen(indexed_decl,item,sd,type,mei,last_subevent_item && i == list->end());
+      gen(indexed_decl,
+	  header,item,sd,type,mei,last_subevent_item && i == list->end());
 
       if (mei && mei->_match_ended)
 	break;
@@ -557,6 +560,7 @@ void insert_indexed_decl(indexed_decl_map &indexed_decl,
 
 
 void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
+			     const struct_header *header,
 			     const struct_item *item,dumper &d,uint32 type,
 			     match_end_info *mei,
 			     bool last_subevent_item)
@@ -573,12 +577,15 @@ void struct_unpack_code::gen(indexed_decl_map &indexed_decl,
   const struct_encode    *encode;
   const struct_match_end *match_end;
 
-  if ((data    = dynamic_cast<const struct_data*   >(item))) gen(data   ,d,type,mei);
+  if ((data    = dynamic_cast<const struct_data*   >(item))) gen(header,
+								 data   ,d,type,mei);
   if ((decl    = dynamic_cast<const struct_decl*   >(item))) gen(indexed_decl,
 								 decl   ,d,type,mei);
-  if ((list    = dynamic_cast<const struct_list*   >(item))) gen(list   ,d,type,mei,last_subevent_item);
+  if ((list    = dynamic_cast<const struct_list*   >(item))) gen(header,
+								 list   ,d,type,mei,last_subevent_item);
   if ((select  = dynamic_cast<const struct_select* >(item))) gen(select ,d,type,mei,last_subevent_item);
-  if ((cond    = dynamic_cast<const struct_cond*   >(item))) gen(cond   ,d,type,mei,last_subevent_item);
+  if ((cond    = dynamic_cast<const struct_cond*   >(item))) gen(header,
+								 cond   ,d,type,mei,last_subevent_item);
   if ((member  = dynamic_cast<const struct_member* >(item))) gen(member ,d,type);
   if ((mark    = dynamic_cast<const struct_mark*   >(item))) gen(mark   ,d,type);
   if ((check   = dynamic_cast<const struct_check_count*>(item))) gen(check  ,d,type);
@@ -731,7 +738,8 @@ void struct_unpack_code::gen(const struct_encode *encode,dumper &d,uint32 type)
   gen(encode->_encode,d,type,NULL);
 }
 
-void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
+void struct_unpack_code::gen(const struct_header *header,
+			     const struct_data *data,dumper &d,uint32 type,
 			     match_end_info *mei)
 {
   const char *data_type = "";
@@ -812,9 +820,13 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	      d.text_fmt("if (__buffer.empty()) goto %s;\n",data_done_label);
 	    }
 
-	  d.text_fmt("READ_FROM_BUFFER(%d,%s,%s%s);\n",
+	  int account_id =
+	    new_account_item(header->_name, data->_ident);
+
+	  d.text_fmt("READ_FROM_BUFFER(%d,%s,%s%s,%d);\n",
 		     data->_loc._internal,
-		     data_type,prefix,data->_ident);
+		     data_type,prefix,data->_ident,
+		     account_id);
 
 	  if ((type & UCT_UNPACK) &&
 	      (data->_flags & SD_FLAGS_SEVERAL))
@@ -936,13 +948,16 @@ void struct_unpack_code::gen(const struct_data *data,dumper &d,uint32 type,
 	  read_prefix = "PEEK";
 	}
 
-
       // First we need to get the data from the buffer
 
-      d.text_fmt("%s_FROM_BUFFER_FULL(%d,%s,%s,%s%s.%s);\n",
+      int account_id =
+	new_account_item(header->_name, data->_ident);
+
+      d.text_fmt("%s_FROM_BUFFER_FULL(%d,%s,%s,%s%s.%s,%d);\n",
 		 read_prefix,
 		 data->_loc._internal,
-		 data_type,data->_ident,prefix,data->_ident,full_name);
+		 data_type,data->_ident,prefix,data->_ident,full_name,
+		 account_id);
 
       // Then we need to check it...
 
@@ -1173,7 +1188,8 @@ const var_external *struct_unpack_code::gen_external_header(const variable *var,
   return external;
 }
 
-void struct_unpack_code::gen(const struct_list*    list,   dumper &d,uint32 type,
+void struct_unpack_code::gen(const struct_header *header,
+			     const struct_list*    list,   dumper &d,uint32 type,
 			     match_end_info *mei,
 			     bool last_subevent_item)
 {
@@ -1199,7 +1215,7 @@ void struct_unpack_code::gen(const struct_list*    list,   dumper &d,uint32 type
       d.text(")\n");
     }
 
-  gen(list->_items,d,type,mei,last_subevent_item,false);
+  gen(header,list->_items,d,type,mei,last_subevent_item,false);
 }
 
 void struct_unpack_code::gen(const struct_select*select,dumper &d,uint32 type,
@@ -1585,7 +1601,8 @@ void struct_unpack_code::gen_match(const file_line &loc,
     }
 }
 
-void struct_unpack_code::gen(const struct_cond *cond,dumper &d,uint32 type,
+void struct_unpack_code::gen(const struct_header *header,
+			     const struct_cond *cond,dumper &d,uint32 type,
 			     match_end_info *mei,
 			     bool last_subevent_item)
 {
@@ -1609,7 +1626,7 @@ void struct_unpack_code::gen(const struct_cond *cond,dumper &d,uint32 type,
   if (mei)
     smei1 = new match_end_info(*mei);
 
-  gen(cond->_items,d,type,smei1,last_subevent_item,false);
+  gen(header,cond->_items,d,type,smei1,last_subevent_item,false);
   if (cond->_items_else)
     {
       if (type & (UCT_UNPACK | UCT_MATCH | UCT_PACKER))
@@ -1620,7 +1637,7 @@ void struct_unpack_code::gen(const struct_cond *cond,dumper &d,uint32 type,
       match_end_info *smei2 = NULL;
       if (mei)
 	smei2 = new match_end_info(*mei);
-      gen(cond->_items_else,d,type,smei2,last_subevent_item,false);
+      gen(header,cond->_items_else,d,type,smei2,last_subevent_item,false);
 
       // only in case both branches ended their matching, we end
       // the matching...

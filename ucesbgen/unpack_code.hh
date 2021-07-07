@@ -104,23 +104,28 @@ public:
 public:
   void gen(const struct_definition *str,dumper &d,uint32 type,
 	   match_end_info *mei);
-  void gen(const struct_item_list *list,dumper &d,uint32 type,
+  void gen(const struct_header *header,
+	   const struct_item_list *list,dumper &d,uint32 type,
 	   match_end_info *mei,bool last_subevent_item,bool is_function);
   void gen(const file_line &loc,const struct_decl_list *list,dumper &d,uint32 type);
 
   void gen(indexed_decl_map &indexed_decl,
+	   const struct_header *header,
 	   const struct_item   *item,   dumper &d,uint32 type,
 	   match_end_info *mei,bool last_subevent_item);
-  void gen(const struct_data   *data,   dumper &d,uint32 type,
+  void gen(const struct_header *header,
+	   const struct_data   *data,   dumper &d,uint32 type,
 	   match_end_info *mei);
   void gen(indexed_decl_map &indexed_decl,
 	   const struct_decl   *decl,   dumper &d,uint32 type,
 	   match_end_info *mei);
-  void gen(const struct_list   *list,   dumper &d,uint32 type,
+  void gen(const struct_header *header,
+	   const struct_list   *list,   dumper &d,uint32 type,
 	   match_end_info *mei,bool last_subevent_item);
   void gen(const struct_select *select, dumper &d,uint32 type,
 	   match_end_info *mei,bool last_subevent_item);
-  void gen(const struct_cond   *cond,   dumper &d,uint32 type,
+  void gen(const struct_header *header,
+	   const struct_cond   *cond,   dumper &d,uint32 type,
 	   match_end_info *mei,bool last_subevent_item);
   void gen(const struct_member *member,  dumper &d,uint32 type);
   void gen(const struct_mark   *mark,    dumper &d,uint32 type);
