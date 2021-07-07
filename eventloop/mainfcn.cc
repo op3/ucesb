@@ -1844,8 +1844,8 @@ get_next_event:
 			      last_show_time = now;
 
 			    double event_rate =
-			      (double) (_status._events-last_show) *
-			      0.001 / elapsed;
+			      ((double) (_status._events - last_show)) /
+			      elapsed;
 
 #ifdef USE_MERGING
 			    if (_conf._merge_concurrent_files > 1)
@@ -1858,8 +1858,8 @@ get_next_event:
 				    source_event_base *seb = (*iter);
 
 				    double rate =
-				      (double) (seb->_events -
-						seb->_events_last_show) /
+				      ((double) (seb->_events -
+						 seb->_events_last_show)) /
 				      elapsed;
 				    seb->_events_last_show = seb->_events;
 
@@ -1879,9 +1879,8 @@ get_next_event:
 				      fprintf (stderr,
 					       "[%s%4.0f%sk/s] ",
 					       CT_ERR(BOLD),
-					       rate * 0.001,
+					       0.001 * rate,
 					       CT_ERR(NORM));
-
 				  }
 
 				fprintf(stderr,
@@ -1890,7 +1889,7 @@ get_next_event:
 					_status._events,
 					CT_ERR(NORM_DEF_COL),
 					CT_ERR(BOLD),
-					event_rate,
+					0.001 * event_rate,
 					CT_ERR(NORM));
 
 				if (prev_event_merge_order)
@@ -1901,6 +1900,10 @@ get_next_event:
 			    else // !(_conf._merge_concurrent_files > 1)
 #endif // USE_MERGING
 			      {
+                                double mevent_rate =
+                                  ((double) (_status._multi_events-
+                                             last_show_multi)) / elapsed;
+
 			    fprintf(stderr,"Processed: "
 				    "%s%" PRIu64 "%s  (%s%.1f%sk/s)  "
 				    "%s%" PRIu64 "%s  (%s%.1f%sk/s) "
@@ -1909,14 +1912,13 @@ get_next_event:
 				    _status._events,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
-				    event_rate,
+				    0.001 * event_rate,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_BLUE),
 				    _status._multi_events,
 				    CT_ERR(NORM_DEF_COL),
 				    CT_ERR(BOLD),
-				    (double) (_status._multi_events-
-					      last_show_multi)*0.001/elapsed,
+				    0.001 * mevent_rate,
 				    CT_ERR(NORM),
 				    CT_ERR(BOLD_RED),
 				    _status._errors,
