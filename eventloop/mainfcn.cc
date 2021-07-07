@@ -1085,8 +1085,6 @@ int main(int argc, char **argv)
 
     uint64_t   errors_file = 0;
 
-    uint64_t   show_events = 1;
-    uint64_t   next_show = show_events;
     uint64_t   last_show = 0;
     uint64_t   last_show_multi = 0;
 
@@ -1814,7 +1812,7 @@ get_next_event:
 #endif
 #endif
 	      {
-		if (_status._events >= next_show || _update_progress)
+		if (_update_progress)
 		  {
 		    timeval now;
 
@@ -1975,12 +1973,6 @@ get_next_event:
 			    last_show_multi = _status._multi_events;
 			  }
 		      }
-
-		    if (_status._events >=
-			show_events * (show_events <= 200 ? 20 : 2000))
-		      show_events *= 10;
-
-		    next_show += show_events;
 		  }
 #if defined(USE_EXT_WRITER)
 		MON_CHECK_COPY_BLOCK(&_status_block, &_status);
