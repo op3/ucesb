@@ -23,5 +23,7 @@
 
 int new_account_item(const char *name, const char *ident);
 
+void generate_account_items();
+
 #endif//__ACCOUNT_HH__
 

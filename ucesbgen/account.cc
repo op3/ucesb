@@ -18,7 +18,59 @@
  * MA  02110-1301  USA
  */
 
+#include <vector>
+#include <stdlib.h>
+
+#include "dumper.hh"
+
+class account_item
+{
+public:
+  account_item(const char *name,
+	       const char *ident)
+  {
+    _name  = name;
+    _ident = ident;
+  }
+
+public:
+  const char *_name;
+  const char *_ident;
+};
+
+typedef std::vector<account_item*> account_item_list;
+
+account_item_list _account_items;
+
 int new_account_item(const char *name, const char *ident)
 {
-  return 0;
+  size_t index = _account_items.size();
+
+  _account_items.push_back(new account_item(name, ident));
+
+  return (int) index;
+}
+
+void generate_account_items()
+{
+  print_header("ACCOUNT_IDS",
+	       "Structure and identifier for raw data items.");
+
+  printf ("account_id account_ids[] =\n"
+	  "{ \n");
+  size_t i = 0;
+  for (account_item_list::iterator iter = _account_items.begin();
+       iter !=_account_items.end(); i++, ++iter)
+    {
+      printf ("  { %zd, \"%s\", \"%s\" },\n",
+	      i,
+	      (*iter)->_name,
+	      (*iter)->_ident);
+    }
+  printf ("};\n\n");
+
+  printf ("#define NUM_ACCOUNT_IDS  %zd\n",
+	  _account_items.size());
+
+  print_footer("ACCOUNT_IDS");
 }

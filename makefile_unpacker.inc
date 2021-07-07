@@ -647,6 +647,10 @@ $(GENDIR)/locations.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) LOCATIONS < $< > $@
 
+$(GENDIR)/account_ids.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
+	@echo " EXTRACT $@"
+	@$(EXTRACT) ACCOUNT_IDS < $< > $@
+
 $(GENDIR)/unpacker_defines.hh: $(GENDIR)/$(UNPACKER).uce $(VERIFYUCESB)
 	@echo " EXTRACT $@"
 	@$(EXTRACT) UNPACKER_DEFINES < $< > $@
@@ -799,7 +803,7 @@ $(VERIFYPSDC): $(GENDIR)/reparse_raw.psd $(GENDIR)/verify_reparse_raw.psd
 #########################################################
 
 $(OBJDIR)/unpacker.o: $(GENDIR)/unpacker.hh $(GENDIR)/matcher.hh \
-	$(GENDIR)/packer.hh $(GENDIR)/locations.hh \
+	$(GENDIR)/packer.hh $(GENDIR)/locations.hh $(GENDIR)/account_ids.hh \
 	$(GENDIR)/structures.hh $(GENDIR)/data_mapping.hh
 
 #########################################################

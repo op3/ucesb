@@ -23,6 +23,7 @@
 
 #include "definitions.hh"
 #include "parse_error.hh"
+#include "account.hh"
 
 #include "signal_errors.hh"
 
@@ -57,6 +58,8 @@ int main(int /*argc*/,char *argv[])
   generate_signals();
 
   generate_locations();
+
+  generate_account_items();
 
   return 0;
 }
