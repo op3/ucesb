@@ -48,6 +48,7 @@
 #include "reclaim.hh"
 
 #include "event_sizes.hh"
+#include "accounting.hh"
 #include "tstamp_alignment.hh"
 #include "select_event.hh"
 
@@ -229,6 +230,8 @@ void ucesb_event_loop::preprocess()
 
   if (_conf._event_sizes)
     _event_sizes.init();
+  if (_conf._account)
+    account_init();
 
   correlation_init(_corr_commands);
 
@@ -252,6 +255,8 @@ void ucesb_event_loop::postprocess()
 
   if (_conf._event_sizes)
     _event_sizes.show();
+  if (_conf._account)
+    account_show();
 
 #ifdef EXIT_USER_FUNCTION
   EXIT_USER_FUNCTION();

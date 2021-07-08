@@ -56,7 +56,7 @@ void generate_account_items()
   print_header("ACCOUNT_IDS",
 	       "Structure and identifier for raw data items.");
 
-  printf ("account_id account_ids[] =\n"
+  printf ("account_id _account_ids[] =\n"
 	  "{ \n");
   size_t i = 0;
   for (account_item_list::iterator iter = _account_items.begin();

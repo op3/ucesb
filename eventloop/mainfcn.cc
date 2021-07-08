@@ -127,6 +127,7 @@ void usage()
   printf ("  --debug           Print events causing errors.\n");
   printf ("  --colour=yes|no   Force colour and markup on or off.\n");
   printf ("  --event-sizes     Show average sizes of events and subevents.\n");
+  printf ("  --account         Show data size usage by data members.\n");
 
 #if defined(USE_EXT_WRITER)
   printf ("  --monitor[=PORT]  Status information server.\n");
@@ -724,6 +725,9 @@ int main(int argc, char **argv)
 #endif
       else if (MATCH_ARG("--event-sizes")) {
 	_conf._event_sizes = 1;
+      }
+      else if (MATCH_ARG("--account")) {
+	_conf._account = 1;
       }
       else if (MATCH_ARG("--print")) {
 	_conf._print = 1;
