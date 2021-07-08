@@ -38,9 +38,14 @@ void account_init()
 void account_show()
 {
   ssize_t i;
+  uint64_t total = 0;
+
+  for (i = 0; i < NUM_ACCOUNT_IDS; i++)
+    total += _data_account[i];
 
   printf ("\n%sstructure%s                      %smember%s               "
-	  "     %sbytes%s\n\n",
+	  "     %sbytes%s    %sfrac%s\n\n",
+	  CT_OUT(UL),CT_OUT(NORM),
 	  CT_OUT(UL),CT_OUT(NORM),
 	  CT_OUT(UL),CT_OUT(NORM),
 	  CT_OUT(UL),CT_OUT(NORM));
@@ -50,10 +55,11 @@ void account_show()
       account_id *acc_id = &_account_ids[i];
       
       if (_data_account[i])
-	printf ("%30s.%20s %10" PRIu64 "\n",
+	printf ("%-30s.%-20s %10" PRIu64 " %6.2f%%\n",
 		acc_id->_name,
 		acc_id->_ident,
-		(uint64_t) _data_account[i]);
+		(uint64_t) _data_account[i],
+		100. * ((double)_data_account[i]) / (double) total);
     }
 
 }
