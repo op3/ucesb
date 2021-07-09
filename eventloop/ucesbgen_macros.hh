@@ -57,6 +57,12 @@
   if (__buffer.is_account()) do_account_##data_type(account_id);   \
 }
 
+#define MATCH_READ_FROM_BUFFER(loc,data_type,dest,account_id) {	   \
+  if (UNLIKELY(!__buffer.get_##data_type(&dest))) {                \
+    ERROR_U_LOC(loc,"Error while reading %s from buffer.",#dest);  \
+  }                                                                \
+}
+
 #define PEEK_FROM_BUFFER_FULL(loc,data_type,dest,dest_full,account_id) { \
   if (UNLIKELY(!__buffer.peek_##data_type(&dest_full))) {          \
     ERROR_U_LOC(loc,"Error while reading %s from buffer.",#dest);  \
@@ -68,6 +74,12 @@
     ERROR_U_LOC(loc,"Error while reading %s from buffer.",#dest);  \
   }                                                                \
   if (__buffer.is_account()) do_account_##data_type(account_id);   \
+}
+
+#define MATCH_READ_FROM_BUFFER_FULL(loc,data_type,dest,dest_full,account_id) {\
+  if (UNLIKELY(!__buffer.get_##data_type(&dest_full))) {           \
+    ERROR_U_LOC(loc,"Error while reading %s from buffer.",#dest);  \
+  }                                                                \
 }
 
 #define CHECK_BITS_EQUAL(loc,value,constraint) {	      \

@@ -804,6 +804,11 @@ void struct_unpack_code::gen(const struct_header *header,
 
       if (type & (UCT_UNPACK | UCT_MATCH))
 	{
+	  const char *match_prefix = "";
+
+	  if (type & UCT_MATCH)
+	    match_prefix = "MATCH_";
+
 	  if (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL))
 	    {
 	      // If there is no bitfield, the only thing that can stop
@@ -823,7 +828,8 @@ void struct_unpack_code::gen(const struct_header *header,
 	  int account_id =
 	    new_account_item(header->_name, data->_ident);
 
-	  d.text_fmt("READ_FROM_BUFFER(%d,%s,%s%s,%d);\n",
+	  d.text_fmt("%sREAD_FROM_BUFFER(%d,%s,%s%s,%d);\n",
+		     match_prefix,
 		     data->_loc._internal,
 		     data_type,prefix,data->_ident,
 		     account_id);
@@ -936,7 +942,11 @@ void struct_unpack_code::gen(const struct_header *header,
 
   if (type & (UCT_UNPACK | UCT_MATCH))
     {
+      const char *match_prefix = "";
       const char *read_prefix = "READ";
+
+      if (type & UCT_MATCH)
+	match_prefix = "MATCH_";
 
       if (data->_flags & (SD_FLAGS_OPTIONAL | SD_FLAGS_SEVERAL))
 	{
@@ -945,6 +955,7 @@ void struct_unpack_code::gen(const struct_header *header,
 	  data_done_label = strdup(label);
 	  d.text_fmt("if (__buffer.empty()) goto %s;\n",data_done_label);
 
+	  match_prefix = "";
 	  read_prefix = "PEEK";
 	}
 
@@ -953,7 +964,8 @@ void struct_unpack_code::gen(const struct_header *header,
       int account_id =
 	new_account_item(header->_name, data->_ident);
 
-      d.text_fmt("%s_FROM_BUFFER_FULL(%d,%s,%s,%s%s.%s,%d);\n",
+      d.text_fmt("%s%s_FROM_BUFFER_FULL(%d,%s,%s,%s%s.%s,%d);\n",
+		 match_prefix,
 		 read_prefix,
 		 data->_loc._internal,
 		 data_type,data->_ident,prefix,data->_ident,full_name,
