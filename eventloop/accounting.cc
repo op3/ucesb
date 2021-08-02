@@ -33,7 +33,10 @@ uint64 _data_account[NUM_ACCOUNT_IDS];
 
 void account_init()
 {
-  memset(_data_account, 0, sizeof(_data_account));
+  ssize_t i;
+
+  for (i = 0; i < NUM_ACCOUNT_IDS; i++)
+    _data_account[i] = 0;
 }
 
 void account_show()
