@@ -147,6 +147,8 @@ public:
 
     _only_index0 = src._only_index0;
     _signal_id_zzp_part = signal_id_zzp_part;
+
+    _ptr_offset = NULL; /* Silence compiler. */
   }
 
 public:
