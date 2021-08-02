@@ -352,7 +352,7 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
   correlation_list *list_old; // The oldest list (that we correlate against)
   // If there is only one list, list_i and list_i_old will be the same
 
-  list_i = plot->_lists[plot->_list_i];
+  list_i = plot->_lists[(size_t) plot->_list_i];
 
   plot->_list_i++;
   if (plot->_list_i >= plot->_list_n)
@@ -361,7 +361,7 @@ void correlation_one_event(correlation_plot *plot WATCH_MEMBERS_PARAM)
       plot->_wrapped_i = true;
     }
 
-  list_old = plot->_lists[plot->_list_i];
+  list_old = plot->_lists[(size_t) plot->_list_i];
 
   /*
   memset(&_event_info,0,sizeof(_event_info));
@@ -633,7 +633,7 @@ correlation_plot *correlation_init(const char *command)
 	      exit(0);
 	    }
 	  else if (MATCH_C_PREFIX("mix=",post))
-	    cp->_list_n = (uint) atoi(post);
+	    cp->_list_n = atoi(post);
 	  else if (MATCH_ARG("2d"))
 	    corr2_plot = true;
 	  else if (MATCH_C_PREFIX("DET=",post) ||

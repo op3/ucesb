@@ -366,19 +366,21 @@ void ucesb_event_loop::close_output()
 #include "wr_stamp.hh"
 
 #if defined(USE_LMD_INPUT)
-void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header, int a_tsid,
-    uint64_t &a_timestamp)
+void apply_timestamp_slope(lmd_subevent_10_1_host const &a_header,
+			   uint32_t a_tsid, uint64_t &a_timestamp)
 {
   bool found_hit = false;
   for (std::vector<time_slope>::const_iterator it =
       _conf_time_slope_vector.begin(); it != _conf_time_slope_vector.end();
       ++it) {
-#define APPLY_TIMESTAMP_SLOPE_SKIP(ts_part, event_part)\
-    (it->ts_part != -1 && it->ts_part != event_part)
+
+#define APPLY_TIMESTAMP_SLOPE_SKIP(ts_part, event_part)	\
+      (it->ts_part != -1 && it->ts_part != (event_part))
+
     if (APPLY_TIMESTAMP_SLOPE_SKIP(proc, a_header.i_procid)) continue;
     if (APPLY_TIMESTAMP_SLOPE_SKIP(ctrl, a_header.h_control)) continue;
     if (APPLY_TIMESTAMP_SLOPE_SKIP(crate, a_header.h_subcrate)) continue;
-    if (APPLY_TIMESTAMP_SLOPE_SKIP(tsid, a_tsid)) continue;
+    if (APPLY_TIMESTAMP_SLOPE_SKIP(tsid, (int) a_tsid)) continue;
     if (found_hit) {
       ERROR("Several time-slope matches for event, please be more specific.");
     }

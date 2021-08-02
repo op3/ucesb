@@ -2542,7 +2542,7 @@ void dump_array_normal(global_struct *s)
 
 	      if (l1 + 3 + l2 <= startcol + 11)
 		printf ("%s = %*s",
-			tmp1, startcol + 11 - l1 - 3, tmp2);
+			tmp1, (int) (startcol + 11 - l1 - 3), tmp2);
 	      else
 		printf ("%s =\n%*s %10s",
 			tmp1, startcol, "", tmp2);
