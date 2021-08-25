@@ -299,7 +299,8 @@ void init_cwn_var(ntuple_item *item,
 	ERROR("Bitmask (%s) has overflow bit in position 0, not supported.",
 	      var_name); // clashes with the use of 31 as no-overflow-bit
       else if (!(write_info & IND_ITEM_TYPE_FLOAT))
-	ERROR("Bitmask (%s) has overflow bit for non-float value, not supported.",var_name);
+	ERROR("Bitmask (%s) has overflow bit for non-float value, "
+	      "not supported.",var_name);
       else
 	overflow_bit_shift = firstbit(item->_ctrl_mask._overflow) - 1;
 
@@ -309,7 +310,8 @@ void init_cwn_var(ntuple_item *item,
 	(size_t) ((char*) item->_ctrl_mask._ptr - (char*) info.src_base);
 
       if (mask_offset > IND_ITEM_MAX_MASK_OFFSET)
-	ERROR("Internal error, ntuple item (%s) mask offset too large (%zd > %d).",
+	ERROR("Internal error, ntuple item (%s) mask offset "
+	      "too large (%zd > %d).",
 	      var_name,mask_offset,IND_ITEM_MAX_MASK_OFFSET);
 
       write_ptrs._infos[index * write_ptrs._info_slots_per_entry +
