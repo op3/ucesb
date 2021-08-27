@@ -35,18 +35,25 @@
 
 #define DEBUG_STAGING 0
 
-void stage_ntuple_item::storage_size(indexed_item &write_ptrs,size_t &size)
+void storage_size(ntuple_item *item,
+		  indexed_item &write_ptrs,size_t &size,
+		  size_t num_used = 1)
 {
   if (DEBUG_STAGING)
-    INFO(0,"Storage:  %s",_item->_name.c_str());
+    INFO(0,"Storage:  %s",item->_name.c_str());
 
   write_ptrs._items_per_entry++;
 
   write_ptrs._info_slots_per_entry += 2;
-  if (_item->_ctrl_mask._ptr) // bitmask
+  if (item->_ctrl_mask._ptr) // bitmask
     write_ptrs._info_slots_per_entry += 2;
 
-  size += sizeof(float);
+  size += num_used * sizeof(float);
+}
+
+void stage_ntuple_item::storage_size(indexed_item &write_ptrs,size_t &size)
+{
+  ::storage_size(_item, write_ptrs, size);
 }
 
 void init_cwn_hbname(stage_ntuple_info &info,
@@ -709,6 +716,8 @@ void stage_ntuple_indexed_var<Tsni_ind,Tsni_vect>::storage_size(indexed_item &wr
 
   ntuple_item *item = _items.first_item();
 
+  ::storage_size(item, write_ptrs, size, length_used.tot());
+  /*
   UNUSED(item);
 
   write_ptrs._items_per_entry++;
@@ -717,6 +726,7 @@ void stage_ntuple_indexed_var<Tsni_ind,Tsni_vect>::storage_size(indexed_item &wr
     write_ptrs._info_slots_per_entry += 2;
 
   size += length_used.tot() * sizeof(float);
+  */
 }
 
 template<typename Tsni_ind,typename Tsni_vect>
