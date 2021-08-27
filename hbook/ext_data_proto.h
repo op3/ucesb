@@ -81,6 +81,9 @@
 #define EXTERNAL_WRITER_MARK_CANARY       0x00a50000
 #define EXTERNAL_WRITER_MARK_CANARY_MASK  0x00ff0000
 
+#define EXTERNAL_WRITER_MARK_64_HI        0x02000000
+#define EXTERNAL_WRITER_MARK_64_LO        0x01000000
+
 /* Timestamp info for time-stitching in struct_writer. */
 #define EXTERNAL_WRITER_MARK_TS_LO        0x00000100
 #define EXTERNAL_WRITER_MARK_TS_HI        0x00000200
