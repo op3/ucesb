@@ -1344,7 +1344,6 @@ void do_create_branch(global_struct *s,
   s->_cwn->hbname(item._block,ptr,branch/*hbname_vars*/);
 #endif
 #if USING_ROOT
-
   if (_config._outfile)
     {
       strcpy (branch,item._var_name);
@@ -1421,7 +1420,7 @@ void do_create_branch(global_struct *s,
 	}
       else if (!item._var_ctrl_name)
 	{
-	  /* We are a an static array. */
+	  /* We are an static array. */
 	  if (lfcount)
 	    ERR_MSG("Requested leaf (%s) variable in tree is counted, "
 		    "but request is static array.",item._var_name);
@@ -1433,7 +1432,7 @@ void do_create_branch(global_struct *s,
 	}
       else
 	{
-	  /* We are a an dynamic array. */
+	  /* We are an dynamic array. */
 	  if (!lfcount)
 	    ERR_MSG("Requested leaf (%s) variable in tree is not counted, "
 		    "but request is.",item._var_name);
