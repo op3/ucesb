@@ -1317,7 +1317,7 @@ void do_create_branch(global_struct *s,
 
   void *ptr = s->_stage_array._ptr+offset;
 
-  size_t branch_size = strlen(item._var_name)+
+  size_t branch_size = strlen(item._var_name) +
     (item._var_ctrl_name ? strlen(item._var_ctrl_name) : 0)+
     2/*type*/+1/*trail 0*/+2/*length/ctrl bracket ()*/+3/*limit [ , ]*/+2*11;
   char *branch = (char *) malloc(branch_size);
@@ -1326,7 +1326,7 @@ void do_create_branch(global_struct *s,
     ERR_MSG("Failure allocating string.");
 
 #if USING_CERNLIB
-  strcpy (branch,item._var_name);
+  sprintf (branch,"%s",item._var_name);
   if (item._var_array_len != (uint32_t) -1)
     {
       if (item._var_ctrl_name)
@@ -1349,7 +1349,7 @@ void do_create_branch(global_struct *s,
 #if USING_ROOT
   if (_config._outfile)
     {
-      strcpy (branch,item._var_name);
+      sprintf (branch,"%s",item._var_name);
       if (item._var_array_len != (uint32_t) -1)
 	{
 	  if (item._var_ctrl_name)
