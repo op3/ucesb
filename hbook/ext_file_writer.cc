@@ -1285,11 +1285,13 @@ struct str_var_type
 };
 
 str_var_type _str_var_type[] = {
-  { NULL,       NULL, NULL },
-  { "int32_t ", "I", "I" },
-  { "uint32_t", "I", "i" }, // hbook should be U
-  // for uint16_t root is s and uint8_t root is b
-  { "float   ", "R", "F" },
+  /* -        */ { NULL,       NULL, NULL },
+  /* INT32    */ { "int32_t ", "I", "I" },
+  /* UINT32   */ { "uint32_t", "I", "i" }, // hbook should be U
+  /**/        // for uint16_t root is s and uint8_t root is b
+  /* FLOAT32  */ { "float   ", "R", "F" },
+  /* UINT64HI */ { "uint32_t", "I", "i" }, // hbook should be U
+  /* UINT64LO */ { "uint32_t", "I", "i" }, // hbook should be U
 };
 
 void do_create_branch(global_struct *s,
@@ -1674,9 +1676,11 @@ void generate_structure(FILE *fid,stage_array &sa,int indent,bool infomacro)
 
 	  switch (item._var_type & EXT_DATA_ITEM_TYPE_MASK)
 	    {
-	    case EXT_DATA_ITEM_TYPE_INT32:   item_type = "INT32";   break;
-	    case EXT_DATA_ITEM_TYPE_UINT32:  item_type = "UINT32";  break;
-	    case EXT_DATA_ITEM_TYPE_FLOAT32: item_type = "FLOAT32"; break;
+	    case EXT_DATA_ITEM_TYPE_INT32:    item_type = "INT32";   break;
+	    case EXT_DATA_ITEM_TYPE_UINT32:   item_type = "UINT32";  break;
+	    case EXT_DATA_ITEM_TYPE_FLOAT32:  item_type = "FLOAT32"; break;
+	    case EXT_DATA_ITEM_TYPE_UINT64HI: item_type = "UINT64HI"; break;
+	    case EXT_DATA_ITEM_TYPE_UINT64LO: item_type = "UINT64LO"; break;
 	    }
 
 	  fprintf (fid,"%*s",indent,"");
@@ -2531,6 +2535,16 @@ void dump_array_normal(global_struct *s)
 		       "%u",(unsigned int) *((uint32_t *) p)); // PRIu32
 	      break;
 	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_UINT64HI: {
+	      snprintf (tmp2, sizeof(tmp2),
+		       "%u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      break;
+	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_UINT64LO: {
+	      snprintf (tmp2, sizeof(tmp2),
+		       "%u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      break;
+	    }
 	    case EXTERNAL_WRITER_FLAG_TYPE_FLOAT32: {
 	      float f = *((float *) p);
 	      if (fabs(f) < 0.01 || fabs(f) > 1000000)
@@ -2624,6 +2638,14 @@ void dump_array_json(global_struct *s)
 	      break;
 	    }
 	    case EXTERNAL_WRITER_FLAG_TYPE_UINT32: {
+	      printf ("%u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      break;
+	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_UINT64HI: {
+	      printf ("%u",(unsigned int) *((uint32_t *) p)); // PRIu32
+	      break;
+	    }
+	    case EXTERNAL_WRITER_FLAG_TYPE_UINT64LO: {
 	      printf ("%u",(unsigned int) *((uint32_t *) p)); // PRIu32
 	      break;
 	    }
