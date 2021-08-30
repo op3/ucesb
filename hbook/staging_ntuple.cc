@@ -100,6 +100,9 @@ void init_cwn_var(ntuple_item *item,
   uint32_t index_info_off = index * write_ptrs._info_slots_per_entry;
   uint32_t index_dest_off = index * write_ptrs._items_per_entry;
 
+  uint32_t *write_infos = &write_ptrs._infos[index_info_off];
+  void    **write_dests = &write_ptrs._dests[index_dest_off];
+
   limit = item->_limits;
 
   strcpy (var_name,item->_name.c_str());
@@ -269,18 +272,14 @@ void init_cwn_var(ntuple_item *item,
     ERROR("Internal error, ntuple item (%s) offset too large (%zd > %d).",
 	  var_name,offset,IND_ITEM_MAX_OFFSET);
 
-  write_ptrs._infos[index_info_off +
-		    indices._slot_ind++] = write_info;
-  write_ptrs._infos[index_info_off +
-		    indices._slot_ind++] = (uint32_t) offset;
+  write_infos[indices._slot_ind++] = write_info;
+  write_infos[indices._slot_ind++] = (uint32_t) offset;
 
   if (DEBUG_STAGING)
     INFO(0,"Storing:  %s [%d] %s @%d (%08x %08x) [p%p]",
 	 var_name,index,type,(int) offset,
-	 write_ptrs._infos[index_info_off +
-			   indices._slot_ind-2],
-	 write_ptrs._infos[index_info_off +
-                           indices._slot_ind-1],
+	 write_infos[indices._slot_ind-2],
+	 write_infos[indices._slot_ind-1],
 	 ptr);
 
   if (item->_ctrl_mask._ptr) // bitmask
@@ -324,29 +323,22 @@ void init_cwn_var(ntuple_item *item,
 	      "too large (%zd > %d).",
 	      var_name,mask_offset,IND_ITEM_MAX_MASK_OFFSET);
 
-      write_ptrs._infos[index_info_off +
-			indices._slot_ind-2] |= IND_ITEM_TYPE_IS_MASKED;
+      write_infos[indices._slot_ind-2] |= IND_ITEM_TYPE_IS_MASKED;
 
-      write_ptrs._infos[index_info_off +
-			indices._slot_ind++] = mask_info;
-      write_ptrs._infos[index_info_off +
-			indices._slot_ind++] = (uint32_t) mask_offset;
+      write_infos[indices._slot_ind++] = mask_info;
+      write_infos[indices._slot_ind++] = (uint32_t) mask_offset;
 
       if (DEBUG_STAGING)
 	INFO(0,"Bitmask:  %s [%d] v%d o%d @%d ([%08x] %08x %08x) [p%p]",
 	     var_name,index,
 	     valid_bit_shift,overflow_bit_shift,(int) mask_offset,
-	     write_ptrs._infos[index_info_off +
-			       indices._slot_ind-4],
-	     write_ptrs._infos[index_info_off +
-			       indices._slot_ind-2],
-	     write_ptrs._infos[index_info_off +
-			       indices._slot_ind-1],
+	     write_infos[indices._slot_ind-4],
+	     write_infos[indices._slot_ind-2],
+	     write_infos[indices._slot_ind-1],
 	     ptr);
     }
 
-  write_ptrs._dests[index_dest_off +
-		    indices._dest_ind++] = ptr;
+  write_dests[indices._dest_ind++] = ptr;
 
   ptr += sizeof(float);
 }
