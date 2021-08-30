@@ -269,7 +269,8 @@ void init_cwn_var(ntuple_item *item,
     (size_t) ((char*) item->_src._ptr_int - (char*) info.src_base);
 
   if (offset > IND_ITEM_MAX_OFFSET)
-    ERROR("Internal error, ntuple item (%s) offset too large (%zd > %d).",
+    ERROR("Internal error, "
+	  "ntuple item (%s) offset too large (%zd > %d).",
 	  var_name,offset,IND_ITEM_MAX_OFFSET);
 
   write_infos[indices._slot_ind++] = write_info;
@@ -305,7 +306,8 @@ void init_cwn_var(ntuple_item *item,
 	ERROR("Bitmask (%s) has more than 1 overflow bit (%08x).",
 	      var_name,item->_ctrl_mask._overflow);
       else if (item->_ctrl_mask._overflow == 1)
-	ERROR("Bitmask (%s) has overflow bit in position 0, not supported.",
+	ERROR("Bitmask (%s) has overflow bit in position 0, "
+	      "not supported.",
 	      var_name); // clashes with the use of 31 as no-overflow-bit
       else if (!(write_info & IND_ITEM_TYPE_FLOAT))
 	ERROR("Bitmask (%s) has overflow bit for non-float value, "
