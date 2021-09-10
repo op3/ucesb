@@ -436,19 +436,19 @@ Ubuntu Disco clang clang++ all:
   <<: *docker
   <<: *build
 
-Arch minimal gcc g++ all:
+Arch lastest gcc g++ all:
   stage: build
   image: archlinux/archlinux:base
   <<: *arch
   <<: *build
 
-Arch minimal clang clang++ all:
+Arch latest clang clang++ all:
   stage: build
   image: archlinux/archlinux:base
   <<: *arch
   <<: *build
 
-gcc-latest minimal gcc g++ all:
+gcc-latest full gcc g++ all:
   stage: build
   image: gcc:latest
   <<: *docker
