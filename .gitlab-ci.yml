@@ -57,7 +57,7 @@ stages:
 ###
 # Preparation rules, these contain the 'before_script', and refer to build
 
-.prepare-debian: &debian
+.debian: &debian
   before_script:
     - JOB_NAME=( $CI_BUILD_NAME )
     - export CC=${JOB_NAME[2]}
@@ -71,7 +71,7 @@ stages:
     - fi
   <<: *build
 
-.prepare-old-debian: &old-debian
+.old-debian: &old-debian
   before_script:
     - JOB_NAME=( $CI_BUILD_NAME )
     - export CC=${JOB_NAME[2]}
@@ -85,7 +85,7 @@ stages:
     - fi
   <<: *build
 
-.prepare-cc7: &cc7
+.cc7: &cc7
   before_script:
     # - rpm --rebuilddb && yum -y install yum-plugin-ovl # docker/overlay fix
     # - yum install -y git bison flex ncurses-devel make perl-Digest-MD5 gcc-c++
@@ -93,7 +93,7 @@ stages:
     - export YACC=bison
   <<: *build
 
-.prepare-slc6: &slc6
+.slc6: &slc6
   before_script:
     - source /opt/rh/devtoolset-4/enable
     - source /opt/rh/python27/enable
@@ -103,7 +103,7 @@ stages:
     - export YACC=bison
   <<: *build
 
-.prepare-ubuntu-gcc6-with-flex: &ubuntu-gcc6
+.ubuntu-gcc6-with-flex: &ubuntu-gcc6
   <<: *debian
   before_script:
     - JOB_NAME=( $CI_BUILD_NAME )
@@ -125,7 +125,7 @@ stages:
     - make install
     - cd ..
 
-.prepare-opensuse: &opensuse
+.opensuse: &opensuse
   before_script:
   # - zypper --non-interactive install git bison flex ncurses-devel
   #     make gcc gcc-c++ clang perl which > /dev/null
