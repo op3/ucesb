@@ -819,31 +819,28 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   // reader (also in case it detects an error) would be able to
   // resyncronize.  If not, we're to take the blow here...
 
-  s_bufhe_host *buffer_header;
+  s_bufhe_host buffer_header;
 
-  buffer_header = (s_bufhe_host *) buf;
+  memcpy (&buffer_header, buf, sizeof (s_bufhe_host));
 
   // The only thing which has to be correct is the dlen.  If that is
   // ok, then resyncronisation will occur at the next buffer...
   // Well, before that, the swapping has to make sense...
 
-  uint32 l_dlen = (uint32) buffer_header->l_dlen;
-  uint32 l_evt = (uint32) buffer_header->l_evt;
-
-  switch(buffer_header->l_free[0])
+  switch(buffer_header.l_free[0])
     {
     case 0x00000001:
       break;
     case 0x01000000:
-      l_dlen = bswap_32(l_dlen);
-      l_evt = bswap_32(l_evt);
+      byteswap_32(buffer_header);
       break;
     default:
       ERROR("Buffer header endian marker broken: %08x",_info.testbit);
       break;
     }
 
-  size_t buffer_size_dlen = BUFFER_SIZE_FROM_DLEN(l_dlen);
+  size_t buffer_size_dlen =
+    BUFFER_SIZE_FROM_DLEN((size_t) buffer_header.l_dlen);
 
   if (buffer_size_dlen > _info.bufsize)
     ERROR("Buffer size mismatch (buf:0x%x > info:0x%x).",
@@ -867,15 +864,17 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
 
   *nbufs = 1;
 
-  if (((sint32*) buffer_header)[2] == 0 && // used, end, begin
-      l_evt == 0)
+  if (buffer_header.i_used == 0 &&
+      buffer_header.h_end == 0 &&
+      buffer_header.h_begin  == 0 &&
+      buffer_header.l_evt == 0)
     {
       return 0;
     }
 
   // And again - be very careful to use the byteswapped value!
 
-  if (((sint32) l_evt) < 0)
+  if (((sint32) buffer_header.l_evt) < 0)
     *nbufs = -1;
 
   return buffer_size_dlen;
