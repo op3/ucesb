@@ -839,11 +839,18 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
       break;
     }
 
+  bool varsize = false;
+
   if ((buffer_header.i_type    == LMD_BUF_HEADER_10_1_TYPE &&
        buffer_header.i_subtype == LMD_BUF_HEADER_10_1_SUBTYPE) ||
       (buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_TYPE &&
        buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE))
     ;
+  else if ((buffer_header.i_type    == LMD_BUF_HEADER_100_1_TYPE &&
+	    buffer_header.i_subtype == LMD_BUF_HEADER_100_1_SUBTYPE) ||
+	   (buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_VARSZ_TYPE &&
+	    buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_VARSZ_SUBTYPE))
+    varsize = true;
   else
     {
       ERROR("TCP buffer header unexpected. "
@@ -861,10 +868,20 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
     ERROR("Buffer size mismatch (buf:0x%x > info:0x%x).",
 	  (int) buffer_size_dlen,_info.bufsize);
 
+  size_t buffer_actual_size = buffer_size_dlen;
+
+  if (varsize)
+    {
+      size_t buf_used =
+	(size_t) BUFFER_USED_FROM_IUSED(buffer_header.l_free[2]);
+
+      buffer_actual_size = buf_used + sizeof (s_bufhe_host);
+    }
+
   // Read the remaining data.
 
   do_read(((char *) buf) + sizeof (s_bufhe_host),
-	  buffer_size_dlen - sizeof (s_bufhe_host));
+	  buffer_actual_size - sizeof (s_bufhe_host));
 
   // Check if it is the keep-alive buffer.  In that case, silently eat
   // it!  Careful: we have not been byte-swapped.  But the entries
@@ -892,7 +909,7 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   if (((sint32) buffer_header.l_evt) < 0)
     *nbufs = -1;
 
-  return buffer_size_dlen;
+  return buffer_actual_size;
 }
 
 /////////////////////////////////////////////////////////////////////
