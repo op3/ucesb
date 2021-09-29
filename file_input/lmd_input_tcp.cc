@@ -835,9 +835,24 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
       byteswap_32(buffer_header);
       break;
     default:
-      ERROR("Buffer header endian marker broken: %08x",_info.testbit);
+      ERROR("TCP buffer header endian marker broken: %08x",_info.testbit);
       break;
     }
+
+  if ((buffer_header.i_type    == LMD_BUF_HEADER_10_1_TYPE &&
+       buffer_header.i_subtype == LMD_BUF_HEADER_10_1_SUBTYPE) ||
+      (buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_TYPE &&
+       buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_SUBTYPE))
+    ;
+  else
+    {
+      ERROR("TCP buffer header unexpected. "
+            "Type/subtype error. (%d=0x%04x/%d=0x%04x)",
+            (uint16_t) buffer_header.i_type,
+	    (uint16_t) buffer_header.i_type,
+            (uint16_t) buffer_header.i_subtype,
+	    (uint16_t) buffer_header.i_subtype);
+     }
 
   size_t buffer_size_dlen =
     BUFFER_SIZE_FROM_DLEN((size_t) buffer_header.l_dlen);
