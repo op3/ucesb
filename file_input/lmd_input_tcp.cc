@@ -827,6 +827,16 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   // ok, then resyncronisation will occur at the next buffer...
   // Well, before that, the swapping has to make sense...
 
+  /*
+  printf("%d %d %d %d %d %d\n",
+	 buffer_header.i_type,
+	 buffer_header.i_subtype,
+	 buffer_header.l_dlen,
+	 buffer_header.l_evt,
+	 buffer_header.l_free[0],
+	 buffer_header.l_free[2]);
+  */
+
   switch(buffer_header.l_free[0])
     {
     case 0x00000001:
@@ -875,7 +885,15 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
       size_t buf_used =
 	(size_t) BUFFER_USED_FROM_IUSED(buffer_header.l_free[2]);
 
+#if 0
       buffer_actual_size = buf_used + sizeof (s_bufhe_host);
+
+      if (buffer_actual_size != buffer_size_dlen + sizeof (s_bufhe_host) + 8)
+	ERROR("Variable sizes buffer has mismatch in use vs. buffer length.");
+#endif
+
+      if (buffer_actual_size != buf_used + sizeof (s_bufhe_host))
+	ERROR("Variable sizes buffer has mismatch in use vs. buffer length.");
     }
 
   // Read the remaining data.
@@ -897,6 +915,7 @@ size_t lmd_input_tcp_buffer::read_buffer(void *buf,size_t count,
   *nbufs = 1;
 
   if (buffer_header.i_used == 0 &&
+      buffer_header.l_free[2] == 0 &&
       buffer_header.h_end == 0 &&
       buffer_header.h_begin  == 0 &&
       buffer_header.l_evt == 0)
