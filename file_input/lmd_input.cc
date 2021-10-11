@@ -219,6 +219,14 @@ bool lmd_source::read_record(bool expect_fragment)
 	  "negative or very large, refusing.",
 	  _buffer_header.l_dlen);
 
+  bool varsize = false;
+
+  if ((_buffer_header.i_type    == LMD_BUF_HEADER_100_1_TYPE &&
+       _buffer_header.i_subtype == LMD_BUF_HEADER_100_1_SUBTYPE) ||
+      (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_VARSZ_TYPE &&
+       _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_VARSZ_SUBTYPE))
+    varsize = true;
+
   size_t buffer_size_dlen =
     BUFFER_SIZE_FROM_DLEN((size_t) _buffer_header.l_dlen);
 
@@ -287,8 +295,6 @@ bool lmd_source::read_record(bool expect_fragment)
 
   size_t file_header_size = 0;
   ssize_t file_header_used_size = -1;
-
-  bool varsize = false;
 
   if (_buffer_header.i_type    == LMD_FILE_HEADER_2000_1_TYPE &&
       _buffer_header.i_subtype == LMD_FILE_HEADER_2000_1_SUBTYPE)
@@ -392,12 +398,6 @@ bool lmd_source::read_record(bool expect_fragment)
 	  (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_VARSZ_TYPE &&
 	   _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_VARSZ_SUBTYPE))
 	_first_buf_status = LMD_EVENT_FIRST_BUFFER_HAS_STICKY;
-
-      if ((_buffer_header.i_type    == LMD_BUF_HEADER_100_1_TYPE &&
-	   _buffer_header.i_subtype == LMD_BUF_HEADER_100_1_SUBTYPE) ||
-	  (_buffer_header.i_type    == LMD_BUF_HEADER_HAS_STICKY_VARSZ_TYPE &&
-	   _buffer_header.i_subtype == LMD_BUF_HEADER_HAS_STICKY_VARSZ_SUBTYPE))
-	varsize = true;
 
       if (_expect_file_header)
         {
