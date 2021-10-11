@@ -230,9 +230,17 @@ bool lmd_source::read_record(bool expect_fragment)
   size_t buffer_size_dlen =
     BUFFER_SIZE_FROM_DLEN((size_t) _buffer_header.l_dlen);
 
+#if 0
+  if (varsize)
+    {
+      buffer_size_dlen += sizeof (s_bufhe_host) + 8;
+    }
+#endif
+
   // buffer length should be multiple of 1024 bytes
-  if (!buffer_size_dlen ||
-      buffer_size_dlen % 1024)
+  if (!varsize &&
+      (!buffer_size_dlen ||
+       buffer_size_dlen % 1024))
     {
       // The MBS eventapi creates broken file headers, with l_dlen
       // of original size/2, without taking itself out of account
