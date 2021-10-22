@@ -33,7 +33,7 @@
  */
 
 /********************************************************************/
-/* GSI buffer header */
+/* GOOSY buffer header. */
 
 /* (0x8000 - sizeof(s_bufhe))/2
  * Above this buffer size (as given by l_dlen) l_free[2] is used to
