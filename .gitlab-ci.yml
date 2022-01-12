@@ -599,6 +599,14 @@ Ubuntu Xenial gcc g++ all root6:
   <<: *docker
   <<: *build
 
+# Also has geant4 (unused by ucesb).
+Ubuntu Bionic gcc g++ all root6:
+  stage: build
+  image: smflment/geant4:latest
+  <<: *docker
+  <<: *debian
+  <<: *build
+
 ###
 # Try the merging mode
 
