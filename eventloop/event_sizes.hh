@@ -25,6 +25,7 @@
 #include "pax_input.hh"
 #include "genf_input.hh"
 #include "ebye_input.hh"
+#include "mvlc_input.hh"
 
 #include <stdint.h>
 

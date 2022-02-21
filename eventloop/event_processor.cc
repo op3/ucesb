@@ -126,7 +126,7 @@ void *event_processor::worker()
 
 	    event_base *eb = (event_base *) send_item._event;
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 	    ucesb_event_loop::pre_unpack_event(*eb, &_hints);
 #endif
 

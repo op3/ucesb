@@ -1405,7 +1405,7 @@ get_next_event:
 #endif
 		)
 	      {
-#if !defined(USE_LMD_INPUT) && !defined(USE_HLD_INPUT) && !defined(USE_RIDF_INPUT)
+#if !defined(USE_LMD_INPUT) && !defined(USE_HLD_INPUT) && !defined(USE_MVLC_INPUT) && !defined(USE_RIDF_INPUT)
 		try {
 		  loop.force_event_data(*event);
 		} catch (error &e) { }
@@ -1421,7 +1421,7 @@ get_next_event:
 	      if (!loop._ext_source)
 #endif
 		{
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 		  loop.pre1_unpack_event(file_event);
 #if defined(USE_LMD_INPUT)
 		  if (file_event->is_sticky())
@@ -1437,7 +1437,7 @@ get_next_event:
 		{
 		  // With LMD input we cannot print the event until it has
 		  // been pre-unpacked, i.e. the subevents localised
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 		  try {
 		    loop.force_event_data(*event, &loop._source_event_hint);
 		  } catch (error &e) { }
@@ -1503,7 +1503,7 @@ get_next_event:
 			    CT_OUT(RED),CT_OUT(DEF_COL));
 		    try {
 		      loop.force_event_data(*event
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 					    , &loop._source_event_hint
 #endif
 					    );

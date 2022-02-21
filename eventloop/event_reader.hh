@@ -27,6 +27,7 @@
 #include "pax_input.hh"
 #include "genf_input.hh"
 #include "ebye_input.hh"
+#include "mvlc_input.hh"
 #include "ridf_input.hh"
 
 class data_input_source;
@@ -50,6 +51,9 @@ public:
 #endif
 #ifdef USE_EBYE_INPUT
   ebye_source _reader;
+#endif
+#ifdef USE_MVLC_INPUT
+  mvlc_source _reader;
 #endif
 #ifdef USE_RIDF_INPUT
   ridf_source _reader;

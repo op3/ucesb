@@ -35,7 +35,7 @@
 // scramble below will never happen, since they are compile time
 // constants
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 
 template<int swapping,int scramble,int account>
 class __data_src
@@ -349,7 +349,7 @@ public:
 
 #endif
 
-#ifdef USE_EBYE_INPUT_32
+#if defined(USE_EBYE_INPUT_32)
 
 template<int swapping,int account>
 class __data_src

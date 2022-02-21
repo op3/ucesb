@@ -31,7 +31,7 @@
 // that.  (Eg siderem01)
 
 #if !defined(USE_PAX_INPUT) && !defined(USE_GENF_INPUT) && \
-  !defined(USE_EBYE_INPUT)
+  !defined(USE_EBYE_INPUT) && !defined(USE_MVLC_INPUT)
 
 ////////////////////////////////////////////////////////////////////////
 

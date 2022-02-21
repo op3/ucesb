@@ -529,6 +529,14 @@ endif
 
 #########################################################
 
+ifdef USE_MVLC_INPUT
+CXXFLAGS     += -DUSE_MVLC_INPUT=$(USE_MVLC_INPUT)
+OBJS         += mvlc_input.o
+EMPTY_FILE_FORMAT = --mvlc
+endif
+
+#########################################################
+
 ifdef USE_RIDF_INPUT
 CXXFLAGS     += -DUSE_RIDF_INPUT=$(USE_RIDF_INPUT)
 OBJS         += ridf_input.o

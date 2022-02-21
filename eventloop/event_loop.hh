@@ -28,6 +28,7 @@
 #include "genf_input.hh"
 #include "ebye_input.hh"
 #include "hld_input.hh"
+#include "mvlc_input.hh"
 #include "ridf_input.hh"
 
 #include "config.hh"
@@ -163,6 +164,10 @@ public:
   hld_source  _source;
   typedef hld_event_hint source_event_hint_t;
 #endif
+#ifdef USE_MVLC_INPUT
+  mvlc_source _source;
+  typedef mvlc_event_hint source_event_hint_t;
+#endif
 #ifdef USE_RIDF_INPUT
   ridf_source _source;
   typedef ridf_event_hint source_event_hint_t;
@@ -171,7 +176,7 @@ public:
   paw_ntuple *_ext_source;
 #endif
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
   source_event_hint_t _source_event_hint;
 #endif
 
@@ -204,7 +209,7 @@ public:
   static void pre1_unpack_event(FILE_INPUT_EVENT *src_event);
   template<typename T_event_base>
   static void pre2_unpack_event(T_event_base &eb
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 				, source_event_hint_t *hints
 #endif
 				);
@@ -217,7 +222,7 @@ public:
   // the following is used before error printing, to ensure that
   // whatever data is available, is available unfragmented.
   static void force_event_data(event_base &eb
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 			       , source_event_hint_t *hints
 #endif
 			       );

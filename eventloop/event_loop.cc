@@ -978,7 +978,7 @@ void err_bold_header(char* headermsg,
 #elif defined(USE_PAX_INPUT) || defined(USE_GENF_INPUT) || \
   defined(USE_EBYE_INPUT_16)
 #define HAS_WORD_16 1
-#elif defined(USE_EBYE_INPUT_32) || defined(USE_RIDF_INPUT) // ridf is 32 only?
+#elif defined(USE_EBYE_INPUT_32) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT) // ridf is 32 only?
 #define HAS_WORD_32 1
 #endif
 
@@ -1251,7 +1251,7 @@ void unpack_clean(sticky_event_base &eb)
   eb._unpack.__clear_visited();
 }
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 void ucesb_event_loop::pre1_unpack_event(FILE_INPUT_EVENT *src_event)
 {
 #ifdef USE_LMD_INPUT
@@ -1301,7 +1301,7 @@ template
 void ucesb_event_loop::
 pre2_unpack_event<sticky_event_base>(sticky_event_base &eb,
 				     source_event_hint_t *hints);
-#endif//USE_LMD_INPUT || USE_HLD_INPUT || USE_RIDF_INPUT
+#endif//USE_LMD_INPUT || USE_HLD_INPUT $$ USE_MVLC_INPUT || USE_RIDF_INPUT
 
 
 #if defined(USE_LMD_INPUT)
@@ -1414,7 +1414,7 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
     _event_sizes.account(src_event);
 #endif
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
   // printf ("---> %d\n",src_event->_nsubevents);
   // fflush(stdout);
 
@@ -1500,7 +1500,7 @@ void ucesb_event_loop::unpack_event(T_event_base &eb)
 	    }
 	}
 #endif
-#ifdef USE_HLD_INPUT
+#if defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT)
       if (subevent_info->_swapping)
 	{
 	  __data_src<1,0,account> src(start,end);
@@ -1560,7 +1560,7 @@ template
 void ucesb_event_loop::unpack_event<sticky_event_base,1>(sticky_event_base &eb);
 
 void ucesb_event_loop::force_event_data(event_base &eb
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 					, source_event_hint_t *hints
 #endif
 					)
@@ -1576,7 +1576,7 @@ void ucesb_event_loop::force_event_data(event_base &eb
   src_event->get_10_1_info();    // this may throw up (also)...
 #endif
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) | defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
   // Next thing is to localise the subevents inside the event
   src_event->locate_subevents(hints); // this may throw up...
 

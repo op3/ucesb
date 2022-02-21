@@ -24,7 +24,7 @@
 #define FORCE_IMPL_FCN(returns,fcn_name,...) \
   template returns fcn_name(__VA_ARGS__);
 
-#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_RIDF_INPUT)
+#if defined(USE_LMD_INPUT) || defined(USE_HLD_INPUT) || defined(USE_MVLC_INPUT) || defined(USE_RIDF_INPUT)
 
 #define FORCE_IMPL_DATA_SRC_FCN(returns,fcn_name) \
   FORCE_IMPL_FCN(returns,fcn_name,__data_src<0,0,0> &__buffer); \
