@@ -85,7 +85,7 @@ struct mvlc_event : public input_event {
   size_t _frame_end;
   size_t _offset_cur;
 
-  mvlc_source *src;
+  char *_data; // ptr to data in contiguous memory
 
 #ifndef USE_THREADING
 public:

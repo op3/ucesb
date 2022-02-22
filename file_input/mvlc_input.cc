@@ -87,16 +87,19 @@ bool mvlc_source::next_eth_frame(mvlc_event *dest) {
 
     mvlc_swap(eth_header.header0);
 
-    if (eth_header.header0.channel() == mvlc_eth_channel_data) {
+    if (LIKELY(eth_header.header0.channel() == mvlc_eth_channel_data)) {
       if (!_input.read_range(&eth_header.header1, sizeof(eth_header.header1)))
         return false;
       mvlc_swap(eth_header.header1);
 
-      assert(eth_header.header1.cont() == 0);
+      // assert(eth_header.header1.cont() == 0);
       eth_header.unused =
           static_cast<sint32>(eth_header.header0.length() * sizeof(uint32_t));
 
       return true;
+    } else if (UNLIKELY(eth_header.header0.event_type() ==
+                        mvlc_system_event_subtype_end_of_file)) {
+      return false;
     }
 
     // Map the data to skip it
@@ -158,6 +161,7 @@ mvlc_event *mvlc_source::get_event() {
 
   // Now check that it makes sense
   size_t data_size = dest->_header.frame_header.length() * sizeof(uint32_t);
+  size_t data_size_full = data_size;
   if (UNLIKELY(data_size > MVLC_SECTION_MAX_LENGTH))
     ERROR("Data length (0x%08lx) very large, refusing.", data_size);
 
@@ -165,9 +169,62 @@ mvlc_event *mvlc_source::get_event() {
   dest->_chunk_cur = dest->_chunk_end = dest->_chunks;
   dest->_offset_cur = 0;
 
-  // Do not retrieve any data if the data size is 0 (or locate_subevents will
-  // try to find a first header...
-  if (LIKELY(data_size)) {
+  if (UNLIKELY(0 > eth_header.unused)) {
+    // TODO: instead of _input.map_range, copy/move data in current ethernet
+    // frame to new buffer, go to to next ethernet frame, release previous
+    // frame, copy appropriate amount of data, and never worry about old frame
+    // again.
+    // printf("data_size = %lu, unused = %d, cur = %lu\n", data_size,
+    //        eth_header.unused, _input._cur);
+    // printf("Segfault imminent, goodbye, cruel unpacker!\n");
+    // fflush(stdout);
+
+    // Map the range
+    uint32 first = static_cast<uint32>(data_size + eth_header.unused);
+    uint32 next = static_cast<uint32>(-eth_header.unused);
+#ifdef USE_THREADING
+    char *defrag = (char *)_wt._defrag_buffer->allocate_reclaim(data_size);
+#else
+    char *defrag = (char *)dest->_defrag_event_many.allocate(data_size);
+#endif
+    dest->_data = defrag;
+    char *defrag_cur = defrag;
+
+    if (UNLIKELY(!_input.read_range(defrag_cur, first))) {
+      return NULL;
+    }
+
+    data_size -= first;
+    defrag_cur += first;
+
+    while (data_size > 0) {
+      if (!next_eth_frame(dest)) {
+        return NULL;
+      }
+      eth_header.unused -= next;
+      if (eth_header.unused < 0) {
+        first =
+            static_cast<uint32>(eth_header.header0.length() * sizeof(uint32_t));
+      } else {
+        first = next;
+      }
+      if (UNLIKELY(!_input.read_range(defrag_cur, first))) {
+        return NULL;
+      }
+      defrag_cur += first;
+      data_size -= first;
+    }
+    dest->_chunks[0]._ptr = dest->_data;
+    dest->_chunks[0]._length = data_size_full;
+    dest->_chunks[1]._ptr = NULL;
+    dest->_chunks[1]._length = 0;
+    dest->_chunk_cur = &(dest->_chunks[0]);
+    dest->_chunk_end = &(dest->_chunks[1]);
+    // dest->_chunk_end->_ptr = NULL;
+    // dest->_chunk_end->_length = 0;
+  } else if (LIKELY(data_size)) {
+    // Do not retrieve any data if the data size is 0 (or locate_subevents
+    // will try to find a first header...
     int chunks = 0;
 
     chunks = _input.map_range(data_size, dest->_chunks);
@@ -179,19 +236,6 @@ mvlc_event *mvlc_source::get_event() {
 
     dest->_chunk_end += chunks;
   }
-
-  if (0 > eth_header.unused) {
-    // TODO: instead of _input.map_range, copy/move data in current ethernet
-    // frame to new buffer, go to to next ethernet frame, release previous
-    // frame, copy appropriate amount of data, and never worry about old frame
-    // again.
-    printf("data_size = %lu, unused = %d, cur = %lu\n", data_size,
-           eth_header.unused, _input._cur);
-    printf("Segfault imminent, goodbye, cruel unpacker!\n");
-    fflush(stdout);
-  }
-
-  dest->src = this;
 
   // ok, so data for event is in the chunks
 
@@ -267,8 +311,7 @@ void mvlc_event::locate_subevents(mvlc_event_hint * /*hints*/) {
   _status |= MVLC_EVENT_LOCATE_SUBEVENTS_ATTEMPT;
 
   if (_header.frame_header.type() != mvlc_frame_stack_frame) {
-    printf("Skipping frame with type %x.\n", _header.frame_header.type());
-    fflush(stdout);
+    ERROR("Unrecognized frame type %02x.", _header.frame_header.type());
     return;
   }
 
@@ -305,10 +348,6 @@ void mvlc_event::locate_subevents(mvlc_event_hint * /*hints*/) {
             _chunk_end - chunk_cur);
     fflush(stdout);
     */
-
-    if (UNLIKELY(offset_cur >= _frame_end)) {
-      src->next_eth_frame(this);
-    }
 
     // We have more data to read.
     // Does this fragment have enough data for the subevent header?

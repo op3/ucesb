@@ -49,6 +49,7 @@ struct mvlc_system_event_header {
 struct mvlc_ethernet_frame_header0 {
   uint32 data;
   mvlc_attr(channel, 28, 4);
+  mvlc_attr(event_type, 24, 8);
   mvlc_attr(packet_number, 16, 12);
   mvlc_attr(ctrl_id, 13, 3);
   mvlc_attr(length, 0, 13);
