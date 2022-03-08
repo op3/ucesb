@@ -54,6 +54,8 @@ bool mvlc_source::read_preamble_endianness(mvlc_event *dest) {
   if (!_input.read_range(&_preamble, sizeof(_preamble)))
     return false;
 
+  _pos = _input._cur;
+
   for (size_t i = 0; i <= 7; i++) {
     if (_preamble.magic[i] != mvlc_magic[i]) {
       ERROR("Invalid file header: '%.8s'", _preamble.magic);
@@ -79,55 +81,70 @@ bool mvlc_source::read_preamble_endianness(mvlc_event *dest) {
   return true;
 }
 
-// TODO: Don’t read_range, map_range
 bool mvlc_source::next_eth_frame(mvlc_event *dest) {
+  uint32 prev_packet_number = eth_header.header0.packet_number();
   for (;;) {
-    if (!_input.read_range(&eth_header.header0, sizeof(eth_header.header0)))
+    if (UNLIKELY(!_input.read_range(&eth_header.header0, sizeof(eth_header.header0))))
       return false;
 
     mvlc_swap(eth_header.header0);
+    // printf("packet_number: %u\n", eth_header.header0.packet_number());
+    // fflush(stdout);
 
     if (LIKELY(eth_header.header0.channel() == mvlc_eth_channel_data)) {
       if (!_input.read_range(&eth_header.header1, sizeof(eth_header.header1)))
         return false;
       mvlc_swap(eth_header.header1);
 
-      // assert(eth_header.header1.cont() == 0);
       eth_header.unused =
           static_cast<sint32>(eth_header.header0.length() * sizeof(uint32_t));
+      
+      if (UNLIKELY(
+          prev_packet_number != 0xfff &&
+          prev_packet_number + 1 != eth_header.header0.packet_number())) {
+        WARNING("packet_number increased by %d. pos: 0x%lx.",
+               eth_header.header0.packet_number() - prev_packet_number,
+               _input._cur);
+
+        // Skip to beginning of next stack frame
+        _input.map_range(eth_header.header1.cont() * sizeof(uint32_t),
+                         dest->_chunks);
+        eth_header.unused -=
+          static_cast<sint32>(eth_header.header1.cont() * sizeof(uint32_t));
+      }
 
       return true;
-    } else if (UNLIKELY(eth_header.header0.event_type() ==
-                        mvlc_system_event_subtype_end_of_file)) {
-      return false;
+    } else if (UNLIKELY(
+        eth_header.header0.event_type() == mvlc_frame_system_event)) {
+      if (UNLIKELY(eth_header.header0.subtype() == mvlc_system_event_subtype_end_of_file)) {
+        return false;
+      } else {
+        // Map the data to skip it
+        _input.map_range(eth_header.header0.length() * sizeof(uint32_t),
+                         dest->_chunks);
+      }
+    } else {
+      WARNING("Unknown event type: 0x%02x.", eth_header.header0.event_type());
     }
-
-    // Map the data to skip it
-    _input.map_range(eth_header.header0.length() * sizeof(uint32_t),
-                     dest->_chunks);
   }
 }
 
-// TODO: Don’t read_range, map_range
 bool mvlc_source::next_stack_frame(mvlc_event *dest) {
   while (eth_header.unused > 0 || next_eth_frame(dest)) {
     if (!_input.read_range(&dest->_header, sizeof(dest->_header)))
       return false;
     mvlc_swap(dest->_header);
 
-    size_t data_size = dest->_header.frame_header.length() * sizeof(uint32_t);
-    eth_header.unused -= static_cast<sint32>(data_size + sizeof(dest->_header));
+    if (LIKELY(dest->_header.frame_header.type() == mvlc_frame_stack_frame)) {
+      size_t data_size = dest->_header.frame_header.length() * sizeof(uint32_t);
+      eth_header.unused -= static_cast<sint32>(data_size + sizeof(dest->_header));
 
-    dest->_frame_end = data_size + eth_header.unused;
-
-    if (dest->_header.frame_header.type() == mvlc_frame_stack_frame) {
+      dest->_frame_end = data_size + eth_header.unused;
+      dest->_pos = _input._cur;
       return true;
     }
 
-    // Map the data to skip it
-    _input.map_range(data_size + (eth_header.unused < 0) ? eth_header.unused
-                                                         : 0,
-                     dest->_chunks);
+    eth_header.unused -= static_cast<sint32>(sizeof(dest->_header));
   }
   return false;
 }
@@ -157,6 +174,14 @@ mvlc_event *mvlc_source::get_event() {
   if (!next_stack_frame(dest))
     return NULL;
 
+  if (_pos >= dest->_pos) {
+    printf("\npos: %lu >= %lu\n", _pos, dest->_pos);
+    fflush(stdout);
+    ERROR("pos violated");
+  }
+  // assert(_pos < dest->_pos);
+  _pos = dest->_pos;
+
   // So header is safely retrieved.
 
   // Now check that it makes sense
@@ -170,10 +195,6 @@ mvlc_event *mvlc_source::get_event() {
   dest->_offset_cur = 0;
 
   if (UNLIKELY(0 > eth_header.unused)) {
-    // TODO: instead of _input.map_range, copy/move data in current ethernet
-    // frame to new buffer, go to to next ethernet frame, release previous
-    // frame, copy appropriate amount of data, and never worry about old frame
-    // again.
     // printf("data_size = %lu, unused = %d, cur = %lu\n", data_size,
     //        eth_header.unused, _input._cur);
     // printf("Segfault imminent, goodbye, cruel unpacker!\n");
@@ -216,12 +237,11 @@ mvlc_event *mvlc_source::get_event() {
     }
     dest->_chunks[0]._ptr = dest->_data;
     dest->_chunks[0]._length = data_size_full;
-    dest->_chunks[1]._ptr = NULL;
-    dest->_chunks[1]._length = 0;
-    dest->_chunk_cur = &(dest->_chunks[0]);
-    dest->_chunk_end = &(dest->_chunks[1]);
-    // dest->_chunk_end->_ptr = NULL;
-    // dest->_chunk_end->_length = 0;
+    dest->_chunk_end += 1;
+    // dest->_chunks[1]._ptr = NULL;
+    // dest->_chunks[1]._length = 0;
+    // dest->_chunk_cur = &(dest->_chunks[0]);
+    // dest->_chunk_end = &(dest->_chunks[1]);
   } else if (LIKELY(data_size)) {
     // Do not retrieve any data if the data size is 0 (or locate_subevents
     // will try to find a first header...
@@ -249,8 +269,7 @@ void mvlc_event::print_event(int data, hex_dump_mark_buf *unpack_fail) const {
   printf(
       "Event Type:   %s0x%02x%s    Flags: %s%d%d%d%d%s Ctrl ID: %s%2u%s    "
       "Stack "
-      "Num: %s%2u%s    "
-      "Size:%s%8lu%s\n",
+      "Num: %s%2u%s    Size:%s%8lu%s    Pos: %s0x%lx%s\n",
       CT_OUT(BOLD_BLUE), _header.frame_header.type(), CT_OUT(NORM_DEF_COL),
       CT_OUT(BOLD_BLUE), _header.frame_header.cont(),
       _header.frame_header.syntax_error(), _header.frame_header.bus_error(),
@@ -258,7 +277,7 @@ void mvlc_event::print_event(int data, hex_dump_mark_buf *unpack_fail) const {
       _header.frame_header.ctrl_id(), CT_OUT(NORM_DEF_COL), CT_OUT(BOLD_BLUE),
       _header.frame_header.stack_num(), CT_OUT(NORM_DEF_COL), CT_OUT(BOLD_BLUE),
       _header.system_event_header.length() * sizeof(uint32_t),
-      CT_OUT(NORM_DEF_COL));
+      CT_OUT(NORM_DEF_COL), CT_OUT(BOLD_BLUE), _pos, CT_OUT(NORM_DEF_COL));
 
   // Subevents
   if (_header.frame_header.type() == mvlc_frame_stack_frame) {
@@ -296,8 +315,6 @@ void mvlc_event::print_event(int data, hex_dump_mark_buf *unpack_fail) const {
       }
     }
   }
-  // TODO: Print data of non-event sections
-
   // Is there any remaining data, that could not be assigned as a subevent?
 
   print_remaining_event(_chunk_cur, _chunk_end, _offset_cur,
@@ -320,7 +337,7 @@ void mvlc_event::locate_subevents(mvlc_event_hint * /*hints*/) {
   // get some space, for at least so many subevents as we have seen at
   // most before...
 
-#define MAX_SUBEVENTS 64 // TODO: fix this!!!
+#define MAX_SUBEVENTS 8 // TODO: fix this!!!
 
 #ifdef USE_THREADING
   _subevents = (mvlc_subevent *)_wt._defrag_buffer->allocate_reclaim(
@@ -353,10 +370,11 @@ void mvlc_event::locate_subevents(mvlc_event_hint * /*hints*/) {
     // Does this fragment have enough data for the subevent header?
 
     mvlc_subevent *subevent_info = &_subevents[_nsubevents];
-    mvlc_frame<0> *subevent_header = &subevent_info->_header;
+    mvlc_subevent_header *subevent_header = &subevent_info->_header;
+    subevent_info->_header._id = _nsubevents;
 
-    if (!get_range_many((char *)subevent_header, chunk_cur, offset_cur,
-                        _chunk_end, sizeof(mvlc_frame<0>))) {
+    if (!get_range_many((char *)&(subevent_header->frame_header), chunk_cur, offset_cur,
+                        _chunk_end, sizeof(mvlc_frame_header))) {
       // We're simply out of data.
       ERROR("Subevent header not complete before end of event.");
     }
@@ -423,13 +441,15 @@ void mvlc_event::locate_subevents(mvlc_event_hint * /*hints*/) {
 
       chunk_cur++;
 
-      // if (chunk_cur >= _chunk_end || data_length > chunk_cur->_length) {
-      //   ERROR("Subevent (module type 0x%08x) length %lu bytes, "
-      //         "not complete before end of event, %d bytes missing",
-      //         subevent_info->_header._info._module_type,
-      //         subevent_info->_header._info._size * sizeof(uint32_t),
-      //         (int)data_length);
-      // }
+      if (UNLIKELY(chunk_cur >= _chunk_end || data_length > chunk_cur->_length)) {
+        // If this happens, the event is broken, not our fault!
+        WARNING("Subevent, %lu bytes at 0x%08lx, "
+                "not complete before end of event, %d bytes missing",
+                subevent_info->_header.frame_header.length() * sizeof(uint32_t),
+                _pos, (int)data_length);
+        _nsubevents = 0;
+        return;
+      }
 
       chunk_left = chunk_cur->_length;
 
@@ -480,7 +500,7 @@ void mvlc_event::get_subevent_data_src(mvlc_subevent *subevent_info,
       subevent_info->_header.frame_header.length() * sizeof(uint32_t);
 
   if (UNLIKELY(subevent_info->_data == NULL)) {
-    // We need to copy the subevent to an defragment buffer.
+    // We need to copy the subevent to a defragment buffer.
     // The trouble with this buffer is that it needs to be
     // deallocated or marked free somehow also...
 
@@ -505,24 +525,22 @@ void mvlc_event::get_subevent_data_src(mvlc_subevent *subevent_info,
 #endif
 
     subevent_info->_data = defrag;
-
+    
+    // First fragment
     buf_chunk *frag = subevent_info->_frag;
 
     size_t size0 = frag->_length - subevent_info->_offset;
 
-    // First copy data from first fragmented buffer
-
+    // First copy data from first fragmented buffer to defrag buffer
     memcpy(defrag, frag->_ptr + subevent_info->_offset, size0);
 
     defrag += size0;
     size_t length = data_length - size0;
 
+    // Next fragment
     frag++;
 
-    // And copy last one
-
     assert(length <= frag->_length);
-
     memcpy(defrag, frag->_ptr, length);
     /*
       for (uint i = 0; i < subevent_info->_length; i++)

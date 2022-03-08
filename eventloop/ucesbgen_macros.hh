@@ -322,9 +322,10 @@
 #endif//USE_HLD_INPUT
 
 #ifdef USE_MVLC_INPUT
-#define VES10_1_ITEM(x) (((mvlc_subevent_header *) __header)->_info.x)
+#define VES10_1_ITEM(x) (((mvlc_subevent_header *) __header)->x)
 
-#define VES10_1_module_type  VES10_1_ITEM(_module_type)
+//#define VES10_1_module_type  VES10_1_ITEM(_module_type)
+#define VES10_1_id  VES10_1_ITEM(_id)
 #endif//USE_MVLC_INPUT
 
 #ifdef USE_PAX_INPUT

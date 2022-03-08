@@ -51,6 +51,7 @@ struct mvlc_ethernet_frame_header0 {
   mvlc_attr(channel, 28, 4);
   mvlc_attr(event_type, 24, 8);
   mvlc_attr(packet_number, 16, 12);
+  mvlc_attr(subtype, 13, 7);
   mvlc_attr(ctrl_id, 13, 3);
   mvlc_attr(length, 0, 13);
 };
@@ -119,6 +120,11 @@ template <size_t N> struct mvlc_frame {
     uint32 header;
   };
   uint32 data[N];
+};
+
+struct mvlc_subevent_header {
+  mvlc_frame_header frame_header;
+  uint32 _id;
 };
 
 typedef uint32 mvlc_data_t;
