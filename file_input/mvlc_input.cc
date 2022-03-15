@@ -124,7 +124,7 @@ bool mvlc_source::next_eth_frame(mvlc_event *dest) {
                          dest->_chunks);
       }
     } else {
-      WARNING("Unknown event type: 0x%02x.", eth_header.header0.event_type());
+      ERROR("Unknown event type: 0x%02x.", eth_header.header0.event_type());
     }
   }
 }
